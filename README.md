@@ -47,6 +47,8 @@
 
 Camelot also comes packaged with a [command-line interface](https://camelot-py.readthedocs.io/en/master/user/cli.html)!
 
+Refer to the [QuickStart Guide](https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/user/quickstart.rst#quickstart) to quickly get started with Camelot, extract tables from PDFs and explore some basic options.
+
 **Note:** Camelot only works with text-based PDFs and not scanned documents. (As Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
 You can check out some frequently asked questions [here](https://camelot-py.readthedocs.io/en/master/user/faq.html).
