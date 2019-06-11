@@ -17,14 +17,14 @@
 
 **Here's how you can extract tables from PDFs.** You can check out the PDF used in this example [here](https://github.com/camelot-dev/camelot/blob/master/docs/_static/pdf/foo.pdf).
 
-<pre>
+```python3
 >>> import camelot
 >>> tables = camelot.read_pdf('foo.pdf')
 >>> tables
-&lt;TableList n=1&gt;
+<TableList n=1>
 >>> tables.export('foo.csv', f='csv', compress=True) # json, excel, html, markdown, sqlite
 >>> tables[0]
-&lt;Table shape=(7, 7)&gt;
+<Table shape=(7, 7)>
 >>> tables[0].parsing_report
 {
     'accuracy': 99.02,
@@ -34,7 +34,7 @@
 }
 >>> tables[0].to_csv('foo.csv') # to_json, to_excel, to_html, to_markdown, to_sqlite
 >>> tables[0].df # get a pandas DataFrame!
-</pre>
+```
 
 | Cycle Name | KI (1/km) | Distance (mi) | Percent Fuel Savings |                 |                 |                |
 | ---------- | --------- | ------------- | -------------------- | --------------- | --------------- | -------------- |
@@ -69,32 +69,32 @@ If Camelot has helped you, please consider supporting its development with a one
 
 The easiest way to install Camelot is with [conda](https://conda.io/docs/), which is a package manager and environment management system for the [Anaconda](http://docs.continuum.io/anaconda/) distribution.
 
-<pre>
-$ conda install -c conda-forge camelot-py
-</pre>
+```bash
+conda install -c conda-forge camelot-py
+```
 
 ### Using pip
 
 After [installing the dependencies](https://camelot-py.readthedocs.io/en/master/user/install-deps.html) ([tk](https://packages.ubuntu.com/bionic/python/python-tk) and [ghostscript](https://www.ghostscript.com/)), you can also just use pip to install Camelot:
 
-<pre>
-$ pip install "camelot-py[base]"
-</pre>
+```bash
+pip install camelot-py[base]
+```
 
 ### From the source code
 
 After [installing the dependencies](https://camelot-py.readthedocs.io/en/master/user/install.html#using-pip), clone the repo using:
 
-<pre>
-$ git clone https://www.github.com/camelot-dev/camelot
-</pre>
+```bash
+git clone  https://www.github.com/camelot-dev/camelot
+```
 
 and install Camelot using pip:
 
-<pre>
-$ cd camelot
-$ pip install ".[base]"
-</pre>
+```
+cd camelot
+pip install ".[base]"
+```
 
 ## Documentation
 
