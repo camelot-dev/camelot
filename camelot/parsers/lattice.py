@@ -33,7 +33,7 @@ from ..image_processing import (
 
 
 logger = logging.getLogger("camelot")
-
+import pdfbox
 
 class Lattice(BaseParser):
     """Lattice method of parsing looks for lines between text
@@ -209,17 +209,8 @@ class Lattice(BaseParser):
         return t
 
     def _generate_image(self):
-        from ..ext.ghostscript import Ghostscript
-
-        self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
-            self.imagename, self.filename
-        )
-        gs_call = gs_call.encode().split()
-        null = open(os.devnull, "wb")
-        with Ghostscript(*gs_call, stdout=null) as gs:
-            pass
-        null.close()
+        pdfbox.PDFBox().pdf_to_images(self.filename, outputPrefix=self.rootname)
+        self.imagename = str(self.rootname) + '1.jpg'
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
