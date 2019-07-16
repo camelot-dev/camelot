@@ -81,8 +81,10 @@ def delete_instance(instance):
     """
     return libgs.gsapi_delete_instance(instance)
 
-
-c_stdstream_call_t = CFUNCTYPE(c_int, gs_main_instance, POINTER(c_char), c_int)
+if sys.platform == "win32":
+    c_stdstream_call_t = WINFUNCTYPE(c_int, gs_main_instance, POINTER(c_char), c_int)
+else:
+    c_stdstream_call_t = CFUNCTYPE(c_int, gs_main_instance, POINTER(c_char), c_int)
 
 
 def _wrap_stdin(infp):
