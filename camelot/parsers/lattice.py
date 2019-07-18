@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-import os
-import sys
-import copy
-import locale
-import logging
-import warnings
-import subprocess
 
-import numpy as np
+import copy
+import logging
+import os
+import warnings
+
 import pandas as pd
 
 from .base import BaseParser
 from ..core import Table
+from ..image_processing import (
+    adaptive_threshold,
+    find_lines,
+    find_contours,
+    find_joints,
+)
 from ..utils import (
     scale_image,
     scale_pdf,
@@ -24,13 +27,6 @@ from ..utils import (
     compute_accuracy,
     compute_whitespace,
 )
-from ..image_processing import (
-    adaptive_threshold,
-    find_lines,
-    find_contours,
-    find_joints,
-)
-
 
 logger = logging.getLogger("camelot")
 
@@ -212,8 +208,8 @@ class Lattice(BaseParser):
         from ..ext.ghostscript import Ghostscript
 
         self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
-            self.imagename, self.filename
+        gs_call = "-q -sDEVICE=png16m -o {} -r{} {}".format(
+            self.imagename, self.resolution, self.filename
         )
         gs_call = gs_call.encode().split()
         null = open(os.devnull, "wb")
