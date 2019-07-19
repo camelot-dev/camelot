@@ -1,4 +1,4 @@
-#BEWARE:: This is a customized camelot version!!!
+# BEWARE : This is a customized camelot version!!!
 
 ---
 
