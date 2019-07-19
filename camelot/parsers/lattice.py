@@ -286,8 +286,10 @@ class Lattice(BaseParser):
             table_bbox = find_joints(areas, vertical_mask, horizontal_mask)
 
         self.table_bbox_unscaled = copy.deepcopy(table_bbox)
+        self.vertical_segments = vertical_segments
+        self.horizontal_segments = horizontal_segments
 
-        self.table_bbox, self.vertical_segments, self.horizontal_segments = scale_image(
+        self.table_bbox, _, _= scale_image(
             table_bbox, vertical_segments, horizontal_segments, pdf_scalers
         )
 
