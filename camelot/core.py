@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from io import open
 import os
 import sqlite3
 import zipfile
