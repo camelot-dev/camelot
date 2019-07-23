@@ -599,7 +599,7 @@ class Table(object):
         kw = {"orient": "records"}
         kw.update(kwargs)
         json_string = self.df.to_json(**kw)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(json_string)
 
     def to_excel(self, path, **kwargs):
