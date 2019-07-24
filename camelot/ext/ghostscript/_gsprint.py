@@ -244,6 +244,9 @@ def __win32_finddll():
 if sys.platform == "win32":
     libgs = __win32_finddll()
     if not libgs:
+        import ctypes.util
+        libgs = ctypes.util.find_library("".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))) # finds in %PATH%
+    if not libgs:
         raise RuntimeError("Please make sure that Ghostscript is installed")
     libgs = windll.LoadLibrary(libgs)
 else:
