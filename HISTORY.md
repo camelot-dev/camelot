@@ -4,6 +4,11 @@ Release History
 master
 ------
 
+**Bugfixes**
+
+* Fix library discovery on Windows. [#32](https://github.com/camelot-dev/camelot/pull/32) by [KOLANICH](https://github.com/KOLANICH).
+* Fix calling convention of callback functions. [#34](https://github.com/camelot-dev/camelot/pull/34) by [KOLANICH](https://github.com/KOLANICH).
+
 0.7.3 (2019-07-07)
 ------------------
 
