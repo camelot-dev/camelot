@@ -34,7 +34,7 @@ class PDFHandler(object):
 
     """
 
-    def __init__(self, filepath, pages="1", password=None):
+    def __init__(self, filepath, pages="1", password=None, multi=[]):
         if is_url(filepath):
             filepath = download_url(filepath)
         self.filepath = filepath
@@ -48,6 +48,7 @@ class PDFHandler(object):
             if sys.version_info[0] < 3:
                 self.password = self.password.encode("ascii")
         self.pages = self._get_pages(self.filepath, pages)
+        self.multi = multi
 
     def _get_pages(self, filepath, pages):
         """Converts pages string to list of ints.
@@ -168,7 +169,16 @@ class PDFHandler(object):
             ]
             parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
             for p in pages:
-                t = parser.extract_tables(
+                p_no = p[-5]
+
+                page_kwargs = kwargs
+                page_parser = parser
+
+                if p_no in self.multi:
+                    page_kwargs.update(self.multi[p_no])
+                    page_parser = Lattice(**page_kwargs) if flavor == 'lattice' else Stream(**page_kwargs)
+
+                t = page_parser.extract_tables(
                     p, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
                 )
                 tables.extend(t)
