@@ -297,3 +297,16 @@ def test_table_order():
         (1, 2),
         (1, 1),
     ]
+
+def test_multi_params():
+    df1 = pd.DataFrame(data_multi_params1)
+    df2 = pd.DataFrame(data_multi_params2)
+
+    filename = os.path.join(
+        testdir, "multi_params.pdf"
+    )
+    tables = camelot.read_pdf(filename, pages="all", multi={'2': {"table_regions": ["120, 210, 400, 90"]}},
+                              split_text=True)
+
+    assert df1.equals(tables[0].df)
+    assert df2.equals(tables[1].df)
