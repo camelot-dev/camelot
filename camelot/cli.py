@@ -43,7 +43,7 @@ pass_config = click.make_pass_decorator(Config)
 @click.option(
     "-f",
     "--format",
-    type=click.Choice(["csv", "json", "excel", "html", "sqlite"]),
+    type=click.Choice(["csv", "json", "excel", "html"]),
     help="Output file format.",
 )
 @click.option("-z", "--zip", is_flag=True, help="Create ZIP archive.")
