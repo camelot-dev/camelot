@@ -132,4 +132,4 @@ Camelot uses [Semantic Versioning](https://semver.org/). For the available versi
 
 This project is licensed under the MIT License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/LICENSE) file for details.
 
-<img src="http://i65.tinypic.com/9h4ajs.png" align="centre" />
+<img src="https://opensource.org/files/osi_keyhole_300X300_90ppi_0.png" align="centre" />
