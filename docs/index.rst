@@ -86,6 +86,12 @@ See `comparison with other PDF table extraction libraries and tools`_.
 .. _ETL and data analysis workflows: https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873
 .. _comparison with other PDF table extraction libraries and tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
 
+Support us on OpenCollective
+----------------------------
+
+If Camelot helped you extract tables from PDFs, please consider supporting its development by `becoming a backer or a sponsor on OpenCollective`_!
+.. _becoming a backer or sponsor on OpenCollective: https://opencollective.com/camelot
+
 The User Guide
 --------------
 
