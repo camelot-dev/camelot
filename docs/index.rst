@@ -91,7 +91,7 @@ Support us on OpenCollective
 
 If Camelot helped you extract tables from PDFs, please consider supporting its development by `becoming a backer or a sponsor on OpenCollective`_!
 
-.. _becoming a backer or sponsor on OpenCollective: https://opencollective.com/camelot
+.. _becoming a backer or a sponsor on OpenCollective: https://opencollective.com/camelot
 
 The User Guide
 --------------
