@@ -132,8 +132,6 @@ Camelot uses [Semantic Versioning](https://semver.org/). For the available versi
 
 This project is licensed under the MIT License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/LICENSE) file for details.
 
-<img src="http://i65.tinypic.com/9h4ajs.png" align="centre" />
-
 ## Support the development
 
 You can support our work on Camelot with a one-time or monthly donation [on OpenCollective](https://opencollective.com/camelot). Organizations who use camelot can also sponsor the project for an acknowledgement on [our documentation site](https://camelot-py.readthedocs.io/en/master/) and this README.
