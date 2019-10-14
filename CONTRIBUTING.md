@@ -1,6 +1,6 @@
 # Contributor's Guide
 
-If you're reading this, you're probably looking to contributing to Camelot. *Time is the only real currency*, and the fact that you're considering spending some here is *very* generous of you. Thank you very much!
+If you're reading this, you're probably looking to contributing to Camelot. _Time is the only real currency_, and the fact that you're considering spending some here is _very_ generous of you. Thank you very much!
 
 This document will help you get started with contributing documentation, code, testing and filing issues. If you have any questions, feel free to reach out to [Vinayak Mehta](https://vinayak-mehta.github.io), the author and maintainer.
 
@@ -8,7 +8,7 @@ This document will help you get started with contributing documentation, code, t
 
 The following quote sums up the **Code Of Conduct**.
 
-   > Be cordial or be on your way. --Kenneth Reitz
+> Be cordial or be on your way. --Kenneth Reitz
 
 Kenneth Reitz has also written an [essay](https://www.kennethreitz.org/essays/be-cordial-or-be-on-your-way) on this topic, which you should read.
 
@@ -19,6 +19,8 @@ As the [Requests Code Of Conduct](http://docs.python-requests.org/en/master/dev/
 A great way to start contributing to Camelot is to pick an issue tagged with the [help wanted](https://github.com/camelot-dev/camelot/labels/help%20wanted) tag or the [good first issue](https://github.com/camelot-dev/camelot/labels/good%20first%20issue) tag. If you're unable to find a good first issue, feel free to contact the maintainer.
 
 ## Setting up a development environment
+
+Firstly, install [tk](https://packages.ubuntu.com/bionic/python/python-tk) and [Ghostscript](https://www.ghostscript.com/).
 
 To install the dependencies needed for development, you can use pip:
 
@@ -80,13 +82,14 @@ We recommend that your pull request complies with the following rules:
 - In case your pull request contains function docstrings, make sure you follow the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) format. All function docstrings in Camelot follow this format. Moreover, following the format will make sure that the API documentation is generated flawlessly.
 
 - Make sure your commit messages follow [the seven rules of a great git commit message](https://chris.beams.io/posts/git-commit/):
-    - Separate subject from body with a blank line
-    - Limit the subject line to 50 characters
-    - Capitalize the subject line
-    - Do not end the subject line with a period
-    - Use the imperative mood in the subject line
-    - Wrap the body at 72 characters
-    - Use the body to explain what and why vs. how
+
+  - Separate subject from body with a blank line
+  - Limit the subject line to 50 characters
+  - Capitalize the subject line
+  - Do not end the subject line with a period
+  - Use the imperative mood in the subject line
+  - Wrap the body at 72 characters
+  - Use the body to explain what and why vs. how
 
 - Please prefix the title of your pull request with [MRG] (Ready for Merge), if the contribution is complete and ready for a detailed review. An incomplete pull request's title should be prefixed with [WIP] (to indicate a work in progress), and changed to [MRG] when it's complete. A good [task list](https://blog.github.com/2013-01-09-task-lists-in-gfm-issues-pulls-comments/) in the PR description will ensure that other people get a better idea of what it proposes to do, which will also increase collaboration.
 
