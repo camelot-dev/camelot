@@ -4,3 +4,4 @@ FAQ
 ===
 
 How an accuracy is calculated ?
+-------------------------------
