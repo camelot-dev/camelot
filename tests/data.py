@@ -2858,3 +2858,20 @@ data_stream_layout_kwargs = [
     ["A.O.P Cornas", ""],
     ["Domaine Lionnet « Terre Brûlée » 2012", "15 €"],
 ]
+
+data_multi_params1 = [
+    ["Number of Coils", "Number of Paperclips"],
+    ["5", "3, 5, 4"],
+    ["10", "7, 8, 6"],
+    ["15", "11, 10, 12"],
+    ["20", "15, 13, 14"]
+]
+
+data_multi_params2 = [
+    ["Time (drops of water)", "Distance (cm)"],
+    ["1", "10,11,9"],
+    ["2", "29, 31, 30"],
+    ["3", "59, 58, 61"],
+    ["4", "102, 100, 98"],
+    ["5", "122, 125, 127"]
+]
