@@ -2,6 +2,7 @@
 
 import os
 import sys
+import copy
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
@@ -89,51 +90,56 @@ class PDFHandler(object):
             P.extend(range(p["start"], p["end"] + 1))
         return sorted(set(P))
 
-    def _save_page(self, filepath, page, temp):
+    def _save_pages(self, filepath, pages, temp):
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
         ----------
         filepath : str
             Filepath or URL of the PDF file.
-        page : int
-            Page number.
+        pages : int
+            Page numbers.
         temp : str
             Tmp directory.
 
         """
         with open(filepath, "rb") as fileobj:
-            infile = PdfFileReader(fileobj, strict=False)
-            if infile.isEncrypted:
-                infile.decrypt(self.password)
-            fpath = os.path.join(temp, "page-{0}.pdf".format(page))
-            froot, fext = os.path.splitext(fpath)
-            p = infile.getPage(page - 1)
-            outfile = PdfFileWriter()
-            outfile.addPage(p)
-            with open(fpath, "wb") as f:
-                outfile.write(f)
-            layout, dim = get_page_layout(fpath)
-            # fix rotated PDF
-            chars = get_text_objects(layout, ltype="char")
-            horizontal_text = get_text_objects(layout, ltype="horizontal_text")
-            vertical_text = get_text_objects(layout, ltype="vertical_text")
-            rotation = get_rotation(chars, horizontal_text, vertical_text)
-            if rotation != "":
-                fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
-                os.rename(fpath, fpath_new)
-                infile = PdfFileReader(open(fpath_new, "rb"), strict=False)
-                if infile.isEncrypted:
-                    infile.decrypt(self.password)
+            infile_original = PdfFileReader(fileobj, strict=False)
+            if infile_original.isEncrypted:
+                infile_original.decrypt(self.password)
+
+            for page in pages:
+                # Ensure PdfFileReader object is unmodified
+                infile = copy.copy(infile_original)
+                fpath = os.path.join(temp, 'page-{0}.pdf'.format(page))
+                froot, fext = os.path.splitext(fpath)
+                p = infile.getPage(page - 1)
                 outfile = PdfFileWriter()
-                p = infile.getPage(0)
-                if rotation == "anticlockwise":
-                    p.rotateClockwise(90)
-                elif rotation == "clockwise":
-                    p.rotateCounterClockwise(90)
                 outfile.addPage(p)
-                with open(fpath, "wb") as f:
-                    outfile.write(f)
+                with open(fpath, 'wb') as f:
+                     outfile.write(f)
+
+                # Orient rotated pages correctly
+                layout, dim = get_page_layout(fpath)
+                chars = get_text_objects(layout, ltype="char")
+                horizontal_text = get_text_objects(layout, ltype="horizontal_text")
+                vertical_text = get_text_objects(layout, ltype="vertical_text")
+                rotation = get_rotation(chars, horizontal_text, vertical_text)
+                if rotation != '':
+                    fpath_new = ''.join([froot.replace('page', 'p'), '_rotated', fext])
+                    os.rename(fpath, fpath_new)
+                    infile = PdfFileReader(open(fpath_new, 'rb'), strict=False)
+                    if infile.isEncrypted:
+                        infile.decrypt(self.password)
+                    outfile = PdfFileWriter()
+                    p = infile.getPage(0)
+                    if rotation == 'anticlockwise':
+                        p.rotateClockwise(90)
+                    elif rotation == 'clockwise':
+                        p.rotateCounterClockwise(90)
+                    outfile.addPage(p)
+                    with open(fpath, 'wb') as f:
+                        outfile.write(f)
 
     def parse(
         self, flavor="lattice", suppress_stdout=False, layout_kwargs={}, **kwargs
@@ -161,8 +167,7 @@ class PDFHandler(object):
         """
         tables = []
         with TemporaryDirectory() as tempdir:
-            for p in self.pages:
-                self._save_page(self.filepath, p, tempdir)
+            self._save_pages(self.filepath, self.pages, tempdir)
             pages = [
                 os.path.join(tempdir, "page-{0}.pdf".format(p)) for p in self.pages
             ]
