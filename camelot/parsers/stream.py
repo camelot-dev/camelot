@@ -4,6 +4,7 @@ from __future__ import division
 import os
 import logging
 import warnings
+import sys
 
 import numpy as np
 import pandas as pd
@@ -95,12 +96,17 @@ class Stream(BaseParser):
             Tuple (x0, y0, x1, y1) in pdf coordinate space.
 
         """
-        xmin = min([t.x0 for direction in t_bbox for t in t_bbox[direction]])
-        ymin = min([t.y0 for direction in t_bbox for t in t_bbox[direction]])
-        xmax = max([t.x1 for direction in t_bbox for t in t_bbox[direction]])
-        ymax = max([t.y1 for direction in t_bbox for t in t_bbox[direction]])
-        text_bbox = (xmin, ymin, xmax, ymax)
-        return text_bbox
+        try:
+            xmin = min([t.x0 for direction in t_bbox for t in t_bbox[direction]])
+            ymin = min([t.y0 for direction in t_bbox for t in t_bbox[direction]])
+            xmax = max([t.x1 for direction in t_bbox for t in t_bbox[direction]])
+            ymax = max([t.y1 for direction in t_bbox for t in t_bbox[direction]])
+            text_bbox = (xmin, ymin, xmax, ymax)
+            return text_bbox
+        except ValueError as err:
+            print(err)
+            print("Defined values for table area does not contain any text to extract. Exiting program...")
+            sys.exit()
 
     @staticmethod
     def _group_rows(text, row_tol=2):
