@@ -20,7 +20,7 @@ Stream can be used to parse tables that have whitespaces between cells to simula
 
 3. The number of columns inside each table area are then guessed. This is done by calculating the mode of number of words in each text row. Based on this mode, words in each text row are chosen to calculate a list of column *x* ranges.
 
-4. Words that lie inside/outside the current column *x* ranges are then used to extend extend the current list of columns.
+4. Words that lie inside/outside the current column *x* ranges are then used to extend the current list of columns.
 
 5. Finally, a table is formed using the text rows' *y* ranges and column *x* ranges and words found on the page are assigned to the table's cells based on their *x* and *y* coordinates.
 
