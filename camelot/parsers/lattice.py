@@ -155,23 +155,24 @@ class Lattice(BaseParser):
         """
         indices = []
         for r_idx, c_idx, text in idx:
-            for d in shift_text:
-                if d == "l":
-                    if t.cells[r_idx][c_idx].hspan:
-                        while not t.cells[r_idx][c_idx].left:
-                            c_idx -= 1
-                if d == "r":
-                    if t.cells[r_idx][c_idx].hspan:
-                        while not t.cells[r_idx][c_idx].right:
-                            c_idx += 1
-                if d == "t":
-                    if t.cells[r_idx][c_idx].vspan:
-                        while not t.cells[r_idx][c_idx].top:
-                            r_idx -= 1
-                if d == "b":
-                    if t.cells[r_idx][c_idx].vspan:
-                        while not t.cells[r_idx][c_idx].bottom:
-                            r_idx += 1
+            if r_idx in t.cells:
+                for d in shift_text:
+                    if d == "l":
+                        if t.cells[r_idx][c_idx].hspan:
+                            while not t.cells[r_idx][c_idx].left:
+                                c_idx -= 1
+                    if d == "r":
+                        if t.cells[r_idx][c_idx].hspan:
+                            while not t.cells[r_idx][c_idx].right:
+                                c_idx += 1
+                    if d == "t":
+                        if t.cells[r_idx][c_idx].vspan:
+                            while not t.cells[r_idx][c_idx].top:
+                                r_idx -= 1
+                    if d == "b":
+                        if t.cells[r_idx][c_idx].vspan:
+                            while not t.cells[r_idx][c_idx].bottom:
+                                r_idx += 1
             indices.append((r_idx, c_idx, text))
         return indices
 
@@ -355,7 +356,8 @@ class Lattice(BaseParser):
                         table, indices, shift_text=self.shift_text
                     )
                     for r_idx, c_idx, text in indices:
-                        table.cells[r_idx][c_idx].text = text
+                        if r_idx in table.cells:
+                            table.cells[r_idx][c_idx].text = text
         accuracy = compute_accuracy([[100, pos_errors]])
 
         if self.copy_text is not None:
