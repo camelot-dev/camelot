@@ -155,7 +155,7 @@ class Lattice(BaseParser):
         """
         indices = []
         for r_idx, c_idx, text in idx:
-            if r_idx in t.cells:
+            if r_idx < len(t.cells) and c_idx < len(t.cells[r_idx]):
                 for d in shift_text:
                     if d == "l":
                         if t.cells[r_idx][c_idx].hspan:
@@ -356,7 +356,7 @@ class Lattice(BaseParser):
                         table, indices, shift_text=self.shift_text
                     )
                     for r_idx, c_idx, text in indices:
-                        if r_idx in table.cells:
+                        if r_idx < len(table.cells) and c_idx < len(table.cells[r_idx]):
                             table.cells[r_idx][c_idx].text = text
         accuracy = compute_accuracy([[100, pos_errors]])
 
