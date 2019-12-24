@@ -32,6 +32,9 @@ Release v\ |version|. (:ref:`Installation <install>`)
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
+    
+.. image:: https://img.shields.io/badge/continous%20quality-deepsource-lightgrey
+    :target: https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge
 
 **Camelot** is a Python library that makes it easy for *anyone* to extract tables from PDF files!
 
