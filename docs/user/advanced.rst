@@ -66,7 +66,7 @@ Let's plot all the text present on the table's PDF page.
 
 ::
 
-    >>> camelot.plot(tables[0], kind='text')
+    >>> plt = camelot.plot(tables[0], kind='text')
     >>> plt.show()
 
 .. tip::
