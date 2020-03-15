@@ -43,7 +43,12 @@ class PlotMethods(object):
             )
 
         plot_method = getattr(self, kind)
-        return plot_method(table)
+        fig = plot_method(table)
+
+        if filename:
+            fig.savefig(filename)
+            
+        return fig
 
     def text(self, table):
         """Generates a plot for all text elements present
