@@ -124,6 +124,10 @@ After installation, you can run tests using:
 $ python setup.py test
 </pre>
 
+## Wrappers
+
+- [camelot-php](https://github.com/randomstate/camelot-php) provides a [PHP](https://www.php.net/) wrapper on Camelot.
+
 ## Versioning
 
 Camelot uses [Semantic Versioning](https://semver.org/). For the available versions, see the tags on this repository. For the changelog, you can check out [HISTORY.md](https://github.com/camelot-dev/camelot/blob/master/HISTORY.md).
