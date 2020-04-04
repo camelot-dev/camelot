@@ -2770,7 +2770,7 @@ data_arabic = [
 ]
 
 data_stream_layout_kwargs = [
-    ["V i n s   a u   Ve r r e", ""],
+    ["V i n s   a u   V e r r e", ""],
     ["Les Blancs", "12.5CL"],
     ["A.O.P Côtes du Rhône", ""],
     ["Domaine de la Guicharde «  Autour de la chapelle » 2016", "8 €"],
