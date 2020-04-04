@@ -819,42 +819,6 @@ data_stream_table_rotated = [
 ]
 
 data_stream_two_tables_1 = [
-    [
-        "Program. Represents arrests reported (not charged) by 12,910 agencies with a total population of 247,526,916 as estimated",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
-    [
-        "by the FBI. Some persons may be arrested more than once during a year, therefore, the data in this table, in some cases,",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
-    [
-        "could represent multiple arrests of the same person. See text, this section and source]",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
     ["", "", "Total", "", "", "Male", "", "", "Female", ""],
     [
         "Offense charged",
@@ -1281,15 +1245,6 @@ data_stream_two_tables_1 = [
 ]
 
 data_stream_two_tables_2 = [
-    ["Table 325. Arrests by Race: 2009", "", "", "", "", ""],
-    [
-        "[Based on Uniform Crime Reporting (UCR) Program. Represents arrests reported (not charged) by 12,371 agencies",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
     [
         "with a total population of 239,839,971 as estimated by the FBI. See headnote, Table 324]",
         "",
@@ -1726,20 +1681,6 @@ data_stream_columns = [
 ]
 
 data_stream_split_text = [
-    [
-        "FEB",
-        "RUAR",
-        "Y 2014 M27 (BUS)",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        ""
-    ],
-    ["", "", "", "", "OF ACTIVE LICENSES", "", "", "", "", "3/19/2014"],
-    ["", "", "", "", "OKLAHOMA ABLE COMMIS", "SION", "", "", "", ""],
     ["LICENSE", "", "", "", "PREMISE", "", "", "", "", ""],
     [
         "NUMBER",
@@ -2291,7 +2232,6 @@ data_stream_flag_size = [
 ]
 
 data_stream_strip_text = [
-    ["VinsauVerre", ""],
     ["LesBlancs", "12.5CL"],
     ["A.O.PCôtesduRhône", ""],
     ["DomainedelaGuicharde«Autourdelachapelle»2016", "8€"],

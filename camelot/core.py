@@ -166,8 +166,7 @@ class TextEdges(object):
             x0 = area[0] - TABLE_AREA_PADDING
             y0 = area[1] - TABLE_AREA_PADDING
             x1 = area[2] + TABLE_AREA_PADDING
-            # add a constant since table headers can be relatively up
-            y1 = area[3] + average_row_height * 5
+            y1 = area[3] + TABLE_AREA_PADDING
             return (x0, y0, x1, y1)
 
         # sort relevant textedges in reading order
