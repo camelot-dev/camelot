@@ -4,16 +4,6 @@ from __future__ import unicode_literals
 
 
 data_stream = [
-    [
-        "",
-        "Table: 5            Public Health Outlay 2012-13 (Budget Estimates)        (Rs. in 000)",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
     ["States-A", "Revenue", "", "Capital", "", "Total", "Others(1)", "Total"],
     ["", "", "", "", "", "Revenue &", "", ""],
     ["", "Medical &", "Family", "Medical &", "Family", "", "", ""],
