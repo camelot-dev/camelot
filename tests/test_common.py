@@ -143,6 +143,14 @@ def test_stream_layout_kwargs():
     assert_frame_equal(df, tables[0].df)
 
 
+def test_stream_vertical_header():
+    df = pd.DataFrame(data_stream_vertical_headers)
+
+    filename = os.path.join(testdir, "vertical_header.pdf")
+    tables = camelot.read_pdf(filename, flavor="stream")
+    assert_frame_equal(df, tables[0].df)
+
+
 def test_lattice():
     df = pd.DataFrame(data_lattice)
 
