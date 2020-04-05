@@ -20,7 +20,7 @@ class Stream(BaseParser):
     """Stream method of parsing looks for spaces between text
     to parse the table.
 
-    If you want to specify columns when specifying multiple table
+    If you want to specify rows or columns when specifying multiple table
     areas, make sure that the length of both lists are equal.
 
     Parameters
@@ -52,6 +52,9 @@ class Stream(BaseParser):
     column_tol : int, optional (default: 0)
         Tolerance parameter used to combine text horizontally,
         to generate columns.
+    rows : list, optional (default: None)
+        List of rows y-coordinates strings where the coordinates
+        are comma-separated
 
     """
 
