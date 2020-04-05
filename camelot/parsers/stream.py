@@ -289,7 +289,7 @@ class Stream(BaseParser):
         # guess table areas using textlines and relevant edges
         table_bbox = textedges.get_table_areas(textlines, relevant_textedges)
         # treat whole page as table area if no table areas found
-        if not len(table_bbox):
+        if not table_bbox:
             table_bbox = {(0, 0, self.pdf_width, self.pdf_height): None}
 
         return table_bbox
@@ -366,7 +366,7 @@ class Stream(BaseParser):
                 # see if the list contains elements, if yes, then use
                 # the mode after removing 1s
                 elements = list(filter(lambda x: x != 1, elements))
-                if len(elements):
+                if elements:
                     ncols = max(set(elements), key=elements.count)
                 else:
                     warnings.warn(
