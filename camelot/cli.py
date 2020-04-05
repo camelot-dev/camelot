@@ -238,6 +238,13 @@ def lattice(c, *args, **kwargs):
     help="X coordinates of column separators.",
 )
 @click.option(
+    "-R",
+    "--rows",
+    default=[],
+    multiple=True,
+    help="Y coordinates of rows separators.",
+)
+@click.option(
     "-e",
     "--edge_tol",
     default=50,
@@ -282,6 +289,8 @@ def stream(c, *args, **kwargs):
     kwargs["table_areas"] = None if not table_areas else table_areas
     columns = list(kwargs["columns"])
     kwargs["columns"] = None if not columns else columns
+    rows = list(kwargs["rows"])
+    kwargs["rows"] = None if not rows else rows
 
     if plot_type is not None:
         if not _HAS_MPL:
