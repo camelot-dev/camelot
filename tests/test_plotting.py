@@ -4,29 +4,29 @@ import os
 
 import pytest
 
-import pdfminer
+import matplotlib
 
 import camelot
 
-# The version of PDFMiner has an impact on some of the tests.  Unfortunately,
-# we can't enforce usage of a recent version of PDFMiner without dropping
-# support for Python 2.
-# To check the version of pdfminer.six installed:
-#   pip freeze | grep pdfminer.six
+# The version of Matplotlib has an impact on some of the tests.  Unfortunately,
+# we can't enforce usage of a recent version of MatplotLib without dropping
+# support for Python 3.6.
+# To check the version of matplotlib installed:
+#   pip freeze | grep matplotlib
 # To force upgrade:
-#   pip install --upgrade --force-reinstall pdfminer.six
-# To force usage of a Python 2 compatible version:
-#   pip install "pdfminer.six==20191110"
+#   pip install --upgrade --force-reinstall matplotlib
+# To force usage of a Python 3.6 compatible version:
+#   pip install "matplotlib==2.2.5"
 # This condition can be removed in favor of a version requirement bump for
-# pdfminer.six once support for Python 2 is dropped.
+# matplotlib once support for Python 3.5 is dropped.
 
-LEGACY_PDF_MINER = pdfminer.__version__ < "20200402"
+LEGACY_MATPLOTLIB = matplotlib.__version__ < "3.2.1"
 
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
 
-@pytest.mark.skipif(LEGACY_PDF_MINER,
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
                     reason="depends on a recent version of PDFMiner")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
@@ -52,7 +52,7 @@ def test_lattice_contour_plot():
     return camelot.plot(tables[0], kind='contour')
 
 
-@pytest.mark.skipif(LEGACY_PDF_MINER,
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
                     reason="depends on a recent version of PDFMiner")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
@@ -70,6 +70,8 @@ def test_line_plot():
     return camelot.plot(tables[0], kind='line')
 
 
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
+                    reason="depends on a recent version of PDFMiner")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_joint_plot():
@@ -78,7 +80,7 @@ def test_joint_plot():
     return camelot.plot(tables[0], kind='joint')
 
 
-@pytest.mark.skipif(LEGACY_PDF_MINER,
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
                     reason="depends on a recent version of PDFMiner")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
