@@ -2,6 +2,8 @@
 
 import os
 
+import pytest
+
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
@@ -11,12 +13,30 @@ from camelot.__version__ import generate_version
 
 from .data import *
 
+import pdfminer
+
+# The version of PDFMiner has an impact on some of the tests.  Unfortunately,
+# we can't enforce usage of a recent version of PDFMiner without dropping
+# support for Python 2.
+# To check the version of pdfminer.six installed:
+#   pip freeze | grep pdfminer.six
+# To force upgrade:
+#   pip install --upgrade --force-reinstall pdfminer.six
+# To force usage of a Python 2 compatible version:
+#   pip install "pdfminer.six==20191110"
+# This condition can be removed in favor of a version requirement bump for
+# pdfminer.six once support for Python 2 is dropped.
+
+LEGACY_PDF_MINER = pdfminer.__version__ < "20200402"
+
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
 
 def test_parsing_report():
-    parsing_report = {"accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1}
+    parsing_report = {
+        "accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1
+    }
 
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -64,6 +84,8 @@ def test_stream_table_rotated():
     assert_frame_equal(df, result_without_first_row)
 
 
+@pytest.mark.skipif(LEGACY_PDF_MINER,
+                    reason="depends on a recent version of PDFMiner")
 def test_stream_two_tables():
     df1 = pd.DataFrame(data_stream_two_tables_1)
     df2 = pd.DataFrame(data_stream_two_tables_2)
@@ -106,6 +128,8 @@ def test_stream_columns():
     assert_frame_equal(df, tables[0].df)
 
 
+@pytest.mark.skipif(LEGACY_PDF_MINER,
+                    reason="depends on a recent version of PDFMiner")
 def test_stream_split_text():
     df = pd.DataFrame(data_stream_split_text)
 
@@ -143,6 +167,8 @@ def test_stream_edge_tol():
     assert_frame_equal(df, tables[0].df)
 
 
+@pytest.mark.skipif(LEGACY_PDF_MINER,
+                    reason="depends on a recent version of PDFMiner")
 def test_stream_layout_kwargs():
     df = pd.DataFrame(data_stream_layout_kwargs)
 
@@ -248,7 +274,8 @@ def test_repr():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0])
+        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -258,21 +285,24 @@ def test_pages():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0])
+        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
     tables = camelot.read_pdf(url, pages="1-end")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0])
+        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
     tables = camelot.read_pdf(url, pages="all")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0])
+        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -282,7 +312,8 @@ def test_url():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0])
+        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -302,7 +333,12 @@ def test_table_order():
         return t
 
     table_list = TableList(
-        [_make_table(2, 1), _make_table(1, 1), _make_table(3, 4), _make_table(1, 2)]
+        [
+            _make_table(2, 1),
+            _make_table(1, 1),
+            _make_table(3, 4),
+            _make_table(1, 2)
+        ]
     )
 
     assert [(t.page, t.order) for t in sorted(table_list)] == [

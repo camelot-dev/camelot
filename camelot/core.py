@@ -17,6 +17,7 @@ TEXTEDGE_REQUIRED_ELEMENTS = 4
 # maximum number of columns over which a header can spread
 MAX_COL_SPREAD_IN_HEADER = 3
 
+
 class TextEdge(object):
     """Defines a text edge coordinates relative to a left-bottom
     origin. (PDF coordinate space)
@@ -64,7 +65,8 @@ class TextEdge(object):
         the is_valid attribute.
         """
         if np.isclose(self.y0, y0, atol=edge_tol):
-            self.x = (self.intersections * self.x + x) / float(self.intersections + 1)
+            self.x = (self.intersections * self.x + x) / \
+                float(self.intersections + 1)
             self.y0 = y0
             self.intersections += 1
             # a textedge is valid only if it extends uninterrupted
@@ -140,26 +142,38 @@ class TextEdges(object):
         """
         intersections_sum = {
             "left": sum(
-                te.intersections for te in self._textedges["left"] if te.is_valid
+                te.intersections for te in self._textedges["left"]
+                if te.is_valid
             ),
             "right": sum(
-                te.intersections for te in self._textedges["right"] if te.is_valid
+                te.intersections for te in self._textedges["right"]
+                if te.is_valid
             ),
             "middle": sum(
-                te.intersections for te in self._textedges["middle"] if te.is_valid
+                te.intersections for te in self._textedges["middle"]
+                if te.is_valid
             ),
         }
 
         # TODO: naive
         # get vertical textedges that intersect maximum number of
         # times with horizontal textlines
-        relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
-        return list(filter(lambda te: te.is_valid, self._textedges[relevant_align]))
+        relevant_align = max(
+            intersections_sum.items(),
+            key=itemgetter(1)
+        )[0]
+        return list(filter(
+            lambda te: te.is_valid,
+            self._textedges[relevant_align])
+        )
 
-    def _expand_area_for_header(self, area, textlines, col_anchors, average_row_height):
-        """The core algorithm is based on fairly strict alignment of text. It works
-        ok for the table body, but might fail on tables' headers since they
-        tend to be in a different font, alignment (e.g. vertical), etc.
+    @staticmethod
+    def _expand_area_for_header(area, textlines, col_anchors,
+                                average_row_height):
+        """The core algorithm is based on fairly strict alignment of text.
+        It works ok for the table body, but might fail on tables' headers
+        since they tend to be in a different font, alignment (e.g. vertical),
+        etc.
         The section below tries to identify whether what's above the bbox
         identified so far has the characteristics of a table header:
         Close to the top of the body, with cells that fit within the bounds
@@ -174,10 +188,12 @@ class TextEdges(object):
             crossed by an element covering left to right.
             """
             indexLeft = 0
-            while indexLeft < len(col_anchors) and col_anchors[indexLeft] < left:
+            while indexLeft < len(col_anchors) \
+                    and col_anchors[indexLeft] < left:
                 indexLeft += 1
             indexRight = indexLeft
-            while indexRight < len(col_anchors) and col_anchors[indexRight] < right:
+            while indexRight < len(col_anchors) \
+                    and col_anchors[indexRight] < right:
                 indexRight += 1
 
             return indexRight - indexLeft
@@ -193,14 +209,14 @@ class TextEdges(object):
                 # higher than the table, directly within its bounds
                 if te.y0 > top and te.x0 > left and te.x1 < right:
                     all_above.append(te)
-                    if closest_above == None or closest_above.y0 > te.y0:
+                    if closest_above is None or closest_above.y0 > te.y0:
                         closest_above = te
 
             if closest_above and \
                     closest_above.y0 < top + average_row_height:
-                # b/ We have a candidate cell that is within the correct vertical band,
-                # and directly above the table. Starting from this anchor, we list
-                # all the textlines within the same row.
+                # b/ We have a candidate cell that is within the correct
+                # vertical band, and directly above the table. Starting from
+                # this anchor, we list all the textlines within the same row.
                 tls_in_new_row = []
                 top = closest_above.y1
                 pushed_up = True
@@ -222,18 +238,20 @@ class TextEdges(object):
                                 top = te.y1
                                 pushed_up = True
 
-                # Get the x-ranges for all the textlines, and merge the x-ranges that overlap
+                # Get the x-ranges for all the textlines, and merge the
+                # x-ranges that overlap
                 zones = zones + \
                     list(map(lambda tl: [tl.x0, tl.x1], tls_in_new_row))
                 zones.sort(key=lambda z: z[0])  # Sort by left coordinate
-                # Starting from the right, if two zones overlap horizontally, merge them
+                # Starting from the right, if two zones overlap horizontally,
+                # merge them
                 merged_something = True
                 while merged_something:
                     merged_something = False
                     for i in range(len(zones) - 1, 0, -1):
                         zone_right = zones[i]
                         zone_left = zones[i-1]
-                        if (zone_left[1] >= zone_right[0]):
+                        if zone_left[1] >= zone_right[0]:
                             zone_left[1] = max(zone_right[1], zone_left[1])
                             zones.pop(i)
                             merged_something = True
@@ -248,8 +266,8 @@ class TextEdges(object):
                     )
                 )
                 if max_spread <= MAX_COL_SPREAD_IN_HEADER:
-                    # Combined, the elements we've identified don't cross more than the
-                    # authorized number of columns.
+                    # Combined, the elements we've identified don't cross more
+                    # than the authorized number of columns.
                     # We're trying to avoid
                     # 0: <BAD: Added header spans too broad>
                     # 1: <A1>    <B1>    <C1>    <D1>    <E1>
@@ -257,7 +275,8 @@ class TextEdges(object):
                     # if len(zones) > TEXTEDGE_REQUIRED_ELEMENTS:
                     new_area = (left, bottom, right, top)
 
-                    # At this stage we've identified a plausible row (or beginning of one).
+                    # At this stage we've identified a plausible row (or the
+                    # beginning of one).
                     keep_searching = True
 
         return new_area
@@ -272,26 +291,26 @@ class TextEdges(object):
 
         table_areas = {}
         for te in relevant_textedges:
-                if not table_areas:
+            if not table_areas:
+                table_areas[(te.x, te.y0, te.x, te.y1)] = None
+            else:
+                found = None
+                for area in table_areas:
+                    # check for overlap
+                    if te.y1 >= area[1] and te.y0 <= area[3]:
+                        found = area
+                        break
+                if found is None:
                     table_areas[(te.x, te.y0, te.x, te.y1)] = None
                 else:
-                    found = None
-                    for area in table_areas:
-                        # check for overlap
-                        if te.y1 >= area[1] and te.y0 <= area[3]:
-                            found = area
-                            break
-                    if found is None:
-                        table_areas[(te.x, te.y0, te.x, te.y1)] = None
-                    else:
-                        table_areas.pop(found)
-                        updated_area = (
-                            found[0],
-                            min(te.y0, found[1]),
-                            max(found[2], te.x),
-                            max(found[3], te.y1),
-                        )
-                        table_areas[updated_area] = None
+                    table_areas.pop(found)
+                    updated_area = (
+                        found[0],
+                        min(te.y0, found[1]),
+                        max(found[2], te.x),
+                        max(found[3], te.y1),
+                    )
+                    table_areas[updated_area] = None
 
         # extend table areas based on textlines that overlap
         # vertically. it's possible that these textlines were
@@ -318,8 +337,8 @@ class TextEdges(object):
                 )
                 table_areas[updated_area] = None
 
-        # Apply a heuristic to salvage headers which formatting might be off compared to
-        # the rest of the table.
+        # Apply a heuristic to salvage headers which formatting might be off
+        # compared to the rest of the table.
         average_textline_height = sum_textline_height / \
             float(len(textlines))
 
@@ -398,7 +417,10 @@ class Cell(object):
 
     def __repr__(self):
         return "<Cell x1={} y1={} x2={} y2={}>".format(
-            round(self.x1, 2), round(self.y1, 2), round(self.x2, 2), round(self.y2, 2)
+            round(self.x1, 2),
+            round(self.y1, 2),
+            round(self.x2, 2),
+            round(self.y2, 2)
         )
 
     @property
@@ -448,7 +470,9 @@ class Table(object):
     def __init__(self, cols, rows):
         self.cols = cols
         self.rows = rows
-        self.cells = [[Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows]
+        self.cells = [
+            [Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows
+        ]
         self.df = None
         self.shape = (0, 0)
         self.accuracy = 0
@@ -685,7 +709,8 @@ class Table(object):
             Output filepath.
 
         """
-        kw = {"encoding": "utf-8", "index": False, "header": False, "quoting": 1}
+        kw = {"encoding": "utf-8", "index": False, "header": False,
+              "quoting": 1}
         kw.update(kwargs)
         self.df.to_csv(path, **kw)
 
@@ -798,7 +823,8 @@ class TableList(object):
         ext = kwargs.get("ext")
         for table in self._tables:
             filename = os.path.join(
-                "{}-page-{}-table-{}{}".format(root, table.page, table.order, ext)
+                "{}-page-{}-table-{}{}".format(root, table.page, table.order,
+                                               ext)
             )
             filepath = os.path.join(dirname, filename)
             to_format = self._format_func(table, f)
@@ -813,7 +839,10 @@ class TableList(object):
         with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:
             for table in self._tables:
                 filename = os.path.join(
-                    "{}-page-{}-table-{}{}".format(root, table.page, table.order, ext)
+                    "{}-page-{}-table-{}{}".format(root,
+                                                   table.page,
+                                                   table.order,
+                                                   ext)
                 )
                 filepath = os.path.join(dirname, filename)
                 z.write(filepath, os.path.basename(filepath))
@@ -848,7 +877,8 @@ class TableList(object):
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = "page-{}-table-{}".format(table.page, table.order)
-                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
+                table.df.to_excel(writer, sheet_name=sheet_name,
+                                  encoding="utf-8")
             writer.save()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"
