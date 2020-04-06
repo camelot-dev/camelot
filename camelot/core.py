@@ -14,9 +14,8 @@ import pandas as pd
 # minimum number of vertical textline intersections for a textedge
 # to be considered valid
 TEXTEDGE_REQUIRED_ELEMENTS = 4
-# padding added to table area on the left, right and bottom
-TABLE_AREA_PADDING = 10
-
+# maximum number of columns over which a header can spread
+MAX_COL_SPREAD_IN_HEADER = 3
 
 class TextEdge(object):
     """Defines a text edge coordinates relative to a left-bottom
@@ -155,26 +154,124 @@ class TextEdges(object):
         # get vertical textedges that intersect maximum number of
         # times with horizontal textlines
         relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
-        return self._textedges[relevant_align]
+        return list(filter(lambda te: te.is_valid, self._textedges[relevant_align]))
+
+    def _expand_area_for_header(self, area, textlines, col_anchors, average_row_height):
+        """The core algorithm is based on fairly strict alignment of text. It works
+        ok for the table body, but might fail on tables' headers since they
+        tend to be in a different font, alignment (e.g. vertical), etc.
+        The section below tries to identify whether what's above the bbox
+        identified so far has the characteristics of a table header:
+        Close to the top of the body, with cells that fit within the bounds
+        identified.
+        """
+        new_area = area
+        (left, bottom, right, top) = area
+        zones = []
+
+        def column_spread(left, right, col_anchors):
+            """Returns the number of columns (splits on the x-axis)
+            crossed by an element covering left to right.
+            """
+            indexLeft = 0
+            while indexLeft < len(col_anchors) and col_anchors[indexLeft] < left:
+                indexLeft += 1
+            indexRight = indexLeft
+            while indexRight < len(col_anchors) and col_anchors[indexRight] < right:
+                indexRight += 1
+
+            return indexRight - indexLeft
+
+        keep_searching = True
+        while keep_searching:
+            keep_searching = False
+            # a/ first look for the closest text element above the area.
+            # It will be the anchor for a possible new row.
+            closest_above = None
+            all_above = []
+            for te in textlines:
+                # higher than the table, directly within its bounds
+                if te.y0 > top and te.x0 > left and te.x1 < right:
+                    all_above.append(te)
+                    if closest_above == None or closest_above.y0 > te.y0:
+                        closest_above = te
+
+            if closest_above and \
+                    closest_above.y0 < top + average_row_height:
+                # b/ We have a candidate cell that is within the correct vertical band,
+                # and directly above the table. Starting from this anchor, we list
+                # all the textlines within the same row.
+                tls_in_new_row = []
+                top = closest_above.y1
+                pushed_up = True
+                while pushed_up:
+                    pushed_up = False
+                    # Iterate and extract elements that fit in the row
+                    # from our list
+                    for i in range(len(all_above) - 1, -1, -1):
+                        te = all_above[i]
+                        if te.y0 < top:
+                            # The bottom of this element is within our row
+                            # so we add it.
+                            tls_in_new_row.append(te)
+                            all_above.pop(i)
+                            if te.y1 > top:
+                                # If the top of this element raises our row's
+                                # band, we'll need to keep on searching for
+                                # overlapping items
+                                top = te.y1
+                                pushed_up = True
+
+                # Get the x-ranges for all the textlines, and merge the x-ranges that overlap
+                zones = zones + \
+                    list(map(lambda tl: [tl.x0, tl.x1], tls_in_new_row))
+                zones.sort(key=lambda z: z[0])  # Sort by left coordinate
+                # Starting from the right, if two zones overlap horizontally, merge them
+                merged_something = True
+                while merged_something:
+                    merged_something = False
+                    for i in range(len(zones) - 1, 0, -1):
+                        zone_right = zones[i]
+                        zone_left = zones[i-1]
+                        if (zone_left[1] >= zone_right[0]):
+                            zone_left[1] = max(zone_right[1], zone_left[1])
+                            zones.pop(i)
+                            merged_something = True
+
+                max_spread = max(
+                    list(
+                        map(
+                            lambda zone: column_spread(
+                                zone[0], zone[1], col_anchors),
+                            zones
+                        )
+                    )
+                )
+                if max_spread <= MAX_COL_SPREAD_IN_HEADER:
+                    # Combined, the elements we've identified don't cross more than the
+                    # authorized number of columns.
+                    # We're trying to avoid
+                    # 0: <BAD: Added header spans too broad>
+                    # 1: <A1>    <B1>    <C1>    <D1>    <E1>
+                    # 2: <A2>    <B2>    <C2>    <D2>    <E2>
+                    # if len(zones) > TEXTEDGE_REQUIRED_ELEMENTS:
+                    new_area = (left, bottom, right, top)
+
+                    # At this stage we've identified a plausible row (or beginning of one).
+                    keep_searching = True
+
+        return new_area
 
     def get_table_areas(self, textlines, relevant_textedges):
         """Returns a dict of interesting table areas on the PDF page
         calculated using relevant text edges.
         """
 
-        def pad(area, average_row_height):
-            x0 = area[0] - TABLE_AREA_PADDING
-            y0 = area[1] - TABLE_AREA_PADDING
-            x1 = area[2] + TABLE_AREA_PADDING
-            y1 = area[3] + TABLE_AREA_PADDING
-            return (x0, y0, x1, y1)
-
         # sort relevant textedges in reading order
         relevant_textedges.sort(key=lambda te: (-te.y0, te.x))
 
         table_areas = {}
         for te in relevant_textedges:
-            if te.is_valid:
                 if not table_areas:
                     table_areas[(te.x, te.y0, te.x, te.y1)] = None
                 else:
@@ -220,12 +317,22 @@ class TextEdges(object):
                     max(found[3], tl.y1),
                 )
                 table_areas[updated_area] = None
-        average_textline_height = sum_textline_height / float(len(textlines))
+
+        # Apply a heuristic to salvage headers which formatting might be off compared to
+        # the rest of the table.
+        average_textline_height = sum_textline_height / \
+            float(len(textlines))
+
+        col_anchors = list(
+            map(lambda textedge: textedge.x, relevant_textedges))
+        col_anchors.sort()
 
         # add some padding to table areas
         table_areas_padded = {}
         for area in table_areas:
-            table_areas_padded[pad(area, average_textline_height)] = None
+            new_area = self._expand_area_for_header(
+                area, textlines, col_anchors, average_textline_height)
+            table_areas_padded[new_area] = None
 
         return table_areas_padded
 

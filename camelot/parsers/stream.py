@@ -182,7 +182,8 @@ class Stream(BaseParser):
 
     @staticmethod
     def _join_rows(rows_grouped, text_y_max, text_y_min):
-        """Makes row coordinates continuous.
+        """Makes row coordinates continuous. For the row to "touch"
+        we split the existing gap between them in half.
 
         Parameters
         ----------
@@ -197,15 +198,20 @@ class Stream(BaseParser):
             List of continuous row y-coordinate tuples.
 
         """
-        row_mids = [
-            sum([(t.y0 + t.y1) / 2 for t in r]) / len(r) if len(r) > 0 else 0
+        row_boundaries = [
+            [
+                max([t.y1 for t in r]),
+                min([t.y0 for t in r])
+            ]
             for r in rows_grouped
         ]
-        rows = [(row_mids[i] + row_mids[i - 1]) / 2 for i in range(1, len(row_mids))]
-        rows.insert(0, text_y_max)
-        rows.append(text_y_min)
-        rows = [(rows[i], rows[i + 1]) for i in range(0, len(rows) - 1)]
-        return rows
+        for i in range(0, len(row_boundaries)-1):
+            top_row = row_boundaries[i]
+            bottom_row = row_boundaries[i+1]
+            top_row[1] = bottom_row[0] = (top_row[1] + bottom_row[0]) / 2
+        row_boundaries[0][0] = text_y_max
+        row_boundaries[-1][1] = text_y_min
+        return row_boundaries
 
     @staticmethod
     def _add_columns(cols, text, row_tol):
@@ -292,20 +298,23 @@ class Stream(BaseParser):
     def _generate_table_bbox(self):
         self.textedges = []
         if self.table_areas is None:
-            hor_text = self.horizontal_text
-            if self.table_regions is not None:
-                # filter horizontal text
-                hor_text = []
+            all_text_segments = self.horizontal_text + self.vertical_text
+            if self.table_regions is None:
+                text_segments = all_text_segments
+            else:
+                # filter text segments
+                text_segments = []
                 for region in self.table_regions:
                     x1, y1, x2, y2 = region.split(",")
                     x1 = float(x1)
                     y1 = float(y1)
                     x2 = float(x2)
                     y2 = float(y2)
-                    region_text = text_in_bbox((x1, y2, x2, y1), self.horizontal_text)
-                    hor_text.extend(region_text)
+                    region_text = text_in_bbox(
+                        (x1, y2, x2, y1), all_text_segments)
+                    text_segments.extend(region_text)
             # find tables based on nurminen's detection algorithm
-            table_bbox = self._nurminen_table_detection(hor_text)
+            table_bbox = self._nurminen_table_detection(text_segments)
         else:
             table_bbox = {}
             for area in self.table_areas:
@@ -322,14 +331,16 @@ class Stream(BaseParser):
         t_bbox = {}
         t_bbox["horizontal"] = text_in_bbox(tk, self.horizontal_text)
         t_bbox["vertical"] = text_in_bbox(tk, self.vertical_text)
+        t_bbox_all = t_bbox["horizontal"] + t_bbox["vertical"]
 
         t_bbox["horizontal"].sort(key=lambda x: (-x.y0, x.x0))
         t_bbox["vertical"].sort(key=lambda x: (x.x0, -x.y0))
+        t_bbox_all.sort(key=lambda x: (-x.y0, x.x0))
 
         self.t_bbox = t_bbox
 
         text_x_min, text_y_min, text_x_max, text_y_max = self._text_bbox(self.t_bbox)
-        rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=self.row_tol)
+        rows_grouped = self._group_rows(t_bbox_all, row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
 

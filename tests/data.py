@@ -226,25 +226,6 @@ data_stream = [
 
 data_stream_table_rotated = [
     [
-        "Table 21  Current use of contraception by background characteristics\u2014Continued",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
-    [
         "",
         "",
         "",
@@ -1230,29 +1211,9 @@ data_stream_two_tables_1 = [
         "41.8",
         "(X)",
     ],
-    [
-        "",
-        "– Represents zero. X Not applicable. 1 Buying, receiving, possessing stolen property. 2 Except forcible rape and prostitution.",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
 ]
 
 data_stream_two_tables_2 = [
-    [
-        "with a total population of 239,839,971 as estimated by the FBI. See headnote, Table 324]",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
     ["", "", "", "", "American", ""],
     ["Offense charged", "", "", "", "Indian/Alaskan", "Asian Pacific"],
     ["", "Total", "White", "Black", "Native", "Islander"],
@@ -1512,7 +1473,18 @@ data_stream_two_tables_2 = [
         "1,653",
         "3,950",
     ],
-    ["1 Except forcible rape and prostitution.", "", "", "", "", ""],
+]
+
+data_stream_table_regions = [
+    ["Payroll Period", "Allowance"],
+    ["Weekly", "$\n71.15"],
+    ["Biweekly", "142.31"],
+    ["Semimonthly", "154.17"],
+    ["Monthly", "308.33"],
+    ["Quarterly", "925.00"],
+    ["Semiannually", "1,850.00"],
+    ["Annually", "3,700.00"],
+    ["Daily or Miscellaneous", "14.23"],
 ]
 
 data_stream_table_areas = [
@@ -2750,8 +2722,25 @@ data_stream_layout_kwargs = [
 ]
 
 data_stream_vertical_headers = [
-    ['', 'Number of Registered voters', 'Poll Book Totals', 'Brian Calley', 'Patrick Colbeck', 'Jim Hines', 'Bill Schuette', 'John James', 'Sandy Pensler', '', 'Jack Bergman', '',
-        'Jim Stamas', 'Sue Allor', 'Melissa A. Cordes', '', 'Al Scully', '', 'Daniel G. Gauthier', 'Craig M. Clemens', 'Craig Johnston', 'Carolyn Brummund', 'Adam Brege', 'David Bielusiak', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '',
+        'REPUBLICIAN PARTY', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', 'STATE', '', '', '', 'CONGRESSIONAL', '', '',
+        '', 'LEGISLATIVE', '', 'COUNTY', '', 'COUNTY', '', '',
+        'County Commissioner', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', 'Congress-',
+        'Senator 36th', 'Rep106th', '', 'Reg. of', '', 'Road', '', '',
+        'Distri', 'Dist', '', '', 'Dist'],
+    ['', '', '', '', '', '', '', '', '', '', '1st Dist', '', 'Dist.',
+        'Dist.', '', 'Deeds', '', 'Commission', '', 'District #1',
+        'ct #2', '#3', 'Dist #4', '', '#5'],
+    ['', '', '', '', '', 'Governor', '', '', 'U.S. Senator', '', '',
+        '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', 'Number of Registered voters', 'Poll Book Totals',
+        'Brian Calley', 'Patrick Colbeck', 'Jim Hines', 'Bill Schuette',
+        'John James', 'Sandy Pensler', '', 'Jack Bergman', '',
+        'Jim Stamas', 'Sue Allor', 'Melissa A. Cordes', '', 'Al Scully',
+        '', 'Daniel G. Gauthier', 'Craig M. Clemens', 'Craig Johnston',
+        'Carolyn Brummund', 'Adam Brege', 'David Bielusiak', ''],
     ['Alcona', '963', '439', '55', '26', '47', '164', '173', '111', '', '268',
         '', '272', '275', '269', '', '271', '', '224', '76', '', '', '', '', ''],
     ['Caledonia', '923', '393', '40', '23', '45', '158', '150', '103', '', '244',
