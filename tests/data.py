@@ -838,7 +838,8 @@ data_stream_two_tables_1 = [
         "2,330 .9",
     ],
     [
-        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .  .",
+        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n" \
+        " .  .\n .  .",
         "467 .9",
         "69 .1",
         "398 .8",

@@ -180,6 +180,8 @@ def test_stream_layout_kwargs():
 
 
 def test_stream_vertical_header():
+    """Tests a complex table inclusive of vertically aligned header.
+    """
     df = pd.DataFrame(data_stream_vertical_headers)
 
     filename = os.path.join(testdir, "vertical_header.pdf")
@@ -274,8 +276,7 @@ def test_repr():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0])
-        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -285,24 +286,21 @@ def test_pages():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0])
-        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
     tables = camelot.read_pdf(url, pages="1-end")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0])
-        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
     tables = camelot.read_pdf(url, pages="all")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0])
-        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -312,8 +310,7 @@ def test_url():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0])
-        == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
