@@ -37,7 +37,7 @@ class PlotMethods(object):
             raise NotImplementedError(
                 "Lattice flavor does not support kind='{}'".format(kind)
             )
-        elif table.flavor == "stream" and kind in ["joint", "line"]:
+        elif table.flavor == "stream" and kind in ["line"]:
             raise NotImplementedError(
                 "Stream flavor does not support kind='{}'".format(kind)
             )
@@ -64,9 +64,18 @@ class PlotMethods(object):
         for t in table._text:
             xs.extend([t[0], t[2]])
             ys.extend([t[1], t[3]])
-            ax.add_patch(patches.Rectangle((t[0], t[1]), t[2] - t[0], t[3] - t[1]))
+            ax.add_patch(
+                patches.Rectangle(
+                        (t[0], t[1]),
+                        t[2] - t[0],
+                        t[3] - t[1],
+                        alpha=0.5
+                    )
+                )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
+        img, __ = table._image
+        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     def grid(self, table):
@@ -94,6 +103,9 @@ class PlotMethods(object):
                     ax.plot([cell.lt[0], cell.rt[0]], [cell.lt[1], cell.rt[1]])
                 if cell.bottom:
                     ax.plot([cell.lb[0], cell.rb[0]], [cell.lb[1], cell.rb[1]])
+
+        img, __ = table._image
+        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     def contour(self, table):
@@ -109,12 +121,8 @@ class PlotMethods(object):
         fig : matplotlib.fig.Figure
 
         """
-        try:
-            img, table_bbox = table._image
-            _FOR_LATTICE = True
-        except TypeError:
-            img, table_bbox = (None, {table._bbox: None})
-            _FOR_LATTICE = False
+        img, table_bbox = table._image
+        _FOR_LATTICE = table.flavor == "lattice"
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
 
@@ -132,7 +140,8 @@ class PlotMethods(object):
         for t in table_bbox.keys():
             ax.add_patch(
                 patches.Rectangle(
-                    (t[0], t[1]), t[2] - t[0], t[3] - t[1], fill=False, color="red"
+                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
+                    fill=False, color="red"
                 )
             )
             if not _FOR_LATTICE:
@@ -143,6 +152,8 @@ class PlotMethods(object):
 
         if _FOR_LATTICE:
             ax.imshow(img)
+        else:
+            ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     def textedge(self, table):
@@ -164,7 +175,11 @@ class PlotMethods(object):
             xs.extend([t[0], t[2]])
             ys.extend([t[1], t[3]])
             ax.add_patch(
-                patches.Rectangle((t[0], t[1]), t[2] - t[0], t[3] - t[1], color="blue")
+                patches.Rectangle(
+                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
+                    color="blue",
+                    alpha=0.5
+                )
             )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
@@ -172,6 +187,8 @@ class PlotMethods(object):
         for te in table._textedges:
             ax.plot([te.x, te.x], [te.y0, te.y1])
 
+        img, __ = table._image
+        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     def joint(self, table):
@@ -220,4 +237,8 @@ class PlotMethods(object):
             ax.plot([v[0], v[2]], [v[1], v[3]])
         for h in horizontal:
             ax.plot([h[0], h[2]], [h[1], h[3]])
+
+        img, __ = table._image
+        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
+
         return fig

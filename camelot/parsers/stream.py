@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from .base import BaseParser
-from ..core import TextEdges, Table
+from ..core import TextEdges
 from ..utils import (text_in_bbox, get_table_index, compute_accuracy,
                      compute_whitespace)
 
@@ -69,6 +69,7 @@ class Stream(BaseParser):
         column_tol=0,
         **kwargs
     ):
+        super().__init__("stream")
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.columns = columns
@@ -120,21 +121,26 @@ class Stream(BaseParser):
             Two-dimensional list of text objects grouped into rows.
 
         """
-        row_y = 0
+        row_y = None
         rows = []
         temp = []
-        for t in text:
+        non_empty_text = [t for t in text if t.get_text().strip()]
+        for t in non_empty_text:
             # is checking for upright necessary?
-            # if t.get_text().strip() and all([obj.upright for obj in t._objs
+            # if t.get_text().strip() and all([obj.upright \
+            #   for obj in t._objs
             # if type(obj) is LTChar]):
-            if t.get_text().strip():
-                if not np.isclose(row_y, t.y0, atol=row_tol):
-                    rows.append(sorted(temp, key=lambda t: t.x0))
-                    temp = []
-                    row_y = t.y0
-                temp.append(t)
+            if row_y is not None and \
+              not np.isclose(row_y, t.y0, atol=row_tol) and \
+              0.5 * (t.y1 + t.y0) < row_y:
+                rows.append(sorted(temp, key=lambda t: t.x0))
+                temp = []
+            # We update the row's bottom as we go, to be forgiving if there
+            # is a gradual change across multiple columns.
+            row_y = t.y0
+
+            temp.append(t)
         rows.append(sorted(temp, key=lambda t: t.x0))
-        __ = rows.pop(0)  # TODO: hacky
         return rows
 
     @staticmethod
@@ -278,7 +284,7 @@ class Stream(BaseParser):
     def _nurminen_table_detection(self, textlines):
         """A general implementation of the table detection algorithm
         described by Anssi Nurminen's master's thesis.
-        Link: https://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3
+        Link: https://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3 # noqa
 
         Assumes that tables are situated relatively far apart
         vertically.
@@ -378,12 +384,29 @@ class Stream(BaseParser):
                         "No tables found in table area {}"
                         .format(table_idx + 1)
                     )
-            cols = [
-                (t.x0, t.x1) for r in rows_grouped if len(r) == ncols
-                for t in r
+
+            # Identify rows which contain the mode of the number of columns
+            full_rows = list(filter(
+                lambda row: len(row) == ncols,
+                rows_grouped))
+            cells_on_full_rows_xrange = [
+                (t.x0, t.x1) for r in full_rows for t in r
             ]
-            cols = self._merge_columns(sorted(cols),
+            # TODO: fixme / make a decision on this
+            # plausible_rows = list(filter(
+            #     lambda row: len(row) <= ncols*1.2 and len(row) >= ncols*.8,
+            #     rows_grouped))
+            # plausible_cells_xrange = [
+            #     (t.x0, t.x1) for r in plausible_rows for t in r
+            # ]
+            # self.debug_info['plausible_rows'] = plausible_rows
+
+            # Identify column boundaries based on the contents of these rows
+            cols = self._merge_columns(sorted(cells_on_full_rows_xrange),
                                        column_tol=self.column_tol)
+            # cols = self._merge_columns(sorted(plausible_cells_xrange),
+            #                            column_tol=self.column_tol)
+
             inner_text = []
             for i in range(1, len(cols)):
                 left = cols[i - 1][1]
@@ -409,7 +432,7 @@ class Stream(BaseParser):
         return cols, rows
 
     def _generate_table(self, table_idx, cols, rows, **kwargs):
-        table = Table(cols, rows)
+        table = self._initialize_new_table(table_idx, cols, rows)
         table = table.set_all_edges()
 
         pos_errors = []
@@ -431,31 +454,25 @@ class Stream(BaseParser):
                         table.cells[r_idx][c_idx].text = text
         accuracy = compute_accuracy([[100, pos_errors]])
 
-        data = table.data
-        table.df = pd.DataFrame(data)
-        table.shape = table.df.shape
+        table.fill_data(self)
 
-        whitespace = compute_whitespace(data)
-        table.flavor = "stream"
         table.accuracy = accuracy
-        table.whitespace = whitespace
-        table.order = table_idx + 1
-        table.page = int(os.path.basename(self.rootname).replace("page-", ""))
 
         # for plotting
         _text = []
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
-        table._image = None
+        self.generate_image()
+        table._image = (self.pdf_image, self.table_bbox)
         table._segments = None
         table._textedges = self.textedges
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False,
+    def extract_tables(self, filename, page_idx=1, suppress_stdout=False,
                        layout_kwargs={}):
-        self._generate_layout(filename, layout_kwargs)
+        self._generate_layout(filename, page_idx, layout_kwargs)
         if not suppress_stdout:
             logger.info("Processing {}".format(
                 os.path.basename(self.rootname)))
@@ -474,6 +491,8 @@ class Stream(BaseParser):
                 )
             return []
 
+        # Identify plausible areas within the doc where tables lie,
+        # populate table_bbox keys with these areas.
         self._generate_table_bbox()
 
         _tables = []

@@ -13,6 +13,7 @@ from itertools import groupby
 from operator import itemgetter
 
 import numpy as np
+import pandas as pd
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
@@ -30,6 +31,9 @@ from pdfminer.layout import (
 )
 
 
+# pylint: disable=import-error
+# PyLint will evaluate both branches, and will necessarily complain about one
+# of them.
 PY3 = sys.version_info[0] >= 3
 if PY3:
     from urllib.request import urlopen
@@ -310,7 +314,8 @@ def get_rotation(chars, horizontal_text, vertical_text):
     if hlen < vlen:
         clockwise = sum(t.matrix[1] < 0 and t.matrix[2] > 0 for t in chars)
         anticlockwise = sum(t.matrix[1] > 0 and t.matrix[2] < 0 for t in chars)
-        rotation = "anticlockwise" if clockwise < anticlockwise else "clockwise"
+        rotation = "anticlockwise" if clockwise < anticlockwise \
+            else "clockwise"
     return rotation
 
 
@@ -341,12 +346,16 @@ def segments_in_bbox(bbox, v_segments, h_segments):
     v_s = [
         v
         for v in v_segments
-        if v[1] > lb[1] - 2 and v[3] < rt[1] + 2 and lb[0] - 2 <= v[0] <= rt[0] + 2
+        if v[1] > lb[1] - 2 and
+        v[3] < rt[1] + 2 and
+        lb[0] - 2 <= v[0] <= rt[0] + 2
     ]
     h_s = [
         h
         for h in h_segments
-        if h[0] > lb[0] - 2 and h[2] < rt[0] + 2 and lb[1] - 2 <= h[1] <= rt[1] + 2
+        if h[0] > lb[0] - 2 and
+        h[2] < rt[0] + 2 and
+        lb[1] - 2 <= h[1] <= rt[1] + 2
     ]
     return v_s, h_s
 
@@ -464,10 +473,10 @@ def flag_font_size(textline, direction, strip_text=""):
             for t in textline
             if not isinstance(t, LTAnno)
         ]
-    l = [np.round(size, decimals=6) for text, size in d]
-    if len(set(l)) > 1:
+    text_sizes = [np.round(size, decimals=6) for text, size in d]
+    if len(set(text_sizes)) > 1:
         flist = []
-        min_size = min(l)
+        min_size = min(text_sizes)
         for key, chars in groupby(d, itemgetter(1)):
             if key == min_size:
                 fchars = [t[0] for t in chars]
@@ -511,7 +520,6 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
         of row/column and text is the an lttextline substring.
 
     """
-    idx = 0
     cut_text = []
     bbox = textline.bbox
     try:
@@ -528,7 +536,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
             ]
             r = r_idx[0]
             x_cuts = [
-                (c, table.cells[r][c].x2) for c in x_overlap if table.cells[r][c].right
+                (c, table.cells[r][c].x2)
+                for c in x_overlap
+                if table.cells[r][c].right
             ]
             if not x_cuts:
                 x_cuts = [(x_overlap[0], table.cells[r][-1].x2)]
@@ -561,7 +571,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
             ]
             c = c_idx[0]
             y_cuts = [
-                (r, table.cells[r][c].y1) for r in y_overlap if table.cells[r][c].bottom
+                (r, table.cells[r][c].y1)
+                for r in y_overlap
+                if table.cells[r][c].bottom
             ]
             if not y_cuts:
                 y_cuts = [(y_overlap[0], table.cells[-1][c].y1)]
@@ -644,9 +656,8 @@ def get_table_index(
     """
     r_idx, c_idx = [-1] * 2
     for r in range(len(table.rows)):
-        if (t.y0 + t.y1) / 2.0 < table.rows[r][0] and (t.y0 + t.y1) / 2.0 > table.rows[
-            r
-        ][1]:
+        if (t.y0 + t.y1) / 2.0 < table.rows[r][0] and \
+           (t.y0 + t.y1) / 2.0 > table.rows[r][1]:
             lt_col_overlap = []
             for c in table.cols:
                 if c[0] <= t.x1 and c[1] >= t.x0:
@@ -681,7 +692,9 @@ def get_table_index(
     X = 1.0 if abs(t.x0 - t.x1) == 0.0 else abs(t.x0 - t.x1)
     Y = 1.0 if abs(t.y0 - t.y1) == 0.0 else abs(t.y0 - t.y1)
     charea = X * Y
-    error = ((X * (y0_offset + y1_offset)) + (Y * (x0_offset + x1_offset))) / charea
+    error = (
+        (X * (y0_offset + y1_offset)) + (Y * (x0_offset + x1_offset))
+    ) / charea
 
     if split_text:
         return (
@@ -697,13 +710,16 @@ def get_table_index(
                     (
                         r_idx,
                         c_idx,
-                        flag_font_size(t._objs, direction, strip_text=strip_text),
+                        flag_font_size(t._objs,
+                                       direction,
+                                       strip_text=strip_text),
                     )
                 ],
                 error,
             )
         else:
-            return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], error
+            return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], \
+                error
 
 
 def compute_accuracy(error_weights):
@@ -751,7 +767,6 @@ def compute_whitespace(d):
 
     """
     whitespace = 0
-    r_nempty_cells, c_nempty_cells = [], []
     for i in d:
         for j in i:
             if j.strip() == "":
@@ -852,3 +867,78 @@ def get_text_objects(layout, ltype="char", t=None):
     except AttributeError:
         pass
     return t
+
+
+def compare_tables(left, right):
+    """Compare two tables and displays differences in a human readable form.
+
+    Parameters
+    ----------
+    left : data frame
+    right : data frame
+    """
+    diff_cols = right.shape[1]-left.shape[1]
+    diff_rows = right.shape[0]-left.shape[0]
+    differences = []
+    if (diff_rows):
+        differences.append(
+            f"{abs(diff_rows)} "
+            f"{'more' if diff_rows>0 else 'fewer'} rows"
+        )
+    if (diff_cols):
+        differences.append(
+            f"{abs(diff_cols)} "
+            f"{'more' if diff_cols>0 else 'fewer'} columns"
+        )
+    if differences:
+        differences_str = " and ".join(differences)
+        print(f"Right has {differences_str} than left "
+              f"[{right.shape[0]},{right.shape[1]}] vs "
+              f"[{left.shape[0]},{left.shape[1]}]")
+
+    table1, table2 = [left, right]
+    name_table1, name_table2 = ["left", "right"]
+    if not diff_rows:
+        # Same number of rows: compare columns since they're of the same length
+        if diff_cols > 0:
+            # Use the longest table as a reference
+            table1, table2 = table2, table1
+            name_table1, name_table2 = name_table2, name_table1
+        for i, col in enumerate(table1.columns):
+            lcol = table1.iloc[:, i]
+            if col in table2:
+                scol = table2.iloc[:, i]
+                if not lcol.equals(scol):
+                    diff_df = pd.DataFrame()
+                    diff_df[name_table1] = scol
+                    diff_df[name_table2] = lcol
+                    diff_df["Match"] = lcol == scol
+                    print(
+                        f"Column {i} different:\n"
+                        f"{diff_df}"
+                    )
+                    break
+            else:
+                print("Column {i} unique to {name_table1}: {lcol}")
+                break
+    elif not diff_cols:
+        # Same number of cols: compare rows since they're of the same length
+        if diff_rows > 0:
+            # Use the longest table as a reference
+            table1, table2 = table2, table1
+            name_table1, name_table2 = name_table2, name_table1
+        for i in table1.iterrows():
+            lrow = table1.loc[i, :]
+            if i < table2.shape[1]:
+                srow = table2.loc[i, :]
+                if not lrow.equals(srow):
+                    diff_df = pd.DataFrame()
+                    diff_df = diff_df.append(lrow, ignore_index=True)
+                    diff_df = diff_df.append(srow, ignore_index=True)
+                    diff_df.insert(0, 'Table', [name_table1, name_table2])
+                    print(f"Column {i} differs:")
+                    print(diff_df.values)
+                    break
+            else:
+                print(f"Row {i} unique to {name_table1}: {lrow}")
+                break

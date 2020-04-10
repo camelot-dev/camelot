@@ -838,7 +838,7 @@ data_stream_two_tables_1 = [
         "2,330 .9",
     ],
     [
-        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n" \
+        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n"
         " .  .\n .  .",
         "467 .9",
         "69 .1",
@@ -1503,15 +1503,8 @@ data_stream_table_areas = [
 ]
 
 data_stream_columns = [
-    [
-        "Clave",
-        "Nombre Entidad",
-        "Clave",
-        "Nombre Municipio",
-        "Clave",
-        "Nombre Localidad",
-    ],
-    ["Entidad", "", "Municipio", "", "Localidad", ""],
+    ["Clave \nEntidad", "Nombre Entidad", "Clave \nMunicipio",
+     "Nombre Municipio", "Clave \nLocalidad", "Nombre Localidad"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0094", "Granja Adelita"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0096", "Agua Azul"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0100", "Rancho Alegre"],
@@ -2732,11 +2725,9 @@ data_stream_vertical_headers = [
     ['', '', '', '', '', '', '', '', '', '', '', 'Congress-',
         'Senator 36th', 'Rep106th', '', 'Reg. of', '', 'Road', '', '',
         'Distri', 'Dist', '', '', 'Dist'],
-    ['', '', '', '', '', '', '', '', '', '', '1st Dist', '', 'Dist.',
-        'Dist.', '', 'Deeds', '', 'Commission', '', 'District #1',
-        'ct #2', '#3', 'Dist #4', '', '#5'],
-    ['', '', '', '', '', 'Governor', '', '', 'U.S. Senator', '', '',
-        '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', 'Governor', '', '', 'U.S. Senator', '',
+        '1st Dist', '', 'Dist.', 'Dist.', '', 'Deeds', '', 'Commission',
+        '', 'District #1', 'ct #2', '#3', 'Dist #4', '', '#5'],
     ['', 'Number of Registered voters', 'Poll Book Totals',
         'Brian Calley', 'Patrick Colbeck', 'Jim Hines', 'Bill Schuette',
         'John James', 'Sandy Pensler', '', 'Jack Bergman', '',

@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 
 from .base import BaseParser
-from ..core import Table
 from ..utils import (
     scale_image,
     scale_pdf,
@@ -22,7 +21,6 @@ from ..utils import (
     merge_close_lines,
     get_table_index,
     compute_accuracy,
-    compute_whitespace,
 )
 from ..image_processing import (
     adaptive_threshold,
@@ -80,7 +78,7 @@ class Lattice(BaseParser):
         Size of a pixel neighborhood that is used to calculate a
         threshold value for the pixel: 3, 5, 7, and so on.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_. # noqa
     threshold_constant : int, optional (default: -2)
         Constant subtracted from the mean or weighted mean.
         Normally, it is positive but may be zero or negative as well.
@@ -114,6 +112,7 @@ class Lattice(BaseParser):
         resolution=300,
         **kwargs
     ):
+        super().__init__("lattice")
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.process_background = process_background
@@ -208,19 +207,6 @@ class Lattice(BaseParser):
                                 t.cells[i][j].text = t.cells[i - 1][j].text
         return t
 
-    def _generate_image(self):
-        from ..ext.ghostscript import Ghostscript
-
-        self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
-            self.imagename, self.filename
-        )
-        gs_call = gs_call.encode().split()
-        null = open(os.devnull, "wb")
-        with Ghostscript(*gs_call, stdout=null) as gs:
-            pass
-        null.close()
-
     def _generate_table_bbox(self):
         def scale_areas(areas):
             scaled_areas = []
@@ -234,20 +220,21 @@ class Lattice(BaseParser):
                 scaled_areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
             return scaled_areas
 
-        self.image, self.threshold = adaptive_threshold(
+        self.pdf_image, self.threshold = adaptive_threshold(
             self.imagename,
             process_background=self.process_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
         )
 
-        image_width = self.image.shape[1]
-        image_height = self.image.shape[0]
+        image_width = self.pdf_image.shape[1]
+        image_height = self.pdf_image.shape[0]
         image_width_scaler = image_width / float(self.pdf_width)
         image_height_scaler = image_height / float(self.pdf_height)
         pdf_width_scaler = self.pdf_width / float(image_width)
         pdf_height_scaler = self.pdf_height / float(image_height)
-        image_scalers = (image_width_scaler, image_height_scaler, self.pdf_height)
+        image_scalers = (image_width_scaler,
+                         image_height_scaler, self.pdf_height)
         pdf_scalers = (pdf_width_scaler, pdf_height_scaler, image_height)
 
         if self.table_areas is None:
@@ -291,7 +278,11 @@ class Lattice(BaseParser):
 
         self.table_bbox_unscaled = copy.deepcopy(table_bbox)
 
-        self.table_bbox, self.vertical_segments, self.horizontal_segments = scale_image(
+        [
+            self.table_bbox,
+            self.vertical_segments,
+            self.horizontal_segments
+        ] = scale_image(
             table_bbox, vertical_segments, horizontal_segments, pdf_scalers
         )
 
@@ -315,7 +306,10 @@ class Lattice(BaseParser):
         rows.extend([tk[1], tk[3]])
         # sort horizontal and vertical segments
         cols = merge_close_lines(sorted(cols), line_tol=self.line_tol)
-        rows = merge_close_lines(sorted(rows, reverse=True), line_tol=self.line_tol)
+        rows = merge_close_lines(
+            sorted(rows, reverse=True),
+            line_tol=self.line_tol
+        )
         # make grid using x and y coord of shortlisted rows and cols
         cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
         rows = [(rows[i], rows[i + 1]) for i in range(0, len(rows) - 1)]
@@ -328,7 +322,7 @@ class Lattice(BaseParser):
         if v_s is None or h_s is None:
             raise ValueError("No segments found on {}".format(self.rootname))
 
-        table = Table(cols, rows)
+        table = self._initialize_new_table(table_idx, cols, rows)
         # set table edges to True using ver+hor lines
         table = table.set_edges(v_s, h_s, joint_tol=self.joint_tol)
         # set table border edges to True
@@ -359,48 +353,44 @@ class Lattice(BaseParser):
         accuracy = compute_accuracy([[100, pos_errors]])
 
         if self.copy_text is not None:
-            table = Lattice._copy_spanning_text(table, copy_text=self.copy_text)
+            table = Lattice._copy_spanning_text(
+                table,
+                copy_text=self.copy_text
+            )
 
-        data = table.data
-        table.df = pd.DataFrame(data)
-        table.shape = table.df.shape
-
-        whitespace = compute_whitespace(data)
-        table.flavor = "lattice"
+        table.fill_data(self)
         table.accuracy = accuracy
-        table.whitespace = whitespace
-        table.order = table_idx + 1
-        table.page = int(os.path.basename(self.rootname).replace("page-", ""))
 
         # for plotting
         _text = []
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
-        table._image = (self.image, self.table_bbox_unscaled)
+        table._image = (self.pdf_image, self.table_bbox_unscaled)
         table._segments = (self.vertical_segments, self.horizontal_segments)
         table._textedges = None
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
-        self._generate_layout(filename, layout_kwargs)
+    def extract_tables(self, filename,  page_idx=1, suppress_stdout=False,
+                       layout_kwargs={}):
+        self._generate_layout(filename, page_idx, layout_kwargs)
         if not suppress_stdout:
-            logger.info("Processing {}".format(os.path.basename(self.rootname)))
+            logger.info(f"Processing {os.path.basename(self.rootname)}")
 
         if not self.horizontal_text:
             if self.images:
                 warnings.warn(
-                    "{} is image-based, camelot only works on"
-                    " text-based pages.".format(os.path.basename(self.rootname))
+                    f"{os.path.basename(self.rootname)} is image-based, "
+                    "camelot only works on text-based pages."
                 )
             else:
                 warnings.warn(
-                    "No tables found on {}".format(os.path.basename(self.rootname))
+                    f"No tables found on {os.path.basename(self.rootname)}"
                 )
             return []
 
-        self._generate_image()
+        self._generate_image_file()
         self._generate_table_bbox()
 
         _tables = []
@@ -408,8 +398,10 @@ class Lattice(BaseParser):
         for table_idx, tk in enumerate(
             sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
         ):
-            cols, rows, v_s, h_s = self._generate_columns_and_rows(table_idx, tk)
-            table = self._generate_table(table_idx, cols, rows, v_s=v_s, h_s=h_s)
+            cols, rows, v_s, h_s = self._generate_columns_and_rows(
+                table_idx, tk)
+            table = self._generate_table(
+                table_idx, cols, rows, v_s=v_s, h_s=h_s)
             table._bbox = tk
             _tables.append(table)
 

@@ -9,9 +9,11 @@ from pandas.testing import assert_frame_equal
 
 import camelot
 from camelot.core import Table, TableList
+from camelot.utils import compare_tables
 from camelot.__version__ import generate_version
 
 from .data import *
+
 
 import pdfminer
 
@@ -48,9 +50,11 @@ def test_password():
 
     filename = os.path.join(testdir, "health_protected.pdf")
     tables = camelot.read_pdf(filename, password="ownerpass", flavor="stream")
+    assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
     tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
+    assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
 
@@ -59,6 +63,7 @@ def test_stream():
 
     filename = os.path.join(testdir, "health.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
+    assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
 
@@ -79,6 +84,7 @@ def test_stream_table_rotated():
 
     filename = os.path.join(testdir, "anticlockwise_table_2.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
+    assert len(tables) == 1
     result_without_first_row = pd.DataFrame(
         tables[0].df.drop(tables[0].df.columns[0], axis=1).values)
     assert_frame_equal(df, result_without_first_row)
@@ -275,9 +281,9 @@ def test_repr():
     tables = camelot.read_pdf(filename)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
 
 def test_pages():
@@ -285,22 +291,23 @@ def test_pages():
     tables = camelot.read_pdf(url)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
     tables = camelot.read_pdf(url, pages="1-end")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
     tables = camelot.read_pdf(url, pages="all")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) ==
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -310,7 +317,8 @@ def test_url():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) ==
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 

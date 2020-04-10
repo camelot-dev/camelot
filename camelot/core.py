@@ -10,6 +10,11 @@ from operator import itemgetter
 import numpy as np
 import pandas as pd
 
+from .utils import (
+    compute_accuracy,
+    compute_whitespace,
+)
+
 
 # minimum number of vertical textline intersections for a textedge
 # to be considered valid
@@ -479,6 +484,9 @@ class Table(object):
         self.whitespace = 0
         self.order = None
         self.page = None
+        self.flavor = None      # Flavor of the parser that generated the table
+        self.pdf_size = None    # Dimensions of the original PDF page
+        self.debug_info = None  # Field holding debug data
 
     def __repr__(self):
         return "<{} shape={}>".format(self.__class__.__name__, self.shape)
@@ -512,6 +520,17 @@ class Table(object):
             "page": self.page,
         }
         return report
+
+    def fill_data(self, parser):
+        self.flavor = parser.id
+        self.debug_info = parser.debug_info
+        data = self.data
+        self.df = pd.DataFrame(data)
+        self.shape = self.df.shape
+
+        self.whitespace = compute_whitespace(data)
+
+        self.pdf_size = (parser.pdf_width, parser.pdf_height)
 
     def set_all_edges(self):
         """Sets all table edges to True.
@@ -747,6 +766,7 @@ class Table(object):
             "encoding": "utf-8",
         }
         kw.update(kwargs)
+        # pylint: disable=abstract-class-instantiated
         writer = pd.ExcelWriter(path)
         self.df.to_excel(writer, **kw)
         writer.save()
@@ -874,6 +894,7 @@ class TableList(object):
                 self._compress_dir(**kwargs)
         elif f == "excel":
             filepath = os.path.join(dirname, basename)
+            # pylint: disable=abstract-class-instantiated
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = "page-{}-table-{}".format(table.page, table.order)
