@@ -121,7 +121,7 @@ class PlotMethods(object):
         fig : matplotlib.fig.Figure
 
         """
-        img, table_bbox = table._image
+        img, table_areas = table._image
         _FOR_LATTICE = table.flavor == "lattice"
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
@@ -137,7 +137,7 @@ class PlotMethods(object):
                     )
                 )
 
-        for t in table_bbox.keys():
+        for t in table_areas.keys():
             ax.add_patch(
                 patches.Rectangle(
                     (t[0], t[1]), t[2] - t[0], t[3] - t[1],
@@ -204,13 +204,13 @@ class PlotMethods(object):
         fig : matplotlib.fig.Figure
 
         """
-        img, table_bbox = table._image
+        img, table_areas = table._image
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
         x_coord = []
         y_coord = []
-        for k in table_bbox.keys():
-            for coord in table_bbox[k]:
+        for k in table_areas.keys():
+            for coord in table_areas[k]:
                 x_coord.append(coord[0])
                 y_coord.append(coord[1])
         ax.plot(x_coord, y_coord, "ro")

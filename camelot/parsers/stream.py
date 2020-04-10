@@ -299,14 +299,14 @@ class Stream(BaseParser):
         relevant_textedges = textedges.get_relevant()
         self.textedges.extend(relevant_textedges)
         # guess table areas using textlines and relevant edges
-        table_bbox = textedges.get_table_areas(textlines, relevant_textedges)
+        table_areas = textedges.get_table_areas(textlines, relevant_textedges)
         # treat whole page as table area if no table areas found
-        if not table_bbox:
-            table_bbox = {(0, 0, self.pdf_width, self.pdf_height): None}
+        if not table_areas:
+            table_areas = {(0, 0, self.pdf_width, self.pdf_height): None}
 
-        return table_bbox
+        return table_areas
 
-    def _generate_table_bbox(self):
+    def _generate_table_areas(self):
         self.textedges = []
         if self.table_areas is None:
             all_text_segments = self.horizontal_text + self.vertical_text
@@ -325,20 +325,20 @@ class Stream(BaseParser):
                         (x1, y2, x2, y1), all_text_segments)
                     text_segments.extend(region_text)
             # find tables based on nurminen's detection algorithm
-            table_bbox = self._nurminen_table_detection(text_segments)
+            table_areas = self._nurminen_table_detection(text_segments)
         else:
-            table_bbox = {}
+            table_areas = {}
             for area in self.table_areas:
                 x1, y1, x2, y2 = area.split(",")
                 x1 = float(x1)
                 y1 = float(y1)
                 x2 = float(x2)
                 y2 = float(y2)
-                table_bbox[(x1, y2, x2, y1)] = None
-        self.table_bbox = table_bbox
+                table_areas[(x1, y2, x2, y1)] = None
+        self.table_areas = table_areas
 
     def _generate_columns_and_rows(self, table_idx, tk):
-        # select elements which lie within table_bbox
+        # select elements which lie within table_areas
         t_bbox = {}
         t_bbox["horizontal"] = text_in_bbox(tk, self.horizontal_text)
         t_bbox["vertical"] = text_in_bbox(tk, self.vertical_text)
@@ -464,7 +464,7 @@ class Stream(BaseParser):
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
         self.generate_image()
-        table._image = (self.pdf_image, self.table_bbox)
+        table._image = (self.pdf_image, self.table_areas)
         table._segments = None
         table._textedges = self.textedges
 
@@ -492,13 +492,13 @@ class Stream(BaseParser):
             return []
 
         # Identify plausible areas within the doc where tables lie,
-        # populate table_bbox keys with these areas.
-        self._generate_table_bbox()
+        # populate table_areas keys with these areas.
+        self._generate_table_areas()
 
         _tables = []
         # sort tables based on y-coord
         for table_idx, tk in enumerate(
-            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
+            sorted(self.table_areas.keys(), key=lambda x: x[1], reverse=True)
         ):
             cols, rows = self._generate_columns_and_rows(table_idx, tk)
             table = self._generate_table(table_idx, cols, rows)

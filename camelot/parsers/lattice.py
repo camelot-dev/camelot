@@ -207,7 +207,7 @@ class Lattice(BaseParser):
                                 t.cells[i][j].text = t.cells[i - 1][j].text
         return t
 
-    def _generate_table_bbox(self):
+    def _generate_table_areas(self):
         def scale_areas(areas):
             scaled_areas = []
             for area in areas:
@@ -258,7 +258,7 @@ class Lattice(BaseParser):
             )
 
             contours = find_contours(vertical_mask, horizontal_mask)
-            table_bbox = find_joints(contours, vertical_mask, horizontal_mask)
+            table_areas = find_joints(contours, vertical_mask, horizontal_mask)
         else:
             vertical_mask, vertical_segments = find_lines(
                 self.threshold,
@@ -274,20 +274,20 @@ class Lattice(BaseParser):
             )
 
             areas = scale_areas(self.table_areas)
-            table_bbox = find_joints(areas, vertical_mask, horizontal_mask)
+            table_areas = find_joints(areas, vertical_mask, horizontal_mask)
 
-        self.table_bbox_unscaled = copy.deepcopy(table_bbox)
+        self.table_areas_unscaled = copy.deepcopy(table_areas)
 
         [
-            self.table_bbox,
+            self.table_areas,
             self.vertical_segments,
             self.horizontal_segments
         ] = scale_image(
-            table_bbox, vertical_segments, horizontal_segments, pdf_scalers
+            table_areas, vertical_segments, horizontal_segments, pdf_scalers
         )
 
     def _generate_columns_and_rows(self, table_idx, tk):
-        # select elements which lie within table_bbox
+        # select elements which lie within table_areas
         t_bbox = {}
         v_s, h_s = segments_in_bbox(
             tk, self.vertical_segments, self.horizontal_segments
@@ -300,7 +300,7 @@ class Lattice(BaseParser):
 
         self.t_bbox = t_bbox
 
-        cols, rows = zip(*self.table_bbox[tk])
+        cols, rows = zip(*self.table_areas[tk])
         cols, rows = list(cols), list(rows)
         cols.extend([tk[0], tk[2]])
         rows.extend([tk[1], tk[3]])
@@ -366,7 +366,7 @@ class Lattice(BaseParser):
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
-        table._image = (self.pdf_image, self.table_bbox_unscaled)
+        table._image = (self.pdf_image, self.table_areas_unscaled)
         table._segments = (self.vertical_segments, self.horizontal_segments)
         table._textedges = None
 
@@ -391,12 +391,12 @@ class Lattice(BaseParser):
             return []
 
         self._generate_image_file()
-        self._generate_table_bbox()
+        self._generate_table_areas()
 
         _tables = []
         # sort tables based on y-coord
         for table_idx, tk in enumerate(
-            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
+            sorted(self.table_areas.keys(), key=lambda x: x[1], reverse=True)
         ):
             cols, rows, v_s, h_s = self._generate_columns_and_rows(
                 table_idx, tk)

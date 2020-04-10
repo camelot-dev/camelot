@@ -192,6 +192,7 @@ def test_stream_vertical_header():
 
     filename = os.path.join(testdir, "vertical_header.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
+    assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
 
