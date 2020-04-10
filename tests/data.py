@@ -70,7 +70,8 @@ data_stream = [
         "5,000",
         "33,051,480",
     ],
-    ["Goa", "4,055,567", "110,000", "330,053", "0", "4,495,620", "12,560", "4,508,180"],
+    ["Goa", "4,055,567", "110,000", "330,053", "0", "4,495,620", "12,560",
+     "4,508,180"],
     [
         "Gujarat",
         "26,328,400",
@@ -161,7 +162,8 @@ data_stream = [
         "313,762",
         "67,044,159",
     ],
-    ["Manipur", "2,494,600", "187,700", "897,400", "0", "3,579,700", "0", "3,579,700"],
+    ["Manipur", "2,494,600", "187,700", "897,400", "0", "3,579,700",
+     "0", "3,579,700"],
     [
         "Meghalaya",
         "2,894,093",
@@ -301,7 +303,8 @@ data_stream_table_rotated = [
         "Total",
         "women",
     ],
-    ["Caste/tribe", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["Caste/tribe", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+     "", ""],
     [
         "Scheduled caste",
         "74.8",
@@ -378,7 +381,8 @@ data_stream_table_rotated = [
         "100.0",
         "3,319",
     ],
-    ["Wealth index", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["Wealth index", "", "", "", "", "", "", "", "", "", "", "", "",
+     "", "", "", ""],
     [
         "Lowest",
         "64.5",
@@ -826,7 +830,8 @@ data_stream_two_tables_1 = [
         "and over",
     ],
     [
-        "Total   .\n .\n .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .  .\n .  .\n .  .\n .  .  .",
+        "Total   .\n .\n .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n"
+        " .  .\n .  .\n .  .\n .  .  .",
         "11,062 .6",
         "1,540 .0",
         "9,522 .6",
@@ -900,7 +905,8 @@ data_stream_two_tables_1 = [
         "64.5",
     ],
     [
-        "Property crime  .  .  .  .\n .  .\n .  .  .\n .  .  .\n .\n .  .  .  .",
+        "Property crime  .  .  .  .\n .  .\n .  .  .\n .  .  .\n .\n"
+        " .  .  .  .",
         "1,396 .4",
         "338 .7",
         "1,057 .7",
@@ -984,7 +990,8 @@ data_stream_two_tables_1 = [
         "25.5",
     ],
     [
-        "Fraud .\n.\n.\n. .\n. . . .\n. .\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n.\n.",
+        "Fraud .\n.\n.\n. .\n. . . .\n. .\n.\n. .\n.\n.\n. .\n.\n.\n."
+        " .\n.\n.\n.",
         "173.7",
         "5.1",
         "168.5",
@@ -1219,7 +1226,8 @@ data_stream_two_tables_2 = [
     ["Offense charged", "", "", "", "Indian/Alaskan", "Asian Pacific"],
     ["", "Total", "White", "Black", "Native", "Islander"],
     [
-        "Total  .\n .\n .\n .\n .  .\n .  .  .\n .  .  .\n .\n .  .  .\n .\n .  .  .\n .  .\n .\n .  .  .\n .\n .\n .\n .  .\n .  .\n .  .",
+        "Total  .\n .\n .\n .\n .  .\n .  .  .\n .  .  .\n .\n .  .  .\n "
+        ".\n .  .  .\n .  .\n .\n .  .  .\n .\n .\n .\n .  .\n .  .\n .  .",
         "10,690,561",
         "7,389,208",
         "3,027,153",
@@ -1227,7 +1235,8 @@ data_stream_two_tables_2 = [
         "123,656",
     ],
     [
-        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .\n .\n .  .\n .  .\n .\n .\n .\n .\n .  .",
+        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  "
+        ".\n .  .\n .\n .\n .  .\n .  .\n .\n .\n .\n .\n .  .",
         "456,965",
         "268,346",
         "177,766",
@@ -1243,7 +1252,8 @@ data_stream_two_tables_2 = [
         "97",
     ],
     [
-        "Forcible rape . . . . . . . .\n. .\n. .\n. .\n. .\n.\n.\n. .\n. .\n.\n.\n.\n.\n. .",
+        "Forcible rape . . . . . . . .\n. .\n. .\n. .\n. .\n.\n.\n. ."
+        "\n. .\n.\n.\n.\n.\n. .",
         "16,362",
         "10,644",
         "5,319",
@@ -1251,7 +1261,8 @@ data_stream_two_tables_2 = [
         "230",
     ],
     [
-        "Robbery . . . . .\n. . . . .\n.\n. . .\n.\n. . .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. . . .",
+        "Robbery . . . . .\n. . . . .\n.\n. . .\n.\n. . .\n.\n.\n. .\n"
+        ".\n.\n. .\n.\n.\n. . . .",
         "100,496",
         "43,039",
         "55,742",
@@ -1259,7 +1270,8 @@ data_stream_two_tables_2 = [
         "989",
     ],
     [
-        "Aggravated assault  . . . . . . . .\n. .\n. .\n.\n.\n.\n.\n. .\n. .\n.\n.\n.",
+        "Aggravated assault  . . . . . . . .\n. .\n. .\n.\n.\n.\n.\n."
+        " .\n. .\n.\n.\n.",
         "330,368",
         "209,922",
         "111,904",
@@ -1267,7 +1279,8 @@ data_stream_two_tables_2 = [
         "3,929",
     ],
     [
-        "Property crime  .  .  .  .  .\n .  .  .  .  .\n .\n .  .  .\n .\n .  .\n .\n .\n .\n .  .\n .\n .  .\n .\n .",
+        "Property crime  .  .  .  .  .\n .  .  .  .  .\n .\n .  .  .\n"
+        " .\n .  .\n .\n .\n .\n .  .\n .\n .  .\n .\n .",
         "1,364,409",
         "922,139",
         "406,382",
@@ -1275,7 +1288,8 @@ data_stream_two_tables_2 = [
         "18,289",
     ],
     [
-        "Burglary . . .\n. . . . .\n. . .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n. . . .",
+        "Burglary . . .\n. . . . .\n. . .\n.\n.\n. .\n.\n.\n. .\n.\n."
+        "\n. .\n.\n.\n. .\n.\n. . . .",
         "234,551",
         "155,994",
         "74,419",
@@ -1283,7 +1297,8 @@ data_stream_two_tables_2 = [
         "2,117",
     ],
     [
-        "Larceny-theft . . . . . . . .\n. .\n. .\n. .\n. .\n.\n.\n. .\n. .\n.\n.\n.\n.\n. .",
+        "Larceny-theft . . . . . . . .\n. .\n. .\n. .\n. .\n.\n.\n. ."
+        "\n. .\n.\n.\n.\n.\n. .",
         "1,056,473",
         "719,983",
         "306,625",
@@ -1291,7 +1306,8 @@ data_stream_two_tables_2 = [
         "15,219",
     ],
     [
-        "Motor vehicle theft . . . . . .\n. .\n.\n. . .\n.\n. .\n.\n.\n.\n. .\n.\n. .\n.",
+        "Motor vehicle theft . . . . . .\n. .\n.\n. . .\n.\n. .\n.\n.\n"
+        ".\n. .\n.\n. .\n.",
         "63,919",
         "39,077",
         "23,184",
@@ -1299,7 +1315,8 @@ data_stream_two_tables_2 = [
         "841",
     ],
     [
-        "Arson .\n. . . .\n. .\n. .\n. .\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. . . . . .",
+        "Arson .\n. . . .\n. .\n. .\n. .\n.\n. .\n.\n.\n. .\n.\n.\n. .\n"
+        ".\n.\n. .\n.\n.\n. . . . . .",
         "9,466",
         "7,085",
         "2,154",
@@ -1307,7 +1324,8 @@ data_stream_two_tables_2 = [
         "112",
     ],
     [
-        "Other assaults .\n. . . . . . .\n.\n. . .\n.\n. . .\n.\n. .\n.\n.\n.\n. .\n.\n. .\n.",
+        "Other assaults .\n. . . . . . .\n.\n. . .\n.\n. . .\n.\n. .\n.\n"
+        ".\n.\n. .\n.\n. .\n.",
         "1,032,502",
         "672,865",
         "332,435",
@@ -1315,7 +1333,8 @@ data_stream_two_tables_2 = [
         "12,075",
     ],
     [
-        "Forgery and counterfeiting .\n. . . . . . .\n.\n. .\n.\n.\n.\n. .\n. .\n.",
+        "Forgery and counterfeiting .\n. . . . . . .\n.\n. .\n.\n.\n.\n."
+        " .\n. .\n.",
         "67,054",
         "44,730",
         "21,251",
@@ -1323,7 +1342,8 @@ data_stream_two_tables_2 = [
         "728",
     ],
     [
-        "Fraud .\n.\n. . . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n. .\n. .\n. .\n.\n.\n. . . . . . .",
+        "Fraud .\n.\n. . . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n. .\n. "
+        ".\n. .\n.\n.\n. . . . . . .",
         "161,233",
         "108,032",
         "50,367",
@@ -1331,7 +1351,8 @@ data_stream_two_tables_2 = [
         "1,519",
     ],
     [
-        "Embezzlement . . . .\n. . . . .\n.\n. . .\n.\n. . .\n.\n.\n. .\n.\n. .\n.\n.\n.\n.",
+        "Embezzlement . . . .\n. . . . .\n.\n. . .\n.\n. . .\n.\n.\n. "
+        ".\n.\n. .\n.\n.\n.\n.",
         "13,960",
         "9,208",
         "4,429",
@@ -1347,7 +1368,8 @@ data_stream_two_tables_2 = [
         "742",
     ],
     [
-        "Vandalism  . . . . . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n.\n.\n. .\n. .\n.\n.\n.\n. .",
+        "Vandalism  . . . . . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n.\n.\n."
+        " .\n. .\n.\n.\n.\n. .",
         "212,173",
         "157,723",
         "48,746",
@@ -1371,7 +1393,8 @@ data_stream_two_tables_2 = [
         "1,413",
     ],
     [
-        "Sex offenses 1 . . . . . . . .\n. .\n. .\n. .\n. .\n.\n.\n. .\n. .\n.\n.\n.\n.\n. .",
+        "Sex offenses 1 . . . . . . . .\n. .\n. .\n. .\n. .\n.\n.\n. .\n."
+        " .\n.\n.\n.\n.\n. .",
         "60,175",
         "44,240",
         "14,347",
@@ -1379,7 +1402,8 @@ data_stream_two_tables_2 = [
         "873",
     ],
     [
-        "Drug abuse violations  . . . . . . . .\n. . .\n.\n.\n.\n. .\n. .\n.\n.\n.\n.",
+        "Drug abuse violations  . . . . . . . .\n. . .\n.\n.\n.\n. .\n."
+        " .\n.\n.\n.\n.",
         "1,301,629",
         "845,974",
         "437,623",
@@ -1387,7 +1411,8 @@ data_stream_two_tables_2 = [
         "9,444",
     ],
     [
-        "Gambling . . . . .\n. . . . .\n.\n. . .\n.\n. . .\n. .\n.\n. . .\n.\n.\n.\n.\n. .\n. .",
+        "Gambling . . . . .\n. . . . .\n.\n. . .\n.\n. . .\n. .\n.\n."
+        " . .\n.\n.\n.\n.\n. .\n. .",
         "8,046",
         "2,290",
         "5,518",
@@ -1403,7 +1428,8 @@ data_stream_two_tables_2 = [
         "624",
     ],
     [
-        "Driving under the influence . . . . . . .\n. .\n.\n. .\n.\n.\n.\n.\n. .",
+        "Driving under the influence . . . . . . .\n. .\n.\n. .\n.\n."
+        "\n.\n.\n. .",
         "1,105,401",
         "954,444",
         "121,594",
@@ -1411,7 +1437,8 @@ data_stream_two_tables_2 = [
         "14,460",
     ],
     [
-        "Liquor laws  . . . . . . . .\n. .\n. .\n. .\n. .\n. . .\n.\n.\n.\n. .\n. .\n.\n.\n.\n.",
+        "Liquor laws  . . . . . . . .\n. .\n. .\n. .\n. .\n. . .\n.\n.\n."
+        "\n. .\n. .\n.\n.\n.\n.",
         "444,087",
         "373,189",
         "50,431",
@@ -1419,7 +1446,8 @@ data_stream_two_tables_2 = [
         "5,591",
     ],
     [
-        "Drunkenness . .\n. . . . . . .\n.\n. . .\n.\n. . .\n.\n.\n.\n. . .\n.\n.\n.\n.\n.\n.",
+        "Drunkenness . .\n. . . . . . .\n.\n. . .\n.\n. . .\n.\n.\n.\n. . "
+        ".\n.\n.\n.\n.\n.\n.",
         "469,958",
         "387,542",
         "71,020",
@@ -1427,7 +1455,8 @@ data_stream_two_tables_2 = [
         "2,844",
     ],
     [
-        "Disorderly conduct . . .\n. . . . . .\n. .\n. . .\n.\n.\n.\n. .\n. .\n.\n.\n.\n.",
+        "Disorderly conduct . . .\n. . . . . .\n. .\n. . .\n.\n.\n.\n. .\n."
+        " .\n.\n.\n.\n.",
         "515,689",
         "326,563",
         "176,169",
@@ -1435,7 +1464,8 @@ data_stream_two_tables_2 = [
         "4,174",
     ],
     [
-        "Vagrancy . . .\n. .\n. . . .\n. .\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. .\n.\n.\n. . . .",
+        "Vagrancy . . .\n. .\n. . . .\n. .\n.\n. .\n.\n.\n. .\n.\n.\n. .\n"
+        ".\n.\n. .\n.\n.\n. . . .",
         "26,347",
         "14,581",
         "11,031",
@@ -1443,7 +1473,8 @@ data_stream_two_tables_2 = [
         "192",
     ],
     [
-        "All other offenses (except traffic) . .\n. .\n. .\n. .\n.\n.\n.\n. .\n.",
+        "All other offenses (except traffic) . .\n. .\n. .\n. .\n.\n."
+        "\n.\n. .\n.",
         "2,929,217",
         "1,937,221",
         "911,670",
@@ -1451,7 +1482,8 @@ data_stream_two_tables_2 = [
         "36,446",
     ],
     [
-        "Suspicion . . .\n. . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n. .\n.\n.\n.\n.\n. .\n. . . .",
+        "Suspicion . . .\n. . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n. .\n"
+        ".\n.\n.\n.\n. .\n. . . .",
         "1,513",
         "677",
         "828",
@@ -1467,7 +1499,8 @@ data_stream_two_tables_2 = [
         "1,060",
     ],
     [
-        "Runaways  . . . . . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n.\n.\n. .\n. .\n.\n.\n.\n. .",
+        "Runaways  . . . . . . . .\n. .\n. .\n. .\n. .\n. .\n. .\n.\n.\n. "
+        ".\n. .\n.\n.\n.\n. .",
         "73,616",
         "48,343",
         "19,670",
@@ -1505,10 +1538,12 @@ data_stream_table_areas = [
 data_stream_columns = [
     ["Clave \nEntidad", "Nombre Entidad", "Clave \nMunicipio",
      "Nombre Municipio", "Clave \nLocalidad", "Nombre Localidad"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0094", "Granja Adelita"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0094",
+     "Granja Adelita"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0096", "Agua Azul"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0100", "Rancho Alegre"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0102", "Los Arbolitos [Rancho]"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0102",
+     "Los Arbolitos [Rancho]"],
     [
         "01",
         "Aguascalientes",
@@ -1526,7 +1561,8 @@ data_stream_columns = [
         "0112",
         "Baj\xedo los V\xe1zquez",
     ],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0113", "Baj\xedo de Montoro"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0113",
+     "Baj\xedo de Montoro"],
     [
         "01",
         "Aguascalientes",
@@ -1568,8 +1604,10 @@ data_stream_columns = [
         "Ca\xf1ada Honda [Estaci\xf3n]",
     ],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0127", "Los Ca\xf1os"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0128", "El Cari\xf1\xe1n"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0129", "El Carmen [Granja]"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0128",
+     "El Cari\xf1\xe1n"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0129",
+     "El Carmen [Granja]"],
     [
         "01",
         "Aguascalientes",
@@ -1604,9 +1642,11 @@ data_stream_columns = [
         "El Colorado (El Soyatal)",
     ],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0146", "El Conejal"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0157", "Cotorina de Abajo"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0157",
+     "Cotorina de Abajo"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0162", "Coyotes"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0166", "La Huerta (La Cruz)"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0166",
+     "La Huerta (La Cruz)"],
     [
         "01",
         "Aguascalientes",
@@ -1623,17 +1663,20 @@ data_stream_columns = [
         "0171",
         "Los Cuervos (Los Ojos de Agua)",
     ],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0172", "San Jos\xe9 [Granja]"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0172",
+     "San Jos\xe9 [Granja]"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0176", "La Chiripa"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0182", "Dolores"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0183", "Los Dolores"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0190", "El Duraznillo"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0191", "Los Dur\xf3n"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0197", "La Escondida"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0201", "Brande Vin [Bodegas]"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0201",
+     "Brande Vin [Bodegas]"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0207", "Valle Redondo"],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0209", "La Fortuna"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0212", "Lomas del Gachup\xedn"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0212",
+     "Lomas del Gachup\xedn"],
     [
         "01",
         "Aguascalientes",
@@ -1643,7 +1686,8 @@ data_stream_columns = [
         "El Carmen (Gallinas G\xfceras) [Rancho]",
     ],
     ["01", "Aguascalientes", "001", "Aguascalientes", "0216", "La Gloria"],
-    ["01", "Aguascalientes", "001", "Aguascalientes", "0226", "Hacienda Nueva"],
+    ["01", "Aguascalientes", "001", "Aguascalientes", "0226",
+     "Hacienda Nueva"],
 ]
 
 data_stream_split_text = [
@@ -1834,7 +1878,8 @@ data_stream_split_text = [
         "(872) 825-8309",
         "2014/04/11",
     ],
-    ["", "", "A SENSU JAPANESE", "", "7123 SOUTH 92ND EAST", "", "", "", "", ""],
+    ["", "", "A SENSU JAPANESE", "", "7123 SOUTH 92ND EAST", "", "", "", "",
+     ""],
     [
         "625422",
         "BAW",
@@ -1886,7 +1931,8 @@ data_stream_split_text = [
         "(580) 928-2700",
         "2014/09/08",
     ],
-    ["", "", "ANDOLINI'S PIZZERIA &", "", "12140 EAST 96TH STREET", "", "", "", "", ""],
+    ["", "", "ANDOLINI'S PIZZERIA &", "", "12140 EAST 96TH STREET", "", "",
+     "", "", ""],
     [
         "428377",
         "BAW",
@@ -2005,7 +2051,8 @@ data_stream_flag_size = [
         "from SBI",
         "from",
     ],
-    ["", "Debt", "", "", "RBI", "Banks", "LIC", "GIC", "NABARD", "& Other", "NCDC"],
+    ["", "Debt", "", "", "RBI", "Banks", "LIC", "GIC", "NABARD", "& Other",
+     "NCDC"],
     ["", "", "", "", "", "& FIs", "", "", "", "Banks", ""],
     ["1", "2=", "3", "4", "5", "6=", "7", "8", "9", "10", "11"],
     ["", "(3 to 6)+14", "", "", "", "(7 to13)", "", "", "", "", ""],
@@ -2022,7 +2069,8 @@ data_stream_flag_size = [
         "-",
         "0.25",
     ],
-    ["Arunachal Pradesh", "1.23", "1.1", "-", "-", "0.13", "-", "-", "-", "-", "-"],
+    ["Arunachal Pradesh", "1.23", "1.1", "-", "-", "0.13", "-", "-", "-",
+     "-", "-"],
     [
         "Assam",
         "12.69",
@@ -2051,8 +2099,10 @@ data_stream_flag_size = [
     ],
     ["Chhattisgarh", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"],
     ["Goa", "1.4", "1.02", "-", "-", "0.38", "0.31", "-", "0.07", "-", "-"],
-    ["Gujarat", "19.75", "17.1", "-", "-", "2.64", "1.17", "-", "1.11", "-", "0.44"],
-    ["Haryana", "11.53", "9.67", "-", "0.06", "1.8", "0.55", "-", "0.64", "-", "0.49"],
+    ["Gujarat", "19.75", "17.1", "-", "-", "2.64", "1.17", "-", "1.11",
+     "-", "0.44"],
+    ["Haryana", "11.53", "9.67", "-", "0.06", "1.8", "0.55", "-", "0.64",
+     "-", "0.49"],
     [
         "Himachal Pradesh",
         "8.02",
@@ -2080,7 +2130,8 @@ data_stream_flag_size = [
         "-",
     ],
     ["Jharkhand", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"],
-    ["Karnataka", "22.44", "19.59", "-", "-", "2.86", "1.22", "-", "0.89", "-", "0.69"],
+    ["Karnataka", "22.44", "19.59", "-", "-", "2.86", "1.22", "-", "0.89",
+     "-", "0.69"],
     [
         "Kerala",
         "29.03",
@@ -2120,11 +2171,16 @@ data_stream_flag_size = [
         "0.02",
         "2.89",
     ],
-    ["Manipur", "2.17", "1.61", "-", "0.26", "0.29", "0.08", "-", "-", "-", "0.09"],
-    ["Meghalaya", "1.36", "1.38", "-", "-", "-0.02", "0.04", "-", "-0.05", "-", "0.03"],
-    ["Mizoram", "1.17", "0.46", "-", "0.27", "0.43", "0.11", "-", "-", "-", "0.03"],
-    ["Nagaland", "2.99", "2.6", "-", "-", "0.39", "0.24", "-", "-", "-", "0.04"],
-    ["Odisha", "34.04", "27.58", "-", "4.4", "2.06", "0.56", "-", "0.66", "-", "0.2"],
+    ["Manipur", "2.17", "1.61", "-", "0.26", "0.29", "0.08", "-", "-", "-",
+     "0.09"],
+    ["Meghalaya", "1.36", "1.38", "-", "-", "-0.02", "0.04", "-", "-0.05",
+     "-", "0.03"],
+    ["Mizoram", "1.17", "0.46", "-", "0.27", "0.43", "0.11", "-", "-",
+     "-", "0.03"],
+    ["Nagaland", "2.99", "2.6", "-", "-", "0.39", "0.24", "-", "-", "-",
+     "0.04"],
+    ["Odisha", "34.04", "27.58", "-", "4.4", "2.06", "0.56", "-", "0.66",
+     "-", "0.2"],
     [
         "Punjab",
         "19.18",
@@ -2152,8 +2208,10 @@ data_stream_flag_size = [
         "0.81",
     ],
     ["Sikkim", "0.16", "-", "-", "-", "0.16", "0.03", "-", "-", "-", "0.01"],
-    ["Tamil Nadu", "34.11", "31.41", "-", "-", "2.7", "1.3", "-", "0.6", "-", "0.68"],
-    ["Tripura", "2.3", "1.89", "-", "-", "0.41", "0.41", "-", "-0.05", "-", "0.02"],
+    ["Tamil Nadu", "34.11", "31.41", "-", "-", "2.7", "1.3", "-", "0.6", "-",
+     "0.68"],
+    ["Tripura", "2.3", "1.89", "-", "-", "0.41", "0.41", "-", "-0.05", "-",
+     "0.02"],
     ["Uttaranchal", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"],
     [
         "Uttar Pradesh",
@@ -2249,11 +2307,13 @@ data_stream_edge_tol = [
     ["Costs", "(0.21)"],
     ["T\notal investment result per unit", "3.78"],
     [
-        "1 The results cover the period from inception of the Fund at 8 April 2016 through 31 December 2016.",
+        "1 The results cover the period from inception of the Fund at "
+        "8 April 2016 through 31 December 2016.",
         "",
     ],
     [
-        "2 The result per unit is calculated using the total number of outstanding unit as per the end of the",
+        "2 The result per unit is calculated using the total number of "
+        "outstanding unit as per the end of the",
         "",
     ],
     ["period.", ""],
@@ -2310,7 +2370,8 @@ data_lattice_table_rotated = [
         "Men",
         "Women",
     ],
-    ["Kerala", "5738", "6633", "8864", "8297", "245", "2161", "3195", "1645", "2391"],
+    ["Kerala", "5738", "6633", "8864", "8297", "245", "2161", "3195", "1645",
+     "2391"],
     [
         "Tamil Nadu",
         "7387",
@@ -2359,10 +2420,14 @@ data_lattice_table_rotated = [
         "1417",
         "1599",
     ],
-    ["Gujarat", "4403", "5374", "4866", "9645", "477", "2687", "3021", "2122", "2503"],
-    ["Madhya Pradesh", "*", "*", "*", "7942", "470", "1965", "2150", "1579", "1709"],
-    ["Orissa", "3756", "5540", "12024", "8473", "398", "2040", "2624", "1093", "1628"],
-    ["West Bengal", "*", "*", "*", "8047", "423", "2058", "2743", "1413", "2027"],
+    ["Gujarat", "4403", "5374", "4866", "9645", "477", "2687", "3021", "2122",
+     "2503"],
+    ["Madhya Pradesh", "*", "*", "*", "7942", "470", "1965", "2150", "1579",
+     "1709"],
+    ["Orissa", "3756", "5540", "12024", "8473", "398", "2040", "2624", "1093",
+     "1628"],
+    ["West Bengal", "*", "*", "*", "8047", "423", "2058", "2743", "1413",
+     "2027"],
     ["Uttar Pradesh", "*", "*", "*", "9860", "581", "2139", "2415", "1185",
         "1366"],
     [
@@ -2430,7 +2495,8 @@ data_lattice_two_tables_2 = [
 ]
 
 data_lattice_table_regions = [
-    ["Età dell’Assicurato \nall’epoca del decesso", "Misura % di \nmaggiorazione"],
+    ["Età dell’Assicurato \nall’epoca del decesso",
+     "Misura % di \nmaggiorazione"],
     ["18-75", "1,00%"],
     ["76-80", "0,50%"],
     ["81 in poi", "0,10%"],
@@ -2453,10 +2519,12 @@ data_lattice_table_areas = [
     ["Kerala", "2400", "7.2", "0.5", "25.3", "20.1", "41.5", "5.5", ""],
     ["Tamil Nadu", "2400", "21.4", "2.3", "8.8", "35.5", "25.8", "6.2", ""],
     ["Karnataka", "2399", "37.4", "2.8", "12.5", "18.3", "23.1", "5.8", ""],
-    ["Andhra Pradesh", "2400", "54.0", "1.7", "8.4", "13.2", "18.8", "3.9", ""],
+    ["Andhra Pradesh", "2400", "54.0", "1.7", "8.4", "13.2", "18.8", "3.9",
+     ""],
     ["Maharashtra", "2400", "22.0", "0.9", "17.3", "20.3", "32.6", "7.0", ""],
     ["Gujarat", "2390", "28.6", "0.1", "14.4", "23.1", "26.9", "6.8", ""],
-    ["Madhya Pradesh", "2402", "29.1", "3.4", "8.5", "35.1", "13.3", "10.6", ""],
+    ["Madhya Pradesh", "2402", "29.1", "3.4", "8.5", "35.1", "13.3", "10.6",
+     ""],
     ["Orissa", "2405", "33.2", "1.0", "10.4", "25.7", "21.2", "8.5", ""],
     ["West Bengal", "2293", "41.7", "4.4", "13.2", "17.1", "21.2", "2.4", ""],
     ["Uttar Pradesh", "2400", "35.3", "2.1", "4.5", "23.3", "27.1", "7.6", ""],
@@ -2507,7 +2575,8 @@ data_lattice_process_background = [
         "3,658",
         "3,183",
     ],
-    ["Kerala", "23.2.2010 to \n11.3.2010", "9", "17", "1.42", "3,559", "2,173", "855"],
+    ["Kerala", "23.2.2010 to \n11.3.2010", "9", "17", "1.42", "3,559", "2,173",
+     "855"],
     ["Total", "", "47", "92", "11.81", "22,455", "19,584", "10,644"],
 ]
 
@@ -2546,7 +2615,8 @@ data_lattice_copy_text = [
     ["COHS", "San Mateo", "Health Plan of San Mateo", "113,202"],
     ["COHS", "Ventura", "Gold Coast Health Plan", "202,217"],
     ["COHS", "Total COHS Enrollment", "", "2,176,064"],
-    ["Subtotal for Two-Plan, Regional Model, GMC and COHS", "", "", "10,132,022"],
+    ["Subtotal for Two-Plan, Regional Model, GMC and COHS", "", "",
+     "10,132,022"],
     ["PCCM", "Los Angeles", "AIDS Healthcare Foundation", "828"],
     ["PCCM", "San Francisco", "Family Mosaic", "25"],
     ["PCCM", "Total PHP Enrollment", "", "853"],
@@ -2578,7 +2648,8 @@ data_lattice_shift_text_left_top = [
     ],
     ["Blood Pressure #", "2400", "Men (≥ 18yrs)", "10%", "95%", "20%", "1728"],
     ["", "", "Women (≥ 18 yrs)", "", "", "", "1728"],
-    ["Fasting blood glucose", "2400", "Men (≥ 18 yrs)", "5%", "95%", "20%", "1825"],
+    ["Fasting blood glucose", "2400", "Men (≥ 18 yrs)", "5%", "95%", "20%",
+     "1825"],
     ["", "", "Women (≥ 18 yrs)", "", "", "", "1825"],
     [
         "Knowledge &\nPractices on HTN &\nDM",
@@ -2603,7 +2674,8 @@ data_lattice_shift_text_disable = [
         "Sample size\nper State",
     ],
     ["Anthropometry", "", "", "", "", "", ""],
-    ["Clinical Examination", "2400", "", "All the available individuals", "", "", ""],
+    ["Clinical Examination", "2400", "", "All the available individuals",
+     "", "", ""],
     ["History of morbidity", "", "", "", "", "", ""],
     [
         "Diet survey",
@@ -2615,9 +2687,11 @@ data_lattice_shift_text_disable = [
         "",
     ],
     ["", "", "Men (≥ 18yrs)", "", "", "", "1728"],
-    ["Blood Pressure #", "2400", "Women (≥ 18 yrs)", "10%", "95%", "20%", "1728"],
+    ["Blood Pressure #", "2400", "Women (≥ 18 yrs)", "10%", "95%", "20%",
+     "1728"],
     ["", "", "Men (≥ 18 yrs)", "", "", "", "1825"],
-    ["Fasting blood glucose", "2400", "Women (≥ 18 yrs)", "5%", "95%", "20%", "1825"],
+    ["Fasting blood glucose", "2400", "Women (≥ 18 yrs)", "5%", "95%", "20%",
+     "1825"],
     [
         "Knowledge &\nPractices on HTN &",
         "2400",
@@ -2642,7 +2716,8 @@ data_lattice_shift_text_right_bottom = [
     ],
     ["Anthropometry", "", "", "", "", "", ""],
     ["Clinical Examination", "", "", "", "", "", ""],
-    ["History of morbidity", "2400", "", "", "", "", "All the available individuals"],
+    ["History of morbidity", "2400", "", "", "", "",
+     "All the available individuals"],
     [
         "Diet survey",
         "1200",
@@ -2653,9 +2728,11 @@ data_lattice_shift_text_right_bottom = [
         "All the individuals partaking meals in the HH",
     ],
     ["", "", "Men (≥ 18yrs)", "", "", "", "1728"],
-    ["Blood Pressure #", "2400", "Women (≥ 18 yrs)", "10%", "95%", "20%", "1728"],
+    ["Blood Pressure #", "2400", "Women (≥ 18 yrs)", "10%", "95%", "20%",
+     "1728"],
     ["", "", "Men (≥ 18 yrs)", "", "", "", "1825"],
-    ["Fasting blood glucose", "2400", "Women (≥ 18 yrs)", "5%", "95%", "20%", "1825"],
+    ["Fasting blood glucose", "2400", "Women (≥ 18 yrs)", "5%", "95%", "20%",
+     "1825"],
     ["", "2400", "Men (≥ 18 yrs)", "-", "-", "-", "1728"],
     [
         "Knowledge &\nPractices on HTN &\nDM",
