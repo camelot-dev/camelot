@@ -208,8 +208,6 @@ class PDFHandler():
             if not suppress_stdout:
                 logger.info(
                     "Processing {rootname}".format(rootname=rootname))
-            t = parser.extract_tables(
-                source_file
-            )
+            t = parser.extract_tables()
             tables.extend(t)
         return TableList(sorted(tables))
