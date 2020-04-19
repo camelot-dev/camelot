@@ -252,7 +252,6 @@ class Lattice(BaseParser):
             table_bbox, vertical_segments, horizontal_segments, pdf_scalers
         )
 
-
     def _generate_columns_and_rows(self, tk):
         # select elements which lie within table_bbox
         v_s, h_s = segments_in_bbox(

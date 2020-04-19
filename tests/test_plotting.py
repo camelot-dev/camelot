@@ -55,6 +55,16 @@ def test_stream_grid_plot():
     return camelot.plot(tables[0], kind='grid')
 
 
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
+                    reason="depends on a recent version of MatPlotLib")
+@pytest.mark.mpl_image_compare(
+    baseline_dir="files/baseline_plots", remove_text=True)
+def test_hybrid_grid_plot():
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid")
+    return camelot.plot(tables[0], kind='grid')
+
+
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_lattice_contour_plot():
@@ -70,6 +80,16 @@ def test_lattice_contour_plot():
 def test_stream_contour_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='stream')
+    return camelot.plot(tables[0], kind='contour')
+
+
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
+                    reason="depends on a recent version of MatPlotLib")
+@pytest.mark.mpl_image_compare(
+    baseline_dir="files/baseline_plots", remove_text=True)
+def test_hybrid_contour_plot():
+    filename = os.path.join(testdir, "tabula/12s0324.pdf")
+    tables = camelot.read_pdf(filename, flavor='hybrid')
     return camelot.plot(tables[0], kind='contour')
 
 
@@ -97,7 +117,17 @@ def test_joint_plot():
                     reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
-def test_textedge_plot():
+def test_stream_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='stream')
+    return camelot.plot(tables[0], kind='textedge')
+
+
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
+                    reason="depends on a recent version of MatPlotLib")
+@pytest.mark.mpl_image_compare(
+    baseline_dir="files/baseline_plots", remove_text=True)
+def test_hybrid_textedge_plot():
+    filename = os.path.join(testdir, "tabula/12s0324.pdf")
+    tables = camelot.read_pdf(filename, flavor='hybrid')
     return camelot.plot(tables[0], kind='textedge')

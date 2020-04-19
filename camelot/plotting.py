@@ -37,7 +37,7 @@ class PlotMethods(object):
             raise NotImplementedError(
                 "Lattice flavor does not support kind='{}'".format(kind)
             )
-        elif table.flavor == "stream" and kind in ["line"]:
+        elif table.flavor in ["stream", "hybrid"] and kind in ["line"]:
             raise NotImplementedError(
                 "Stream flavor does not support kind='{}'".format(kind)
             )
