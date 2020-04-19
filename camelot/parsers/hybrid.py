@@ -420,7 +420,7 @@ class Hybrid(BaseParser):
 
         return table
 
-    def extract_tables(self, filename):
+    def extract_tables(self):
         if self._document_has_no_text():
             return []
 
