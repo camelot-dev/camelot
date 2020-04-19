@@ -1107,11 +1107,15 @@ def compare_tables(left, right):
                     diff_df = diff_df.append(lrow, ignore_index=True)
                     diff_df = diff_df.append(srow, ignore_index=True)
                     diff_df.insert(0, 'Table', [name_table1, name_table2])
-                    print(f"Row {index} differs:")
+                    print("Row {index} differs:".format(index=index))
                     print(diff_df.values)
                     break
             else:
-                print(f"Row {index} unique to {name_table1}: {lrow}")
+                print("Row {index} unique to {name_table1}: {lrow}".format(
+                    index=index,
+                    name_table1=name_table1,
+                    lrow=lrow
+                ))
                 break
     else:
         print("Tables have different shapes")
