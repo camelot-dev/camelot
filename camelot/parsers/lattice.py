@@ -3,7 +3,6 @@
 from __future__ import division
 import os
 import copy
-import warnings
 
 
 from .base import BaseParser
@@ -312,18 +311,7 @@ class Lattice(BaseParser):
         return table
 
     def extract_tables(self, filename):
-        rootname = os.path.basename(self.rootname)
-        if not self.horizontal_text:
-            if self.images:
-                warnings.warn(
-                    "{rootname} is image-based, "
-                    "camelot only works on text-based pages."
-                    .format(rootname=rootname)
-                )
-            else:
-                warnings.warn(
-                    "No tables found on {rootname}".format(rootname=rootname)
-                )
+        if self._document_has_no_text():
             return []
 
         self._generate_table_bbox()

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-import os
 import warnings
 
 import numpy as np
@@ -427,18 +426,7 @@ class Stream(BaseParser):
         return table
 
     def extract_tables(self, filename):
-        if not self.horizontal_text:
-            if self.images:
-                warnings.warn(
-                    "{} is image-based, camelot only works on"
-                    " text-based pages.".format(
-                        os.path.basename(self.rootname))
-                )
-            else:
-                warnings.warn(
-                    "No tables found on {}".format(
-                        os.path.basename(self.rootname))
-                )
+        if self._document_has_no_text():
             return []
 
         # Identify plausible areas within the doc where tables lie,

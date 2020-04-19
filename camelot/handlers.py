@@ -25,7 +25,7 @@ PARSERS = {
 }
 
 
-class PDFHandler(object):
+class PDFHandler():
     """Handles all operations like temp directory creation, splitting
     file into single page PDFs, parsing each PDF and then removing the
     temp directory.
@@ -201,8 +201,8 @@ class PDFHandler(object):
                 page_idx,
                 layout_kwargs=layout_kwargs
             )
-            parser._generate_layout(source_file, layout, dimensions,
-                                    page_idx, layout_kwargs)
+            parser.prepare_page_parse(source_file, layout, dimensions,
+                                      page_idx, layout_kwargs)
             rootname = os.path.basename(parser.rootname)
             if not suppress_stdout:
                 logger.info(

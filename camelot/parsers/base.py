@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import warnings
 
 from ..utils import (
     get_text_objects,
@@ -40,8 +41,8 @@ class BaseParser(object):
         # For plotting details of parsing algorithms
         self.debug_info = {}
 
-    def _generate_layout(self, filename, layout, dimensions,
-                         page_idx, layout_kwargs):
+    def prepare_page_parse(self, filename, layout, dimensions,
+                           page_idx, layout_kwargs):
         self.filename = filename
         self.layout_kwargs = layout_kwargs
         self.layout = layout
@@ -58,6 +59,22 @@ class BaseParser(object):
         )
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
+
+    def _document_has_no_text(self):
+        if not self.horizontal_text:
+            rootname = os.path.basename(self.rootname)
+            if self.images:
+                warnings.warn(
+                    "{rootname} is image-based, "
+                    "camelot only works on text-based pages."
+                    .format(rootname=rootname)
+                )
+            else:
+                warnings.warn(
+                    "No tables found on {rootname}".format(rootname=rootname)
+                )
+            return True
+        return False
 
     """Initialize new table object, ready to be populated
 
