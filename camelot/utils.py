@@ -1044,14 +1044,14 @@ def compare_tables(left, right):
         differences.append(
             "{diff_rows} {more_fewer} rows".format(
                 diff_rows=abs(diff_rows),
-                more_fewer='more' if diff_rows>0 else 'fewer'
+                more_fewer='more' if diff_rows > 0 else 'fewer'
             )
         )
     if (diff_cols):
         differences.append(
             "{diff_cols} {more_fewer} columns".format(
                 diff_cols=abs(diff_cols),
-                more_fewer='more' if diff_cols>0 else 'fewer'
+                more_fewer='more' if diff_cols > 0 else 'fewer'
             )
         )
     if differences:

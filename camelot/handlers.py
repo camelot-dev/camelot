@@ -2,6 +2,7 @@
 
 import os
 import sys
+import logging
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
@@ -15,6 +16,8 @@ from .utils import (
     is_url,
     download_url,
 )
+
+logger = logging.getLogger("camelot")
 
 PARSERS = {
     "lattice": Lattice,
@@ -199,10 +202,13 @@ class PDFHandler(object):
                 layout_kwargs=layout_kwargs
             )
             parser._generate_layout(source_file, layout, dimensions,
-                                page_idx, layout_kwargs)
+                                    page_idx, layout_kwargs)
+            rootname = os.path.basename(parser.rootname)
+            if not suppress_stdout:
+                logger.info(
+                    "Processing {rootname}".format(rootname=rootname))
             t = parser.extract_tables(
-                source_file,
-                suppress_stdout=suppress_stdout
+                source_file
             )
             tables.extend(t)
         return TableList(sorted(tables))
