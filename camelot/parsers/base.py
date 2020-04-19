@@ -12,7 +12,8 @@ from ..core import Table
 class BaseParser(object):
     """Defines a base parser.
     """
-    def __init__(self,
+    def __init__(
+        self,
         parser_id,
         table_regions=None,
         table_areas=None,
@@ -33,6 +34,7 @@ class BaseParser(object):
 
         self.flag_size = flag_size
 
+        self.rootname = None
         self.t_bbox = None
 
         # For plotting details of parsing algorithms
@@ -79,7 +81,6 @@ class BaseParser(object):
         table.order = table_idx + 1
         return table
 
-
     @staticmethod
     def _reduce_index(t, idx, shift_text):
         """Reduces index of a text object if it lies within a spanning
@@ -112,4 +113,3 @@ class BaseParser(object):
                     for r_idx, c_idx, text in indices:
                         table.cells[r_idx][c_idx].text = text
         return pos_errors
-

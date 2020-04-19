@@ -4,7 +4,6 @@ import os
 import sqlite3
 import zipfile
 import tempfile
-from itertools import chain
 from operator import itemgetter
 
 import numpy as np
@@ -191,26 +190,26 @@ class TextEdges(object):
 
         table_areas = {}
         for te in relevant_textedges:
-                if not table_areas:
+            if not table_areas:
+                table_areas[(te.x, te.y0, te.x, te.y1)] = None
+            else:
+                found = None
+                for area in table_areas:
+                    # check for overlap
+                    if te.y1 >= area[1] and te.y0 <= area[3]:
+                        found = area
+                        break
+                if found is None:
                     table_areas[(te.x, te.y0, te.x, te.y1)] = None
                 else:
-                    found = None
-                    for area in table_areas:
-                        # check for overlap
-                        if te.y1 >= area[1] and te.y0 <= area[3]:
-                            found = area
-                            break
-                    if found is None:
-                        table_areas[(te.x, te.y0, te.x, te.y1)] = None
-                    else:
-                        table_areas.pop(found)
-                        updated_area = (
-                            found[0],
-                            min(te.y0, found[1]),
-                            max(found[2], te.x),
-                            max(found[3], te.y1),
-                        )
-                        table_areas[updated_area] = None
+                    table_areas.pop(found)
+                    updated_area = (
+                        found[0],
+                        min(te.y0, found[1]),
+                        max(found[2], te.x),
+                        max(found[3], te.y1),
+                    )
+                    table_areas[updated_area] = None
 
         # extend table areas based on textlines that overlap
         # vertically. it's possible that these textlines were
@@ -736,17 +735,19 @@ class Table(object):
         """
         for f in copy_text:
             if f == "h":
-                for i in range(len(self.cells)):
-                    for j in range(len(self.cells[i])):
-                        if self.cells[i][j].text.strip() == "":
-                            if self.cells[i][j].hspan and not self.cells[i][j].left:
-                                self.cells[i][j].text = self.cells[i][j - 1].text
+                for i, row in enumerate(self.cells):
+                    for j, cell in enumerate(row):
+                        if cell.text.strip() == "" and \
+                           cell.hspan and \
+                           not cell.left:
+                            cell.text = self.cells[i][j - 1].text
             elif f == "v":
-                for i in range(len(self.cells)):
-                    for j in range(len(self.cells[i])):
-                        if self.cells[i][j].text.strip() == "":
-                            if self.cells[i][j].vspan and not self.cells[i][j].top:
-                                self.cells[i][j].text = self.cells[i - 1][j].text
+                for i, row in enumerate(self.cells):
+                    for j, cell in enumerate(row):
+                        if cell.text.strip() == "" and \
+                           cell.vspan and \
+                           not cell.top:
+                            cell.text = self.cells[i - 1][j].text
         return self
 
 

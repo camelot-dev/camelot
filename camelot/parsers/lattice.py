@@ -2,15 +2,9 @@
 
 from __future__ import division
 import os
-import sys
 import copy
-import locale
-import logging
 import warnings
-import subprocess
 
-import numpy as np
-import pandas as pd
 
 from .base import BaseParser
 from ..utils import (
@@ -21,8 +15,6 @@ from ..utils import (
     segments_in_bbox,
     text_in_bbox,
     merge_close_lines,
-    get_table_index,
-    compute_accuracy,
 )
 from ..image_processing import (
     adaptive_threshold,
@@ -30,9 +22,6 @@ from ..image_processing import (
     find_contours,
     find_joints,
 )
-
-
-logger = logging.getLogger("camelot")
 
 
 class Lattice(BaseParser):
@@ -322,13 +311,8 @@ class Lattice(BaseParser):
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False):
-        # FRHTODO: move extract table core to the base class
+    def extract_tables(self, filename):
         rootname = os.path.basename(self.rootname)
-        if not suppress_stdout:
-            logger.info(
-                "Processing {rootname}".format(rootname=rootname))
-
         if not self.horizontal_text:
             if self.images:
                 warnings.warn(

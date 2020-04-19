@@ -2,19 +2,13 @@
 
 from __future__ import division
 import os
-import logging
 import warnings
 
 import numpy as np
-import pandas as pd
 
 from .base import BaseParser
 from ..core import TextEdges
-from ..utils import (text_in_bbox, compute_accuracy,
-                     compute_whitespace)
-
-
-logger = logging.getLogger("camelot")
+from ..utils import (text_in_bbox)
 
 
 class Stream(BaseParser):
@@ -432,11 +426,7 @@ class Stream(BaseParser):
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False):
-        if not suppress_stdout:
-            logger.info("Processing {}".format(
-                os.path.basename(self.rootname)))
-
+    def extract_tables(self, filename):
         if not self.horizontal_text:
             if self.images:
                 warnings.warn(
