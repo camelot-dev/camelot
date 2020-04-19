@@ -419,13 +419,7 @@ class Stream(BaseParser):
     def _generate_table(self, table_idx, cols, rows, **kwargs):
         table = self._initialize_new_table(table_idx, cols, rows)
         table = table.set_all_edges()
-
-        pos_errors = self._compute_parse_errors(table)
-        accuracy = compute_accuracy([[100, pos_errors]])
-
         table.record_parse_metadata(self)
-
-        table.accuracy = accuracy
 
         # for plotting
         _text = []

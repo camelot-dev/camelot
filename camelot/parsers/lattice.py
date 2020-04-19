@@ -120,12 +120,12 @@ class Lattice(BaseParser):
             table_areas=table_areas,
             split_text=split_text,
             strip_text=strip_text,
+            copy_text=copy_text,
             shift_text=shift_text or ["l", "t"],
             flag_size=flag_size,
         )
         self.process_background = process_background
         self.line_scale = line_scale
-        self.copy_text = copy_text
         self.line_tol = line_tol
         self.joint_tol = joint_tol
         self.threshold_blocksize = threshold_blocksize
@@ -179,40 +179,6 @@ class Lattice(BaseParser):
                             r_idx += 1
             indices.append((r_idx, c_idx, text))
         return indices
-
-
-    @staticmethod
-    def _copy_spanning_text(t, copy_text=None):
-        """Copies over text in empty spanning cells.
-
-        Parameters
-        ----------
-        t : camelot.core.Table
-        copy_text : list, optional (default: None)
-            {'h', 'v'}
-            Select one or more strings from above and pass them as a list
-            to specify the direction in which text should be copied over
-            when a cell spans multiple rows or columns.
-
-        Returns
-        -------
-        t : camelot.core.Table
-
-        """
-        for f in copy_text:
-            if f == "h":
-                for i in range(len(t.cells)):
-                    for j in range(len(t.cells[i])):
-                        if t.cells[i][j].text.strip() == "":
-                            if t.cells[i][j].hspan and not t.cells[i][j].left:
-                                t.cells[i][j].text = t.cells[i][j - 1].text
-            elif f == "v":
-                for i in range(len(t.cells)):
-                    for j in range(len(t.cells[i])):
-                        if t.cells[i][j].text.strip() == "":
-                            if t.cells[i][j].vspan and not t.cells[i][j].top:
-                                t.cells[i][j].text = t.cells[i - 1][j].text
-        return t
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
@@ -342,37 +308,7 @@ class Lattice(BaseParser):
         # set spanning cells to True
         table = table.set_span()
 
-        pos_errors = []
-        # TODO: have a single list in place of two directional ones?
-        # sorted on x-coordinate based on reading order i.e. LTR or RTL
-        for direction in ["vertical", "horizontal"]:
-            for t in self.t_bbox[direction]:
-                indices, error = get_table_index(
-                    table,
-                    t,
-                    direction,
-                    split_text=self.split_text,
-                    flag_size=self.flag_size,
-                    strip_text=self.strip_text,
-                )
-                if indices[:2] != (-1, -1):
-                    pos_errors.append(error)
-                    indices = Lattice._reduce_index(
-                        table, indices, shift_text=self.shift_text
-                    )
-                    for r_idx, c_idx, text in indices:
-                        table.cells[r_idx][c_idx].text = text
-        # FRHTODO
-        accuracy = compute_accuracy([[100, pos_errors]])
-
-        if self.copy_text is not None:
-            table = Lattice._copy_spanning_text(
-                table,
-                copy_text=self.copy_text
-            )
-
         table.record_parse_metadata(self)
-        table.accuracy = accuracy
 
         # for plotting
         _text = []
