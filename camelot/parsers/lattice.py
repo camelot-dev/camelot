@@ -2,15 +2,20 @@
 
 from __future__ import division
 import os
+import sys
 import copy
+import locale
 import logging
 import warnings
+import subprocess
 
+import numpy as np
 import pandas as pd
 
 from .base import BaseParser
-from ..core import Table
 from ..utils import (
+    build_file_path_in_temp_dir,
+    export_pdf_as_png,
     scale_image,
     scale_pdf,
     segments_in_bbox,
@@ -18,7 +23,6 @@ from ..utils import (
     merge_close_lines,
     get_table_index,
     compute_accuracy,
-    compute_whitespace,
 )
 from ..image_processing import (
     adaptive_threshold,
@@ -110,13 +114,13 @@ class Lattice(BaseParser):
         resolution=300,
         **kwargs
     ):
-        shift_text = shift_text or ["l", "t"]
+        super().__init__("lattice")
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.process_background = process_background
         self.line_scale = line_scale
         self.copy_text = copy_text
-        self.shift_text = shift_text
+        self.shift_text = shift_text or ["l", "t"]
         self.split_text = split_text
         self.flag_size = flag_size
         self.strip_text = strip_text
@@ -126,6 +130,8 @@ class Lattice(BaseParser):
         self.threshold_constant = threshold_constant
         self.iterations = iterations
         self.resolution = resolution
+        self.image_path = None
+        self.pdf_image = None
 
     @staticmethod
     def _reduce_index(t, idx, shift_text):
@@ -205,18 +211,6 @@ class Lattice(BaseParser):
                                 t.cells[i][j].text = t.cells[i - 1][j].text
         return t
 
-    def _generate_image(self):
-        from ..ext.ghostscript import Ghostscript
-
-        self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
-            self.imagename, self.filename
-        )
-        gs_call = gs_call.encode().split()
-        null = open(os.devnull, "wb")
-        Ghostscript(*gs_call, stdout=null)
-        null.close()
-
     def _generate_table_bbox(self):
         def scale_areas(areas):
             scaled_areas = []
@@ -230,15 +224,20 @@ class Lattice(BaseParser):
                 scaled_areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
             return scaled_areas
 
-        self.image, self.threshold = adaptive_threshold(
-            self.imagename,
+        self.image_path = build_file_path_in_temp_dir(
+            os.path.basename(self.filename),
+            ".png"
+        )
+        export_pdf_as_png(self.filename, self.image_path)
+        self.pdf_image, self.threshold = adaptive_threshold(
+            self.image_path,
             process_background=self.process_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
         )
 
-        image_width = self.image.shape[1]
-        image_height = self.image.shape[0]
+        image_width = self.pdf_image.shape[1]
+        image_height = self.pdf_image.shape[0]
         image_width_scaler = image_width / float(self.pdf_width)
         image_height_scaler = image_height / float(self.pdf_height)
         pdf_width_scaler = self.pdf_width / float(image_width)
@@ -332,7 +331,7 @@ class Lattice(BaseParser):
         if v_s is None or h_s is None:
             raise ValueError("No segments found on {}".format(self.rootname))
 
-        table = Table(cols, rows)
+        table = self._initialize_new_table(table_idx, cols, rows)
         # set table edges to True using ver+hor lines
         table = table.set_edges(v_s, h_s, joint_tol=self.joint_tol)
         # set table border edges to True
@@ -360,6 +359,7 @@ class Lattice(BaseParser):
                     )
                     for r_idx, c_idx, text in indices:
                         table.cells[r_idx][c_idx].text = text
+        # FRHTODO
         accuracy = compute_accuracy([[100, pos_errors]])
 
         if self.copy_text is not None:
@@ -368,39 +368,27 @@ class Lattice(BaseParser):
                 copy_text=self.copy_text
             )
 
-        data = table.data
-        table.df = pd.DataFrame(data)
-        table.shape = table.df.shape
-
-        whitespace = compute_whitespace(data)
-        table.flavor = "lattice"
+        table.record_metadata(self)
         table.accuracy = accuracy
-        table.whitespace = whitespace
-        table.order = table_idx + 1
-        table.page = int(os.path.basename(self.rootname).replace("page-", ""))
 
         # for plotting
         _text = []
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
-        table._image = (self.image, self.table_bbox_unscaled)
+        table._image = self.pdf_image  # Reuse the image used for calc
+        table._bbox_unscaled = self.table_bbox_unscaled
         table._segments = (self.vertical_segments, self.horizontal_segments)
         table._textedges = None
 
         return table
 
-    def extract_tables(
-        self,
-        filename,
-        suppress_stdout=False,
-        layout_kwargs=None
-    ):
-        layout_kwargs = layout_kwargs or {}
-        self._generate_layout(filename, layout_kwargs)
+    def extract_tables(self, filename, suppress_stdout=False):
+        # FRHTODO: move extract table core to the base class
         rootname = os.path.basename(self.rootname)
         if not suppress_stdout:
-            logger.info("Processing {rootname}".format(rootname=rootname))
+            logger.info(
+                "Processing {rootname}".format(rootname=rootname))
 
         if not self.horizontal_text:
             if self.images:
@@ -415,7 +403,6 @@ class Lattice(BaseParser):
                 )
             return []
 
-        self._generate_image()
         self._generate_table_bbox()
 
         _tables = []

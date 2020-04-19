@@ -8,13 +8,18 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 from .core import TableList
 from .parsers import Stream, Lattice
 from .utils import (
-    TemporaryDirectory,
+    build_file_path_in_temp_dir,
     get_page_layout,
     get_text_objects,
     get_rotation,
     is_url,
     download_url,
 )
+
+PARSERS = {
+    "lattice": Lattice,
+    "stream": Stream
+}
 
 
 class PDFHandler(object):
@@ -89,31 +94,47 @@ class PDFHandler(object):
             P.extend(range(p["start"], p["end"] + 1))
         return sorted(set(P))
 
-    def _save_page(self, filepath, page, temp):
-        """Saves specified page from PDF into a temporary directory.
+    def _read_pdf_page(self, page=1, layout_kwargs=None):
+        """Saves specified page from PDF into a temporary directory. Removes
+        password protection and normalizes rotation.
 
         Parameters
         ----------
-        filepath : str
-            Filepath or URL of the PDF file.
         page : int
             Page number.
-        temp : str
-            Tmp directory.
+        layout_kwargs : dict, optional (default: {})
+            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.  # noqa
+
+
+        Returns
+        -------
+        layout : object
+
+        dimensions : tuple
+            The dimensions of the pdf page
+
+        filepath : str
+            The path of the single page PDF - either the original, or a
+            normalized version.
 
         """
-        with open(filepath, "rb") as fileobj:
+        layout_kwargs = layout_kwargs or {}
+        with open(self.filepath, "rb") as fileobj:
+            # Normalize the pdf file, but skip if it's not encrypted or has
+            # only one page.
             infile = PdfFileReader(fileobj, strict=False)
             if infile.isEncrypted:
                 infile.decrypt(self.password)
-            fpath = os.path.join(temp, "page-{0}.pdf".format(page))
+            fpath = build_file_path_in_temp_dir(
+                "page-{page}.pdf".format(page=page))
             froot, fext = os.path.splitext(fpath)
             p = infile.getPage(page - 1)
             outfile = PdfFileWriter()
             outfile.addPage(p)
             with open(fpath, "wb") as f:
                 outfile.write(f)
-            layout, __ = get_page_layout(fpath)
+            layout, dimensions = get_page_layout(
+                fpath, **layout_kwargs)
             # fix rotated PDF
             chars = get_text_objects(layout, ltype="char")
             horizontal_text = get_text_objects(layout, ltype="horizontal_text")
@@ -121,12 +142,7 @@ class PDFHandler(object):
             rotation = get_rotation(chars, horizontal_text, vertical_text)
             if rotation != "":
                 fpath_new = "".join(
-                    [
-                        froot.replace("page", "p"),
-                        "_rotated",
-                        fext
-                    ]
-                )
+                    [froot.replace("page", "p"), "_rotated", fext])
                 os.rename(fpath, fpath_new)
                 infile = PdfFileReader(open(fpath_new, "rb"), strict=False)
                 if infile.isEncrypted:
@@ -140,10 +156,13 @@ class PDFHandler(object):
                 outfile.addPage(p)
                 with open(fpath, "wb") as f:
                     outfile.write(f)
+                layout, dimensions = get_page_layout(
+                    fpath, **layout_kwargs)
+        return layout, dimensions, fpath
 
     def parse(
-        self, flavor="lattice", suppress_stdout=False, layout_kwargs=None,
-        **kwargs
+        self, flavor="lattice", suppress_stdout=False,
+        layout_kwargs=None, **kwargs
     ):
         """Extracts tables by calling parser.get_tables on all single
         page PDFs.
@@ -168,19 +187,22 @@ class PDFHandler(object):
         """
         layout_kwargs = layout_kwargs or {}
         tables = []
-        with TemporaryDirectory() as tempdir:
-            for p in self.pages:
-                self._save_page(self.filepath, p, tempdir)
-            pages = [
-                os.path.join(tempdir, "page-{0}.pdf".format(p))
-                for p in self.pages
-            ]
-            parser = Lattice(**kwargs) \
-                if flavor == "lattice" else Stream(**kwargs)
-            for p in pages:
-                t = parser.extract_tables(
-                    p, suppress_stdout=suppress_stdout,
-                    layout_kwargs=layout_kwargs
-                )
-                tables.extend(t)
+
+        parser_obj = PARSERS[flavor]
+        parser = parser_obj(**kwargs)
+
+        # Read the layouts/dimensions of each of the pages we need to
+        # parse. This might require creating a temporary .pdf.
+        for page_idx in self.pages:
+            layout, dimensions, source_file = self._read_pdf_page(
+                page_idx,
+                layout_kwargs=layout_kwargs
+            )
+            parser._generate_layout(source_file, layout, dimensions,
+                                page_idx, layout_kwargs)
+            t = parser.extract_tables(
+                source_file,
+                suppress_stdout=suppress_stdout
+            )
+            tables.extend(t)
         return TableList(sorted(tables))

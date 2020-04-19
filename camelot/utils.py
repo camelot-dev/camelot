@@ -3,6 +3,7 @@ from __future__ import division
 
 import re
 import os
+import atexit
 import sys
 import random
 import shutil
@@ -13,6 +14,7 @@ from itertools import groupby
 from operator import itemgetter
 
 import numpy as np
+import pandas as pd
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
@@ -29,6 +31,7 @@ from pdfminer.layout import (
     LTImage,
 )
 
+from .ext.ghostscript import Ghostscript
 
 # pylint: disable=import-error
 # PyLint will evaluate both branches, and will necessarily complain about one
@@ -150,13 +153,40 @@ def remove_extra(kwargs, flavor="lattice"):
 
 
 # https://stackoverflow.com/a/22726782
+# and https://stackoverflow.com/questions/10965479
 class TemporaryDirectory(object):
     def __enter__(self):
         self.name = tempfile.mkdtemp()
+        # Only delete the temporary directory upon
+        # program exit.
+        atexit.register(shutil.rmtree, self.name)
         return self.name
 
     def __exit__(self, exc_type, exc_value, traceback):
-        shutil.rmtree(self.name)
+        pass
+
+
+def build_file_path_in_temp_dir(filename, extension=None):
+    """Generates a new path within a temporary directory
+
+    Parameters
+    ----------
+    filename : str
+    extension : str
+
+    Returns
+    -------
+    file_path_in_temporary_dir : str
+
+    """
+    with TemporaryDirectory() as temp_dir:
+        if extension:
+            filename = filename + extension
+        path = os.path.join(
+            temp_dir,
+            filename
+        )
+    return path
 
 
 def translate(x1, x2):
@@ -385,6 +415,117 @@ def text_in_bbox(bbox, text):
         and lb[1] - 2 <= (t.y0 + t.y1) / 2.0 <= rt[1] + 2
     ]
     return t_bbox
+
+
+def bbox_from_text(textlines):
+    """Returns the smallest bbox containing all the text objects passed as
+    a parameters.
+
+    Parameters
+    ----------
+    textlines : List of PDFMiner text objects.
+
+    Returns
+    -------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+
+    """
+    if len(textlines) == 0:
+        return None
+    bbox = (
+        textlines[0].x0,
+        textlines[0].y0,
+        textlines[0].x1,
+        textlines[0].y1
+    )
+
+    for tl in textlines[1:]:
+        bbox = (
+            min(bbox[0], tl.x0),
+            min(bbox[1], tl.y0),
+            max(bbox[2], tl.x1),
+            max(bbox[3], tl.y1)
+        )
+    return bbox
+
+
+def find_columns_coordinates(tls):
+    """Given a list of text objects, guess columns boundaries and returns a
+    list of x-coordinates for split points between columns.
+
+    Parameters
+    ----------
+    tls : list of PDFMiner text object.
+
+    Returns
+    -------
+    cols_anchors : list
+        List of x-coordinates for columns.
+
+    """
+    # Make a list of disjunct cols boundaries across the textlines
+    # that comprise the table.
+    # [(1st col left, 1st col right), (2nd col left, 2nd col right), ...]
+    cols_bounds = []
+    tls.sort(key=lambda tl: tl.x0)
+    for tl in tls:
+        if (not cols_bounds) or cols_bounds[-1][1] < tl.x0:
+            cols_bounds.append([tl.x0, tl.x1])
+        else:
+            cols_bounds[-1][1] = max(cols_bounds[-1][1], tl.x1)
+
+    # From the row boundaries, identify splits by getting the mid points
+    # between the boundaries.
+    # Row boundaries: [ a ]        [b]    [   c   ]
+    # Splits:         |        |        |         |
+    cols_anchors = list(map(
+        lambda idx: (cols_bounds[idx-1][1] + cols_bounds[idx][0]) / 2.0,
+        range(1, len(cols_bounds)-1)
+    ))
+    cols_anchors.insert(0, cols_bounds[0][0])
+    cols_anchors.append(cols_bounds[-1][1])
+    return cols_anchors
+
+
+def distance_tl_to_bbox(tl, bbox):
+    """Returns a tuple corresponding to the horizontal and vertical gaps
+    between a textline and a bbox.
+
+    Parameters
+    ----------
+    tl : PDFMiner text object.
+    bbox : tuple (x0, y0, x1, y1)
+
+    Returns
+    -------
+    distance : tuple
+        Tuple (horizontal distance, vertical distance)
+
+    """
+    v_distance, h_distance = None, None
+    if tl.x1 <= bbox[0]:
+        # tl to the left
+        h_distance = bbox[0] - tl.x1
+    elif bbox[2] <= tl.x0:
+        # tl to the right
+        h_distance = tl.x0 - bbox[2]
+    else:
+        # textline overlaps vertically
+        h_distance = 0
+
+    if tl.y1 <= bbox[1]:
+        # tl below
+        v_distance = bbox[1] - tl.y1
+    elif bbox[3] <= tl.y0:
+        # tl above
+        v_distance = tl.y0 - bbox[3]
+    else:
+        # tl overlaps horizontally
+        v_distance = 0
+    return (h_distance, v_distance)
 
 
 def merge_close_lines(ar, line_tol=2):
@@ -867,3 +1008,94 @@ def get_text_objects(layout, ltype="char", t=None):
     except AttributeError:
         pass
     return t
+
+
+def export_pdf_as_png(pdf_path, destination_path):
+    """Generate an image from a pdf.
+
+    Parameters
+    ----------
+    pdf_path : str
+    destination_path : str
+    """
+    gs_call = f"-q -sDEVICE=png16m -o {destination_path} -r300 {pdf_path}"
+    gs_call = gs_call.encode().split()
+    null = open(os.devnull, "wb")
+    Ghostscript(*gs_call, stdout=null)
+    null.close()
+
+
+def compare_tables(left, right):
+    """Compare two tables and displays differences in a human readable form.
+
+    Parameters
+    ----------
+    left : data frame
+    right : data frame
+    """
+    diff_cols = right.shape[1]-left.shape[1]
+    diff_rows = right.shape[0]-left.shape[0]
+    differences = []
+    if (diff_rows):
+        differences.append(
+            f"{abs(diff_rows)} "
+            f"{'more' if diff_rows>0 else 'fewer'} rows"
+        )
+    if (diff_cols):
+        differences.append(
+            f"{abs(diff_cols)} "
+            f"{'more' if diff_cols>0 else 'fewer'} columns"
+        )
+    if differences:
+        differences_str = " and ".join(differences)
+        print(f"Right has {differences_str} than left "
+              f"[{right.shape[0]},{right.shape[1]}] vs "
+              f"[{left.shape[0]},{left.shape[1]}]")
+
+    table1, table2 = [left, right]
+    name_table1, name_table2 = ["left", "right"]
+    if not diff_rows:
+        # Same number of rows: compare columns since they're of the same length
+        if diff_cols > 0:
+            # Use the longest table as a reference
+            table1, table2 = table2, table1
+            name_table1, name_table2 = name_table2, name_table1
+        for i, col in enumerate(table1.columns):
+            lcol = table1.iloc[:, i]
+            if col in table2:
+                scol = table2.iloc[:, i]
+                if not lcol.equals(scol):
+                    diff_df = pd.DataFrame()
+                    diff_df[name_table1] = scol
+                    diff_df[name_table2] = lcol
+                    diff_df["Match"] = lcol == scol
+                    print(
+                        f"Column {i} different:\n"
+                        f"{diff_df}"
+                    )
+                    break
+            else:
+                print("Column {i} unique to {name_table1}: {lcol}")
+                break
+    elif not diff_cols:
+        # Same number of cols: compare rows since they're of the same length
+        if diff_rows > 0:
+            # Use the longest table as a reference
+            table1, table2 = table2, table1
+            name_table1, name_table2 = name_table2, name_table1
+        for index, lrow in table1.iterrows():
+            if index < table2.shape[1]:
+                srow = table2.loc[index, :]
+                if not lrow.equals(srow):
+                    diff_df = pd.DataFrame()
+                    diff_df = diff_df.append(lrow, ignore_index=True)
+                    diff_df = diff_df.append(srow, ignore_index=True)
+                    diff_df.insert(0, 'Table', [name_table1, name_table2])
+                    print(f"Row {index} differs:")
+                    print(diff_df.values)
+                    break
+            else:
+                print(f"Row {index} unique to {name_table1}: {lrow}")
+                break
+    else:
+        print("Tables have different shapes")
