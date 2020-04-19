@@ -7,7 +7,7 @@ import logging
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 from .core import TableList
-from .parsers import Stream, Lattice
+from .parsers import Stream, Lattice, Hybrid
 from .utils import (
     build_file_path_in_temp_dir,
     get_page_layout,
@@ -21,7 +21,8 @@ logger = logging.getLogger("camelot")
 
 PARSERS = {
     "lattice": Lattice,
-    "stream": Stream
+    "stream": Stream,
+    "hybrid": Hybrid,
 }
 
 
@@ -173,7 +174,7 @@ class PDFHandler():
         Parameters
         ----------
         flavor : str (default: 'lattice')
-            The parsing method to use ('lattice' or 'stream').
+            The parsing method to use ('lattice', 'stream', or 'hybrid').
             Lattice is used by default.
         suppress_stdout : str (default: False)
             Suppress logs and warnings.

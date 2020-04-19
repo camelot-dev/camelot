@@ -379,6 +379,8 @@ class Table(object):
         self._image = None
         self._image_path = None  # Temporary file to hold an image of the pdf
 
+        self._text = []          # List of text box coordinates
+
     def __repr__(self):
         return "<{} shape={}>".format(self.__class__.__name__, self.shape)
 
@@ -432,10 +434,10 @@ class Table(object):
         self.pdf_size = (parser.pdf_width, parser.pdf_height)
 
         _text = []
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in parser.horizontal_text])
+        _text.extend(
+            [(t.x0, t.y0, t.x1, t.y1) for t in parser.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in parser.vertical_text])
         self._text = _text
-
 
     def get_pdf_image(self):
         """Compute pdf image and cache it
