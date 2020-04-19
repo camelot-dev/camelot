@@ -12,7 +12,7 @@ from ..utils import (
     scale_image,
     scale_pdf,
     segments_in_bbox,
-    text_in_bbox,
+    text_in_bbox_per_axis,
     merge_close_lines,
 )
 from ..image_processing import (
@@ -252,19 +252,17 @@ class Lattice(BaseParser):
             table_bbox, vertical_segments, horizontal_segments, pdf_scalers
         )
 
-    def _generate_columns_and_rows(self, table_idx, tk):
+
+    def _generate_columns_and_rows(self, tk):
         # select elements which lie within table_bbox
-        t_bbox = {}
         v_s, h_s = segments_in_bbox(
             tk, self.vertical_segments, self.horizontal_segments
         )
-        t_bbox["horizontal"] = text_in_bbox(tk, self.horizontal_text)
-        t_bbox["vertical"] = text_in_bbox(tk, self.vertical_text)
-
-        t_bbox["horizontal"].sort(key=lambda x: (-x.y0, x.x0))
-        t_bbox["vertical"].sort(key=lambda x: (x.x0, -x.y0))
-
-        self.t_bbox = t_bbox
+        self.t_bbox = text_in_bbox_per_axis(
+            tk,
+            self.horizontal_text,
+            self.vertical_text
+            )
 
         cols, rows = zip(*self.table_bbox[tk])
         cols, rows = list(cols), list(rows)
@@ -299,10 +297,6 @@ class Lattice(BaseParser):
         table.record_parse_metadata(self)
 
         # for plotting
-        _text = []
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
-        table._text = _text
         table._image = self.pdf_image  # Reuse the image used for calc
         table._bbox_unscaled = self.table_bbox_unscaled
         table._segments = (self.vertical_segments, self.horizontal_segments)
@@ -321,8 +315,7 @@ class Lattice(BaseParser):
         for table_idx, tk in enumerate(
             sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
         ):
-            cols, rows, v_s, h_s = self._generate_columns_and_rows(
-                table_idx, tk)
+            cols, rows, v_s, h_s = self._generate_columns_and_rows(tk)
             table = self._generate_table(
                 table_idx, cols, rows, v_s=v_s, h_s=h_s)
             table._bbox = tk
