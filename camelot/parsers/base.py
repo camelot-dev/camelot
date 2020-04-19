@@ -3,7 +3,8 @@
 import os
 
 from ..utils import (
-    get_text_objects
+    get_text_objects,
+    get_table_index
 )
 from ..core import Table
 
@@ -11,8 +12,26 @@ from ..core import Table
 class BaseParser(object):
     """Defines a base parser.
     """
-    def __init__(self, parser_id):
+    def __init__(self,
+        parser_id,
+        table_regions=None,
+        table_areas=None,
+        split_text=False,
+        strip_text="",
+        shift_text=None,
+        flag_size=False,
+    ):
         self.id = parser_id
+        self.table_regions = table_regions
+        self.table_areas = table_areas
+
+        self.split_text = split_text
+        self.strip_text = strip_text
+        self.shift_text = shift_text
+
+        self.flag_size = flag_size
+
+        self.t_bbox = None
 
         # For plotting details of parsing algorithms
         self.debug_info = {}
@@ -57,3 +76,38 @@ class BaseParser(object):
         table.page = self.page
         table.order = table_idx + 1
         return table
+
+
+    @staticmethod
+    def _reduce_index(t, idx, shift_text):
+        """Reduces index of a text object if it lies within a spanning
+        cell.  Only useful for some parsers (e.g. Lattice), base method is a
+        noop.
+        """
+        return idx
+
+    def _compute_parse_errors(self, table):
+        pos_errors = []
+        # TODO: have a single list in place of two directional ones?
+        # sorted on x-coordinate based on reading order i.e. LTR or RTL
+        for direction in ["vertical", "horizontal"]:
+            for t in self.t_bbox[direction]:
+                indices, error = get_table_index(
+                    table,
+                    t,
+                    direction,
+                    split_text=self.split_text,
+                    flag_size=self.flag_size,
+                    strip_text=self.strip_text,
+                )
+                if indices[:2] != (-1, -1):
+                    pos_errors.append(error)
+                    indices = type(self)._reduce_index(
+                        table,
+                        indices,
+                        shift_text=self.shift_text
+                    )
+                    for r_idx, c_idx, text in indices:
+                        table.cells[r_idx][c_idx].text = text
+        return pos_errors
+

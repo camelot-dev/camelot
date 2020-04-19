@@ -114,16 +114,18 @@ class Lattice(BaseParser):
         resolution=300,
         **kwargs
     ):
-        super().__init__("lattice")
-        self.table_regions = table_regions
-        self.table_areas = table_areas
+        super().__init__(
+            "lattice",
+            table_regions=table_regions,
+            table_areas=table_areas,
+            split_text=split_text,
+            strip_text=strip_text,
+            shift_text=shift_text or ["l", "t"],
+            flag_size=flag_size,
+        )
         self.process_background = process_background
         self.line_scale = line_scale
         self.copy_text = copy_text
-        self.shift_text = shift_text or ["l", "t"]
-        self.split_text = split_text
-        self.flag_size = flag_size
-        self.strip_text = strip_text
         self.line_tol = line_tol
         self.joint_tol = joint_tol
         self.threshold_blocksize = threshold_blocksize
@@ -177,6 +179,7 @@ class Lattice(BaseParser):
                             r_idx += 1
             indices.append((r_idx, c_idx, text))
         return indices
+
 
     @staticmethod
     def _copy_spanning_text(t, copy_text=None):
@@ -368,7 +371,7 @@ class Lattice(BaseParser):
                 copy_text=self.copy_text
             )
 
-        table.record_metadata(self)
+        table.record_parse_metadata(self)
         table.accuracy = accuracy
 
         # for plotting

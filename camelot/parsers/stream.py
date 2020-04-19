@@ -10,7 +10,7 @@ import pandas as pd
 
 from .base import BaseParser
 from ..core import TextEdges
-from ..utils import (text_in_bbox, get_table_index, compute_accuracy,
+from ..utils import (text_in_bbox, compute_accuracy,
                      compute_whitespace)
 
 
@@ -61,22 +61,24 @@ class Stream(BaseParser):
         table_regions=None,
         table_areas=None,
         columns=None,
-        split_text=False,
         flag_size=False,
+        split_text=False,
         strip_text="",
         edge_tol=50,
         row_tol=2,
         column_tol=0,
         **kwargs
     ):
-        super().__init__("stream")
-        self.table_regions = table_regions
-        self.table_areas = table_areas
+        super().__init__(
+            "stream",
+            table_regions=table_regions,
+            table_areas=table_areas,
+            split_text=split_text,
+            strip_text=strip_text,
+            flag_size=flag_size,
+        )
         self.columns = columns
         self._validate_columns()
-        self.split_text = split_text
-        self.flag_size = flag_size
-        self.strip_text = strip_text
         self.edge_tol = edge_tol
         self.row_tol = row_tol
         self.column_tol = column_tol
@@ -418,26 +420,10 @@ class Stream(BaseParser):
         table = self._initialize_new_table(table_idx, cols, rows)
         table = table.set_all_edges()
 
-        pos_errors = []
-        # TODO: have a single list in place of two directional ones?
-        # sorted on x-coordinate based on reading order i.e. LTR or RTL
-        for direction in ["vertical", "horizontal"]:
-            for t in self.t_bbox[direction]:
-                indices, error = get_table_index(
-                    table,
-                    t,
-                    direction,
-                    split_text=self.split_text,
-                    flag_size=self.flag_size,
-                    strip_text=self.strip_text,
-                )
-                if indices[:2] != (-1, -1):
-                    pos_errors.append(error)
-                    for r_idx, c_idx, text in indices:
-                        table.cells[r_idx][c_idx].text = text
+        pos_errors = self._compute_parse_errors(table)
         accuracy = compute_accuracy([[100, pos_errors]])
 
-        table.record_metadata(self)
+        table.record_parse_metadata(self)
 
         table.accuracy = accuracy
 
