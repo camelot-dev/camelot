@@ -36,6 +36,8 @@ def test_text_plot():
     return camelot.plot(tables[0], kind='text')
 
 
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
+                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_grid_plot():
@@ -71,6 +73,8 @@ def test_stream_contour_plot():
     return camelot.plot(tables[0], kind='contour')
 
 
+@pytest.mark.skipif(LEGACY_MATPLOTLIB,
+                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_line_plot():
