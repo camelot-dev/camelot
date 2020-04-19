@@ -38,7 +38,7 @@ class TextEdge(object):
     intersections: int
         Number of intersections with horizontal text rows.
     is_valid: bool
-        A text edge is valid if it intersections with at least
+        A text edge is valid if it intersects with at least
         TEXTEDGE_REQUIRED_ELEMENTS horizontal text rows.
 
     """
@@ -65,7 +65,8 @@ class TextEdge(object):
         the is_valid attribute.
         """
         if np.isclose(self.y0, y0, atol=edge_tol):
-            self.x = (self.intersections * self.x + x) / float(self.intersections + 1)
+            self.x = (self.intersections * self.x + x) / \
+                float(self.intersections + 1)
             self.y0 = y0
             self.intersections += 1
             # a textedge is valid only if it extends uninterrupted
@@ -141,13 +142,16 @@ class TextEdges(object):
         """
         intersections_sum = {
             "left": sum(
-                te.intersections for te in self._textedges["left"] if te.is_valid
+                te.intersections for te in self._textedges["left"]
+                if te.is_valid
             ),
             "right": sum(
-                te.intersections for te in self._textedges["right"] if te.is_valid
+                te.intersections for te in self._textedges["right"]
+                if te.is_valid
             ),
             "middle": sum(
-                te.intersections for te in self._textedges["middle"] if te.is_valid
+                te.intersections for te in self._textedges["middle"]
+                if te.is_valid
             ),
         }
 
@@ -292,7 +296,10 @@ class Cell(object):
 
     def __repr__(self):
         return "<Cell x1={} y1={} x2={} y2={}>".format(
-            round(self.x1, 2), round(self.y1, 2), round(self.x2, 2), round(self.y2, 2)
+            round(self.x1, 2),
+            round(self.y1, 2),
+            round(self.x2, 2),
+            round(self.y2, 2)
         )
 
     @property
@@ -342,7 +349,9 @@ class Table(object):
     def __init__(self, cols, rows):
         self.cols = cols
         self.rows = rows
-        self.cells = [[Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows]
+        self.cells = [
+            [Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows
+        ]
         self.df = None
         self.shape = (0, 0)
         self.accuracy = 0
@@ -579,7 +588,8 @@ class Table(object):
             Output filepath.
 
         """
-        kw = {"encoding": "utf-8", "index": False, "header": False, "quoting": 1}
+        kw = {"encoding": "utf-8", "index": False, "header": False,
+              "quoting": 1}
         kw.update(kwargs)
         self.df.to_csv(path, **kw)
 
@@ -616,6 +626,7 @@ class Table(object):
             "encoding": "utf-8",
         }
         kw.update(kwargs)
+        # pylint: disable=abstract-class-instantiated
         writer = pd.ExcelWriter(path)
         self.df.to_excel(writer, **kw)
         writer.save()
@@ -692,7 +703,8 @@ class TableList(object):
         ext = kwargs.get("ext")
         for table in self._tables:
             filename = os.path.join(
-                "{}-page-{}-table-{}{}".format(root, table.page, table.order, ext)
+                "{}-page-{}-table-{}{}".format(root, table.page, table.order,
+                                               ext)
             )
             filepath = os.path.join(dirname, filename)
             to_format = self._format_func(table, f)
@@ -707,7 +719,10 @@ class TableList(object):
         with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:
             for table in self._tables:
                 filename = os.path.join(
-                    "{}-page-{}-table-{}{}".format(root, table.page, table.order, ext)
+                    "{}-page-{}-table-{}{}".format(root,
+                                                   table.page,
+                                                   table.order,
+                                                   ext)
                 )
                 filepath = os.path.join(dirname, filename)
                 z.write(filepath, os.path.basename(filepath))
@@ -739,10 +754,12 @@ class TableList(object):
                 self._compress_dir(**kwargs)
         elif f == "excel":
             filepath = os.path.join(dirname, basename)
+            # pylint: disable=abstract-class-instantiated
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = "page-{}-table-{}".format(table.page, table.order)
-                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
+                table.df.to_excel(writer, sheet_name=sheet_name,
+                                  encoding="utf-8")
             writer.save()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"

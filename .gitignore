@@ -4,6 +4,7 @@ __pycache__/
 
 build/
 dist/
+prof/
 *.egg-info/
 .eggs/
 .coverage
@@ -17,3 +18,5 @@ htmlcov/
 
 # vscode
 .vscode
+
+.DS_Store

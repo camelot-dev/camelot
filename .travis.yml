@@ -1,4 +1,3 @@
-sudo: true
 language: python
 cache: pip
 addons:
@@ -8,10 +7,6 @@ install:
   - make install
 jobs:
   include:
-    - stage: test
-      script:
-        - make test
-      python: '2.7'
     - stage: test
       script:
         - make test

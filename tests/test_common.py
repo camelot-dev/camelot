@@ -11,12 +11,15 @@ from camelot.__version__ import generate_version
 
 from .data import *
 
+
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
 
 def test_parsing_report():
-    parsing_report = {"accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1}
+    parsing_report = {
+        "accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1
+    }
 
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -28,9 +31,17 @@ def test_password():
 
     filename = os.path.join(testdir, "health_protected.pdf")
     tables = camelot.read_pdf(filename, password="ownerpass", flavor="stream")
+<<<<<<< HEAD
     assert_frame_equal(df, tables[0].df)
 
     tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
+=======
+    assert len(tables) == 1
+    assert_frame_equal(df, tables[0].df)
+
+    tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
+    assert len(tables) == 1
+>>>>>>> Fix unit tests, lint, drop Python 2 support
     assert_frame_equal(df, tables[0].df)
 
 
@@ -229,9 +240,9 @@ def test_repr():
     tables = camelot.read_pdf(filename)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
 
 def test_pages():
@@ -239,22 +250,23 @@ def test_pages():
     tables = camelot.read_pdf(url)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
     tables = camelot.read_pdf(url, pages="1-end")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
     tables = camelot.read_pdf(url, pages="all")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) ==
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -264,7 +276,8 @@ def test_url():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) ==
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -284,7 +297,12 @@ def test_table_order():
         return t
 
     table_list = TableList(
-        [_make_table(2, 1), _make_table(1, 1), _make_table(3, 4), _make_table(1, 2)]
+        [
+            _make_table(2, 1),
+            _make_table(1, 1),
+            _make_table(3, 4),
+            _make_table(1, 2)
+        ]
     )
 
     assert [(t.page, t.order) for t in sorted(table_list)] == [
