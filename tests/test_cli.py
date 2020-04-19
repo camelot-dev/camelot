@@ -122,6 +122,26 @@ def test_cli_parallel(testdir):
         assert result.output == "Found 2 tables\n"
 
 
+def test_cli_hybrid():
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "budget.pdf")
+        outfile = os.path.join(tempdir, "budget.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli, ["--format", "csv", "--output", outfile, "hybrid", infile]
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 1 tables\n"
+
+        result = runner.invoke(cli, ["--format", "csv", "hybrid", infile])
+        output_error = "Error: Please specify output file path using --output"
+        assert output_error in result.output
+
+        result = runner.invoke(cli, ["--output", outfile, "hybrid", infile])
+        format_error = "Please specify output file format using --format"
+        assert format_error in result.output
+
+
 def test_cli_password(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health_protected.pdf")
