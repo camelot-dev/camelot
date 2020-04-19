@@ -1,4 +1,5 @@
 import os
+import atexit
 import random
 import re
 import shutil
@@ -15,6 +16,7 @@ from urllib.request import Request
 from urllib.request import urlopen
 
 import numpy as np
+import pandas as pd
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams
 from pdfminer.layout import LTAnno
@@ -136,13 +138,40 @@ def remove_extra(kwargs, flavor="lattice"):
 
 
 # https://stackoverflow.com/a/22726782
-class TemporaryDirectory:
+# and https://stackoverflow.com/questions/10965479
+class TemporaryDirectory(object):
     def __enter__(self):
         self.name = tempfile.mkdtemp()
+        # Only delete the temporary directory upon
+        # program exit.
+        atexit.register(shutil.rmtree, self.name)
         return self.name
 
     def __exit__(self, exc_type, exc_value, traceback):
-        shutil.rmtree(self.name)
+        pass
+
+
+def build_file_path_in_temp_dir(filename, extension=None):
+    """Generates a new path within a temporary directory
+
+    Parameters
+    ----------
+    filename : str
+    extension : str
+
+    Returns
+    -------
+    file_path_in_temporary_dir : str
+
+    """
+    with TemporaryDirectory() as temp_dir:
+        if extension:
+            filename = filename + extension
+        path = os.path.join(
+            temp_dir,
+            filename
+        )
+    return path
 
 
 def translate(x1, x2):

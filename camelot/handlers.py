@@ -11,6 +11,7 @@ from pypdf._utils import StrByteType
 from .core import TableList
 from .parsers import Lattice
 from .parsers import Stream
+from .utils import build_file_path_in_temp_dir
 from .utils import TemporaryDirectory
 from .utils import download_url
 from .utils import get_page_layout
@@ -101,12 +102,22 @@ class PDFHandler:
 
         Parameters
         ----------
-        filepath : str
-            Filepath or URL of the PDF file.
         page : int
             Page number.
-        temp : str
-            Tmp directory.
+        layout_kwargs : dict, optional (default: {})
+            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.  # noqa
+
+
+        Returns
+        -------
+        layout : object
+
+        dimensions : tuple
+            The dimensions of the pdf page
+
+        filepath : str
+            The path of the single page PDF - either the original, or a
+            normalized version.
 
         """
         infile = PdfReader(filepath, strict=False)
@@ -229,6 +240,9 @@ class PDFHandler:
         """
         self._save_page(self.filepath, page, tempdir)
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
+        layout, dimensions = get_page_layout(page_path, **layout_kwargs)
+        parser._generate_layout(page_path, layout, dimensions,
+                            page, layout_kwargs=layout_kwargs)
         tables = parser.extract_tables(
             page_path, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
         )

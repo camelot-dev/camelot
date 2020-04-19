@@ -69,6 +69,7 @@ class Stream(BaseParser):
         column_tol=0,
         **kwargs,
     ):
+        super().__init__("stream")
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.columns = columns
@@ -192,7 +193,8 @@ class Stream(BaseParser):
 
     @staticmethod
     def _join_rows(rows_grouped, text_y_max, text_y_min):
-        """Makes row coordinates continuous.
+        """Makes row coordinates continuous. For the row to "touch"
+        we split the existing gap between them in half.
 
         Parameters
         ----------
@@ -207,15 +209,20 @@ class Stream(BaseParser):
             List of continuous row y-coordinate tuples.
 
         """
-        row_mids = [
-            sum([(t.y0 + t.y1) / 2 for t in r]) / len(r) if len(r) > 0 else 0
+        row_boundaries = [
+            [
+                max(t.y1 for t in r),
+                min(t.y0 for t in r)
+            ]
             for r in rows_grouped
         ]
-        rows = [(row_mids[i] + row_mids[i - 1]) / 2 for i in range(1, len(row_mids))]
-        rows.insert(0, text_y_max)
-        rows.append(text_y_min)
-        rows = [(rows[i], rows[i + 1]) for i in range(0, len(rows) - 1)]
-        return rows
+        for i in range(0, len(row_boundaries)-1):
+            top_row = row_boundaries[i]
+            bottom_row = row_boundaries[i+1]
+            top_row[1] = bottom_row[0] = (top_row[1] + bottom_row[0]) / 2
+        row_boundaries[0][0] = text_y_max
+        row_boundaries[-1][1] = text_y_min
+        return row_boundaries
 
     @staticmethod
     def _add_columns(cols, text, row_tol):
@@ -400,7 +407,7 @@ class Stream(BaseParser):
         return cols, rows
 
     def _generate_table(self, table_idx, cols, rows, **kwargs):
-        table = Table(cols, rows)
+        table = self._initialize_new_table(table_idx, cols, rows)
         table = table.set_all_edges()
 
         pos_errors = []
@@ -422,30 +429,22 @@ class Stream(BaseParser):
                         table.cells[r_idx][c_idx].text = text
         accuracy = compute_accuracy([[100, pos_errors]])
 
-        data = table.data
-        table.df = pd.DataFrame(data)
-        table.shape = table.df.shape
+        table.record_metadata(self)
 
-        whitespace = compute_whitespace(data)
-        table.flavor = "stream"
         table.accuracy = accuracy
-        table.whitespace = whitespace
-        table.order = table_idx + 1
-        table.page = int(os.path.basename(self.rootname).replace("page-", ""))
 
         # for plotting
         _text = []
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
-        table._image = None
+        table._bbox = self.table_bbox
         table._segments = None
         table._textedges = self.textedges
 
         return table
 
     def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
-        self._generate_layout(filename, layout_kwargs)
         base_filename = os.path.basename(self.rootname)
 
         if not suppress_stdout:

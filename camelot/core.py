@@ -8,6 +8,14 @@ from operator import itemgetter
 import numpy as np
 import pandas as pd
 
+import cv2
+
+from .utils import (
+    build_file_path_in_temp_dir,
+    compute_whitespace,
+)
+from .backends import ImageConversionBackend
+
 
 # minimum number of vertical textline intersections for a textedge
 # to be considered valid
@@ -150,7 +158,10 @@ class TextEdges:
         # get vertical textedges that intersect maximum number of
         # times with horizontal textlines
         relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
-        return self._textedges[relevant_align]
+        return list(filter(
+            lambda te: te.is_valid,
+            self._textedges[relevant_align])
+        )
 
     def get_table_areas(self, textlines, relevant_textedges):
         """Returns a dict of interesting table areas on the PDF page
@@ -170,7 +181,6 @@ class TextEdges:
 
         table_areas = {}
         for te in relevant_textedges:
-            if te.is_valid:
                 if not table_areas:
                     table_areas[(te.x, te.y0, te.x, te.y1)] = None
                 else:
@@ -216,7 +226,8 @@ class TextEdges:
                     max(found[3], tl.y1),
                 )
                 table_areas[updated_area] = None
-        average_textline_height = sum_textline_height / float(len(textlines))
+        average_textline_height = sum_textline_height / \
+            float(len(textlines))
 
         # add some padding to table areas
         table_areas_padded = {}
@@ -328,6 +339,8 @@ class Table:
         Accuracy with which text was assigned to the cell.
     whitespace : float
         Percentage of whitespace in the table.
+    filename : str
+        Path of the original PDF
     order : int
         Table number on PDF page.
     page : int
@@ -343,8 +356,15 @@ class Table:
         self.shape = (0, 0)
         self.accuracy = 0
         self.whitespace = 0
+        self.filename = None
         self.order = None
         self.page = None
+        self.flavor = None      # Flavor of the parser that generated the table
+        self.pdf_size = None    # Dimensions of the original PDF page
+        self.debug_info = None  # Field holding debug data
+
+        self._image = None
+        self._image_path = None  # Temporary file to hold an image of the pdf
 
     def __repr__(self):
         return f"<{self.__class__.__name__} shape={self.shape}>"
@@ -377,6 +397,33 @@ class Table:
             "page": self.page,
         }
         return report
+
+    def record_metadata(self, parser):
+        """Record data about the origin of the table
+        """
+        self.flavor = parser.id
+        self.filename = parser.filename
+        self.debug_info = parser.debug_info
+        data = self.data
+        self.df = pd.DataFrame(data)
+        self.shape = self.df.shape
+
+        self.whitespace = compute_whitespace(data)
+        self.pdf_size = (parser.pdf_width, parser.pdf_height)
+
+    def get_pdf_image(self):
+        """Compute pdf image and cache it
+        """
+        if self._image is None:
+            if self._image_path is None:
+                self._image_path = build_file_path_in_temp_dir(
+                    os.path.basename(self.filename),
+                    ".png"
+                )
+                backend = ImageConversionBackend(use_fallback=True)
+                backend.convert(self.filename, self._image_path)
+            self._image = cv2.imread(self._image_path)
+        return self._image
 
     def set_all_edges(self):
         """Sets all table edges to True."""
