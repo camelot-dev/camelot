@@ -417,6 +417,35 @@ def text_in_bbox(bbox, text):
     return t_bbox
 
 
+def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
+    """Returns all text objects present inside a bounding box, split between
+    horizontal and vertical text.
+
+    Parameters
+    ----------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+    horizontal_text : List of PDFMiner text objects.
+    vertical_text : List of PDFMiner text objects.
+
+    Returns
+    -------
+    t_bbox : dict
+        Dict of lists of PDFMiner text objects that lie inside table, with one
+        key each for "horizontal" and "vertical"
+
+    """
+    t_bbox = {}
+    t_bbox["horizontal"] = text_in_bbox(bbox, horizontal_text)
+    t_bbox["vertical"] = text_in_bbox(bbox, vertical_text)
+
+    t_bbox["horizontal"].sort(key=lambda x: (-x.y0, x.x0))
+    t_bbox["vertical"].sort(key=lambda x: (x.x0, -x.y0))
+    return t_bbox
+
+
 def bbox_from_text(textlines):
     """Returns the smallest bbox containing all the text objects passed as
     a parameters.

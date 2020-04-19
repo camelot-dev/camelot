@@ -7,7 +7,7 @@ import numpy as np
 
 from .base import BaseParser
 from ..core import TextEdges
-from ..utils import (text_in_bbox)
+from ..utils import (text_in_bbox, text_in_bbox_per_axis)
 
 
 class Stream(BaseParser):
@@ -331,14 +331,11 @@ class Stream(BaseParser):
 
     def _generate_columns_and_rows(self, table_idx, tk):
         # select elements which lie within table_bbox
-        t_bbox = {}
-        t_bbox["horizontal"] = text_in_bbox(tk, self.horizontal_text)
-        t_bbox["vertical"] = text_in_bbox(tk, self.vertical_text)
-
-        t_bbox["horizontal"].sort(key=lambda x: (-x.y0, x.x0))
-        t_bbox["vertical"].sort(key=lambda x: (x.x0, -x.y0))
-
-        self.t_bbox = t_bbox
+        self.t_bbox = text_in_bbox_per_axis(
+            tk,
+            self.horizontal_text,
+            self.vertical_text
+        )
 
         text_x_min, text_y_min, text_x_max, text_y_max = \
             self._text_bbox(self.t_bbox)
@@ -415,10 +412,6 @@ class Stream(BaseParser):
         table.record_parse_metadata(self)
 
         # for plotting
-        _text = []
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
-        table._text = _text
         table._bbox = self.table_bbox
         table._segments = None
         table._textedges = self.textedges
@@ -435,12 +428,12 @@ class Stream(BaseParser):
 
         _tables = []
         # sort tables based on y-coord
-        for table_idx, tk in enumerate(
+        for table_idx, bbox in enumerate(
             sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
         ):
-            cols, rows = self._generate_columns_and_rows(table_idx, tk)
+            cols, rows = self._generate_columns_and_rows(table_idx, bbox)
             table = self._generate_table(table_idx, cols, rows)
-            table._bbox = tk
+            table._bbox = bbox
             _tables.append(table)
 
         return _tables

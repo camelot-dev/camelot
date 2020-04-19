@@ -431,6 +431,12 @@ class Table(object):
         self.whitespace = compute_whitespace(data)
         self.pdf_size = (parser.pdf_width, parser.pdf_height)
 
+        _text = []
+        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in parser.horizontal_text])
+        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in parser.vertical_text])
+        self._text = _text
+
+
     def get_pdf_image(self):
         """Compute pdf image and cache it
         """
