@@ -33,6 +33,9 @@ Release v\ |version|. (:ref:`Installation <install>`)
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
 
+.. image:: https://img.shields.io/badge/continous%20quality-deepsource-lightgrey
+    :target: https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge
+
 **Camelot** is a Python library that makes it easy for *anyone* to extract tables from PDF files!
 
 .. note:: You can also check out `Excalibur`_, which is a web interface for Camelot!
@@ -85,6 +88,13 @@ See `comparison with other PDF table extraction libraries and tools`_.
 
 .. _ETL and data analysis workflows: https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873
 .. _comparison with other PDF table extraction libraries and tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
+
+Support us on OpenCollective
+----------------------------
+
+If Camelot helped you extract tables from PDFs, please consider supporting its development by `becoming a backer or a sponsor on OpenCollective`_!
+
+.. _becoming a backer or a sponsor on OpenCollective: https://opencollective.com/camelot
 
 The User Guide
 --------------

@@ -37,7 +37,7 @@ class PlotMethods(object):
             raise NotImplementedError(
                 "Lattice flavor does not support kind='{}'".format(kind)
             )
-        elif table.flavor == "stream" and kind in ["joint", "line"]:
+        elif table.flavor == "stream" and kind in ["line"]:
             raise NotImplementedError(
                 "Stream flavor does not support kind='{}'".format(kind)
             )
@@ -64,7 +64,13 @@ class PlotMethods(object):
         for t in table._text:
             xs.extend([t[0], t[2]])
             ys.extend([t[1], t[3]])
-            ax.add_patch(patches.Rectangle((t[0], t[1]), t[2] - t[0], t[3] - t[1]))
+            ax.add_patch(
+                patches.Rectangle(
+                        (t[0], t[1]),
+                        t[2] - t[0],
+                        t[3] - t[1]
+                    )
+                )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
         return fig
@@ -132,7 +138,8 @@ class PlotMethods(object):
         for t in table_bbox.keys():
             ax.add_patch(
                 patches.Rectangle(
-                    (t[0], t[1]), t[2] - t[0], t[3] - t[1], fill=False, color="red"
+                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
+                    fill=False, color="red"
                 )
             )
             if not _FOR_LATTICE:
@@ -164,7 +171,10 @@ class PlotMethods(object):
             xs.extend([t[0], t[2]])
             ys.extend([t[1], t[3]])
             ax.add_patch(
-                patches.Rectangle((t[0], t[1]), t[2] - t[0], t[3] - t[1], color="blue")
+                patches.Rectangle(
+                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
+                    color="blue"
+                )
             )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)

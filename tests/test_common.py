@@ -3,18 +3,23 @@
 import os
 
 import pandas as pd
+from pandas.testing import assert_frame_equal
 
 import camelot
 from camelot.core import Table, TableList
+from camelot.__version__ import generate_version
 
 from .data import *
+
 
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
 
 def test_parsing_report():
-    parsing_report = {"accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1}
+    parsing_report = {
+        "accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1
+    }
 
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -26,10 +31,12 @@ def test_password():
 
     filename = os.path.join(testdir, "health_protected.pdf")
     tables = camelot.read_pdf(filename, password="ownerpass", flavor="stream")
-    assert df.equals(tables[0].df)
+    assert len(tables) == 1
+    assert_frame_equal(df, tables[0].df)
 
     tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
-    assert df.equals(tables[0].df)
+    assert len(tables) == 1
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream():
@@ -37,7 +44,7 @@ def test_stream():
 
     filename = os.path.join(testdir, "health.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_table_rotated():
@@ -45,11 +52,11 @@ def test_stream_table_rotated():
 
     filename = os.path.join(testdir, "clockwise_table_2.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
     filename = os.path.join(testdir, "anticlockwise_table_2.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_two_tables():
@@ -71,7 +78,7 @@ def test_stream_table_regions():
     tables = camelot.read_pdf(
         filename, flavor="stream", table_regions=["320,460,573,335"]
     )
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_table_areas():
@@ -81,7 +88,7 @@ def test_stream_table_areas():
     tables = camelot.read_pdf(
         filename, flavor="stream", table_areas=["320,500,573,335"]
     )
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_columns():
@@ -91,7 +98,7 @@ def test_stream_columns():
     tables = camelot.read_pdf(
         filename, flavor="stream", columns=["67,180,230,425,475"], row_tol=10
     )
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_split_text():
@@ -104,7 +111,7 @@ def test_stream_split_text():
         columns=["72,95,209,327,442,529,566,606,683"],
         split_text=True,
     )
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_flag_size():
@@ -112,7 +119,7 @@ def test_stream_flag_size():
 
     filename = os.path.join(testdir, "superscript.pdf")
     tables = camelot.read_pdf(filename, flavor="stream", flag_size=True)
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_strip_text():
@@ -120,7 +127,7 @@ def test_stream_strip_text():
 
     filename = os.path.join(testdir, "detect_vertical_false.pdf")
     tables = camelot.read_pdf(filename, flavor="stream", strip_text=" ,\n")
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_edge_tol():
@@ -128,7 +135,7 @@ def test_stream_edge_tol():
 
     filename = os.path.join(testdir, "edge_tol.pdf")
     tables = camelot.read_pdf(filename, flavor="stream", edge_tol=500)
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_stream_layout_kwargs():
@@ -138,7 +145,7 @@ def test_stream_layout_kwargs():
     tables = camelot.read_pdf(
         filename, flavor="stream", layout_kwargs={"detect_vertical": False}
     )
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_lattice():
@@ -148,7 +155,7 @@ def test_lattice():
         testdir, "tabula/icdar2013-dataset/competition-dataset-us/us-030.pdf"
     )
     tables = camelot.read_pdf(filename, pages="2")
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_lattice_table_rotated():
@@ -156,11 +163,11 @@ def test_lattice_table_rotated():
 
     filename = os.path.join(testdir, "clockwise_table_1.pdf")
     tables = camelot.read_pdf(filename)
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
     filename = os.path.join(testdir, "anticlockwise_table_1.pdf")
     tables = camelot.read_pdf(filename)
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_lattice_two_tables():
@@ -179,7 +186,7 @@ def test_lattice_table_regions():
 
     filename = os.path.join(testdir, "table_region.pdf")
     tables = camelot.read_pdf(filename, table_regions=["170,370,560,270"])
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_lattice_table_areas():
@@ -187,7 +194,7 @@ def test_lattice_table_areas():
 
     filename = os.path.join(testdir, "twotables_2.pdf")
     tables = camelot.read_pdf(filename, table_areas=["80,693,535,448"])
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_lattice_process_background():
@@ -195,7 +202,7 @@ def test_lattice_process_background():
 
     filename = os.path.join(testdir, "background_lines_1.pdf")
     tables = camelot.read_pdf(filename, process_background=True)
-    assert df.equals(tables[1].df)
+    assert_frame_equal(df, tables[1].df)
 
 
 def test_lattice_copy_text():
@@ -203,7 +210,7 @@ def test_lattice_copy_text():
 
     filename = os.path.join(testdir, "row_span_1.pdf")
     tables = camelot.read_pdf(filename, line_scale=60, copy_text="v")
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_lattice_shift_text():
@@ -227,9 +234,9 @@ def test_repr():
     tables = camelot.read_pdf(filename)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
 
 def test_pages():
@@ -237,22 +244,23 @@ def test_pages():
     tables = camelot.read_pdf(url)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
     tables = camelot.read_pdf(url, pages="1-end")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
-    )
+    assert \
+        repr(tables[0].cells[0][0]) == \
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
 
     tables = camelot.read_pdf(url, pages="all")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) ==
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -262,7 +270,8 @@ def test_url():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert (
-        repr(tables[0].cells[0][0]) == "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
+        repr(tables[0].cells[0][0]) ==
+        "<Cell x1=120.48 y1=218.43 x2=164.64 y2=233.77>"
     )
 
 
@@ -271,7 +280,7 @@ def test_arabic():
 
     filename = os.path.join(testdir, "tabula/arabic.pdf")
     tables = camelot.read_pdf(filename)
-    assert df.equals(tables[0].df)
+    assert_frame_equal(df, tables[0].df)
 
 
 def test_table_order():
@@ -282,7 +291,12 @@ def test_table_order():
         return t
 
     table_list = TableList(
-        [_make_table(2, 1), _make_table(1, 1), _make_table(3, 4), _make_table(1, 2)]
+        [
+            _make_table(2, 1),
+            _make_table(1, 1),
+            _make_table(3, 4),
+            _make_table(1, 2)
+        ]
     )
 
     assert [(t.page, t.order) for t in sorted(table_list)] == [
@@ -297,3 +311,18 @@ def test_table_order():
         (1, 2),
         (1, 1),
     ]
+
+
+def test_version_generation():
+    version = (0, 7, 3)
+    assert generate_version(version, prerelease=None, revision=None) == "0.7.3"
+
+
+def test_version_generation_with_prerelease_revision():
+    version = (0, 7, 3)
+    prerelease = "alpha"
+    revision = 2
+    assert (
+        generate_version(version, prerelease=prerelease, revision=revision)
+        == "0.7.3-alpha.2"
+    )

@@ -7,7 +7,7 @@
 [![Build Status](https://travis-ci.org/camelot-dev/camelot.svg?branch=master)](https://travis-ci.org/camelot-dev/camelot) [![Documentation Status](https://readthedocs.org/projects/camelot-py/badge/?version=master)](https://camelot-py.readthedocs.io/en/master/)
  [![codecov.io](https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github)](https://codecov.io/github/camelot-dev/camelot?branch=master)
  [![image](https://img.shields.io/pypi/v/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/l/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/pyversions/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![Gitter chat](https://badges.gitter.im/camelot-dev/Lobby.png)](https://gitter.im/camelot-dev/Lobby)
-[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![image](https://img.shields.io/badge/continous%20quality-deepsource-lightgrey)](https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge)
 
 
 **Camelot** is a Python library that makes it easy for *anyone* to extract tables from PDF files!
@@ -71,7 +71,7 @@ $ conda install -c conda-forge camelot-py
 
 ### Using pip
 
-After [installing the dependencies](https://camelot-py.readthedocs.io/en/master/user/install-deps.html) ([tk](https://packages.ubuntu.com/trusty/python-tk) and [ghostscript](https://www.ghostscript.com/)), you can simply use pip to install Camelot:
+After [installing the dependencies](https://camelot-py.readthedocs.io/en/master/user/install-deps.html) ([tk](https://packages.ubuntu.com/bionic/python/python-tk) and [ghostscript](https://www.ghostscript.com/)), you can simply use pip to install Camelot:
 
 <pre>
 $ pip install camelot-py[cv]
@@ -124,6 +124,10 @@ After installation, you can run tests using:
 $ python setup.py test
 </pre>
 
+## Wrappers
+
+- [camelot-php](https://github.com/randomstate/camelot-php) provides a [PHP](https://www.php.net/) wrapper on Camelot.
+
 ## Versioning
 
 Camelot uses [Semantic Versioning](https://semver.org/). For the available versions, see the tags on this repository. For the changelog, you can check out [HISTORY.md](https://github.com/camelot-dev/camelot/blob/master/HISTORY.md).
@@ -132,4 +136,8 @@ Camelot uses [Semantic Versioning](https://semver.org/). For the available versi
 
 This project is licensed under the MIT License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/LICENSE) file for details.
 
-<img src="http://i65.tinypic.com/9h4ajs.png" align="centre" />
+## Support the development
+
+You can support our work on Camelot with a one-time or monthly donation [on OpenCollective](https://opencollective.com/camelot). Organizations who use camelot can also sponsor the project for an acknowledgement on [our documentation site](https://camelot-py.readthedocs.io/en/master/) and this README.
+
+Special thanks to all the users, organizations and contributors that support Camelot!

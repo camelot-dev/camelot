@@ -19,10 +19,16 @@ def test_help_output():
     output = result.output
 
     assert prog_name == "camelot"
-    assert result.output.startswith("Usage: %(prog_name)s [OPTIONS] COMMAND" % locals())
+    assert result.output.startswith(
+        "Usage: %(prog_name)s [OPTIONS] COMMAND" %
+        locals()
+    )
     assert all(
         v in result.output
-        for v in ["Options:", "--version", "--help", "Commands:", "lattice", "stream"]
+        for v in [
+            "Options:", "--version", "--help", "Commands:", "lattice",
+            "stream"
+        ]
     )
 
 
@@ -120,21 +126,24 @@ def test_cli_output_format():
         # json
         result = runner.invoke(
             cli,
-            ["--format", "json", "--output", outfile.format("json"), "stream", infile],
+            ["--format", "json", "--output", outfile.format("json"), "stream",
+             infile],
         )
         assert result.exit_code == 0
 
         # excel
         result = runner.invoke(
             cli,
-            ["--format", "excel", "--output", outfile.format("xlsx"), "stream", infile],
+            ["--format", "excel", "--output", outfile.format("xlsx"), "stream",
+             infile],
         )
         assert result.exit_code == 0
 
         # html
         result = runner.invoke(
             cli,
-            ["--format", "html", "--output", outfile.format("html"), "stream", infile],
+            ["--format", "html", "--output", outfile.format("html"), "stream",
+             infile],
         )
         assert result.exit_code == 0
 
@@ -166,6 +175,10 @@ def test_cli_quiet():
         assert "No tables found on page-1" in result.output
 
         result = runner.invoke(
-            cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
+            cli,
+            [
+                "--quiet", "--format", "csv", "--output", outfile, "stream",
+                infile
+            ]
         )
         assert "No tables found on page-1" not in result.output

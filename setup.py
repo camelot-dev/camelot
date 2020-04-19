@@ -19,7 +19,7 @@ requires = [
     'numpy>=1.13.3',
     'openpyxl>=2.5.8',
     'pandas>=0.23.4',
-    'pdfminer.six>=20170720',
+    'pdfminer.six>=20200402',
     'PyPDF2>=1.26.0'
 ]
 
@@ -69,9 +69,8 @@ def setup_package():
                     },
                     classifiers=[
                         # Trove classifiers
-                        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+                        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers # noqa
                         'License :: OSI Approved :: MIT License',
-                        'Programming Language :: Python :: 2.7',
                         'Programming Language :: Python :: 3.5',
                         'Programming Language :: Python :: 3.6',
                         'Programming Language :: Python :: 3.7'

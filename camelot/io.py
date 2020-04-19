@@ -12,7 +12,7 @@ def read_pdf(
     password=None,
     flavor="lattice",
     suppress_stdout=False,
-    layout_kwargs={},
+    layout_kwargs=None,
     **kwargs
 ):
     """Read PDF and return extracted tables.
@@ -80,16 +80,16 @@ def read_pdf(
         Size of a pixel neighborhood that is used to calculate a
         threshold value for the pixel: 3, 5, 7, and so on.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_. # noqa
     threshold_constant* : int, optional (default: -2)
         Constant subtracted from the mean or weighted mean.
         Normally, it is positive but may be zero or negative as well.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_. # noqa
     iterations* : int, optional (default: 0)
         Number of times for erosion/dilation is applied.
 
-        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
+        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_. # noqa
     resolution* : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
 
@@ -98,6 +98,7 @@ def read_pdf(
     tables : camelot.core.TableList
 
     """
+    layout_kwargs = layout_kwargs or {}
     if flavor not in ["lattice", "stream"]:
         raise NotImplementedError(
             "Unknown flavor specified." " Use either 'lattice' or 'stream'"

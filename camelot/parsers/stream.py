@@ -10,7 +10,8 @@ import pandas as pd
 
 from .base import BaseParser
 from ..core import TextEdges, Table
-from ..utils import text_in_bbox, get_table_index, compute_accuracy, compute_whitespace
+from ..utils import (text_in_bbox, get_table_index, compute_accuracy,
+                     compute_whitespace)
 
 
 logger = logging.getLogger("camelot")
@@ -70,6 +71,9 @@ class Stream(BaseParser):
     ):
         self.table_regions = table_regions
         self.table_areas = table_areas
+        self.table_bbox = None
+        self.t_bbox = None
+        self.textedges = []
         self.columns = columns
         self._validate_columns()
         self.split_text = split_text
@@ -95,10 +99,10 @@ class Stream(BaseParser):
             Tuple (x0, y0, x1, y1) in pdf coordinate space.
 
         """
-        xmin = min([t.x0 for direction in t_bbox for t in t_bbox[direction]])
-        ymin = min([t.y0 for direction in t_bbox for t in t_bbox[direction]])
-        xmax = max([t.x1 for direction in t_bbox for t in t_bbox[direction]])
-        ymax = max([t.y1 for direction in t_bbox for t in t_bbox[direction]])
+        xmin = min(t.x0 for direction in t_bbox for t in t_bbox[direction])
+        ymin = min(t.y0 for direction in t_bbox for t in t_bbox[direction])
+        xmax = max(t.x1 for direction in t_bbox for t in t_bbox[direction])
+        ymax = max(t.y1 for direction in t_bbox for t in t_bbox[direction])
         text_bbox = (xmin, ymin, xmax, ymax)
         return text_bbox
 
@@ -119,21 +123,25 @@ class Stream(BaseParser):
             Two-dimensional list of text objects grouped into rows.
 
         """
-        row_y = 0
+        row_y = None
         rows = []
         temp = []
-        for t in text:
+        non_empty_text = [t for t in text if t.get_text().strip()]
+        for t in non_empty_text:
             # is checking for upright necessary?
-            # if t.get_text().strip() and all([obj.upright for obj in t._objs if
-            # type(obj) is LTChar]):
-            if t.get_text().strip():
-                if not np.isclose(row_y, t.y0, atol=row_tol):
-                    rows.append(sorted(temp, key=lambda t: t.x0))
-                    temp = []
-                    row_y = t.y0
-                temp.append(t)
+            # if t.get_text().strip() and all([obj.upright \
+            #   for obj in t._objs
+            # if type(obj) is LTChar]):
+            if row_y is None:
+                row_y = t.y0
+            elif not np.isclose(row_y, t.y0, atol=row_tol):
+                rows.append(sorted(temp, key=lambda t: t.x0))
+                temp = []
+                # We update the row's bottom as we go, to be forgiving if there
+                # is a gradual change across multiple columns.
+                row_y = t.y0
+            temp.append(t)
         rows.append(sorted(temp, key=lambda t: t.x0))
-        __ = rows.pop(0)  # TODO: hacky
         return rows
 
     @staticmethod
@@ -170,7 +178,8 @@ class Stream(BaseParser):
                         merged.append(higher)
                 elif column_tol < 0:
                     if higher[0] <= lower[1]:
-                        if np.isclose(higher[0], lower[1], atol=abs(column_tol)):
+                        if np.isclose(higher[0], lower[1],
+                                      atol=abs(column_tol)):
                             merged.append(higher)
                         else:
                             upper_bound = max(lower[1], higher[1])
@@ -198,10 +207,13 @@ class Stream(BaseParser):
 
         """
         row_mids = [
-            sum([(t.y0 + t.y1) / 2 for t in r]) / len(r) if len(r) > 0 else 0
+            sum((t.y0 + t.y1) / 2 for t in r) / len(r) if len(r) > 0 else 0
             for r in rows_grouped
         ]
-        rows = [(row_mids[i] + row_mids[i - 1]) / 2 for i in range(1, len(row_mids))]
+        rows = [
+            (row_mids[i] + row_mids[i - 1]) / 2
+            for i in range(1, len(row_mids))
+        ]
         rows.insert(0, text_y_max)
         rows.append(text_y_min)
         rows = [(rows[i], rows[i + 1]) for i in range(0, len(rows) - 1)]
@@ -230,7 +242,9 @@ class Stream(BaseParser):
             text = Stream._group_rows(text, row_tol=row_tol)
             elements = [len(r) for r in text]
             new_cols = [
-                (t.x0, t.x1) for r in text if len(r) == max(elements) for t in r
+                (t.x0, t.x1)
+                for r in text if len(r) == max(elements)
+                for t in r
             ]
             cols.extend(Stream._merge_columns(sorted(new_cols)))
         return cols
@@ -262,12 +276,13 @@ class Stream(BaseParser):
     def _validate_columns(self):
         if self.table_areas is not None and self.columns is not None:
             if len(self.table_areas) != len(self.columns):
-                raise ValueError("Length of table_areas and columns" " should be equal")
+                raise ValueError("Length of table_areas and columns"
+                                 " should be equal")
 
     def _nurminen_table_detection(self, textlines):
         """A general implementation of the table detection algorithm
         described by Anssi Nurminen's master's thesis.
-        Link: https://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3
+        Link: https://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3 # noqa
 
         Assumes that tables are situated relatively far apart
         vertically.
@@ -284,7 +299,7 @@ class Stream(BaseParser):
         # guess table areas using textlines and relevant edges
         table_bbox = textedges.get_table_areas(textlines, relevant_textedges)
         # treat whole page as table area if no table areas found
-        if not len(table_bbox):
+        if not table_bbox:
             table_bbox = {(0, 0, self.pdf_width, self.pdf_height): None}
 
         return table_bbox
@@ -302,7 +317,8 @@ class Stream(BaseParser):
                     y1 = float(y1)
                     x2 = float(x2)
                     y2 = float(y2)
-                    region_text = text_in_bbox((x1, y2, x2, y1), self.horizontal_text)
+                    region_text = text_in_bbox(
+                        (x1, y2, x2, y1), self.horizontal_text)
                     hor_text.extend(region_text)
             # find tables based on nurminen's detection algorithm
             table_bbox = self._nurminen_table_detection(hor_text)
@@ -328,8 +344,10 @@ class Stream(BaseParser):
 
         self.t_bbox = t_bbox
 
-        text_x_min, text_y_min, text_x_max, text_y_max = self._text_bbox(self.t_bbox)
-        rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=self.row_tol)
+        text_x_min, text_y_min, text_x_max, text_y_max = \
+            self._text_bbox(self.t_bbox)
+        rows_grouped = self._group_rows(
+            self.t_bbox["horizontal"], row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
 
@@ -354,14 +372,23 @@ class Stream(BaseParser):
                 # see if the list contains elements, if yes, then use
                 # the mode after removing 1s
                 elements = list(filter(lambda x: x != 1, elements))
-                if len(elements):
+                if elements:
                     ncols = max(set(elements), key=elements.count)
                 else:
                     warnings.warn(
-                        "No tables found in table area {}".format(table_idx + 1)
+                        "No tables found in table area {}"
+                        .format(table_idx + 1)
                     )
-            cols = [(t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r]
-            cols = self._merge_columns(sorted(cols), column_tol=self.column_tol)
+            cols = [
+                (t.x0, t.x1)
+                for r in rows_grouped
+                if len(r) == ncols
+                for t in r
+            ]
+            cols = self._merge_columns(
+                sorted(cols),
+                column_tol=self.column_tol
+            )
             inner_text = []
             for i in range(1, len(cols)):
                 left = cols[i - 1][1]
@@ -431,23 +458,30 @@ class Stream(BaseParser):
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
+    def extract_tables(self, filename, suppress_stdout=False,
+                       layout_kwargs=None):
+        layout_kwargs = layout_kwargs or {}
         self._generate_layout(filename, layout_kwargs)
         if not suppress_stdout:
-            logger.info("Processing {}".format(os.path.basename(self.rootname)))
+            logger.info("Processing {}".format(
+                os.path.basename(self.rootname)))
 
         if not self.horizontal_text:
             if self.images:
                 warnings.warn(
                     "{} is image-based, camelot only works on"
-                    " text-based pages.".format(os.path.basename(self.rootname))
+                    " text-based pages.".format(
+                        os.path.basename(self.rootname))
                 )
             else:
                 warnings.warn(
-                    "No tables found on {}".format(os.path.basename(self.rootname))
+                    "No tables found on {}".format(
+                        os.path.basename(self.rootname))
                 )
             return []
 
+        # Identify plausible areas within the doc where tables lie,
+        # populate table_bbox keys with these areas.
         self._generate_table_bbox()
 
         _tables = []
