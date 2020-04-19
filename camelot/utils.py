@@ -1018,7 +1018,11 @@ def export_pdf_as_png(pdf_path, destination_path):
     pdf_path : str
     destination_path : str
     """
-    gs_call = f"-q -sDEVICE=png16m -o {destination_path} -r300 {pdf_path}"
+    gs_call = "-q -sDEVICE=png16m -o {destination_path} -r300 {pdf_path}"\
+        .format(
+            destination_path=destination_path,
+            pdf_path=pdf_path
+        )
     gs_call = gs_call.encode().split()
     null = open(os.devnull, "wb")
     Ghostscript(*gs_call, stdout=null)
@@ -1038,19 +1042,28 @@ def compare_tables(left, right):
     differences = []
     if (diff_rows):
         differences.append(
-            f"{abs(diff_rows)} "
-            f"{'more' if diff_rows>0 else 'fewer'} rows"
+            "{diff_rows} {more_fewer} rows".format(
+                diff_rows=abs(diff_rows),
+                more_fewer='more' if diff_rows>0 else 'fewer'
+            )
         )
     if (diff_cols):
         differences.append(
-            f"{abs(diff_cols)} "
-            f"{'more' if diff_cols>0 else 'fewer'} columns"
+            "{diff_cols} {more_fewer} columns".format(
+                diff_cols=abs(diff_cols),
+                more_fewer='more' if diff_cols>0 else 'fewer'
+            )
         )
     if differences:
         differences_str = " and ".join(differences)
-        print(f"Right has {differences_str} than left "
-              f"[{right.shape[0]},{right.shape[1]}] vs "
-              f"[{left.shape[0]},{left.shape[1]}]")
+        print(
+            "Right has {differences_str} than left "
+            "{shape_right} vs {shape_left}".format(
+                differences_str=differences_str,
+                shape_right=[right.shape[0], right.shape[1]],
+                shape_left=[left.shape[0], left.shape[1]]
+            )
+        )
 
     table1, table2 = [left, right]
     name_table1, name_table2 = ["left", "right"]
@@ -1070,8 +1083,11 @@ def compare_tables(left, right):
                     diff_df[name_table2] = lcol
                     diff_df["Match"] = lcol == scol
                     print(
-                        f"Column {i} different:\n"
-                        f"{diff_df}"
+                        "Column {i} different:\n"
+                        "{diff_df}".format(
+                            i=i,
+                            diff_df=diff_df
+                        )
                     )
                     break
             else:

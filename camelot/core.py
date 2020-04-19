@@ -413,7 +413,7 @@ class Table(object):
         }
         return report
 
-    def record_metadata(self, parser):
+    def record_parse_metadata(self, parser):
         """Record data about the origin of the table
         """
         self.flavor = parser.id
