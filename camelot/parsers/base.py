@@ -16,6 +16,7 @@ class BaseParser(object):
         parser_id,
         table_regions=None,
         table_areas=None,
+        copy_text=None,
         split_text=False,
         strip_text="",
         shift_text=None,
@@ -25,6 +26,7 @@ class BaseParser(object):
         self.table_regions = table_regions
         self.table_areas = table_areas
 
+        self.copy_text = copy_text
         self.split_text = split_text
         self.strip_text = strip_text
         self.shift_text = shift_text
@@ -86,7 +88,7 @@ class BaseParser(object):
         """
         return idx
 
-    def _compute_parse_errors(self, table):
+    def compute_parse_errors(self, table):
         pos_errors = []
         # TODO: have a single list in place of two directional ones?
         # sorted on x-coordinate based on reading order i.e. LTR or RTL
