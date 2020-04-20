@@ -37,8 +37,12 @@ def test_stream_equal_length():
     message = ("Length of table_areas and columns"
                " should be equal")
     with pytest.raises(ValueError, match=message):
-        camelot.read_pdf(filename, flavor='stream',
-            table_areas=['10,20,30,40'], columns=['10,20,30,40', '10,20,30,40'])
+        camelot.read_pdf(
+            filename,
+            flavor='stream',
+            table_areas=['10,20,30,40'],
+            columns=['10,20,30,40', '10,20,30,40']
+        )
 
 
 def test_image_warning():
@@ -47,7 +51,8 @@ def test_image_warning():
         warnings.simplefilter('error')
         with pytest.raises(UserWarning) as e:
             camelot.read_pdf(filename)
-        assert str(e.value) == 'page-1 is image-based, camelot only works on text-based pages.'
+        assert str(e.value) == 'page-1 is image-based, camelot only works ' \
+            'on text-based pages.'
 
 
 def test_no_tables_found():
