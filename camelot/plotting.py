@@ -165,6 +165,20 @@ class PlotMethods(object):
         return fig
 
     @staticmethod
+    def draw_pdf(table, ax):
+        """Draw the content of the table's source pdf into the passed subplot
+
+        Parameters
+        ----------
+        table : camelot.core.Table
+
+        fig : matplotlib.axes.Axes
+
+        """
+        img = table.get_pdf_image()
+        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
+
+    @staticmethod
     def textedge(table):
         """Generates a plot for relevant textedges.
 
@@ -179,6 +193,7 @@ class PlotMethods(object):
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
+        PlotMethods.draw_pdf(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -193,11 +208,13 @@ class PlotMethods(object):
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
 
-        for te in table._textedges:
-            ax.plot([te.x, te.x], [te.y0, te.y1])
+        if table.flavor == "hybrid":
+            # FRHTODO: Clean this up
+            table.debug_info["edges_searches"][0].plot_alignments(ax)
+        else:
+            for te in table._textedges:
+                ax.plot([te.x, te.x], [te.y0, te.y1])
 
-        img = table.get_pdf_image()
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     @staticmethod

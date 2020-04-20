@@ -2,7 +2,7 @@
 from __future__ import division
 
 import numpy as np
-
+import copy
 import warnings
 
 from .base import BaseParser
@@ -459,7 +459,6 @@ class TextEdges2(object):
         or horizontally. There needs to be connections across both
         dimensions.
         """
-        singleton_textlines = []
         removed_singletons = True
         while removed_singletons:
             removed_singletons = False
@@ -471,7 +470,6 @@ class TextEdges2(object):
                         tl = te.textlines[i]
                         alignments = self._textlines_alignments[tl]
                         if alignments.max_h() <= 1 or alignments.max_v() <= 1:
-                            singleton_textlines.append(tl)
                             del te.textlines[i]
                             removed_singletons = True
             self._textlines_alignments = {}
@@ -612,33 +610,27 @@ class TextEdges2(object):
         self._register_all_text_lines(textlines)
         self._compute_alignment_counts()
 
-    def plotFRHAlignments(self, table, plt):
+    def plot_alignments(self, ax):
         """Displays a visualization of the alignments as currently computed.
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        img = table.get_pdf_image()
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
-
-        tls_by_alignment_score = sorted(
+        # FRHTODO: This is too busy and doesn't plot lines
+        most_aligned_tl = sorted(
             self._textlines_alignments.keys(),
             key=lambda textline:
             self._textlines_alignments[textline].alignment_score(),
             reverse=True
-        )
+        )[0]
 
-        for tl, alignments in self._textlines_alignments.items():
-            color = "red"
-            if tl == tls_by_alignment_score[0]:
-                color = "blue"
-            ax.add_patch(
-                patches.Rectangle(
-                    (tl.x0, tl.y0),
-                    tl.x1 - tl.x0, tl.y1 - tl.y0,
-                    color=color,
-                    alpha=0.5
-                )
+        ax.add_patch(
+            patches.Rectangle(
+                (most_aligned_tl.x0, most_aligned_tl.y0),
+                most_aligned_tl.x1 - most_aligned_tl.x0,
+                most_aligned_tl.y1 - most_aligned_tl.y0,
+                color="red",
+                alpha=0.5
             )
+        )
+        for tl, alignments in self._textlines_alignments.items():
             ax.text(
                 tl.x0 - 5,
                 tl.y0 - 5,
@@ -749,6 +741,7 @@ class Hybrid(BaseParser):
         edge_tol=50,
         row_tol=2,
         column_tol=0,
+        debug=False,
         **kwargs
     ):
         super().__init__(
@@ -758,6 +751,7 @@ class Hybrid(BaseParser):
             split_text=split_text,
             strip_text=strip_text,
             flag_size=flag_size,
+            debug=debug
         )
         self.columns = columns
         self._validate_columns()
@@ -971,8 +965,7 @@ class Hybrid(BaseParser):
                 raise ValueError("Length of table_areas and columns"
                                  " should be equal")
 
-    # FRHTODO: get debug_info to work again
-    def _generate_table_bbox(self, debug_info=None):
+    def _generate_table_bbox(self):
         if self.table_areas is not None:
             table_bbox = {}
             for area_str in self.table_areas:
@@ -981,32 +974,30 @@ class Hybrid(BaseParser):
             return
 
         all_textlines = self.horizontal_text + self.vertical_text
-        textlines = []
-        if self.table_regions is None:
-            textlines = all_textlines
-        else:
-            # filter text
-            for region_str in self.table_regions:
-                region_text = text_in_bbox(
-                    bbox_from_str(region_str),
-                    all_textlines
-                )
-                textlines.extend(region_text)
+        textlines = self._apply_regions_filter(all_textlines)
 
         textlines_processed = {}
         self.table_bbox = {}
-        if debug_info is not None:
-            debug_info_bbox_searches = []
-            debug_info["bboxes_searches"] = debug_info_bbox_searches
+        if self.debug_info is not None:
+            debug_info_edges_searches = []
+            self.debug_info["edges_searches"] = debug_info_edges_searches
+            debug_info_bboxes_searches = []
+            self.debug_info["bboxes_searches"] = debug_info_bboxes_searches
         else:
-            debug_info_bbox_searches = None
+            debug_info_edges_searches = None
+            debug_info_bboxes_searches = None
 
         while True:
             self.textedges = TextEdges2()
             self.textedges.generate(textlines)
             self.textedges._remove_unconnected_edges()
+            if debug_info_edges_searches is not None:
+                # Preserve the current edge calculation for display debugging
+                debug_info_edges_searches.append(
+                    copy.deepcopy(self.textedges)
+                )
             bbox = self.textedges._build_bbox_candidate(
-                debug_info_bbox_searches
+                debug_info_bboxes_searches
             )
             if bbox is None:
                 break
@@ -1040,8 +1031,10 @@ class Hybrid(BaseParser):
                 average_tl_height
             )
 
-            if debug_info is not None:
-                debug_info["col_searches"].append({
+            if self.debug_info is not None:
+                if "col_searches" not in self.debug_info:
+                    self.debug_info["col_searches"] = []
+                self.debug_info["col_searches"].append({
                     "core_bbox": bbox,
                     "cols_anchors": cols_anchors,
                     "expanded_bbox": expanded_bbox
@@ -1148,13 +1141,13 @@ class Hybrid(BaseParser):
 
         return table
 
-    def extract_tables(self, debug_info=None):
+    def extract_tables(self):
         if self._document_has_no_text():
             return []
 
         # Identify plausible areas within the doc where tables lie,
         # populate table_bbox keys with these areas.
-        self._generate_table_bbox(debug_info)
+        self._generate_table_bbox()
 
         _tables = []
         # sort tables based on y-coord

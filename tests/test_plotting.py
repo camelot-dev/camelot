@@ -129,5 +129,5 @@ def test_stream_textedge_plot():
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_hybrid_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
-    tables = camelot.read_pdf(filename, flavor='hybrid')
+    tables = camelot.read_pdf(filename, debug=True, flavor='hybrid')
     return camelot.plot(tables[0], kind='textedge')
