@@ -1297,6 +1297,10 @@ data_stream_two_tables_1 = [
     ],
 ]
 
+# The streaming algorithm incorrectly includes a header and a footer.
+# Trimming the table for the test of hybrid, which doesn't include it.
+data_hybrid_two_tables_1 = data_stream_two_tables_1[3:-1]
+
 data_stream_two_tables_2 = [
     ["Table 325. Arrests by Race: 2009", "", "", "", "", ""],
     [
@@ -1604,6 +1608,10 @@ data_stream_two_tables_2 = [
     ],
     ["1 Except forcible rape and prostitution.", "", "", "", "", ""],
 ]
+
+# The streaming algorithm incorrectly includes a header and a footer.
+# Trimming the table for the test of hybrid, which doesn't include it.
+data_hybrid_two_tables_2 = data_stream_two_tables_2[3:-1]
 
 data_stream_table_areas = [
     ["", "One Withholding"],

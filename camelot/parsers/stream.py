@@ -7,7 +7,7 @@ import numpy as np
 
 from .base import BaseParser
 from ..core import TextEdges
-from ..utils import (text_in_bbox, text_in_bbox_per_axis)
+from ..utils import (bbox_from_str, text_in_bbox, text_in_bbox_per_axis)
 
 
 class Stream(BaseParser):
@@ -307,26 +307,17 @@ class Stream(BaseParser):
             if self.table_regions is not None:
                 # filter horizontal text
                 hor_text = []
-                for region in self.table_regions:
-                    x1, y1, x2, y2 = region.split(",")
-                    x1 = float(x1)
-                    y1 = float(y1)
-                    x2 = float(x2)
-                    y2 = float(y2)
+                for region_str in self.table_regions:
                     region_text = text_in_bbox(
-                        (x1, y2, x2, y1), self.horizontal_text)
+                        bbox_from_str(region_str),
+                        self.horizontal_text)
                     hor_text.extend(region_text)
             # find tables based on nurminen's detection algorithm
             table_bbox = self._nurminen_table_detection(hor_text)
         else:
             table_bbox = {}
-            for area in self.table_areas:
-                x1, y1, x2, y2 = area.split(",")
-                x1 = float(x1)
-                y1 = float(y1)
-                x2 = float(x2)
-                y2 = float(y2)
-                table_bbox[(x1, y2, x2, y1)] = None
+            for area_str in self.table_areas:
+                table_bbox[bbox_from_str(area_str)] = None
         self.table_bbox = table_bbox
 
     def _generate_columns_and_rows(self, table_idx, tk):

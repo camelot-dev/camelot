@@ -175,8 +175,8 @@ def test_hybrid_table_rotated():
 
 
 def test_hybrid_two_tables():
-    df1 = pd.DataFrame(data_stream_two_tables_1)
-    df2 = pd.DataFrame(data_stream_two_tables_2)
+    df1 = pd.DataFrame(data_hybrid_two_tables_1)
+    df2 = pd.DataFrame(data_hybrid_two_tables_2)
 
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid")
@@ -190,8 +190,10 @@ def test_hybrid_table_regions():
     df = pd.DataFrame(data_stream_table_areas)
 
     filename = os.path.join(testdir, "tabula/us-007.pdf")
+    # The "stream" test looks for a region in ["320,460,573,335"], which
+    # should exclude the header.
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", table_regions=["320,460,573,335"]
+        filename, flavor="hybrid", table_regions=["320,505,573,330"]
     )
     assert_frame_equal(df, tables[0].df)
 

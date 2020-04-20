@@ -389,6 +389,34 @@ def segments_in_bbox(bbox, v_segments, h_segments):
     return v_s, h_s
 
 
+def bbox_from_str(bbox_str):
+    """Deserialize bbox from string form "x1,y1,x2,y2" to tuple (x1, y1, x2, y2)
+
+    Parameters
+    ----------
+    bbox_str : str
+        Serialized bbox with comma separated coordinates, "x1,y1,x2,y2".
+
+    Returns
+    -------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2).
+
+    """
+    x1, y1, x2, y2 = bbox_str.split(",")
+    x1 = float(x1)
+    y1 = float(y1)
+    x2 = float(x2)
+    y2 = float(y2)
+    # FRHTODO: do things still work if I do x1, y1, x2, y2?
+    return (
+        min(x1, x2),
+        min(y1, y2),
+        max(x1, x2),
+        max(y1, y2)
+    )
+
+
 def text_in_bbox(bbox, text):
     """Returns all text objects present inside a bounding box.
 

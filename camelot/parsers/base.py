@@ -23,6 +23,7 @@ class BaseParser(object):
         strip_text="",
         shift_text=None,
         flag_size=False,
+        debug=False
     ):
         self.id = parser_id
         self.table_regions = table_regions
@@ -39,7 +40,7 @@ class BaseParser(object):
         self.t_bbox = None
 
         # For plotting details of parsing algorithms
-        self.debug_info = {}
+        self.debug_info = {} if debug else None
 
     def prepare_page_parse(self, filename, layout, dimensions,
                            page_idx, layout_kwargs):
@@ -59,6 +60,10 @@ class BaseParser(object):
         )
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
+
+        if self.debug_info is not None:
+            self.debug_info["table_regions"] = self.table_regions
+            self.debug_info["table_areas"] = self.table_areas
 
     def _document_has_no_text(self):
         if not self.horizontal_text:
