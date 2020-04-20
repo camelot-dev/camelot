@@ -823,6 +823,10 @@ data_stream_table_rotated = [
     ],
 ]
 
+# The streaming algorithm incorrectly includes a header in the result.
+# Trimming the table for the test of hybrid, which doesn't include it.
+data_hybrid_table_rotated = data_stream_table_rotated[1:]
+
 data_stream_two_tables_1 = [
     [
         "Program. Represents arrests reported (not charged) by 12,910 "

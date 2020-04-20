@@ -163,7 +163,7 @@ def test_hybrid():
 
 
 def test_hybrid_table_rotated():
-    df = pd.DataFrame(data_stream_table_rotated)
+    df = pd.DataFrame(data_hybrid_table_rotated)
 
     filename = os.path.join(testdir, "clockwise_table_2.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid")
