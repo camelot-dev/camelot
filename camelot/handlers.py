@@ -40,10 +40,13 @@ class PDFHandler():
         Example: '1,3,4' or '1,4-end' or 'all'.
     password : str, optional (default: None)
         Password for decryption.
+    debug : bool, optional (default: False)
+        Whether the parser should store debug information during parsing.
 
     """
 
-    def __init__(self, filepath, pages="1", password=None):
+    def __init__(self, filepath, pages="1", password=None, debug=False):
+        self.debug = debug
         if is_url(filepath):
             filepath = download_url(filepath)
         self.filepath = filepath
@@ -193,7 +196,7 @@ class PDFHandler():
         tables = []
 
         parser_obj = PARSERS[flavor]
-        parser = parser_obj(**kwargs)
+        parser = parser_obj(debug=self.debug, **kwargs)
 
         # Read the layouts/dimensions of each of the pages we need to
         # parse. This might require creating a temporary .pdf.
@@ -204,8 +207,8 @@ class PDFHandler():
             )
             parser.prepare_page_parse(source_file, layout, dimensions,
                                       page_idx, layout_kwargs)
-            rootname = os.path.basename(parser.rootname)
             if not suppress_stdout:
+                rootname = os.path.basename(parser.rootname)
                 logger.info(
                     "Processing {rootname}".format(rootname=rootname))
             t = parser.extract_tables()

@@ -13,6 +13,7 @@ def read_pdf(
     flavor="lattice",
     suppress_stdout=False,
     layout_kwargs=None,
+    debug=False,
     **kwargs
 ):
     """Read PDF and return extracted tables.
@@ -110,7 +111,7 @@ def read_pdf(
             warnings.simplefilter("ignore")
 
         validate_input(kwargs, flavor=flavor)
-        p = PDFHandler(filepath, pages=pages, password=password)
+        p = PDFHandler(filepath, pages=pages, password=password, debug=debug)
         kwargs = remove_extra(kwargs, flavor=flavor)
         tables = p.parse(
             flavor=flavor,

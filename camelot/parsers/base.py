@@ -5,7 +5,9 @@ import warnings
 
 from ..utils import (
     get_text_objects,
-    get_table_index
+    get_table_index,
+    text_in_bbox,
+    bbox_from_str,
 )
 from ..core import Table
 
@@ -65,7 +67,39 @@ class BaseParser(object):
             self.debug_info["table_regions"] = self.table_regions
             self.debug_info["table_areas"] = self.table_areas
 
+    def _apply_regions_filter(self, textlines):
+        """If regions have been specified, filter textlines to these regions.
+
+        Parameters
+        ----------
+        textlines : list
+            list of textlines to be filtered
+
+        Returns
+        -------
+        filtered_textlines : list of textlines within the regions specified
+
+        """
+        filtered_textlines = []
+        if self.table_regions is None:
+            filtered_textlines.extend(textlines)
+        else:
+            for region_str in self.table_regions:
+                region_text = text_in_bbox(
+                    bbox_from_str(region_str),
+                    textlines
+                )
+                filtered_textlines.extend(region_text)
+        return filtered_textlines
+
     def _document_has_no_text(self):
+        """Detects image only documents and warns.
+
+        Returns
+        -------
+        has_no_text : bool
+            Whether the document doesn't have any text at all.
+        """
         if not self.horizontal_text:
             rootname = os.path.basename(self.rootname)
             if self.images:
@@ -81,23 +115,23 @@ class BaseParser(object):
             return True
         return False
 
-    """Initialize new table object, ready to be populated
-
-    Parameters
-    ----------
-    table_idx : int
-        Index of this table within the pdf page analyzed
-    cols : list
-        list of coordinate boundaries tuples (left, right)
-    rows : list
-        list of coordinate boundaries tuples (bottom, top)
-
-    Returns
-    -------
-    table : camelot.core.Table
-
-    """
     def _initialize_new_table(self, table_idx, cols, rows):
+        """Initialize new table object, ready to be populated
+
+        Parameters
+        ----------
+        table_idx : int
+            Index of this table within the pdf page analyzed
+        cols : list
+            list of coordinate boundaries tuples (left, right)
+        rows : list
+            list of coordinate boundaries tuples (bottom, top)
+
+        Returns
+        -------
+        table : camelot.core.Table
+
+        """
         table = Table(cols, rows)
         table.page = self.page
         table.order = table_idx + 1
