@@ -45,7 +45,8 @@ class PlotMethods(object):
         plot_method = getattr(self, kind)
         return plot_method(table)
 
-    def text(self, table):
+    @staticmethod
+    def text(table):
         """Generates a plot for all text elements present
         on the PDF page.
 
@@ -78,7 +79,8 @@ class PlotMethods(object):
         ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
-    def grid(self, table):
+    @staticmethod
+    def grid(table):
         """Generates a plot for the detected table grids
         on the PDF page.
 
@@ -108,7 +110,8 @@ class PlotMethods(object):
         ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
-    def contour(self, table):
+    @staticmethod
+    def contour(table):
         """Generates a plot for all table boundaries present
         on the PDF page.
 
@@ -161,7 +164,8 @@ class PlotMethods(object):
             ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
-    def textedge(self, table):
+    @staticmethod
+    def textedge(table):
         """Generates a plot for relevant textedges.
 
         Parameters
@@ -196,7 +200,8 @@ class PlotMethods(object):
         ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
-    def joint(self, table):
+    @staticmethod
+    def joint(table):
         """Generates a plot for all line intersections present
         on the PDF page.
 
@@ -223,7 +228,8 @@ class PlotMethods(object):
         ax.imshow(img)
         return fig
 
-    def line(self, table):
+    @staticmethod
+    def line(table):
         """Generates a plot for all line segments present
         on the PDF page.
 
