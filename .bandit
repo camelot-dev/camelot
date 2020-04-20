@@ -1,3 +1,0 @@
-[bandit]
-# Ignore concerns about asserts, necessary for unit test code
-skips: B101,B102
