@@ -7,6 +7,7 @@ import warnings
 
 from .base import BaseParser
 from ..utils import (
+    bbox_from_str,
     text_in_bbox,
     text_in_bbox_per_axis,
     bbox_from_text,
@@ -19,6 +20,23 @@ from matplotlib import patches as patches
 # FRHTODO: Move to utils
 # maximum number of columns over which a header can spread
 MAX_COL_SPREAD_IN_HEADER = 3
+
+
+def plot_annotated_bbox(plot, bbox, text, rect_color):
+    plot.add_patch(
+        patches.Rectangle(
+            (bbox[0], bbox[1]),
+            bbox[2] - bbox[0], bbox[3] - bbox[1],
+            color="purple", linewidth=3,
+            fill=False
+        )
+    )
+    plot.text(
+        bbox[0], bbox[1],
+        text,
+        fontsize=12, color="black", verticalalignment="top",
+        bbox=dict(facecolor="purple", alpha=0.5)
+    )
 
 
 def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
@@ -273,6 +291,7 @@ class TextEdges2(object):
             "center": (textline.y0 + textline.y1) / 2.0,
         }
 
+    # FRHTODO: Move to utils and use generic name
     @staticmethod
     def _get_index_closest_point(coord, edge_array):
         """Returns the index of the closest point
@@ -481,12 +500,63 @@ class TextEdges2(object):
                 default=None
             )
 
+        # First, determine the textline that has the most combined alignments
+        # across horizontal and vertical axis.
+        # It will serve both as a starting point for the table boundary search,
+        # and as a way to estimate the average spacing between rows/cols.
+        most_aligned_tl = get_best_textline(tls_search_space)
+        most_aligned_coords = TextEdges2.get_textline_coords(most_aligned_tl)
+
+        # Retrieve the list of textlines it's aligned with, across both axis
+        best_alignment = self._textlines_alignments[most_aligned_tl]
+        ref_h_edge_name = best_alignment.max_h_edge_name()
+        ref_v_edge_name = best_alignment.max_v_edge_name()
+        best_h_textedges = self._textedges[ref_h_edge_name]
+        best_v_textedges = self._textedges[ref_v_edge_name]
+        h_coord = most_aligned_coords[ref_h_edge_name]
+        v_coord = most_aligned_coords[ref_v_edge_name]
+        h_textlines = sorted(
+            best_h_textedges[
+                TextEdges2._get_index_closest_point(
+                    h_coord,
+                    best_h_textedges
+                )
+            ].textlines,
+            key=lambda tl: tl.x0,
+            reverse=True
+        )
+        v_textlines = sorted(
+            best_v_textedges[
+                TextEdges2._get_index_closest_point(
+                    v_coord,
+                    best_v_textedges
+                )
+            ].textlines,
+            key=lambda tl: tl.y0,
+            reverse=True
+        )
+
+        h_gaps, v_gaps = [], []
+        for i in range(1, len(v_textlines)):
+            v_gaps.append(v_textlines[i-1].y0 - v_textlines[i].y0)
+        for i in range(1, len(h_textlines)):
+            h_gaps.append(h_textlines[i-1].x0 - h_textlines[i].x0)
+
+        if (not h_gaps or not v_gaps):
+            return None
+        percentile = 75
+        gaps_hv = (
+            np.percentile(h_gaps, percentile),
+            np.percentile(v_gaps, percentile)
+        )
+
         # Calculate the 75th percentile of the horizontal/vertical
         # gaps between textlines.  Use this as a reference for a threshold
         # to not exceed while looking for table boundaries.
-        gaps_hv = self._calculate_gaps_thresholds(75)
-        if (gaps_hv[0] is None or gaps_hv[1] is None):
-            return None
+        # FRHTODO: Clean this up
+        # gaps_hv = self._calculate_gaps_thresholds(75)
+        # if (gaps_hv[0] is None or gaps_hv[1] is None):
+        #    return None
         max_h_gap, max_v_gap = gaps_hv[0] * 3, gaps_hv[1] * 3
 
         if debug_info is not None:
@@ -501,11 +571,10 @@ class TextEdges2(object):
             debug_info_search = None
 
         MINIMUM_TEXTLINES_IN_TABLE = 6
-        tl_most_aligned = get_best_textline(tls_search_space)
-        bbox = (tl_most_aligned.x0, tl_most_aligned.y0,
-                tl_most_aligned.x1, tl_most_aligned.y1)
-        tls_search_space.remove(tl_most_aligned)
-        tls_in_bbox = [tl_most_aligned]
+        bbox = (most_aligned_tl.x0, most_aligned_tl.y0,
+                most_aligned_tl.x1, most_aligned_tl.y1)
+        tls_search_space.remove(most_aligned_tl)
+        tls_in_bbox = [most_aligned_tl]
         last_bbox = None
         while last_bbox != bbox:
             if debug_info_search is not None:
@@ -581,6 +650,19 @@ class TextEdges2(object):
     def plotFRHTableSearch(self, plot, debug_info):
         if debug_info is None:
             return
+        # Display a bbox per region
+        for region_str in debug_info["table_regions"] or []:
+            plot_annotated_bbox(
+                plot, bbox_from_str(region_str),
+                "region: ({region_str})".format(region_str=region_str),
+                "purple"
+            )
+        # Display a bbox per area
+        for area_str in debug_info["table_areas"] or []:
+            plot_annotated_bbox(
+                plot, bbox_from_str(area_str),
+                "area: ({area_str})".format(area_str=area_str), "pink"
+            )
         for box_id, bbox_search in enumerate(debug_info["bboxes_searches"]):
             max_h_gap = bbox_search["max_h_gap"]
             max_v_gap = bbox_search["max_v_gap"]
@@ -891,7 +973,26 @@ class Hybrid(BaseParser):
 
     # FRHTODO: get debug_info to work again
     def _generate_table_bbox(self, debug_info=None):
-        textlines = self.horizontal_text + self.vertical_text
+        if self.table_areas is not None:
+            table_bbox = {}
+            for area_str in self.table_areas:
+                table_bbox[bbox_from_str(area_str)] = None
+            self.table_bbox = table_bbox
+            return
+
+        all_textlines = self.horizontal_text + self.vertical_text
+        textlines = []
+        if self.table_regions is None:
+            textlines = all_textlines
+        else:
+            # filter text
+            for region_str in self.table_regions:
+                region_text = text_in_bbox(
+                    bbox_from_str(region_str),
+                    all_textlines
+                )
+                textlines.extend(region_text)
+
         textlines_processed = {}
         self.table_bbox = {}
         if debug_info is not None:
@@ -1053,7 +1154,7 @@ class Hybrid(BaseParser):
 
         # Identify plausible areas within the doc where tables lie,
         # populate table_bbox keys with these areas.
-        self._generate_table_bbox()
+        self._generate_table_bbox(debug_info)
 
         _tables = []
         # sort tables based on y-coord
