@@ -8,6 +8,25 @@ except ImportError:
 else:
     _HAS_MPL = True
 
+from .utils import bbox_from_str
+
+
+def draw_labeled_bbox(ax, bbox, text, rect_color):
+    ax.add_patch(
+        patches.Rectangle(
+            (bbox[0], bbox[1]),
+            bbox[2] - bbox[0], bbox[3] - bbox[1],
+            color="purple", linewidth=3,
+            fill=False
+        )
+    )
+    ax.text(
+        bbox[0], bbox[1],
+        text,
+        fontsize=12, color="black", verticalalignment="top",
+        bbox=dict(facecolor="purple", alpha=0.5)
+    )
+
 
 def draw_pdf(table, ax, to_pdf_scale=True):
     """Draw the content of the table's source pdf into the passed subplot
@@ -16,7 +35,9 @@ def draw_pdf(table, ax, to_pdf_scale=True):
     ----------
     table : camelot.core.Table
 
-    fig : matplotlib.axes.Axes
+    ax : matplotlib.axes.Axes
+
+    to_pdf_scale : bool
 
     """
     img = table.get_pdf_image()
@@ -24,6 +45,47 @@ def draw_pdf(table, ax, to_pdf_scale=True):
         ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
     else:
         ax.imshow(img)
+
+    if table.debug_info:
+        # Display a bbox per region
+        for region_str in table.debug_info["table_regions"] or []:
+            draw_labeled_bbox(
+                ax, bbox_from_str(region_str),
+                "region: ({region_str})".format(region_str=region_str),
+                "purple"
+            )
+        # Display a bbox per area
+        for area_str in table.debug_info["table_areas"] or []:
+            draw_labeled_bbox(
+                ax, bbox_from_str(area_str),
+                "area: ({area_str})".format(area_str=area_str), "pink"
+            )
+
+
+def draw_parse_constraints(table, ax):
+    """Draw any user provided constraints (area, region, columns, etc)
+
+    Parameters
+    ----------
+    table : camelot.core.Table
+
+    ax : matplotlib.axes.Axes
+
+    """
+    if table.debug_info:
+        # Display a bbox per region
+        for region_str in table.debug_info["table_regions"] or []:
+            draw_labeled_bbox(
+                ax, bbox_from_str(region_str),
+                "region: ({region_str})".format(region_str=region_str),
+                "purple"
+            )
+        # Display a bbox per area
+        for area_str in table.debug_info["table_areas"] or []:
+            draw_labeled_bbox(
+                ax, bbox_from_str(area_str),
+                "area: ({area_str})".format(area_str=area_str), "pink"
+            )
 
 
 class PlotMethods(object):
@@ -79,6 +141,7 @@ class PlotMethods(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
         draw_pdf(table, ax)
+        draw_parse_constraints(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -112,6 +175,7 @@ class PlotMethods(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
         draw_pdf(table, ax)
+        draw_parse_constraints(table, ax)
         for row in table.cells:
             for cell in row:
                 if cell.left:
@@ -142,6 +206,7 @@ class PlotMethods(object):
         ax = fig.add_subplot(111, aspect="equal")
         _FOR_LATTICE = table.flavor == "lattice"
         draw_pdf(table, ax, to_pdf_scale=not _FOR_LATTICE)
+        draw_parse_constraints(table, ax)
 
         if _FOR_LATTICE:
             table_bbox = table._bbox_unscaled
@@ -189,6 +254,7 @@ class PlotMethods(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
         draw_pdf(table, ax)
+        draw_parse_constraints(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -228,6 +294,7 @@ class PlotMethods(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
         draw_pdf(table, ax, to_pdf_scale=False)
+        draw_parse_constraints(table, ax)
         table_bbox = table._bbox_unscaled
         x_coord = []
         y_coord = []
@@ -255,6 +322,7 @@ class PlotMethods(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
         draw_pdf(table, ax)
+        draw_parse_constraints(table, ax)
         vertical, horizontal = table._segments
         for v in vertical:
             ax.plot([v[0], v[2]], [v[1], v[3]])
