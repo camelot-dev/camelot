@@ -131,3 +131,24 @@ def test_hybrid_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, debug=True, flavor='hybrid')
     return camelot.plot(tables[0], kind='textedge')
+
+
+@pytest.mark.mpl_image_compare(
+    baseline_dir="files/baseline_plots", remove_text=True)
+def test_hybrid_table_regions_textedge_plot():
+    filename = os.path.join(testdir, "tabula/us-007.pdf")
+    tables = camelot.read_pdf(
+        filename, debug=True, flavor="hybrid",
+        table_regions=["320,505,573,330"]
+    )
+    return camelot.plot(tables[0], kind='textedge')
+
+@pytest.mark.mpl_image_compare(
+    baseline_dir="files/baseline_plots", remove_text=True)
+def test_hybrid_table_areas_text_plot():
+    filename = os.path.join(testdir, "tabula/us-007.pdf")
+    tables = camelot.read_pdf(
+        filename, debug=True, flavor="hybrid",
+        table_areas=["320,500,573,335"]
+    )
+    return camelot.plot(tables[0], kind='text')
