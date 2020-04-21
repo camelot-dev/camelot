@@ -9,6 +9,23 @@ else:
     _HAS_MPL = True
 
 
+def draw_pdf(table, ax, to_pdf_scale=True):
+    """Draw the content of the table's source pdf into the passed subplot
+
+    Parameters
+    ----------
+    table : camelot.core.Table
+
+    fig : matplotlib.axes.Axes
+
+    """
+    img = table.get_pdf_image()
+    if to_pdf_scale:
+        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
+    else:
+        ax.imshow(img)
+
+
 class PlotMethods(object):
     def __call__(self, table, kind="text", filename=None):
         """Plot elements found on PDF page based on kind
@@ -61,6 +78,7 @@ class PlotMethods(object):
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
+        draw_pdf(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -75,8 +93,6 @@ class PlotMethods(object):
                 )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
-        img = table.get_pdf_image()
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     @staticmethod
@@ -95,6 +111,7 @@ class PlotMethods(object):
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
+        draw_pdf(table, ax)
         for row in table.cells:
             for cell in row:
                 if cell.left:
@@ -105,9 +122,6 @@ class PlotMethods(object):
                     ax.plot([cell.lt[0], cell.rt[0]], [cell.lt[1], cell.rt[1]])
                 if cell.bottom:
                     ax.plot([cell.lb[0], cell.rb[0]], [cell.lb[1], cell.rb[1]])
-
-        img = table.get_pdf_image()
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
 
     @staticmethod
@@ -124,15 +138,15 @@ class PlotMethods(object):
         fig : matplotlib.fig.Figure
 
         """
-
-        img = table.get_pdf_image()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, aspect="equal")
         _FOR_LATTICE = table.flavor == "lattice"
+        draw_pdf(table, ax, to_pdf_scale=not _FOR_LATTICE)
+
         if _FOR_LATTICE:
             table_bbox = table._bbox_unscaled
         else:
             table_bbox = {table._bbox: None}
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
 
         xs, ys = [], []
         if not _FOR_LATTICE:
@@ -157,26 +171,7 @@ class PlotMethods(object):
                 ys.extend([t[1], t[3]])
                 ax.set_xlim(min(xs) - 10, max(xs) + 10)
                 ax.set_ylim(min(ys) - 10, max(ys) + 10)
-
-        if _FOR_LATTICE:
-            ax.imshow(img)
-        else:
-            ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
-
-    @staticmethod
-    def draw_pdf(table, ax):
-        """Draw the content of the table's source pdf into the passed subplot
-
-        Parameters
-        ----------
-        table : camelot.core.Table
-
-        fig : matplotlib.axes.Axes
-
-        """
-        img = table.get_pdf_image()
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
 
     @staticmethod
     def textedge(table):
@@ -193,7 +188,7 @@ class PlotMethods(object):
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
-        PlotMethods.draw_pdf(table, ax)
+        draw_pdf(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -214,7 +209,6 @@ class PlotMethods(object):
         else:
             for te in table._textedges:
                 ax.plot([te.x, te.x], [te.y0, te.y1])
-
         return fig
 
     @staticmethod
@@ -231,10 +225,10 @@ class PlotMethods(object):
         fig : matplotlib.fig.Figure
 
         """
-        img = table.get_pdf_image()
-        table_bbox = table._bbox_unscaled
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
+        draw_pdf(table, ax, to_pdf_scale=False)
+        table_bbox = table._bbox_unscaled
         x_coord = []
         y_coord = []
         for k in table_bbox.keys():
@@ -242,7 +236,6 @@ class PlotMethods(object):
                 x_coord.append(coord[0])
                 y_coord.append(coord[1])
         ax.plot(x_coord, y_coord, "ro")
-        ax.imshow(img)
         return fig
 
     @staticmethod
@@ -261,12 +254,10 @@ class PlotMethods(object):
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
+        draw_pdf(table, ax)
         vertical, horizontal = table._segments
         for v in vertical:
             ax.plot([v[0], v[2]], [v[1], v[3]])
         for h in horizontal:
             ax.plot([h[0], h[2]], [h[1], h[3]])
-
-        img = table.get_pdf_image()
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
         return fig
