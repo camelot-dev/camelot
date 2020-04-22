@@ -2442,6 +2442,10 @@ data_stream_edge_tol = [
     ["period.", ""],
 ]
 
+# The stream algorithm ends up including a footer, which hybrid correctly
+# skips.
+data_hybrid_edge_tol = data_stream_edge_tol[:-3]
+
 data_lattice = [
     [
         "Cycle \nName",

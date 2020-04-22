@@ -11,20 +11,50 @@ else:
 from .utils import bbox_from_str
 
 
-def draw_labeled_bbox(ax, bbox, text, rect_color):
+def draw_labeled_bbox(
+    ax, bbox, text,
+    color="black", linewidth=3,
+    linestyle="solid",
+    label_pos="top,left"
+):
     ax.add_patch(
         patches.Rectangle(
             (bbox[0], bbox[1]),
             bbox[2] - bbox[0], bbox[3] - bbox[1],
-            color="purple", linewidth=3,
+            color=color,
+            linewidth=linewidth, linestyle=linestyle,
             fill=False
         )
     )
+
+    vlabel, hlabel = label_pos.split(",")
+    if (vlabel == "top"):
+        y = max(bbox[1], bbox[3])
+    elif (vlabel == "bottom"):
+        y = min(bbox[1], bbox[3])
+    else:
+        y = 0.5 * (bbox[1] + bbox[3])
+
+    # We want to draw the label outside the box (above or below)
+    label_align_swap = {
+        "top": "bottom",
+        "bottom": "top",
+        "center": "center"
+    }
+    vlabel_out_of_box = label_align_swap[vlabel]
+    if (hlabel == "right"):
+        x = max(bbox[0], bbox[2])
+    elif (hlabel == "left"):
+        x = min(bbox[0], bbox[2])
+    else:
+        x = 0.5 * (bbox[0] + bbox[2])
     ax.text(
-        bbox[0], bbox[1],
+        x, y,
         text,
-        fontsize=12, color="black", verticalalignment="top",
-        bbox=dict(facecolor="purple", alpha=0.5)
+        fontsize=12, color="black",
+        verticalalignment=vlabel_out_of_box,
+        horizontalalignment=hlabel,
+        bbox=dict(facecolor=color, alpha=0.3)
     )
 
 
@@ -46,21 +76,6 @@ def draw_pdf(table, ax, to_pdf_scale=True):
     else:
         ax.imshow(img)
 
-    if table.debug_info:
-        # Display a bbox per region
-        for region_str in table.debug_info["table_regions"] or []:
-            draw_labeled_bbox(
-                ax, bbox_from_str(region_str),
-                "region: ({region_str})".format(region_str=region_str),
-                "purple"
-            )
-        # Display a bbox per area
-        for area_str in table.debug_info["table_areas"] or []:
-            draw_labeled_bbox(
-                ax, bbox_from_str(area_str),
-                "area: ({area_str})".format(area_str=area_str), "pink"
-            )
-
 
 def draw_parse_constraints(table, ax):
     """Draw any user provided constraints (area, region, columns, etc)
@@ -78,13 +93,20 @@ def draw_parse_constraints(table, ax):
             draw_labeled_bbox(
                 ax, bbox_from_str(region_str),
                 "region: ({region_str})".format(region_str=region_str),
-                "purple"
+                color="purple",
+                linestyle="dotted",
+                linewidth=1,
+                label_pos="bottom,right"
             )
         # Display a bbox per area
         for area_str in table.debug_info["table_areas"] or []:
             draw_labeled_bbox(
                 ax, bbox_from_str(area_str),
-                "area: ({area_str})".format(area_str=area_str), "pink"
+                "area: ({area_str})".format(area_str=area_str),
+                color="pink",
+                linestyle="dotted",
+                linewidth=1,
+                label_pos="bottom,right"
             )
 
 
@@ -220,7 +242,9 @@ class PlotMethods(object):
                 ys.extend([t[1], t[3]])
                 ax.add_patch(
                     patches.Rectangle(
-                        (t[0], t[1]), t[2] - t[0], t[3] - t[1], color="blue"
+                        (t[0], t[1]), t[2] - t[0], t[3] - t[1],
+                        color="blue",
+                        alpha=0.5
                     )
                 )
 
@@ -328,4 +352,80 @@ class PlotMethods(object):
             ax.plot([v[0], v[2]], [v[1], v[3]])
         for h in horizontal:
             ax.plot([h[0], h[2]], [h[1], h[3]])
+        return fig
+
+    @staticmethod
+    def hybrid_table_search(table):
+        """Generates a plot illustrating the steps of the hybrid table search.
+
+        Parameters
+        ----------
+        table : camelot.core.Table
+
+        Returns
+        -------
+        fig : matplotlib.fig.Figure
+
+        """
+        fig = plt.figure()
+        ax = fig.add_subplot(111, aspect="equal")
+        draw_pdf(table, ax)
+        draw_parse_constraints(table, ax)
+
+        if table.debug_info is None:
+            return fig
+        debug_info = table.debug_info
+        for box_id, bbox_search in enumerate(debug_info["bboxes_searches"]):
+            max_h_gap = bbox_search["max_h_gap"]
+            max_v_gap = bbox_search["max_v_gap"]
+            iterations = bbox_search["iterations"]
+            for iteration, bbox in enumerate(iterations):
+                final = iteration == len(iterations) - 1
+
+                draw_labeled_bbox(
+                    ax, bbox,
+                    "box #{box_id} / iter #{iteration}".format(
+                        box_id=box_id,
+                        iteration=iteration
+                    ),
+                    color="red",
+                    linewidth=5 if final else 2,
+                    label_pos="bottom,left"
+                )
+
+                ax.add_patch(
+                    patches.Rectangle(
+                        (bbox[0]-max_h_gap, bbox[1]-max_v_gap),
+                        bbox[2] - bbox[0] + 2 * max_h_gap,
+                        bbox[3] - bbox[1] + 2 * max_v_gap,
+                        color="orange",
+                        fill=False
+                    )
+                )
+
+        for box_id, col_search in enumerate(debug_info["col_searches"]):
+            draw_labeled_bbox(
+                ax, col_search["expanded_bbox"],
+                "box body + header #{box_id}".format(
+                    box_id=box_id
+                ),
+                color="red",
+                linewidth=4,
+                label_pos="top,left"
+            )
+            draw_labeled_bbox(
+                ax, col_search["core_bbox"],
+                "box body #{box_id}".format(
+                    box_id=box_id
+                ),
+                color="orange",
+                linewidth=2,
+                label_pos="bottom,left"
+            )
+            # self.debug_info["col_searches"].append({
+            #     "core_bbox": bbox,
+            #     "cols_anchors": cols_anchors,
+            #     "expanded_bbox": expanded_bbox
+            # })
+
         return fig

@@ -7,6 +7,7 @@ from pandas.testing import assert_frame_equal
 
 import camelot
 from camelot.core import Table, TableList
+from camelot.utils import compare_tables
 from camelot.__version__ import generate_version
 
 from .data import *
@@ -193,7 +194,7 @@ def test_hybrid_table_regions():
     # The "stream" test looks for a region in ["320,460,573,335"], which
     # should exclude the header.
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", table_regions=["320,505,573,330"]
+        filename, flavor="hybrid", table_regions=["320,335,573,505"]
     )
     assert_frame_equal(df, tables[0].df)
 
@@ -248,7 +249,7 @@ def test_hybrid_strip_text():
 
 
 def test_hybrid_edge_tol():
-    df = pd.DataFrame(data_stream_edge_tol)
+    df = pd.DataFrame(data_hybrid_edge_tol)
 
     filename = os.path.join(testdir, "edge_tol.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid", edge_tol=500)
