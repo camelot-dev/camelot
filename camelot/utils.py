@@ -1124,7 +1124,31 @@ def compare_tables(left, right):
 
     table1, table2 = [left, right]
     name_table1, name_table2 = ["left", "right"]
-    if not diff_rows:
+    if not diff_cols:
+        # Same number of cols: compare rows since they're of the same length
+        if diff_rows > 0:
+            # Use the longest table as a reference
+            table1, table2 = table2, table1
+            name_table1, name_table2 = name_table2, name_table1
+        for index, lrow in table1.iterrows():
+            if index < table2.shape[0]:
+                srow = table2.loc[index, :]
+                if not lrow.equals(srow):
+                    diff_df = pd.DataFrame()
+                    diff_df = diff_df.append(lrow, ignore_index=True)
+                    diff_df = diff_df.append(srow, ignore_index=True)
+                    diff_df.insert(0, 'Table', [name_table1, name_table2])
+                    print("Row {index} differs:".format(index=index))
+                    print(diff_df.values)
+                    break
+            else:
+                print("Row {index} unique to {name_table1}: {lrow}".format(
+                    index=index,
+                    name_table1=name_table1,
+                    lrow=lrow
+                ))
+                break
+    elif not diff_rows:
         # Same number of rows: compare columns since they're of the same length
         if diff_cols > 0:
             # Use the longest table as a reference
@@ -1149,30 +1173,6 @@ def compare_tables(left, right):
                     break
             else:
                 print("Column {i} unique to {name_table1}: {lcol}")
-                break
-    elif not diff_cols:
-        # Same number of cols: compare rows since they're of the same length
-        if diff_rows > 0:
-            # Use the longest table as a reference
-            table1, table2 = table2, table1
-            name_table1, name_table2 = name_table2, name_table1
-        for index, lrow in table1.iterrows():
-            if index < table2.shape[0]:
-                srow = table2.loc[index, :]
-                if not lrow.equals(srow):
-                    diff_df = pd.DataFrame()
-                    diff_df = diff_df.append(lrow, ignore_index=True)
-                    diff_df = diff_df.append(srow, ignore_index=True)
-                    diff_df.insert(0, 'Table', [name_table1, name_table2])
-                    print("Row {index} differs:".format(index=index))
-                    print(diff_df.values)
-                    break
-            else:
-                print("Row {index} unique to {name_table1}: {lrow}".format(
-                    index=index,
-                    name_table1=name_table1,
-                    lrow=lrow
-                ))
                 break
     else:
         print("Tables have different shapes")
