@@ -233,7 +233,7 @@ def test_hybrid_split_text():
 
 
 def test_hybrid_flag_size():
-    df = pd.DataFrame(data_stream_flag_size)
+    df = pd.DataFrame(data_hybrid_flag_size)
 
     filename = os.path.join(testdir, "superscript.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid", flag_size=True)
@@ -241,7 +241,7 @@ def test_hybrid_flag_size():
 
 
 def test_hybrid_strip_text():
-    df = pd.DataFrame(data_stream_strip_text)
+    df = pd.DataFrame(data_hybrid_strip_text)
 
     filename = os.path.join(testdir, "detect_vertical_false.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid", strip_text=" ,\n")

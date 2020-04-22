@@ -2388,7 +2388,15 @@ data_stream_flag_size = [
     ],
 ]
 
-data_stream_strip_text = [
+# Hybrid adds more content into the header.
+data_hybrid_flag_size = [
+    ['', '', '', '', '(As at end-March)', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '(` Billion)']
+]
+data_hybrid_flag_size.extend(data_stream_flag_size)
+
+
+data_hybrid_strip_text = [
     ["VinsauVerre", ""],
     ["LesBlancs", "12.5CL"],
     ["A.O.PCôtesduRhône", ""],
@@ -2413,7 +2421,23 @@ data_stream_strip_text = [
     ["A.O.PCôtesdeProvence", ""],
     ["ChâteauGrandBoise«SainteVictoire»2017", "9€"],
     ["ChâteauLéoube2016", "10€"],
+    ["LesRouges", "12CL"],
+    ["A.O.PCôtesduRhône", ""],
+    ["DomainedeDionysos«LaCigalette»", "8€"],
+    ["ChâteauSaintEstèved’Uchaux«GrandeRéserve»2014", "9€"],
+    ["DomainedelaGuicharde«CuvéeMassillan»2016", "9€"],
+    ["DomainedelaFlorane«TerrePourpre»2014", "10€"],
+    ["L’OratoireStMartin«RéservedesSeigneurs»2015", "11€"],
+    ["A.O.PSaintJoseph", ""],
+    ["DomaineMonierPerréol«Châtelet»2015", "13€"],
+    ["A.O.PChâteauneufduPape", ""],
+    ["DomainedeBeaurenard2011", "15€"],
+    ["A.O.PCornas", ""],
+    ["DomaineLionnet«TerreBrûlée»2012", "15€"],
 ]
+
+# Stream only detects part of the table
+data_stream_strip_text = data_hybrid_strip_text[0:-13]
 
 data_stream_edge_tol = [
     ["Key figures", ""],
