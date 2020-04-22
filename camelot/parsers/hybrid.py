@@ -60,8 +60,9 @@ def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
         closest_above = None
         all_above = []
         for te in textlines:
-            # higher than the table, directly within its bounds
-            if te.y0 > top and te.x0 >= left and te.x1 <= right:
+            # higher than the table, >50% within its bounds
+            te_center = 0.5 * (te.x0 + te.x1)
+            if te.y0 > top and left < te_center < right:
                 all_above.append(te)
                 if closest_above is None or closest_above.y0 > te.y0:
                     closest_above = te
