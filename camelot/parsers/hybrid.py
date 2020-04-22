@@ -969,11 +969,13 @@ class Hybrid(BaseParser):
             gaps_hv = self.textedges._compute_plausible_gaps()
             if gaps_hv is None:
                 return None
-            if self.edge_tol is not None:
-                # edge_tol instructions override the calculated vertical gap
-                gaps_hv = (gaps_hv[0], self.edge_tol)
+            # edge_tol instructions override the calculated vertical gap
+            edge_tol_hv = (
+                gaps_hv[0],
+                gaps_hv[1] if self.edge_tol is None else self.edge_tol
+            )
             bbox = self.textedges._build_bbox_candidate(
-                gaps_hv,
+                edge_tol_hv,
                 debug_info=debug_info_bboxes_searches
             )
             if bbox is None:
@@ -991,21 +993,11 @@ class Hybrid(BaseParser):
 
             # Apply a heuristic to salvage headers which formatting might be
             # off compared to the rest of the table.
-
-            # Calculate the average height of each textline
-            # FRHTODO: reuse the gap threshold from earlier?
-            alignments = self.textedges._textlines_alignments.keys()
-            average_tl_height = sum(
-                map(
-                    lambda tl: tl.y1 - tl.y0,
-                    alignments
-                )) / len(alignments)
-
             expanded_bbox = todo_move_me_expand_area_for_header(
                 bbox,
                 textlines,
                 cols_anchors,
-                gaps_hv[1]  # average_tl_height
+                gaps_hv[1]
             )
 
             if self.debug_info is not None:
