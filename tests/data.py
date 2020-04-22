@@ -1627,6 +1627,9 @@ data_stream_table_areas = [
     ["(each day of the payroll period)", ""],
 ]
 
+# Hybrid doesn't recognize the footer as belonging to the table.
+data_hybrid_table_regions = data_stream_table_areas[:-1]
+
 data_stream_columns = [
     [
         "Clave",

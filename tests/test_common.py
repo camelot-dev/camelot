@@ -188,7 +188,7 @@ def test_hybrid_two_tables():
 
 
 def test_hybrid_table_regions():
-    df = pd.DataFrame(data_stream_table_areas)
+    df = pd.DataFrame(data_hybrid_table_regions)
 
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     # The "stream" test looks for a region in ["320,460,573,335"], which
