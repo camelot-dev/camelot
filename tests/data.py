@@ -2149,6 +2149,14 @@ data_stream_split_text = [
     ],
 ]
 
+# The stream algorithm excludes the string "Alphabetic Listing by type"
+data_hybrid_split_text = []
+data_hybrid_split_text.extend(data_stream_split_text)
+data_hybrid_split_text[0] = [
+    'FEB', 'RUAR', 'Y 2014 M27 (BUS)', '',
+    'ALPHABETIC LISTING BY T', 'YPE', '', '', '', 'ABLPDM27'
+]
+
 data_stream_flag_size = [
     [
         "States",

@@ -214,7 +214,7 @@ def test_hybrid_columns():
 
 
 def test_hybrid_split_text():
-    df = pd.DataFrame(data_stream_split_text)
+    df = pd.DataFrame(data_hybrid_split_text)
 
     filename = os.path.join(testdir, "tabula/m27.pdf")
     tables = camelot.read_pdf(
