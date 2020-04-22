@@ -1157,7 +1157,7 @@ def compare_tables(left, right):
             table1, table2 = table2, table1
             name_table1, name_table2 = name_table2, name_table1
         for index, lrow in table1.iterrows():
-            if index < table2.shape[1]:
+            if index < table2.shape[0]:
                 srow = table2.loc[index, :]
                 if not lrow.equals(srow):
                     diff_df = pd.DataFrame()
