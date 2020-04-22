@@ -1115,10 +1115,10 @@ def compare_tables(left, right):
         differences_str = " and ".join(differences)
         print(
             "Right has {differences_str} than left "
-            "{shape_right} vs {shape_left}".format(
+            "{shape_left} vs {shape_right}".format(
                 differences_str=differences_str,
+                shape_left=[left.shape[0], left.shape[1]],
                 shape_right=[right.shape[0], right.shape[1]],
-                shape_left=[left.shape[0], left.shape[1]]
             )
         )
 

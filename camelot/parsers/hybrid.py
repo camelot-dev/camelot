@@ -22,25 +22,8 @@ from matplotlib import patches as patches
 MAX_COL_SPREAD_IN_HEADER = 3
 
 
-def plot_annotated_bbox(plot, bbox, text, rect_color):
-    plot.add_patch(
-        patches.Rectangle(
-            (bbox[0], bbox[1]),
-            bbox[2] - bbox[0], bbox[3] - bbox[1],
-            color="purple", linewidth=3,
-            fill=False
-        )
-    )
-    plot.text(
-        bbox[0], bbox[1],
-        text,
-        fontsize=12, color="black", verticalalignment="top",
-        bbox=dict(facecolor="purple", alpha=0.5)
-    )
-
-
 def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
-                                        average_row_height):
+                                        max_v_gap):
     """The core algorithm is based on fairly strict alignment of text.
     It works ok for the table body, but might fail on tables' headers
     since they tend to be in a different font, alignment (e.g. vertical),
@@ -78,13 +61,13 @@ def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
         all_above = []
         for te in textlines:
             # higher than the table, directly within its bounds
-            if te.y0 > top and te.x0 > left and te.x1 < right:
+            if te.y0 > top and te.x0 >= left and te.x1 <= right:
                 all_above.append(te)
                 if closest_above is None or closest_above.y0 > te.y0:
                     closest_above = te
 
         if closest_above and \
-                closest_above.y0 < top + average_row_height:
+                closest_above.y0 < top + max_v_gap:
             # b/ We have a candidate cell that is within the correct
             # vertical band, and directly above the table. Starting from
             # this anchor, we list all the textlines within the same row.
@@ -475,37 +458,42 @@ class TextEdges2(object):
             self._textlines_alignments = {}
             self._compute_alignment_counts()
 
-    def _build_bbox_candidate(self, debug_info=None):
-        """ Seed the process with the textline with the highest alignment
-        score, then expand the bbox with textlines within threshold.
+    def _most_connected_textline(self):
+        """ Retrieve the textline that is most connected across vertical and
+        horizontal axis.
 
-        Parameters
-        ----------
-        debug_info : array
-            Optional parameter array, in which to store extra information
-            to help later visualization of the table creation.
+        """
+        # Find the textline with the highest alignment score
+        return max(
+            self._textlines_alignments.keys(),
+            key=lambda textline:
+                self._textlines_alignments[textline].alignment_score(),
+            default=None
+        )
+
+    def _compute_plausible_gaps(self):
+        """ Evaluate plausible gaps between cells horizontally and vertically
+        based on the textlines aligned with the most connected textline.
+
+        Returns
+        -------
+        gaps_hv : tuple
+            (horizontal_gap, horizontal_gap) in pdf coordinate space.
+
         """
         if self.max_rows <= 1 or self.max_cols <= 1:
             return None
-        tls_search_space = list(self._textlines_alignments.keys())
 
-        def get_best_textline(textlines):
-            # Find the textline with the highest alignment score
-            return max(
-                textlines,
-                key=lambda textline:
-                    self._textlines_alignments[textline].alignment_score(),
-                default=None
-            )
+        # Determine the textline that has the most combined
+        # alignments across horizontal and vertical axis.
+        # It will serve as a reference axis along which to collect the average
+        # spacing between rows/cols.
+        most_aligned_tl = self._most_connected_textline()
+        most_aligned_coords = TextEdges2.get_textline_coords(
+            most_aligned_tl)
 
-        # First, determine the textline that has the most combined alignments
-        # across horizontal and vertical axis.
-        # It will serve both as a starting point for the table boundary search,
-        # and as a way to estimate the average spacing between rows/cols.
-        most_aligned_tl = get_best_textline(tls_search_space)
-        most_aligned_coords = TextEdges2.get_textline_coords(most_aligned_tl)
-
-        # Retrieve the list of textlines it's aligned with, across both axis
+        # Retrieve the list of textlines it's aligned with, across both
+        # axis
         best_alignment = self._textlines_alignments[most_aligned_tl]
         ref_h_edge_name = best_alignment.max_h_edge_name()
         ref_v_edge_name = best_alignment.max_v_edge_name()
@@ -544,9 +532,30 @@ class TextEdges2(object):
             return None
         percentile = 75
         gaps_hv = (
-            np.percentile(h_gaps, percentile),
-            np.percentile(v_gaps, percentile)
+            2.0 * np.percentile(h_gaps, percentile),
+            2.0 * np.percentile(v_gaps, percentile)
         )
+        return gaps_hv
+
+    def _build_bbox_candidate(self, gaps_hv, debug_info=None):
+        """ Seed the process with the textline with the highest alignment
+        score, then expand the bbox with textlines within threshold.
+
+        Parameters
+        ----------
+        gaps_hv : tuple
+             The maximum distance allowed to consider surrounding lines/columns
+             as part of the same table.
+        debug_info : array (optional)
+            Optional parameter array, in which to store extra information
+            to help later visualization of the table creation.
+        """
+        # First, determine the textline that has the most combined
+        # alignments across horizontal and vertical axis.
+        # It will serve both as a starting point for the table boundary
+        # search, and as a way to estimate the average spacing between
+        # rows/cols.
+        most_aligned_tl = self._most_connected_textline()
 
         # Calculate the 75th percentile of the horizontal/vertical
         # gaps between textlines.  Use this as a reference for a threshold
@@ -555,7 +564,7 @@ class TextEdges2(object):
         # gaps_hv = self._calculate_gaps_thresholds(75)
         # if (gaps_hv[0] is None or gaps_hv[1] is None):
         #    return None
-        max_h_gap, max_v_gap = gaps_hv[0] * 3, gaps_hv[1] * 3
+        max_h_gap, max_v_gap = gaps_hv[0], gaps_hv[1]
 
         if debug_info is not None:
             # Store debug info
@@ -571,6 +580,11 @@ class TextEdges2(object):
         MINIMUM_TEXTLINES_IN_TABLE = 6
         bbox = (most_aligned_tl.x0, most_aligned_tl.y0,
                 most_aligned_tl.x1, most_aligned_tl.y1)
+
+        # For the body of the table, we only consider cells with alignments
+        # on both axis.
+        tls_search_space = list(self._textlines_alignments.keys())
+        # tls_search_space = []
         tls_search_space.remove(most_aligned_tl)
         tls_in_bbox = [most_aligned_tl]
         last_bbox = None
@@ -639,57 +653,6 @@ class TextEdges2(object):
                 color="black"
             )
 
-    def plotFRHTableSearch(self, plot, debug_info):
-        if debug_info is None:
-            return
-        # Display a bbox per region
-        for region_str in debug_info["table_regions"] or []:
-            plot_annotated_bbox(
-                plot, bbox_from_str(region_str),
-                "region: ({region_str})".format(region_str=region_str),
-                "purple"
-            )
-        # Display a bbox per area
-        for area_str in debug_info["table_areas"] or []:
-            plot_annotated_bbox(
-                plot, bbox_from_str(area_str),
-                "area: ({area_str})".format(area_str=area_str), "pink"
-            )
-        for box_id, bbox_search in enumerate(debug_info["bboxes_searches"]):
-            max_h_gap = bbox_search["max_h_gap"]
-            max_v_gap = bbox_search["max_v_gap"]
-            iterations = bbox_search["iterations"]
-            for iteration, bbox in enumerate(iterations):
-                final = iteration == len(iterations) - 1
-                plot.add_patch(
-                    patches.Rectangle(
-                        (bbox[0], bbox[1]),
-                        bbox[2] - bbox[0], bbox[3] - bbox[1],
-                        color="red",
-                        linewidth=5 if final else 2,
-                        fill=False
-                    )
-                )
-                plot.text(
-                    bbox[0],
-                    bbox[1],
-                    f"box #{box_id+1} / iter #{iteration}",
-                    fontsize=12,
-                    color="black",
-                    verticalalignment="top",
-                    bbox=dict(facecolor="orange", alpha=0.5)
-                )
-
-                plot.add_patch(
-                    patches.Rectangle(
-                        (bbox[0]-max_h_gap, bbox[1]-max_v_gap),
-                        bbox[2] - bbox[0] + 2 * max_h_gap,
-                        bbox[3] - bbox[1] + 2 * max_v_gap,
-                        color="orange",
-                        fill=False
-                    )
-                )
-
 
 class Hybrid(BaseParser):
     """Hybrid method of parsing looks for spaces between text
@@ -738,7 +701,7 @@ class Hybrid(BaseParser):
         flag_size=False,
         split_text=False,
         strip_text="",
-        edge_tol=50,
+        edge_tol=None,
         row_tol=2,
         column_tol=0,
         debug=False,
@@ -754,6 +717,8 @@ class Hybrid(BaseParser):
             debug=debug
         )
         self.columns = columns
+        self.textedges = None
+
         self._validate_columns()
         self.edge_tol = edge_tol
         self.row_tol = row_tol
@@ -973,7 +938,11 @@ class Hybrid(BaseParser):
             self.table_bbox = table_bbox
             return
 
-        all_textlines = self.horizontal_text + self.vertical_text
+        # Take all the textlines that are not just spaces
+        all_textlines = [
+            t for t in self.horizontal_text + self.vertical_text
+            if len(t.get_text().strip()) > 0
+        ]
         textlines = self._apply_regions_filter(all_textlines)
 
         textlines_processed = {}
@@ -996,8 +965,15 @@ class Hybrid(BaseParser):
                 debug_info_edges_searches.append(
                     copy.deepcopy(self.textedges)
                 )
+            gaps_hv = self.textedges._compute_plausible_gaps()
+            if gaps_hv is None:
+                return None
+            if self.edge_tol is not None:
+                # edge_tol instructions override the calculated vertical gap
+                gaps_hv = (gaps_hv[0], self.edge_tol)
             bbox = self.textedges._build_bbox_candidate(
-                debug_info_bboxes_searches
+                gaps_hv,
+                debug_info=debug_info_bboxes_searches
             )
             if bbox is None:
                 break
@@ -1028,7 +1004,7 @@ class Hybrid(BaseParser):
                 bbox,
                 textlines,
                 cols_anchors,
-                average_tl_height
+                gaps_hv[1]  # average_tl_height
             )
 
             if self.debug_info is not None:
