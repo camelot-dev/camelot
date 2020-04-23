@@ -267,33 +267,12 @@ class TextEdges2(BaseTextEdges):
         self.max_rows = None
         self.max_cols = None
 
-    def _register_textline(self, textline):
-        """Updates an existing text edge in the current dict.
-        """
-        coords = get_textline_coords(textline)
-        for alignment, edge_array in self._textedges.items():
-            coord = coords[alignment]
+    @staticmethod
+    def _create_new_text_edge(coord, textline, align=None):
+        return TextEdge2(coord, textline)
 
-            # Find the index of the closest existing element (or 0 if none)
-            idx_closest = get_index_closest_point(
-                coord, edge_array, fn=lambda x: x.coord
-            )
-
-            # Check if the edges before/after are close enough
-            # that it can be considered aligned
-            idx_insert = None
-            if idx_closest is None:
-                idx_insert = 0
-            elif np.isclose(edge_array[idx_closest].coord, coord, atol=0.5):
-                closest_edge = edge_array[idx_closest]
-                closest_edge.register_aligned_textline(textline, coord)
-            elif edge_array[idx_closest].coord < coord:
-                idx_insert = idx_closest + 1
-            else:
-                idx_insert = idx_closest
-            if idx_insert is not None:
-                new_edge = TextEdge2(coord, textline)
-                edge_array.insert(idx_insert, new_edge)
+    def _update_edge(self, edge, coord, textline):
+        edge.register_aligned_textline(textline, coord)
 
     def _register_all_text_lines(self, textlines):
         """Add all textlines to our edge repository to

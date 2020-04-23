@@ -12,6 +12,7 @@ import pandas as pd
 from cv2 import cv2
 
 from .utils import (
+    get_index_closest_point,
     get_textline_coords,
     build_file_path_in_temp_dir,
     compute_accuracy,
@@ -98,6 +99,42 @@ class BaseTextEdges(object):
         for alignment_name in alignment_names:
             self._textedges[alignment_name] = []
 
+    @staticmethod
+    def _create_new_text_edge(coord, textline, align=None):
+        return NotImplemented
+
+    def _update_edge(self, edge, coord, textline):
+        return NotImplemented
+
+    def _register_textline(self, textline):
+        """Updates an existing text edge in the current dict.
+        """
+        coords = get_textline_coords(textline)
+        for alignment, edge_array in self._textedges.items():
+            coord = coords[alignment]
+
+            # Find the index of the closest existing element (or 0 if none)
+            idx_closest = get_index_closest_point(
+                coord, edge_array, fn=lambda x: x.coord
+            )
+
+            # Check if the edges before/after are close enough
+            # that it can be considered aligned
+            idx_insert = None
+            if idx_closest is None:
+                idx_insert = 0
+            elif np.isclose(edge_array[idx_closest].coord, coord, atol=0.5):
+                self._update_edge(edge_array[idx_closest], coord, textline)
+            elif edge_array[idx_closest].coord < coord:
+                idx_insert = idx_closest + 1
+            else:
+                idx_insert = idx_closest
+            if idx_insert is not None:
+                new_edge = self._create_new_text_edge(
+                    coord, textline, align=alignment
+                )
+                edge_array.insert(idx_insert, new_edge)
+
 
 class TextEdges(BaseTextEdges):
     """Defines a dict of left, right and middle text edges found on
@@ -109,36 +146,20 @@ class TextEdges(BaseTextEdges):
         super().__init__(HORIZONTAL_ALIGNMENTS)
         self.edge_tol = edge_tol
 
-    def find(self, x_coord, align):
-        """Returns the index of an existing text edge using
-        the specified x coordinate and alignment.
-        """
-        for i, te in enumerate(self._textedges[align]):
-            if np.isclose(te.coord, x_coord, atol=0.5):
-                return i
-        return None
+    @staticmethod
+    def _create_new_text_edge(coord, textline, align=None):
+        y0 = textline.y0
+        y1 = textline.y1
+        return TextEdge(coord, y0, y1, align=align)
 
     def add(self, coord, textline, align):
         """Adds a new text edge to the current dict.
         """
-        y0 = textline.y0
-        y1 = textline.y1
-        te = TextEdge(coord, y0, y1, align=align)
+        te = self._create_new_text_edge(coord, textline, align=align)
         self._textedges[align].append(te)
 
-    def update(self, textline):
-        """Updates an existing text edge in the current dict.
-        """
-        coords = get_textline_coords(textline)
-        for alignment, edge_array in self._textedges.items():
-            x_coord = coords[alignment]
-            idx = self.find(x_coord, alignment)
-            if idx is None:
-                self.add(x_coord, textline, alignment)
-            else:
-                edge_array[idx].update_coords(
-                    x_coord, textline.y0, edge_tol=self.edge_tol
-                )
+    def _update_edge(self, edge, coord, textline):
+        edge.update_coords(coord, textline.y0, self.edge_tol)
 
     def generate(self, textlines):
         """Generates the text edges dict based on horizontal text
@@ -146,7 +167,7 @@ class TextEdges(BaseTextEdges):
         """
         for tl in textlines:
             if len(tl.get_text().strip()) > 1:  # TODO: hacky
-                self.update(tl)
+                self._register_textline(tl)
 
     def get_relevant(self):
         """Returns the list of relevant text edges (all share the same
