@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""Implementation of hybrid table parser."""
+
 from __future__ import division
 
 import numpy as np
@@ -7,6 +9,7 @@ import warnings
 
 from .base import BaseParser
 from ..utils import (
+    get_textline_coords,
     bbox_from_str,
     text_in_bbox,
     text_in_bbox_per_axis,
@@ -17,30 +20,26 @@ from ..utils import (
 
 from matplotlib import patches as patches
 
-# FRHTODO: Move to utils
 # maximum number of columns over which a header can spread
 MAX_COL_SPREAD_IN_HEADER = 3
 
 
-def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
-                                        max_v_gap):
-    """The core algorithm is based on fairly strict alignment of text.
-    It works ok for the table body, but might fail on tables' headers
-    since they tend to be in a different font, alignment (e.g. vertical),
-    etc.
-    The section below tries to identify whether what's above the bbox
-    identified so far has the characteristics of a table header:
-    Close to the top of the body, with cells that fit within the bounds
-    identified.
+def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
+    """Expand a bbox vertically up by looking for plausible headers.
+
+    The core algorithm is based on fairly strict alignment of text. It works
+    for the table body, but might fail on tables' headers since they tend to be
+    in a different font, alignment (e.g. vertical), etc.
+    This method evalutes the area above the table body's bbox for
+    characteristics of a table header: close to the top of the body, with cells
+    that fit within the horizontal bounds identified.
     """
-    new_area = area
-    (left, bottom, right, top) = area
+    new_bbox = body_bbox
+    (left, bottom, right, top) = body_bbox
     zones = []
 
     def column_spread(left, right, col_anchors):
-        """Returns the number of columns (splits on the x-axis)
-        crossed by an element covering left to right.
-        """
+        """Get the number of columns crossed by a segment [left, right]."""
         indexLeft = 0
         while indexLeft < len(col_anchors) \
                 and col_anchors[indexLeft] < left:
@@ -55,7 +54,7 @@ def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
     keep_searching = True
     while keep_searching:
         keep_searching = False
-        # a/ first look for the closest text element above the area.
+        # a/ first look for the closest text element above the bbox.
         # It will be the anchor for a possible new row.
         closest_above = None
         all_above = []
@@ -128,18 +127,18 @@ def todo_move_me_expand_area_for_header(area, textlines, col_anchors,
                 # 1: <A1>    <B1>    <C1>    <D1>    <E1>
                 # 2: <A2>    <B2>    <C2>    <D2>    <E2>
                 # if len(zones) > TEXTEDGE_REQUIRED_ELEMENTS:
-                new_area = (left, bottom, right, top)
+                new_bbox = (left, bottom, right, top)
 
                 # At this stage we've identified a plausible row (or the
                 # beginning of one).
                 keep_searching = True
-
-    return new_area
+    return new_bbox
 
 
 class TextEdge2(object):
-    """Defines a text edge coordinates relative to a left-bottom
-    origin. (PDF coordinate space)
+    """Text edge coordinates relative to a left-bottom origin.
+
+    (PDF coordinate space)
 
     Parameters
     ----------
@@ -167,8 +166,7 @@ class TextEdge2(object):
                f"textlines text='{text_inside}...'>"
 
     def register_aligned_textline(self, textline, coord):
-        """Updates new textline to this alignment, adapting its average.
-        """
+        """Update new textline to this alignment, adapting its average."""
         # Increase the intersections for this segment, expand it up,
         # and adjust the x based on the new value
         self.coord = (self.coord * len(self.textlines) + coord) / \
@@ -177,8 +175,13 @@ class TextEdge2(object):
 
 
 class Alignments(object):
-    """Represents the number of other textlines aligned with this
-    one across each edge.
+    """
+    Represent the number of textlines aligned with this one across each edge.
+
+    A cell can be vertically aligned with others by having matching left,
+    right, or middle edge, and horizontally aligned by having matching top,
+    bottom, or center edge.
+
     """
 
     def __init__(self):
@@ -261,20 +264,6 @@ class TextEdges2(object):
         self.max_rows = None
         self.max_cols = None
 
-    @staticmethod
-    def get_textline_coords(textline):
-        """Calculate the coordinates of each alignment
-        for a given textline.
-        """
-        return {
-            "left": textline.x0,
-            "right": textline.x1,
-            "middle": (textline.x0 + textline.x1) / 2.0,
-            "bottom": textline.y0,
-            "top": textline.y1,
-            "center": (textline.y0 + textline.y1) / 2.0,
-        }
-
     # FRHTODO: Move to utils and use generic name
     @staticmethod
     def _get_index_closest_point(coord, edge_array):
@@ -328,7 +317,7 @@ class TextEdges2(object):
     def _register_textline(self, textline):
         """Updates an existing text edge in the current dict.
         """
-        coords = TextEdges2.get_textline_coords(textline)
+        coords = get_textline_coords(textline)
         for alignment in self._textedges:
             edge_array = self._textedges[alignment]
             coord = coords[alignment]
@@ -490,7 +479,7 @@ class TextEdges2(object):
         # It will serve as a reference axis along which to collect the average
         # spacing between rows/cols.
         most_aligned_tl = self._most_connected_textline()
-        most_aligned_coords = TextEdges2.get_textline_coords(
+        most_aligned_coords = get_textline_coords(
             most_aligned_tl)
 
         # Retrieve the list of textlines it's aligned with, across both
@@ -871,7 +860,7 @@ class Hybrid(BaseParser):
     # FRHTODO: Check if needed, refactor with Stream
     @staticmethod
     def _add_columns(cols, text, row_tol):
-        """Adds columns to existing list by taking into account
+        """Add columns to existing list by taking into account
         the text that lies outside the current column x-coordinates.
 
         Parameters
@@ -993,7 +982,7 @@ class Hybrid(BaseParser):
 
             # Apply a heuristic to salvage headers which formatting might be
             # off compared to the rest of the table.
-            expanded_bbox = todo_move_me_expand_area_for_header(
+            expanded_bbox = search_header_from_body_bbox(
                 bbox,
                 textlines,
                 cols_anchors,

@@ -389,8 +389,21 @@ def segments_in_bbox(bbox, v_segments, h_segments):
     return v_s, h_s
 
 
+def get_textline_coords(textline):
+    """Calculate the coordinates of each alignment for a given textline.
+    """
+    return {
+        "left": textline.x0,
+        "right": textline.x1,
+        "middle": (textline.x0 + textline.x1) / 2.0,
+        "bottom": textline.y0,
+        "top": textline.y1,
+        "center": (textline.y0 + textline.y1) / 2.0,
+    }
+
+
 def bbox_from_str(bbox_str):
-    """Deserialize bbox from string form "x1,y1,x2,y2" to tuple (x1, y1, x2, y2)
+    """Deserialize bbox from string ("x1,y1,x2,y2") to tuple (x1, y1, x2, y2).
 
     Parameters
     ----------

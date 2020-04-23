@@ -12,6 +12,7 @@ import pandas as pd
 from cv2 import cv2
 
 from .utils import (
+    get_textline_coords,
     build_file_path_in_temp_dir,
     compute_accuracy,
     compute_whitespace,
@@ -98,11 +99,8 @@ class TextEdges(object):
         """Returns the x coordinate of a text row based on the
         specified alignment.
         """
-        x_left = textline.x0
-        x_right = textline.x1
-        x_middle = x_left + (x_right - x_left) / 2.0
-        x_coord = {"left": x_left, "middle": x_middle, "right": x_right}
-        return x_coord[align]
+        coords = get_textline_coords(textline)
+        return coords[align]
 
     def find(self, x_coord, align):
         """Returns the index of an existing text edge using
