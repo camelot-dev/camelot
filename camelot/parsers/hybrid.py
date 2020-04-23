@@ -9,6 +9,7 @@ import warnings
 
 from .base import BaseParser
 from ..utils import (
+    get_index_closest_point,
     get_textline_coords,
     bbox_from_str,
     text_in_bbox,
@@ -264,56 +265,6 @@ class TextEdges2(object):
         self.max_rows = None
         self.max_cols = None
 
-    # FRHTODO: Move to utils and use generic name
-    @staticmethod
-    def _get_index_closest_point(coord, edge_array):
-        """Returns the index of the closest point
-        """
-        n = len(edge_array)
-        if n == 0:
-            return None
-        if n == 1:
-            return 0
-
-        left = 0
-        right = n - 1
-        mid = 0
-
-        if coord >= edge_array[n - 1].coord:
-            return n - 1
-        if coord <= edge_array[0].coord:
-            return 0
-
-        while left < right:
-            mid = (left + right) // 2  # find the mid
-            if coord < edge_array[mid].coord:
-                right = mid
-            elif coord > edge_array[mid].coord:
-                left = mid + 1
-            else:
-                return mid
-
-        if edge_array[mid].coord > coord:
-            if mid > 0 and (
-                coord - edge_array[mid-1].coord <
-                    edge_array[mid].coord - coord):
-                return mid-1
-        elif edge_array[mid].coord < coord:
-            if mid < n - 1 and (
-                edge_array[mid+1].coord - coord <
-                    coord - edge_array[mid].coord):
-                return mid+1
-        return mid
-
-    # def insert(self, index, textline, align):
-    #     """Adds a new text edge to the current dict.
-    #     """
-    #     x = self.get_x_coord(textline, align)
-    #     y0 = textline.y0
-    #     y1 = textline.y1
-    #     te = TextEdge(x, y0, y1, align=align)
-    #     self._textedges[align].insert(index, te)
-
     def _register_textline(self, textline):
         """Updates an existing text edge in the current dict.
         """
@@ -323,7 +274,9 @@ class TextEdges2(object):
             coord = coords[alignment]
 
             # Find the index of the closest existing element (or 0 if none)
-            idx_closest = self._get_index_closest_point(coord, edge_array)
+            idx_closest = get_index_closest_point(
+                coord, edge_array, fn=lambda x: x.coord
+            )
 
             # Check if the edges before/after are close enough
             # that it can be considered aligned
@@ -353,19 +306,15 @@ class TextEdges2(object):
     def _compute_alignment_counts(self):
         """Build a dictionary textline -> alignment object.
         """
-        #
         for edge_name, textedges in self._textedges.items():
             for textedge in textedges:
                 for textline in textedge.textlines:
-                    textline_alignments = self._textlines_alignments.get(
+                    alignments = self._textlines_alignments.get(
                         textline, None)
-                    if textline_alignments is None:
+                    if alignments is None:
                         alignments = Alignments()
-                        alignments[edge_name] = len(textedge.textlines)
                         self._textlines_alignments[textline] = alignments
-                    else:
-                        textline_alignments[edge_name] = len(
-                            textedge.textlines)
+                    alignments[edge_name] = len(textedge.textlines)
 
         # Finally calculate the overall maximum number of rows/cols
         self.max_rows = max(
@@ -493,9 +442,10 @@ class TextEdges2(object):
         v_coord = most_aligned_coords[ref_v_edge_name]
         h_textlines = sorted(
             best_h_textedges[
-                TextEdges2._get_index_closest_point(
+                get_index_closest_point(
                     h_coord,
-                    best_h_textedges
+                    best_h_textedges,
+                    fn=lambda x: x.coord
                 )
             ].textlines,
             key=lambda tl: tl.x0,
@@ -503,9 +453,10 @@ class TextEdges2(object):
         )
         v_textlines = sorted(
             best_v_textedges[
-                TextEdges2._get_index_closest_point(
+                get_index_closest_point(
                     v_coord,
-                    best_v_textedges
+                    best_v_textedges,
+                    fn=lambda x: x.coord
                 )
             ].textlines,
             key=lambda tl: tl.y0,
@@ -550,10 +501,6 @@ class TextEdges2(object):
         # Calculate the 75th percentile of the horizontal/vertical
         # gaps between textlines.  Use this as a reference for a threshold
         # to not exceed while looking for table boundaries.
-        # FRHTODO: Clean this up
-        # gaps_hv = self._calculate_gaps_thresholds(75)
-        # if (gaps_hv[0] is None or gaps_hv[1] is None):
-        #    return None
         max_h_gap, max_v_gap = gaps_hv[0], gaps_hv[1]
 
         if debug_info is not None:
