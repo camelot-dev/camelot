@@ -33,8 +33,8 @@ class TextEdge(object):
 
     Parameters
     ----------
-    x : float
-        x-coordinate of the text edge.
+    coord : float
+        coordinate of the text edge.  Can be x or y.
     y0 : float
         y-coordinate of bottommost point.
     y1 : float
@@ -52,8 +52,8 @@ class TextEdge(object):
 
     """
 
-    def __init__(self, x, y0, y1, align="left"):
-        self.x = x
+    def __init__(self, coord, y0, y1, align="left"):
+        self.coord = coord
         self.y0 = y0
         self.y1 = y1
         self.align = align
@@ -62,7 +62,7 @@ class TextEdge(object):
 
     def __repr__(self):
         return "<TextEdge x={} y0={} y1={} align={} valid={}>".format(
-            round(self.x, 2),
+            round(self.coord, 2),
             round(self.y0, 2),
             round(self.y1, 2),
             self.align,
@@ -74,7 +74,7 @@ class TextEdge(object):
         the is_valid attribute.
         """
         if np.isclose(self.y0, y0, atol=edge_tol):
-            self.x = (self.intersections * self.x + x) / \
+            self.coord = (self.intersections * self.coord + x) / \
                 float(self.intersections + 1)
             self.y0 = y0
             self.intersections += 1
@@ -84,52 +84,59 @@ class TextEdge(object):
                 self.is_valid = True
 
 
-class TextEdges(object):
+HORIZONTAL_ALIGNMENTS = ["left", "right", "middle"]
+VERTICAL_ALIGNMENTS = ["top", "bottom", "center"]
+ALL_ALIGNMENTS = HORIZONTAL_ALIGNMENTS + VERTICAL_ALIGNMENTS
+
+
+class BaseTextEdges(object):
+    """Defines a dict of text edges accross alignment references.
+    """
+
+    def __init__(self, alignment_names):
+        self._textedges = {}
+        for alignment_name in alignment_names:
+            self._textedges[alignment_name] = []
+
+
+class TextEdges(BaseTextEdges):
     """Defines a dict of left, right and middle text edges found on
     the PDF page. The dict has three keys based on the alignments,
     and each key's value is a list of camelot.core.TextEdge objects.
     """
 
     def __init__(self, edge_tol=50):
+        super().__init__(HORIZONTAL_ALIGNMENTS)
         self.edge_tol = edge_tol
-        self._textedges = {"left": [], "right": [], "middle": []}
-
-    @staticmethod
-    def get_x_coord(textline, align):
-        """Returns the x coordinate of a text row based on the
-        specified alignment.
-        """
-        coords = get_textline_coords(textline)
-        return coords[align]
 
     def find(self, x_coord, align):
         """Returns the index of an existing text edge using
         the specified x coordinate and alignment.
         """
         for i, te in enumerate(self._textedges[align]):
-            if np.isclose(te.x, x_coord, atol=0.5):
+            if np.isclose(te.coord, x_coord, atol=0.5):
                 return i
         return None
 
-    def add(self, textline, align):
+    def add(self, coord, textline, align):
         """Adds a new text edge to the current dict.
         """
-        x = self.get_x_coord(textline, align)
         y0 = textline.y0
         y1 = textline.y1
-        te = TextEdge(x, y0, y1, align=align)
+        te = TextEdge(coord, y0, y1, align=align)
         self._textedges[align].append(te)
 
     def update(self, textline):
         """Updates an existing text edge in the current dict.
         """
-        for align in ["left", "right", "middle"]:
-            x_coord = self.get_x_coord(textline, align)
-            idx = self.find(x_coord, align)
+        coords = get_textline_coords(textline)
+        for alignment, edge_array in self._textedges.items():
+            x_coord = coords[alignment]
+            idx = self.find(x_coord, alignment)
             if idx is None:
-                self.add(textline, align)
+                self.add(x_coord, textline, alignment)
             else:
-                self._textedges[align][idx].update_coords(
+                edge_array[idx].update_coords(
                     x_coord, textline.y0, edge_tol=self.edge_tol
                 )
 
@@ -184,12 +191,12 @@ class TextEdges(object):
             return (x0, y0, x1, y1)
 
         # sort relevant textedges in reading order
-        relevant_textedges.sort(key=lambda te: (-te.y0, te.x))
+        relevant_textedges.sort(key=lambda te: (-te.y0, te.coord))
 
         table_areas = {}
         for te in relevant_textedges:
             if not table_areas:
-                table_areas[(te.x, te.y0, te.x, te.y1)] = None
+                table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
             else:
                 found = None
                 for area in table_areas:
@@ -198,13 +205,13 @@ class TextEdges(object):
                         found = area
                         break
                 if found is None:
-                    table_areas[(te.x, te.y0, te.x, te.y1)] = None
+                    table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
                 else:
                     table_areas.pop(found)
                     updated_area = (
                         found[0],
                         min(te.y0, found[1]),
-                        max(found[2], te.x),
+                        max(found[2], te.coord),
                         max(found[3], te.y1),
                     )
                     table_areas[updated_area] = None
