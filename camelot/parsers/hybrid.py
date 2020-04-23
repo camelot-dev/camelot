@@ -8,6 +8,7 @@ import copy
 import warnings
 
 from .base import BaseParser
+from ..core import (BaseTextEdges, ALL_ALIGNMENTS)
 from ..utils import (
     get_index_closest_point,
     get_textline_coords,
@@ -240,7 +241,7 @@ class Alignments(object):
         return (self.max_v()-1) * (self.max_h()-1)
 
 
-class TextEdges2(object):
+class TextEdges2(BaseTextEdges):
     """Defines a dict of vertical (top, bottom, middle) and
     horizontal (left, right, and middle) text alignments found on
     the PDF page. The dict has three keys based on the alignments,
@@ -248,15 +249,16 @@ class TextEdges2(object):
     """
 
     def __init__(self):
-        # For each possible alignment, list of tuples coordinate/textlines
-        self._textedges = {
-            "left": [],
-            "right": [],
-            "middle": [],
-            "bottom": [],
-            "top": [],
-            "center": []
-        }
+        super().__init__(ALL_ALIGNMENTS)
+        # # For each possible alignment, list of tuples coordinate/textlines
+        # self._textedges = {
+        #     "left": [],
+        #     "right": [],
+        #     "middle": [],
+        #     "bottom": [],
+        #     "top": [],
+        #     "center": []
+        # }
         # For each textline, dictionary "edge type" to
         # "number of textlines aligned"
         self._textlines_alignments = {}
@@ -269,8 +271,7 @@ class TextEdges2(object):
         """Updates an existing text edge in the current dict.
         """
         coords = get_textline_coords(textline)
-        for alignment in self._textedges:
-            edge_array = self._textedges[alignment]
+        for alignment, edge_array in self._textedges.items():
             coord = coords[alignment]
 
             # Find the index of the closest existing element (or 0 if none)
