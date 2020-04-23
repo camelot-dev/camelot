@@ -298,7 +298,7 @@ class PlotMethods(object):
             table.debug_info["edges_searches"][0].plot_alignments(ax)
         else:
             for te in table._textedges:
-                ax.plot([te.x, te.x], [te.y0, te.y1])
+                ax.plot([te.coord, te.coord], [te.y0, te.y1])
         return fig
 
     @staticmethod
