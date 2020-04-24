@@ -28,9 +28,66 @@ TEXTEDGE_REQUIRED_ELEMENTS = 4
 TABLE_AREA_PADDING = 10
 
 
-class TextEdge(object):
+HORIZONTAL_ALIGNMENTS = ["left", "right", "middle"]
+VERTICAL_ALIGNMENTS = ["top", "bottom", "center"]
+ALL_ALIGNMENTS = HORIZONTAL_ALIGNMENTS + VERTICAL_ALIGNMENTS
+
+
+class TextAlignment(object):
+    """Represents a list of textlines sharing an alignment on a coordinate.
+
+    The alignment can be left/right/middle or top/bottom/center.
+
+    (PDF coordinate space)
+
+    Parameters
+    ----------
+    coord : float
+        coordinate of the initial text edge. Depending on the alignment
+        it could be a vertical or horizontal coordinate.
+    textline : obj
+        the original textline to start the alignment
+    align : str
+        Name of the alignment (e.g. "left", "top", etc)
+
+    Attributes
+    ----------
+    coord : float
+        The coordinate aligned averaged out across textlines.  It can be along
+        the x or y axis.
+    textlines : array
+        Array of textlines that demonstrate this alignment.
+    align : str
+        Name of the alignment (e.g. "left", "top", etc)
+
+    """
+
+    def __init__(self, coord, textline, align):
+        self.coord = coord
+        self.textlines = [textline]
+        self.align = align
+
+    def __repr__(self):
+        text_inside = " | ".join(
+            map(lambda x: x.get_text(), self.textlines[:2])).replace("\n", "")
+        return f"<TextEdge coord={self.coord} tl={len(self.textlines)} " \
+               f"textlines text='{text_inside}...'>"
+
+    def register_aligned_textline(self, textline, coord):
+        """Update new textline to this alignment, adapting its average."""
+        # Increase the intersections for this segment, expand it up,
+        # and adjust the x based on the new value
+        self.coord = (self.coord * len(self.textlines) + coord) / \
+            float(len(self.textlines) + 1)
+        self.textlines.append(textline)
+
+
+
+class TextEdge(TextAlignment):
     """Defines a text edge coordinates relative to a left-bottom
-    origin. (PDF coordinate space)
+    origin. (PDF coordinate space).
+
+    An edge is an alignment bounded over a segment.
 
     Parameters
     ----------
@@ -53,11 +110,10 @@ class TextEdge(object):
 
     """
 
-    def __init__(self, coord, y0, y1, align="left"):
-        self.coord = coord
+    def __init__(self, coord, textline, y0, y1, align):
+        super().__init__(coord, textline, align)
         self.y0 = y0
         self.y1 = y1
-        self.align = align
         self.intersections = 0
         self.is_valid = False
 
@@ -70,14 +126,13 @@ class TextEdge(object):
             self.is_valid,
         )
 
-    def update_coords(self, x, y0, edge_tol=50):
+    def update_coords(self, x, textline, edge_tol=50):
         """Updates the text edge's x and bottom y coordinates and sets
         the is_valid attribute.
         """
-        if np.isclose(self.y0, y0, atol=edge_tol):
-            self.coord = (self.intersections * self.coord + x) / \
-                float(self.intersections + 1)
-            self.y0 = y0
+        if np.isclose(self.y0, textline.y0, atol=edge_tol):
+            self.register_aligned_textline(textline, x)
+            self.y0 = textline.y0
             self.intersections += 1
             # a textedge is valid only if it extends uninterrupted
             # over a required number of textlines
@@ -85,22 +140,18 @@ class TextEdge(object):
                 self.is_valid = True
 
 
-HORIZONTAL_ALIGNMENTS = ["left", "right", "middle"]
-VERTICAL_ALIGNMENTS = ["top", "bottom", "center"]
-ALL_ALIGNMENTS = HORIZONTAL_ALIGNMENTS + VERTICAL_ALIGNMENTS
-
-
-class BaseTextEdges(object):
+class TextAlignments(object):
     """Defines a dict of text edges accross alignment references.
     """
 
     def __init__(self, alignment_names):
+        # For each possible alignment, list of tuples coordinate/textlines
         self._textedges = {}
         for alignment_name in alignment_names:
             self._textedges[alignment_name] = []
 
     @staticmethod
-    def _create_new_text_edge(coord, textline, align=None):
+    def _create_new_text_edge(coord, textline, align):
         return NotImplemented
 
     def _update_edge(self, edge, coord, textline):
@@ -131,12 +182,12 @@ class BaseTextEdges(object):
                 idx_insert = idx_closest
             if idx_insert is not None:
                 new_edge = self._create_new_text_edge(
-                    coord, textline, align=alignment
+                    coord, textline, alignment
                 )
                 edge_array.insert(idx_insert, new_edge)
 
 
-class TextEdges(BaseTextEdges):
+class TextEdges(TextAlignments):
     """Defines a dict of left, right and middle text edges found on
     the PDF page. The dict has three keys based on the alignments,
     and each key's value is a list of camelot.core.TextEdge objects.
@@ -147,19 +198,19 @@ class TextEdges(BaseTextEdges):
         self.edge_tol = edge_tol
 
     @staticmethod
-    def _create_new_text_edge(coord, textline, align=None):
+    def _create_new_text_edge(coord, textline, align):
         y0 = textline.y0
         y1 = textline.y1
-        return TextEdge(coord, y0, y1, align=align)
+        return TextEdge(coord, textline, y0, y1, align)
 
     def add(self, coord, textline, align):
         """Adds a new text edge to the current dict.
         """
-        te = self._create_new_text_edge(coord, textline, align=align)
+        te = self._create_new_text_edge(coord, textline, align)
         self._textedges[align].append(te)
 
     def _update_edge(self, edge, coord, textline):
-        edge.update_coords(coord, textline.y0, self.edge_tol)
+        edge.update_coords(coord, textline, self.edge_tol)
 
     def generate(self, textlines):
         """Generates the text edges dict based on horizontal text
