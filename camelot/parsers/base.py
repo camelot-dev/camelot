@@ -169,3 +169,62 @@ class BaseParser(object):
                     for r_idx, c_idx, text in indices:
                         table.cells[r_idx][c_idx].text = text
         return pos_errors
+
+    def extract_tables(self):
+        if self._document_has_no_text():
+            return []
+
+        # Identify plausible areas within the doc where tables lie,
+        # populate table_bbox keys with these areas.
+        self._generate_table_bbox()
+
+        _tables = []
+        # sort tables based on y-coord
+        for table_idx, bbox in enumerate(
+            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
+        ):
+            cols, rows, v_s, h_s = self._generate_columns_and_rows(
+                bbox,
+                table_idx
+            )
+            table = self._generate_table(
+                table_idx, cols, rows, v_s=v_s, h_s=h_s)
+            table._bbox = bbox
+            _tables.append(table)
+
+        return _tables
+
+
+class TextBaseParser(BaseParser):
+    """Base class for all text parsers.
+    """
+
+    def __init__(
+        self,
+        parser_id,
+        table_regions=None,
+        table_areas=None,
+        columns=None,
+        flag_size=False,
+        split_text=False,
+        strip_text="",
+        edge_tol=50,
+        row_tol=2,
+        column_tol=0,
+        **kwargs
+    ):
+        super().__init__(
+            "stream",
+            table_regions=table_regions,
+            table_areas=table_areas,
+            split_text=split_text,
+            strip_text=strip_text,
+            flag_size=flag_size,
+        )
+        self.columns = columns
+        self._validate_columns()
+        self.edge_tol = edge_tol
+        self.row_tol = row_tol
+        self.column_tol = column_tol
+
+        self.textedges = None
