@@ -18,7 +18,7 @@ from ..utils import (
     bbox_from_str,
     text_in_bbox,
     text_in_bbox_per_axis,
-    bbox_from_text,
+    bbox_from_textlines,
     distance_tl_to_bbox,
     find_columns_coordinates
 )
@@ -563,30 +563,6 @@ class Hybrid(BaseParser):
 
     # FRHTODO: Check if needed, refactor with Stream
     @staticmethod
-    def _text_bbox(t_bbox):
-        """Returns bounding box for the text present on a page.
-
-        Parameters
-        ----------
-        t_bbox : dict
-            Dict with two keys 'horizontal' and 'vertical' with lists of
-            LTTextLineHorizontals and LTTextLineVerticals respectively.
-
-        Returns
-        -------
-        text_bbox : tuple
-            Tuple (x0, y0, x1, y1) in pdf coordinate space.
-
-        """
-        xmin = min(t.x0 for direction in t_bbox for t in t_bbox[direction])
-        ymin = min(t.y0 for direction in t_bbox for t in t_bbox[direction])
-        xmax = max(t.x1 for direction in t_bbox for t in t_bbox[direction])
-        ymax = max(t.y1 for direction in t_bbox for t in t_bbox[direction])
-        text_bbox = (xmin, ymin, xmax, ymax)
-        return text_bbox
-
-    # FRHTODO: Check if needed, refactor with Stream
-    @staticmethod
     def _group_rows(text, row_tol=2):
         """Groups PDFMiner text objects into rows vertically
         within a tolerance.
@@ -821,7 +797,7 @@ class Hybrid(BaseParser):
             tls_in_bbox = text_in_bbox(bbox, textlines)
 
             # and expand the text box to fully contain them
-            bbox = bbox_from_text(tls_in_bbox)
+            bbox = bbox_from_textlines(tls_in_bbox)
 
             # FRH: do we need to repeat this?
             # tls_in_bbox = text_in_bbox(bbox, textlines)
@@ -864,8 +840,9 @@ class Hybrid(BaseParser):
             self.vertical_text
         )
 
-        text_x_min, text_y_min, text_x_max, text_y_max = \
-            self._text_bbox(self.t_bbox)
+        text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
+            self.t_bbox["horizontal"] + self.t_bbox["vertical"]
+        )
         rows_grouped = self._group_rows(
             self.t_bbox["horizontal"], row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)

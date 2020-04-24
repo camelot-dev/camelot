@@ -421,7 +421,6 @@ def bbox_from_str(bbox_str):
     y1 = float(y1)
     x2 = float(x2)
     y2 = float(y2)
-    # FRHTODO: do things still work if I do x1, y1, x2, y2?
     return (
         min(x1, x2),
         min(y1, y2),
@@ -487,7 +486,7 @@ def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
     return t_bbox
 
 
-def bbox_from_text(textlines):
+def bbox_from_textlines(textlines):
     """Returns the smallest bbox containing all the text objects passed as
     a parameters.
 
