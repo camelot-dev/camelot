@@ -252,21 +252,21 @@ class Lattice(BaseParser):
             table_bbox, vertical_segments, horizontal_segments, pdf_scalers
         )
 
-    def _generate_columns_and_rows(self, tk):
+    def _generate_columns_and_rows(self, bbox, table_idx):
         # select elements which lie within table_bbox
         v_s, h_s = segments_in_bbox(
-            tk, self.vertical_segments, self.horizontal_segments
+            bbox, self.vertical_segments, self.horizontal_segments
         )
         self.t_bbox = text_in_bbox_per_axis(
-            tk,
+            bbox,
             self.horizontal_text,
             self.vertical_text
             )
 
-        cols, rows = zip(*self.table_bbox[tk])
+        cols, rows = zip(*self.table_bbox[bbox])
         cols, rows = list(cols), list(rows)
-        cols.extend([tk[0], tk[2]])
-        rows.extend([tk[1], tk[3]])
+        cols.extend([bbox[0], bbox[2]])
+        rows.extend([bbox[1], bbox[3]])
         # sort horizontal and vertical segments
         cols = merge_close_lines(sorted(cols), line_tol=self.line_tol)
         rows = merge_close_lines(
@@ -302,22 +302,3 @@ class Lattice(BaseParser):
         table._textedges = None
 
         return table
-
-    def extract_tables(self):
-        if self._document_has_no_text():
-            return []
-
-        self._generate_table_bbox()
-
-        _tables = []
-        # sort tables based on y-coord
-        for table_idx, tk in enumerate(
-            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
-        ):
-            cols, rows, v_s, h_s = self._generate_columns_and_rows(tk)
-            table = self._generate_table(
-                table_idx, cols, rows, v_s=v_s, h_s=h_s)
-            table._bbox = tk
-            _tables.append(table)
-
-        return _tables

@@ -136,7 +136,7 @@ class TextEdge(TextAlignment):
 
 
 class TextAlignments(object):
-    """Defines a dict of text edges accross alignment references.
+    """Defines a dict of text edges across reference alignments.
     """
 
     def __init__(self, alignment_names):

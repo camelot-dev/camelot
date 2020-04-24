@@ -7,7 +7,7 @@ import numpy as np
 import copy
 import warnings
 
-from .base import BaseParser
+from .base import TextBaseParser
 from ..core import (
     TextAlignments,
     ALL_ALIGNMENTS,
@@ -257,7 +257,7 @@ class TextNetworks(TextAlignments):
         for align_id in self._textedges:
             edge_array = self._textedges[align_id]
             gaps = []
-            vertical = align_id in ["left", "right", "middle"]
+            vertical = align_id in HORIZONTAL_ALIGNMENTS
             sort_function = (lambda tl: tl.y0) \
                 if vertical \
                 else (lambda tl: tl.x0)
@@ -491,7 +491,7 @@ class TextNetworks(TextAlignments):
             )
 
 
-class Hybrid(BaseParser):
+class Hybrid(TextBaseParser):
     """Hybrid method of parsing looks for spaces between text
     to parse the table.
 
@@ -548,18 +548,14 @@ class Hybrid(BaseParser):
             "hybrid",
             table_regions=table_regions,
             table_areas=table_areas,
+            columns=columns,
+            flag_size=flag_size,
             split_text=split_text,
             strip_text=strip_text,
-            flag_size=flag_size,
-            debug=debug
+            edge_tol=edge_tol,
+            row_tol=row_tol,
+            column_tol=column_tol,
         )
-        self.columns = columns
-        self.textedges = None
-
-        self._validate_columns()
-        self.edge_tol = edge_tol
-        self.row_tol = row_tol
-        self.column_tol = column_tol
 
     # FRHTODO: Check if needed, refactor with Stream
     @staticmethod
@@ -832,10 +828,10 @@ class Hybrid(BaseParser):
             ))
 
     # FRHTODO: Check is needed, refactor with Stream
-    def _generate_columns_and_rows(self, table_idx, tk):
+    def _generate_columns_and_rows(self, bbox, table_idx):
         # select elements which lie within table_bbox
         self.t_bbox = text_in_bbox_per_axis(
-            tk,
+            bbox,
             self.horizontal_text,
             self.vertical_text
         )
@@ -908,7 +904,7 @@ class Hybrid(BaseParser):
             cols = self._add_columns(cols, inner_text, self.row_tol)
             cols = self._join_columns(cols, text_x_min, text_x_max)
 
-        return cols, rows
+        return cols, rows, None, None
 
     # FRHTODO: Check is needed, refactor with Stream
     def _generate_table(self, table_idx, cols, rows, **kwargs):
@@ -922,23 +918,3 @@ class Hybrid(BaseParser):
         table._textedges = self.textedges
 
         return table
-
-    def extract_tables(self):
-        if self._document_has_no_text():
-            return []
-
-        # Identify plausible areas within the doc where tables lie,
-        # populate table_bbox keys with these areas.
-        self._generate_table_bbox()
-
-        _tables = []
-        # sort tables based on y-coord
-        for table_idx, bbox in enumerate(
-            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
-        ):
-            cols, rows = self._generate_columns_and_rows(table_idx, bbox)
-            table = self._generate_table(table_idx, cols, rows)
-            table._bbox = bbox
-            _tables.append(table)
-
-        return _tables
