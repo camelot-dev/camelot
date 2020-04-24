@@ -82,7 +82,6 @@ class TextAlignment(object):
         self.textlines.append(textline)
 
 
-
 class TextEdge(TextAlignment):
     """Defines a text edge coordinates relative to a left-bottom
     origin. (PDF coordinate space).
@@ -102,19 +101,16 @@ class TextEdge(TextAlignment):
 
     Attributes
     ----------
-    intersections: int
-        Number of intersections with horizontal text rows.
     is_valid: bool
         A text edge is valid if it intersects with at least
         TEXTEDGE_REQUIRED_ELEMENTS horizontal text rows.
 
     """
 
-    def __init__(self, coord, textline, y0, y1, align):
+    def __init__(self, coord, textline, align):
         super().__init__(coord, textline, align)
-        self.y0 = y0
-        self.y1 = y1
-        self.intersections = 0
+        self.y0 = textline.y0
+        self.y1 = textline.y1
         self.is_valid = False
 
     def __repr__(self):
@@ -133,10 +129,9 @@ class TextEdge(TextAlignment):
         if np.isclose(self.y0, textline.y0, atol=edge_tol):
             self.register_aligned_textline(textline, x)
             self.y0 = textline.y0
-            self.intersections += 1
             # a textedge is valid only if it extends uninterrupted
             # over a required number of textlines
-            if self.intersections > TEXTEDGE_REQUIRED_ELEMENTS:
+            if len(self.textlines) > TEXTEDGE_REQUIRED_ELEMENTS:
                 self.is_valid = True
 
 
@@ -151,8 +146,8 @@ class TextAlignments(object):
             self._textedges[alignment_name] = []
 
     @staticmethod
-    def _create_new_text_edge(coord, textline, align):
-        return NotImplemented
+    def _create_new_text_alignment(coord, textline, align):
+        return TextAlignment(coord, textline, align)
 
     def _update_edge(self, edge, coord, textline):
         return NotImplemented
@@ -181,7 +176,7 @@ class TextAlignments(object):
             else:
                 idx_insert = idx_closest
             if idx_insert is not None:
-                new_edge = self._create_new_text_edge(
+                new_edge = self._create_new_text_alignment(
                     coord, textline, alignment
                 )
                 edge_array.insert(idx_insert, new_edge)
@@ -198,15 +193,14 @@ class TextEdges(TextAlignments):
         self.edge_tol = edge_tol
 
     @staticmethod
-    def _create_new_text_edge(coord, textline, align):
-        y0 = textline.y0
-        y1 = textline.y1
-        return TextEdge(coord, textline, y0, y1, align)
+    def _create_new_text_alignment(coord, textline, align):
+        # In TextEdges, each alignment is a TextEdge
+        return TextEdge(coord, textline, align)
 
     def add(self, coord, textline, align):
         """Adds a new text edge to the current dict.
         """
-        te = self._create_new_text_edge(coord, textline, align)
+        te = self._create_new_text_alignment(coord, textline, align)
         self._textedges[align].append(te)
 
     def _update_edge(self, edge, coord, textline):
@@ -227,15 +221,15 @@ class TextEdges(TextAlignments):
         """
         intersections_sum = {
             "left": sum(
-                te.intersections for te in self._textedges["left"]
+                len(te.textlines) for te in self._textedges["left"]
                 if te.is_valid
             ),
             "right": sum(
-                te.intersections for te in self._textedges["right"]
+                len(te.textlines) for te in self._textedges["right"]
                 if te.is_valid
             ),
             "middle": sum(
-                te.intersections for te in self._textedges["middle"]
+                len(te.textlines) for te in self._textedges["middle"]
                 if te.is_valid
             ),
         }

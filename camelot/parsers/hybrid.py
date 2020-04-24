@@ -8,10 +8,13 @@ import copy
 import warnings
 
 from .base import BaseParser
-from ..core import (TextAlignment, TextAlignments, ALL_ALIGNMENTS)
+from ..core import (
+    TextAlignments,
+    ALL_ALIGNMENTS,
+    HORIZONTAL_ALIGNMENTS,
+    VERTICAL_ALIGNMENTS
+)
 from ..utils import (
-    get_index_closest_point,
-    get_textline_coords,
     bbox_from_str,
     text_in_bbox,
     text_in_bbox_per_axis,
@@ -137,76 +140,80 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
     return new_bbox
 
 
-class Alignments(object):
+class AlignmentCounter(object):
     """
-    Represent the number of textlines aligned with this one across each edge.
+    Represents all textlines aligned with a textline for each alignment.
 
-    A cell can be vertically aligned with others by having matching left,
+    A textline can be vertically aligned with others by having matching left,
     right, or middle edge, and horizontally aligned by having matching top,
     bottom, or center edge.
 
     """
 
     def __init__(self):
-        # Vertical alignments
-        self.left = 0
-        self.right = 0
-        self.middle = 0
-
-        # Horizontal alignments
-        self.bottom = 0
-        self.top = 0
-        self.center = 0
+        self.alignment_to_occurrences = {}
+        for alignment in ALL_ALIGNMENTS:
+            self.alignment_to_occurrences[alignment] = []
 
     def __getitem__(self, key):
-        return getattr(self, key)
+        return self.alignment_to_occurrences[key]
 
     def __setitem__(self, key, value):
-        return setattr(self, key, value)
+        self.alignment_to_occurrences[key] = value
+        return value
+
+    def max_alignments(self, alignment_ids=None):
+        """Get the alignment dimension with the max number of textlines.
+
+        """
+        alignment_ids = alignment_ids or self.alignment_to_occurrences.keys()
+        alignment_items = map(
+            lambda alignment_id: (
+                alignment_id,
+                self.alignment_to_occurrences[alignment_id]
+            ),
+            alignment_ids
+        )
+        return max(alignment_items, key=lambda item: len(item[1]))
 
     def max_v(self):
+        """Tuple (alignment_id, textlines) of largest vertical row.
+        """
+        # Note that the horizontal alignments (left, center, right) are aligned
+        # vertically in a column, so max_v is calculated by looking at
+        # horizontal alignments.
+        return self.max_alignments(HORIZONTAL_ALIGNMENTS)
+
+    def max_h(self):
+        """Tuple (alignment_id, textlines) of largest horizontal col.
+        """
+        return self.max_alignments(VERTICAL_ALIGNMENTS)
+
+    def max_v_count(self):
         """Returns the maximum number of alignments along
         one of the vertical axis (left/right/middle).
         """
-        return max(self.left, self.right, self.middle)
+        return len(self.max_v()[1])
 
-    def max_h(self):
+    def max_h_count(self):
         """Returns the maximum number of alignments along
         one of the horizontal axis (bottom/top/center).
         """
-        return max(self.bottom, self.top, self.center)
-
-    def max_v_edge_name(self):
-        """Returns the name of the vertical edge that has the
-        maximum number of alignments.
-        """
-        return max(
-            ["left", "right", "middle"],
-            key=lambda edge_name: self[edge_name]
-        )
-
-    def max_h_edge_name(self):
-        """Returns the name of the horizontal edge that has the
-        maximum number of alignments.
-        """
-        return max(
-            ["bottom", "top", "center"],
-            key=lambda edge_name: self[edge_name]
-        )
+        return len(self.max_h()[1])
 
     def alignment_score(self):
         """We define the alignment score of a textline as the product of the
         number of aligned elements - 1. The -1 is to avoid favoring
          singletons on a long line.
         """
-        return (self.max_v()-1) * (self.max_h()-1)
+        return (self.max_v_count()-1) * (self.max_h_count()-1)
 
 
-class TextEdges2(TextAlignments):
-    """Defines a dict of vertical (top, bottom, middle) and
-    horizontal (left, right, and middle) text alignments found on
-    the PDF page. The dict has three keys based on the alignments,
-    and each key's value is a list of camelot.core.TextEdge objects.
+class TextNetworks(TextAlignments):
+    """Text elements connected via both vertical (top, bottom, middle) and
+    horizontal (left, right, and middle) alignments found on the PDF page.
+    The alignment dict has six keys based on the hor/vert alignments,
+    and each key's value is a list of camelot.core.TextAlignment objects.
     """
 
     def __init__(self):
@@ -218,10 +225,6 @@ class TextEdges2(TextAlignments):
         # Maximum number of distinct aligned elements in rows/cols
         self.max_rows = None
         self.max_cols = None
-
-    @staticmethod
-    def _create_new_text_edge(coord, textline, align):
-        return TextAlignment(coord, textline, align)
 
     def _update_edge(self, edge, coord, textline):
         edge.register_aligned_textline(textline, coord)
@@ -238,27 +241,27 @@ class TextEdges2(TextAlignments):
     def _compute_alignment_counts(self):
         """Build a dictionary textline -> alignment object.
         """
-        for edge_name, textedges in self._textedges.items():
+        for align_id, textedges in self._textedges.items():
             for textedge in textedges:
                 for textline in textedge.textlines:
                     alignments = self._textlines_alignments.get(
                         textline, None)
                     if alignments is None:
-                        alignments = Alignments()
+                        alignments = AlignmentCounter()
                         self._textlines_alignments[textline] = alignments
-                    alignments[edge_name] = len(textedge.textlines)
+                    alignments[align_id] = textedge.textlines
 
         # Finally calculate the overall maximum number of rows/cols
         self.max_rows = max(
             map(
-                lambda alignments: alignments.max_h(),
+                lambda alignments: alignments.max_h_count(),
                 self._textlines_alignments.values()
             ),
             default=0
         )
         self.max_cols = max(
             map(
-                lambda alignments: alignments.max_v(),
+                lambda alignments: alignments.max_v_count(),
                 self._textlines_alignments.values()
             ),
             default=0
@@ -271,10 +274,10 @@ class TextEdges2(TextAlignments):
         the core table.
         """
         h_gaps, v_gaps = [], []
-        for edge_name in self._textedges:
-            edge_array = self._textedges[edge_name]
+        for align_id in self._textedges:
+            edge_array = self._textedges[align_id]
             gaps = []
-            vertical = edge_name in ["left", "right", "middle"]
+            vertical = align_id in ["left", "right", "middle"]
             sort_function = (lambda tl: tl.y0) \
                 if vertical \
                 else (lambda tl: tl.x0)
@@ -301,7 +304,7 @@ class TextEdges2(TextAlignments):
                 rounded_gaps = list(map(lambda x: round(x, 2), gaps))
                 print(
                     f"{direction_str} gaps found "
-                    f"for {edge_name}: "
+                    f"for {align_id}: "
                     f"{rounded_gaps} "
                     f"with {percentile}th percentile "
                     f"{np.percentile(gaps, percentile)}"
@@ -316,15 +319,16 @@ class TextEdges2(TextAlignments):
         removed_singletons = True
         while removed_singletons:
             removed_singletons = False
-            for edge_type in self._textedges:
+            for alignment_id, textalignments in self._textedges.items():
                 # For each alignment edge, remove items if they are singletons
                 # either horizontally or vertically
-                for te in self._textedges[edge_type]:
-                    for i in range(len(te.textlines) - 1, -1, -1):
-                        tl = te.textlines[i]
+                for ta in textalignments:
+                    for i in range(len(ta.textlines) - 1, -1, -1):
+                        tl = ta.textlines[i]
                         alignments = self._textlines_alignments[tl]
-                        if alignments.max_h() <= 1 or alignments.max_v() <= 1:
-                            del te.textlines[i]
+                        if alignments.max_h_count() <= 1 or \
+                           alignments.max_v_count() <= 1:
+                            del ta.textlines[i]
                             removed_singletons = True
             self._textlines_alignments = {}
             self._compute_alignment_counts()
@@ -360,37 +364,19 @@ class TextEdges2(TextAlignments):
         # It will serve as a reference axis along which to collect the average
         # spacing between rows/cols.
         most_aligned_tl = self._most_connected_textline()
-        most_aligned_coords = get_textline_coords(
-            most_aligned_tl)
 
         # Retrieve the list of textlines it's aligned with, across both
         # axis
         best_alignment = self._textlines_alignments[most_aligned_tl]
-        ref_h_edge_name = best_alignment.max_h_edge_name()
-        ref_v_edge_name = best_alignment.max_v_edge_name()
-        best_h_textedges = self._textedges[ref_h_edge_name]
-        best_v_textedges = self._textedges[ref_v_edge_name]
-        h_coord = most_aligned_coords[ref_h_edge_name]
-        v_coord = most_aligned_coords[ref_v_edge_name]
+        ref_h_alignment_id, ref_h_textlines = best_alignment.max_h()
         h_textlines = sorted(
-            best_h_textedges[
-                get_index_closest_point(
-                    h_coord,
-                    best_h_textedges,
-                    fn=lambda x: x.coord
-                )
-            ].textlines,
+            ref_h_textlines,
             key=lambda tl: tl.x0,
             reverse=True
         )
+        ref_v_alignment_id, ref_v_textlines = best_alignment.max_v()
         v_textlines = sorted(
-            best_v_textedges[
-                get_index_closest_point(
-                    v_coord,
-                    best_v_textedges,
-                    fn=lambda x: x.coord
-                )
-            ].textlines,
+            ref_v_textlines,
             key=lambda tl: tl.y0,
             reverse=True
         )
@@ -517,7 +503,7 @@ class TextEdges2(TextAlignments):
             ax.text(
                 tl.x0 - 5,
                 tl.y0 - 5,
-                f"{alignments.max_h()}x{alignments.max_v()}",
+                f"{alignments.max_h_count()}x{alignments.max_v_count()}",
                 fontsize=5,
                 color="black"
             )
@@ -826,7 +812,7 @@ class Hybrid(BaseParser):
             debug_info_bboxes_searches = None
 
         while True:
-            self.textedges = TextEdges2()
+            self.textedges = TextNetworks()
             self.textedges.generate(textlines)
             self.textedges._remove_unconnected_edges()
             if debug_info_edges_searches is not None:
