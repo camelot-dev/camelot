@@ -8,7 +8,7 @@ import copy
 import warnings
 
 from .base import BaseParser
-from ..core import (BaseTextEdges, ALL_ALIGNMENTS)
+from ..core import (TextAlignment, TextAlignments, ALL_ALIGNMENTS)
 from ..utils import (
     get_index_closest_point,
     get_textline_coords,
@@ -137,45 +137,6 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
     return new_bbox
 
 
-class TextEdge2(object):
-    """Text edge coordinates relative to a left-bottom origin.
-
-    (PDF coordinate space)
-
-    Parameters
-    ----------
-    coord : float
-        coordinate of the text edge. Depending on the alignment
-        it could be a vertical or horizontal coordinate.
-
-    Attributes
-    ----------
-    textlines: array
-        Array of textlines that demonstrate this alignment.
-    coord: float
-        The coordinate aligned averaged out across textlines.
-
-    """
-
-    def __init__(self, coord, textline):
-        self.coord = coord
-        self.textlines = [textline]
-
-    def __repr__(self):
-        text_inside = " | ".join(
-            map(lambda x: x.get_text(), self.textlines[:2])).replace("\n", "")
-        return f"<TextEdge coord={self.coord} tl={len(self.textlines)} " \
-               f"textlines text='{text_inside}...'>"
-
-    def register_aligned_textline(self, textline, coord):
-        """Update new textline to this alignment, adapting its average."""
-        # Increase the intersections for this segment, expand it up,
-        # and adjust the x based on the new value
-        self.coord = (self.coord * len(self.textlines) + coord) / \
-            float(len(self.textlines) + 1)
-        self.textlines.append(textline)
-
-
 class Alignments(object):
     """
     Represent the number of textlines aligned with this one across each edge.
@@ -241,7 +202,7 @@ class Alignments(object):
         return (self.max_v()-1) * (self.max_h()-1)
 
 
-class TextEdges2(BaseTextEdges):
+class TextEdges2(TextAlignments):
     """Defines a dict of vertical (top, bottom, middle) and
     horizontal (left, right, and middle) text alignments found on
     the PDF page. The dict has three keys based on the alignments,
@@ -250,15 +211,6 @@ class TextEdges2(BaseTextEdges):
 
     def __init__(self):
         super().__init__(ALL_ALIGNMENTS)
-        # # For each possible alignment, list of tuples coordinate/textlines
-        # self._textedges = {
-        #     "left": [],
-        #     "right": [],
-        #     "middle": [],
-        #     "bottom": [],
-        #     "top": [],
-        #     "center": []
-        # }
         # For each textline, dictionary "edge type" to
         # "number of textlines aligned"
         self._textlines_alignments = {}
@@ -268,8 +220,8 @@ class TextEdges2(BaseTextEdges):
         self.max_cols = None
 
     @staticmethod
-    def _create_new_text_edge(coord, textline, align=None):
-        return TextEdge2(coord, textline)
+    def _create_new_text_edge(coord, textline, align):
+        return TextAlignment(coord, textline, align)
 
     def _update_edge(self, edge, coord, textline):
         edge.register_aligned_textline(textline, coord)
