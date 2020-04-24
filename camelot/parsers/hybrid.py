@@ -222,10 +222,6 @@ class TextNetworks(TextAlignments):
         # "number of textlines aligned"
         self._textlines_alignments = {}
 
-        # Maximum number of distinct aligned elements in rows/cols
-        self.max_rows = None
-        self.max_cols = None
-
     def _update_edge(self, edge, coord, textline):
         edge.register_aligned_textline(textline, coord)
 
@@ -250,22 +246,6 @@ class TextNetworks(TextAlignments):
                         alignments = AlignmentCounter()
                         self._textlines_alignments[textline] = alignments
                     alignments[align_id] = textedge.textlines
-
-        # Finally calculate the overall maximum number of rows/cols
-        self.max_rows = max(
-            map(
-                lambda alignments: alignments.max_h_count(),
-                self._textlines_alignments.values()
-            ),
-            default=0
-        )
-        self.max_cols = max(
-            map(
-                lambda alignments: alignments.max_v_count(),
-                self._textlines_alignments.values()
-            ),
-            default=0
-        )
 
     def _calculate_gaps_thresholds(self, percentile=75):
         """Identify reasonable gaps between lines and columns based
@@ -356,25 +336,27 @@ class TextNetworks(TextAlignments):
             (horizontal_gap, horizontal_gap) in pdf coordinate space.
 
         """
-        if self.max_rows <= 1 or self.max_cols <= 1:
-            return None
-
         # Determine the textline that has the most combined
         # alignments across horizontal and vertical axis.
         # It will serve as a reference axis along which to collect the average
         # spacing between rows/cols.
         most_aligned_tl = self._most_connected_textline()
+        if most_aligned_tl is None:
+            return None
 
         # Retrieve the list of textlines it's aligned with, across both
         # axis
         best_alignment = self._textlines_alignments[most_aligned_tl]
         ref_h_alignment_id, ref_h_textlines = best_alignment.max_h()
+        ref_v_alignment_id, ref_v_textlines = best_alignment.max_v()
+        if len(ref_v_textlines) <= 1 or len(ref_h_textlines) <= 1:
+            return None
+
         h_textlines = sorted(
             ref_h_textlines,
             key=lambda tl: tl.x0,
             reverse=True
         )
-        ref_v_alignment_id, ref_v_textlines = best_alignment.max_v()
         v_textlines = sorted(
             ref_v_textlines,
             key=lambda tl: tl.y0,
