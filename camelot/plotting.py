@@ -8,7 +8,7 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from .utils import bbox_from_str
+from .utils import (bbox_from_str, get_textline_coords)
 
 
 def draw_labeled_bbox(
@@ -287,16 +287,15 @@ class PlotMethods(object):
                 patches.Rectangle(
                     (t[0], t[1]), t[2] - t[0], t[3] - t[1],
                     color="blue",
-                    alpha=0.5
+                    alpha=0.2
                 )
             )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
 
         if table.flavor == "hybrid":
-            for text_network in table.parse_details["network_searches"]:
-                # FRHTODO: This is too busy and doesn't plot lines
-                most_connected_tl = text_network.most_connected_textline()
+            for network in table.parse_details["network_searches"]:
+                most_connected_tl = network.most_connected_textline()
 
                 ax.add_patch(
                     patches.Rectangle(
@@ -307,13 +306,48 @@ class PlotMethods(object):
                         alpha=0.5
                     )
                 )
-                for tl, alignments in text_network._textlines_alignments.items():
+                for tl, alignments in network._textlines_alignments.items():
+                    coords = get_textline_coords(tl)
+                    alignment_id_h, tls_h = alignments.max_v()
+                    alignment_id_v, tls_v = alignments.max_h()
+                    xs = list(map(lambda tl: tl.x0, tls_v))
+                    ys = list(map(lambda tl: tl.y1, tls_h))
+                    top_h = max(ys)
                     ax.text(
-                        tl.x0 - 5,
-                        tl.y0 - 5,
-                        f"{alignments.max_h_count()}x{alignments.max_v_count()}",
-                        fontsize=5,
-                        color="black"
+                        coords[alignment_id_h],
+                        top_h + 5,
+                        "{max_h_count}".format(max_h_count=len(tls_h)),
+                        verticalalignment="bottom",
+                        horizontalalignment="center",
+                        fontsize=8,
+                        color="green"
+                    )
+                    ax.plot(
+                        [coords[alignment_id_h]] * len(ys), ys,
+                        color="green",
+                        linestyle="dashed",
+                        linewidth=1,
+                        marker="o",
+                        markersize=3
+                    )
+
+                    left_v = min(map(lambda tl: tl.x0, tls_v))
+                    ax.text(
+                        left_v - 5,
+                        coords[alignment_id_v],
+                        "{max_v_count}".format(max_v_count=len(tls_v)),
+                        verticalalignment="center",
+                        horizontalalignment="right",
+                        fontsize=8,
+                        color="blue"
+                    )
+                    ax.plot(
+                        xs, [coords[alignment_id_v]] * len(xs),
+                        color="blue",
+                        linestyle="dotted",
+                        linewidth=1,
+                        marker="o",
+                        markersize=3
                     )
         else:
             for te in table._textedges:

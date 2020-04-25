@@ -21,8 +21,6 @@ from ..utils import (
     find_columns_coordinates
 )
 
-from matplotlib import patches as patches
-
 # maximum number of columns over which a header can spread
 MAX_COL_SPREAD_IN_HEADER = 3
 
@@ -220,8 +218,8 @@ class TextNetworks(TextAlignments):
         # "number of textlines aligned"
         self._textlines_alignments = {}
 
-    def _update_edge(self, edge, coord, textline):
-        edge.register_aligned_textline(textline, coord)
+    def _update_alignment(self, alignment, coord, textline):
+        alignment.register_aligned_textline(textline, coord)
 
     def _register_all_text_lines(self, textlines):
         """Add all textlines to our network repository to

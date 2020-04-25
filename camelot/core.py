@@ -147,7 +147,7 @@ class TextAlignments(object):
     def _create_new_text_alignment(coord, textline, align):
         return TextAlignment(coord, textline, align)
 
-    def _update_edge(self, edge, coord, textline):
+    def _update_alignment(self, alignment, coord, textline):
         return NotImplemented
 
     def _register_textline(self, textline):
@@ -172,7 +172,7 @@ class TextAlignments(object):
                 coord,
                 atol=0.5
             ):
-                self._update_edge(
+                self._update_alignment(
                     alignment_array[idx_closest],
                     coord,
                     textline
@@ -209,7 +209,7 @@ class TextEdges(TextAlignments):
         te = self._create_new_text_alignment(coord, textline, align)
         self._text_alignments[align].append(te)
 
-    def _update_edge(self, edge, coord, textline):
+    def _update_alignment(self, edge, coord, textline):
         edge.update_coords(coord, textline, self.edge_tol)
 
     def generate(self, textlines):
