@@ -168,6 +168,15 @@ class Lattice(BaseParser):
             indices.append((r_idx, c_idx, text))
         return indices
 
+    def record_parse_metadata(self, table):
+        """Record data about the origin of the table
+        """
+        super().record_parse_metadata(table)
+        # for plotting
+        table._image = self.pdf_image  # Reuse the image used for calc
+        table._bbox_unscaled = self.table_bbox_unscaled
+        table._segments = (self.vertical_segments, self.horizontal_segments)
+
     def _generate_table_bbox(self):
         def scale_areas(areas):
             scaled_areas = []
@@ -293,12 +302,5 @@ class Lattice(BaseParser):
         # set spanning cells to True
         table = table.set_span()
 
-        table.record_parse_metadata(self)
-
-        # for plotting
-        table._image = self.pdf_image  # Reuse the image used for calc
-        table._bbox_unscaled = self.table_bbox_unscaled
-        table._segments = (self.vertical_segments, self.horizontal_segments)
-        table._textedges = None
-
+        self.record_parse_metadata(table)
         return table

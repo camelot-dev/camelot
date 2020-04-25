@@ -87,9 +87,9 @@ def draw_parse_constraints(table, ax):
     ax : matplotlib.axes.Axes
 
     """
-    if table.debug_info:
+    if table.parse_details:
         # Display a bbox per region
-        for region_str in table.debug_info["table_regions"] or []:
+        for region_str in table.parse_details["table_regions"] or []:
             draw_labeled_bbox(
                 ax, bbox_from_str(region_str),
                 "region: ({region_str})".format(region_str=region_str),
@@ -99,7 +99,7 @@ def draw_parse_constraints(table, ax):
                 label_pos="bottom,right"
             )
         # Display a bbox per area
-        for area_str in table.debug_info["table_areas"] or []:
+        for area_str in table.parse_details["table_areas"] or []:
             draw_labeled_bbox(
                 ax, bbox_from_str(area_str),
                 "area: ({area_str})".format(area_str=area_str),
@@ -294,8 +294,27 @@ class PlotMethods(object):
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
 
         if table.flavor == "hybrid":
-            # FRHTODO: Clean this up
-            table.debug_info["edges_searches"][0].plot_alignments(ax)
+            for text_network in table.parse_details["network_searches"]:
+                # FRHTODO: This is too busy and doesn't plot lines
+                most_connected_tl = text_network.most_connected_textline()
+
+                ax.add_patch(
+                    patches.Rectangle(
+                        (most_connected_tl.x0, most_connected_tl.y0),
+                        most_connected_tl.x1 - most_connected_tl.x0,
+                        most_connected_tl.y1 - most_connected_tl.y0,
+                        color="red",
+                        alpha=0.5
+                    )
+                )
+                for tl, alignments in text_network._textlines_alignments.items():
+                    ax.text(
+                        tl.x0 - 5,
+                        tl.y0 - 5,
+                        f"{alignments.max_h_count()}x{alignments.max_v_count()}",
+                        fontsize=5,
+                        color="black"
+                    )
         else:
             for te in table._textedges:
                 ax.plot([te.coord, te.coord], [te.y0, te.y1])
@@ -372,10 +391,10 @@ class PlotMethods(object):
         draw_pdf(table, ax)
         draw_parse_constraints(table, ax)
 
-        if table.debug_info is None:
+        if table.parse_details is None:
             return fig
-        debug_info = table.debug_info
-        for box_id, bbox_search in enumerate(debug_info["bboxes_searches"]):
+        parse_details = table.parse_details
+        for box_id, bbox_search in enumerate(parse_details["bbox_searches"]):
             max_h_gap = bbox_search["max_h_gap"]
             max_v_gap = bbox_search["max_v_gap"]
             iterations = bbox_search["iterations"]
@@ -403,7 +422,7 @@ class PlotMethods(object):
                     )
                 )
 
-        for box_id, col_search in enumerate(debug_info["col_searches"]):
+        for box_id, col_search in enumerate(parse_details["col_searches"]):
             draw_labeled_bbox(
                 ax, col_search["expanded_bbox"],
                 "box body + header #{box_id}".format(
@@ -422,10 +441,5 @@ class PlotMethods(object):
                 linewidth=2,
                 label_pos="bottom,left"
             )
-            # self.debug_info["col_searches"].append({
-            #     "core_bbox": bbox,
-            #     "cols_anchors": cols_anchors,
-            #     "expanded_bbox": expanded_bbox
-            # })
 
         return fig

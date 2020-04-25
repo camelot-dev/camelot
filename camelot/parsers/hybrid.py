@@ -5,7 +5,6 @@ from __future__ import division
 
 import numpy as np
 import copy
-import warnings
 
 from .base import TextBaseParser
 from ..core import (
@@ -17,7 +16,6 @@ from ..core import (
 from ..utils import (
     bbox_from_str,
     text_in_bbox,
-    text_in_bbox_per_axis,
     bbox_from_textlines,
     distance_tl_to_bbox,
     find_columns_coordinates
@@ -142,11 +140,11 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
 
 class AlignmentCounter(object):
     """
-    Represents all textlines aligned with a textline for each alignment.
+    For a given textline, represent all other textlines aligned with it.
 
-    A textline can be vertically aligned with others by having matching left,
-    right, or middle edge, and horizontally aligned by having matching top,
-    bottom, or center edge.
+    A textline can be vertically aligned with others if their bbox match on
+    left, right, or middle coord, and horizontally aligned if they match top,
+    bottom, or center coord.
 
     """
 
@@ -210,15 +208,15 @@ class AlignmentCounter(object):
 
 
 class TextNetworks(TextAlignments):
-    """Text elements connected via both vertical (top, bottom, middle) and
-    horizontal (left, right, and middle) alignments found on the PDF page.
+    """Text elements connected by vertical AND horizontal alignments.
+
     The alignment dict has six keys based on the hor/vert alignments,
     and each key's value is a list of camelot.core.TextAlignment objects.
     """
 
     def __init__(self):
         super().__init__(ALL_ALIGNMENTS)
-        # For each textline, dictionary "edge type" to
+        # For each textline, dictionary "alignment type" to
         # "number of textlines aligned"
         self._textlines_alignments = {}
 
@@ -226,10 +224,10 @@ class TextNetworks(TextAlignments):
         edge.register_aligned_textline(textline, coord)
 
     def _register_all_text_lines(self, textlines):
-        """Add all textlines to our edge repository to
+        """Add all textlines to our network repository to
         identify alignments.
         """
-        # Identify all the edge alignments
+        # Identify all the alignments
         for tl in textlines:
             if len(tl.get_text().strip()) > 0:
                 self._register_textline(tl)
@@ -237,7 +235,7 @@ class TextNetworks(TextAlignments):
     def _compute_alignment_counts(self):
         """Build a dictionary textline -> alignment object.
         """
-        for align_id, textedges in self._textedges.items():
+        for align_id, textedges in self._text_alignments.items():
             for textedge in textedges:
                 for textline in textedge.textlines:
                     alignments = self._textlines_alignments.get(
@@ -254,8 +252,8 @@ class TextNetworks(TextAlignments):
         the core table.
         """
         h_gaps, v_gaps = [], []
-        for align_id in self._textedges:
-            edge_array = self._textedges[align_id]
+        for align_id in self._text_alignments:
+            edge_array = self._text_alignments[align_id]
             gaps = []
             vertical = align_id in HORIZONTAL_ALIGNMENTS
             sort_function = (lambda tl: tl.y0) \
@@ -299,7 +297,7 @@ class TextNetworks(TextAlignments):
         removed_singletons = True
         while removed_singletons:
             removed_singletons = False
-            for alignment_id, textalignments in self._textedges.items():
+            for alignment_id, textalignments in self._text_alignments.items():
                 # For each alignment edge, remove items if they are singletons
                 # either horizontally or vertically
                 for ta in textalignments:
@@ -313,7 +311,7 @@ class TextNetworks(TextAlignments):
             self._textlines_alignments = {}
             self._compute_alignment_counts()
 
-    def _most_connected_textline(self):
+    def most_connected_textline(self):
         """ Retrieve the textline that is most connected across vertical and
         horizontal axis.
 
@@ -340,7 +338,7 @@ class TextNetworks(TextAlignments):
         # alignments across horizontal and vertical axis.
         # It will serve as a reference axis along which to collect the average
         # spacing between rows/cols.
-        most_aligned_tl = self._most_connected_textline()
+        most_aligned_tl = self.most_connected_textline()
         if most_aligned_tl is None:
             return None
 
@@ -378,7 +376,7 @@ class TextNetworks(TextAlignments):
         )
         return gaps_hv
 
-    def _build_bbox_candidate(self, gaps_hv, debug_info=None):
+    def _build_bbox_candidate(self, gaps_hv, parse_details=None):
         """ Seed the process with the textline with the highest alignment
         score, then expand the bbox with textlines within threshold.
 
@@ -387,7 +385,7 @@ class TextNetworks(TextAlignments):
         gaps_hv : tuple
              The maximum distance allowed to consider surrounding lines/columns
              as part of the same table.
-        debug_info : array (optional)
+        parse_details : array (optional)
             Optional parameter array, in which to store extra information
             to help later visualization of the table creation.
         """
@@ -396,23 +394,23 @@ class TextNetworks(TextAlignments):
         # It will serve both as a starting point for the table boundary
         # search, and as a way to estimate the average spacing between
         # rows/cols.
-        most_aligned_tl = self._most_connected_textline()
+        most_aligned_tl = self.most_connected_textline()
 
         # Calculate the 75th percentile of the horizontal/vertical
         # gaps between textlines.  Use this as a reference for a threshold
         # to not exceed while looking for table boundaries.
         max_h_gap, max_v_gap = gaps_hv[0], gaps_hv[1]
 
-        if debug_info is not None:
+        if parse_details is not None:
             # Store debug info
-            debug_info_search = {
+            parse_details_search = {
                 "max_h_gap": max_h_gap,
                 "max_v_gap": max_v_gap,
                 "iterations": []
             }
-            debug_info.append(debug_info_search)
+            parse_details.append(parse_details_search)
         else:
-            debug_info_search = None
+            parse_details_search = None
 
         MINIMUM_TEXTLINES_IN_TABLE = 6
         bbox = (most_aligned_tl.x0, most_aligned_tl.y0,
@@ -426,9 +424,9 @@ class TextNetworks(TextAlignments):
         tls_in_bbox = [most_aligned_tl]
         last_bbox = None
         while last_bbox != bbox:
-            if debug_info_search is not None:
+            if parse_details_search is not None:
                 # Store debug info
-                debug_info_search["iterations"].append(bbox)
+                parse_details_search["iterations"].append(bbox)
 
             last_bbox = bbox
             # Go through all remaining textlines, expand our bbox
@@ -460,35 +458,6 @@ class TextNetworks(TextAlignments):
         """
         self._register_all_text_lines(textlines)
         self._compute_alignment_counts()
-
-    def plot_alignments(self, ax):
-        """Displays a visualization of the alignments as currently computed.
-        """
-        # FRHTODO: This is too busy and doesn't plot lines
-        most_aligned_tl = sorted(
-            self._textlines_alignments.keys(),
-            key=lambda textline:
-            self._textlines_alignments[textline].alignment_score(),
-            reverse=True
-        )[0]
-
-        ax.add_patch(
-            patches.Rectangle(
-                (most_aligned_tl.x0, most_aligned_tl.y0),
-                most_aligned_tl.x1 - most_aligned_tl.x0,
-                most_aligned_tl.y1 - most_aligned_tl.y0,
-                color="red",
-                alpha=0.5
-            )
-        )
-        for tl, alignments in self._textlines_alignments.items():
-            ax.text(
-                tl.x0 - 5,
-                tl.y0 - 5,
-                f"{alignments.max_h_count()}x{alignments.max_v_count()}",
-                fontsize=5,
-                color="black"
-            )
 
 
 class Hybrid(TextBaseParser):
@@ -555,189 +524,8 @@ class Hybrid(TextBaseParser):
             edge_tol=edge_tol,
             row_tol=row_tol,
             column_tol=column_tol,
+            debug=debug,
         )
-
-    # FRHTODO: Check if needed, refactor with Stream
-    @staticmethod
-    def _group_rows(text, row_tol=2):
-        """Groups PDFMiner text objects into rows vertically
-        within a tolerance.
-
-        Parameters
-        ----------
-        text : list
-            List of PDFMiner text objects.
-        row_tol : int, optional (default: 2)
-
-        Returns
-        -------
-        rows : list
-            Two-dimensional list of text objects grouped into rows.
-
-        """
-        row_y = None
-        rows = []
-        temp = []
-        non_empty_text = [t for t in text if t.get_text().strip()]
-        for t in non_empty_text:
-            # is checking for upright necessary?
-            # if t.get_text().strip() and all([obj.upright \
-            #   for obj in t._objs
-            # if type(obj) is LTChar]):
-            if row_y is None:
-                row_y = t.y0
-            elif not np.isclose(row_y, t.y0, atol=row_tol):
-                rows.append(sorted(temp, key=lambda t: t.x0))
-                temp = []
-                # We update the row's bottom as we go, to be forgiving if there
-                # is a gradual change across multiple columns.
-                row_y = t.y0
-            temp.append(t)
-        rows.append(sorted(temp, key=lambda t: t.x0))
-        return rows
-
-    # FRHTODO: Check if needed, refactor with Stream
-    @staticmethod
-    def _merge_columns(l, column_tol=0):
-        """Merges column boundaries horizontally if they overlap
-        or lie within a tolerance.
-
-        Parameters
-        ----------
-        l : list
-            List of column x-coordinate tuples.
-        column_tol : int, optional (default: 0)
-
-        Returns
-        -------
-        merged : list
-            List of merged column x-coordinate tuples.
-
-        """
-        merged = []
-        for higher in l:
-            if not merged:
-                merged.append(higher)
-            else:
-                lower = merged[-1]
-                if column_tol >= 0:
-                    if higher[0] <= lower[1] or np.isclose(
-                        higher[0], lower[1], atol=column_tol
-                    ):
-                        upper_bound = max(lower[1], higher[1])
-                        lower_bound = min(lower[0], higher[0])
-                        merged[-1] = (lower_bound, upper_bound)
-                    else:
-                        merged.append(higher)
-                elif column_tol < 0:
-                    if higher[0] <= lower[1]:
-                        if np.isclose(higher[0], lower[1],
-                                      atol=abs(column_tol)):
-                            merged.append(higher)
-                        else:
-                            upper_bound = max(lower[1], higher[1])
-                            lower_bound = min(lower[0], higher[0])
-                            merged[-1] = (lower_bound, upper_bound)
-                    else:
-                        merged.append(higher)
-        return merged
-
-    # FRHTODO: Check if needed, refactor with Stream
-    @staticmethod
-    def _join_rows(rows_grouped, text_y_max, text_y_min):
-        """Makes row coordinates continuous. For the row to "touch"
-        we split the existing gap between them in half.
-
-        Parameters
-        ----------
-        rows_grouped : list
-            Two-dimensional list of text objects grouped into rows.
-        text_y_max : int
-        text_y_min : int
-
-        Returns
-        -------
-        rows : list
-            List of continuous row y-coordinate tuples.
-
-        """
-        row_boundaries = [
-            [
-                max(t.y1 for t in r),
-                min(t.y0 for t in r)
-            ]
-            for r in rows_grouped
-        ]
-        for i in range(0, len(row_boundaries)-1):
-            top_row = row_boundaries[i]
-            bottom_row = row_boundaries[i+1]
-            top_row[1] = bottom_row[0] = (top_row[1] + bottom_row[0]) / 2
-        row_boundaries[0][0] = text_y_max
-        row_boundaries[-1][1] = text_y_min
-        return row_boundaries
-
-    # FRHTODO: Check if needed, refactor with Stream
-    @staticmethod
-    def _add_columns(cols, text, row_tol):
-        """Add columns to existing list by taking into account
-        the text that lies outside the current column x-coordinates.
-
-        Parameters
-        ----------
-        cols : list
-            List of column x-coordinate tuples.
-        text : list
-            List of PDFMiner text objects.
-        ytol : int
-
-        Returns
-        -------
-        cols : list
-            Updated list of column x-coordinate tuples.
-
-        """
-        if text:
-            text = Hybrid._group_rows(text, row_tol=row_tol)
-            elements = [len(r) for r in text]
-            new_cols = [
-                (t.x0, t.x1)
-                for r in text if len(r) == max(elements)
-                for t in r
-            ]
-            cols.extend(Hybrid._merge_columns(sorted(new_cols)))
-        return cols
-
-    # FRHTODO: Check if needed, refactor with Stream
-    @staticmethod
-    def _join_columns(cols, text_x_min, text_x_max):
-        """Makes column coordinates continuous.
-
-        Parameters
-        ----------
-        cols : list
-            List of column x-coordinate tuples.
-        text_x_min : int
-        text_y_max : int
-
-        Returns
-        -------
-        cols : list
-            Updated list of column x-coordinate tuples.
-
-        """
-        cols = sorted(cols)
-        cols = [(cols[i][0] + cols[i - 1][1]) / 2 for i in range(1, len(cols))]
-        cols.insert(0, text_x_min)
-        cols.append(text_x_max)
-        cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        return cols
-
-    # FRHTODO: Check is needed, refactor with Stream
-    def _validate_columns(self):
-        if self.table_areas is not None and self.columns is not None:
-            if len(self.table_areas) != len(self.columns):
-                raise ValueError("Length of table_areas and columns"
-                                 " should be equal")
 
     def _generate_table_bbox(self):
         if self.table_areas is not None:
@@ -756,25 +544,21 @@ class Hybrid(TextBaseParser):
 
         textlines_processed = {}
         self.table_bbox = {}
-        if self.debug_info is not None:
-            debug_info_edges_searches = []
-            self.debug_info["edges_searches"] = debug_info_edges_searches
-            debug_info_bboxes_searches = []
-            self.debug_info["bboxes_searches"] = debug_info_bboxes_searches
+        if self.parse_details is not None:
+            parse_details_network_searches = []
+            self.parse_details["network_searches"] = \
+                parse_details_network_searches
+            parse_details_bbox_searches = []
+            self.parse_details["bbox_searches"] = parse_details_bbox_searches
         else:
-            debug_info_edges_searches = None
-            debug_info_bboxes_searches = None
+            parse_details_network_searches = None
+            parse_details_bbox_searches = None
 
         while True:
-            self.textedges = TextNetworks()
-            self.textedges.generate(textlines)
-            self.textedges._remove_unconnected_edges()
-            if debug_info_edges_searches is not None:
-                # Preserve the current edge calculation for display debugging
-                debug_info_edges_searches.append(
-                    copy.deepcopy(self.textedges)
-                )
-            gaps_hv = self.textedges._compute_plausible_gaps()
+            text_network = TextNetworks()
+            text_network.generate(textlines)
+            text_network._remove_unconnected_edges()
+            gaps_hv = text_network._compute_plausible_gaps()
             if gaps_hv is None:
                 return None
             # edge_tol instructions override the calculated vertical gap
@@ -782,12 +566,18 @@ class Hybrid(TextBaseParser):
                 gaps_hv[0],
                 gaps_hv[1] if self.edge_tol is None else self.edge_tol
             )
-            bbox = self.textedges._build_bbox_candidate(
+            bbox = text_network._build_bbox_candidate(
                 edge_tol_hv,
-                debug_info=debug_info_bboxes_searches
+                parse_details=parse_details_bbox_searches
             )
             if bbox is None:
                 break
+
+            if parse_details_network_searches is not None:
+                # Preserve the current edge calculation for display debugging
+                parse_details_network_searches.append(
+                    copy.deepcopy(text_network)
+                )
 
             # Get all the textlines that are at least 50% in the box
             tls_in_bbox = text_in_bbox(bbox, textlines)
@@ -808,10 +598,10 @@ class Hybrid(TextBaseParser):
                 gaps_hv[1]
             )
 
-            if self.debug_info is not None:
-                if "col_searches" not in self.debug_info:
-                    self.debug_info["col_searches"] = []
-                self.debug_info["col_searches"].append({
+            if self.parse_details is not None:
+                if "col_searches" not in self.parse_details:
+                    self.parse_details["col_searches"] = []
+                self.parse_details["col_searches"].append({
                     "core_bbox": bbox,
                     "cols_anchors": cols_anchors,
                     "expanded_bbox": expanded_bbox
@@ -826,95 +616,3 @@ class Hybrid(TextBaseParser):
                 lambda tl: tl not in textlines_processed,
                 textlines
             ))
-
-    # FRHTODO: Check is needed, refactor with Stream
-    def _generate_columns_and_rows(self, bbox, table_idx):
-        # select elements which lie within table_bbox
-        self.t_bbox = text_in_bbox_per_axis(
-            bbox,
-            self.horizontal_text,
-            self.vertical_text
-        )
-
-        text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
-            self.t_bbox["horizontal"] + self.t_bbox["vertical"]
-        )
-        rows_grouped = self._group_rows(
-            self.t_bbox["horizontal"], row_tol=self.row_tol)
-        rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
-        elements = [len(r) for r in rows_grouped]
-
-        if self.columns is not None and self.columns[table_idx] != "":
-            # user has to input boundary columns too
-            # take (0, pdf_width) by default
-            # similar to else condition
-            # len can't be 1
-            cols = self.columns[table_idx].split(",")
-            cols = [float(c) for c in cols]
-            cols.insert(0, text_x_min)
-            cols.append(text_x_max)
-            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        else:
-            # calculate mode of the list of number of elements in
-            # each row to guess the number of columns
-            ncols = max(set(elements), key=elements.count)
-            if ncols == 1:
-                # if mode is 1, the page usually contains not tables
-                # but there can be cases where the list can be skewed,
-                # try to remove all 1s from list in this case and
-                # see if the list contains elements, if yes, then use
-                # the mode after removing 1s
-                elements = list(filter(lambda x: x != 1, elements))
-                if elements:
-                    ncols = max(set(elements), key=elements.count)
-                else:
-                    warnings.warn(
-                        "No tables found in table area {}"
-                        .format(table_idx + 1)
-                    )
-            cols = [
-                (t.x0, t.x1)
-                for r in rows_grouped
-                if len(r) == ncols
-                for t in r
-            ]
-            cols = self._merge_columns(
-                sorted(cols),
-                column_tol=self.column_tol
-            )
-            inner_text = []
-            for i in range(1, len(cols)):
-                left = cols[i - 1][1]
-                right = cols[i][0]
-                inner_text.extend(
-                    [
-                        t
-                        for direction in self.t_bbox
-                        for t in self.t_bbox[direction]
-                        if t.x0 > left and t.x1 < right
-                    ]
-                )
-            outer_text = [
-                t
-                for direction in self.t_bbox
-                for t in self.t_bbox[direction]
-                if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
-            ]
-            inner_text.extend(outer_text)
-            cols = self._add_columns(cols, inner_text, self.row_tol)
-            cols = self._join_columns(cols, text_x_min, text_x_max)
-
-        return cols, rows, None, None
-
-    # FRHTODO: Check is needed, refactor with Stream
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
-        table = self._initialize_new_table(table_idx, cols, rows)
-        table = table.set_all_edges()
-        table.record_parse_metadata(self)
-
-        # for plotting
-        table._bbox = self.table_bbox
-        table._segments = None
-        table._textedges = self.textedges
-
-        return table
