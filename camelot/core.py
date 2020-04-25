@@ -15,8 +15,6 @@ from .utils import (
     get_index_closest_point,
     get_textline_coords,
     build_file_path_in_temp_dir,
-    compute_accuracy,
-    compute_whitespace,
     export_pdf_as_png
 )
 
@@ -141,9 +139,9 @@ class TextAlignments(object):
 
     def __init__(self, alignment_names):
         # For each possible alignment, list of tuples coordinate/textlines
-        self._textedges = {}
+        self._text_alignments = {}
         for alignment_name in alignment_names:
-            self._textedges[alignment_name] = []
+            self._text_alignments[alignment_name] = []
 
     @staticmethod
     def _create_new_text_alignment(coord, textline, align):
@@ -156,12 +154,12 @@ class TextAlignments(object):
         """Updates an existing text edge in the current dict.
         """
         coords = get_textline_coords(textline)
-        for alignment, edge_array in self._textedges.items():
-            coord = coords[alignment]
+        for alignment_id, alignment_array in self._text_alignments.items():
+            coord = coords[alignment_id]
 
             # Find the index of the closest existing element (or 0 if none)
             idx_closest = get_index_closest_point(
-                coord, edge_array, fn=lambda x: x.coord
+                coord, alignment_array, fn=lambda x: x.coord
             )
 
             # Check if the edges before/after are close enough
@@ -169,17 +167,25 @@ class TextAlignments(object):
             idx_insert = None
             if idx_closest is None:
                 idx_insert = 0
-            elif np.isclose(edge_array[idx_closest].coord, coord, atol=0.5):
-                self._update_edge(edge_array[idx_closest], coord, textline)
-            elif edge_array[idx_closest].coord < coord:
+            elif np.isclose(
+                alignment_array[idx_closest].coord,
+                coord,
+                atol=0.5
+            ):
+                self._update_edge(
+                    alignment_array[idx_closest],
+                    coord,
+                    textline
+                )
+            elif alignment_array[idx_closest].coord < coord:
                 idx_insert = idx_closest + 1
             else:
                 idx_insert = idx_closest
             if idx_insert is not None:
-                new_edge = self._create_new_text_alignment(
-                    coord, textline, alignment
+                new_alignment = self._create_new_text_alignment(
+                    coord, textline, alignment_id
                 )
-                edge_array.insert(idx_insert, new_edge)
+                alignment_array.insert(idx_insert, new_alignment)
 
 
 class TextEdges(TextAlignments):
@@ -201,7 +207,7 @@ class TextEdges(TextAlignments):
         """Adds a new text edge to the current dict.
         """
         te = self._create_new_text_alignment(coord, textline, align)
-        self._textedges[align].append(te)
+        self._text_alignments[align].append(te)
 
     def _update_edge(self, edge, coord, textline):
         edge.update_coords(coord, textline, self.edge_tol)
@@ -221,15 +227,15 @@ class TextEdges(TextAlignments):
         """
         intersections_sum = {
             "left": sum(
-                len(te.textlines) for te in self._textedges["left"]
+                len(te.textlines) for te in self._text_alignments["left"]
                 if te.is_valid
             ),
             "right": sum(
-                len(te.textlines) for te in self._textedges["right"]
+                len(te.textlines) for te in self._text_alignments["right"]
                 if te.is_valid
             ),
             "middle": sum(
-                len(te.textlines) for te in self._textedges["middle"]
+                len(te.textlines) for te in self._text_alignments["middle"]
                 if te.is_valid
             ),
         }
@@ -240,7 +246,7 @@ class TextEdges(TextAlignments):
         relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
         return list(filter(
             lambda te: te.is_valid,
-            self._textedges[relevant_align])
+            self._text_alignments[relevant_align])
         )
 
     def get_table_areas(self, textlines, relevant_textedges):
@@ -443,9 +449,9 @@ class Table(object):
         self.filename = None
         self.order = None
         self.page = None
-        self.flavor = None      # Flavor of the parser that generated the table
-        self.pdf_size = None    # Dimensions of the original PDF page
-        self.debug_info = None  # Field holding debug data
+        self.flavor = None         # Flavor of the parser used
+        self.pdf_size = None       # Dimensions of the original PDF page
+        self.parse_details = None  # Field holding debug data
 
         self._image = None
         self._image_path = None  # Temporary file to hold an image of the pdf
@@ -484,31 +490,6 @@ class Table(object):
             "page": self.page,
         }
         return report
-
-    def record_parse_metadata(self, parser):
-        """Record data about the origin of the table
-        """
-        self.flavor = parser.id
-        self.filename = parser.filename
-        self.debug_info = parser.debug_info
-        pos_errors = parser.compute_parse_errors(self)
-        self.accuracy = compute_accuracy([[100, pos_errors]])
-
-        if parser.copy_text is not None:
-            self.copy_spanning_text(parser.copy_text)
-
-        data = self.data
-        self.df = pd.DataFrame(data)
-        self.shape = self.df.shape
-
-        self.whitespace = compute_whitespace(data)
-        self.pdf_size = (parser.pdf_width, parser.pdf_height)
-
-        _text = []
-        _text.extend(
-            [(t.x0, t.y0, t.x1, t.y1) for t in parser.horizontal_text])
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in parser.vertical_text])
-        self._text = _text
 
     def get_pdf_image(self):
         """Compute pdf image and cache it

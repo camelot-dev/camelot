@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-import warnings
-
-import numpy as np
 
 from .base import TextBaseParser
 from ..core import TextEdges
 from ..utils import (
     bbox_from_str,
-    bbox_from_textlines,
-    text_in_bbox,
-    text_in_bbox_per_axis
+    text_in_bbox
 )
 
 
@@ -79,182 +74,7 @@ class Stream(TextBaseParser):
             row_tol=row_tol,
             column_tol=column_tol,
         )
-
-    @staticmethod
-    def _group_rows(text, row_tol=2):
-        """Groups PDFMiner text objects into rows vertically
-        within a tolerance.
-
-        Parameters
-        ----------
-        text : list
-            List of PDFMiner text objects.
-        row_tol : int, optional (default: 2)
-
-        Returns
-        -------
-        rows : list
-            Two-dimensional list of text objects grouped into rows.
-
-        """
-        row_y = None
-        rows = []
-        temp = []
-        non_empty_text = [t for t in text if t.get_text().strip()]
-        for t in non_empty_text:
-            # is checking for upright necessary?
-            # if t.get_text().strip() and all([obj.upright \
-            #   for obj in t._objs
-            # if type(obj) is LTChar]):
-            if row_y is None:
-                row_y = t.y0
-            elif not np.isclose(row_y, t.y0, atol=row_tol):
-                rows.append(sorted(temp, key=lambda t: t.x0))
-                temp = []
-                # We update the row's bottom as we go, to be forgiving if there
-                # is a gradual change across multiple columns.
-                row_y = t.y0
-            temp.append(t)
-        rows.append(sorted(temp, key=lambda t: t.x0))
-        return rows
-
-    @staticmethod
-    def _merge_columns(l, column_tol=0):
-        """Merges column boundaries horizontally if they overlap
-        or lie within a tolerance.
-
-        Parameters
-        ----------
-        l : list
-            List of column x-coordinate tuples.
-        column_tol : int, optional (default: 0)
-
-        Returns
-        -------
-        merged : list
-            List of merged column x-coordinate tuples.
-
-        """
-        merged = []
-        for higher in l:
-            if not merged:
-                merged.append(higher)
-            else:
-                lower = merged[-1]
-                if column_tol >= 0:
-                    if higher[0] <= lower[1] or np.isclose(
-                        higher[0], lower[1], atol=column_tol
-                    ):
-                        upper_bound = max(lower[1], higher[1])
-                        lower_bound = min(lower[0], higher[0])
-                        merged[-1] = (lower_bound, upper_bound)
-                    else:
-                        merged.append(higher)
-                elif column_tol < 0:
-                    if higher[0] <= lower[1]:
-                        if np.isclose(higher[0], lower[1],
-                                      atol=abs(column_tol)):
-                            merged.append(higher)
-                        else:
-                            upper_bound = max(lower[1], higher[1])
-                            lower_bound = min(lower[0], higher[0])
-                            merged[-1] = (lower_bound, upper_bound)
-                    else:
-                        merged.append(higher)
-        return merged
-
-    @staticmethod
-    def _join_rows(rows_grouped, text_y_max, text_y_min):
-        """Makes row coordinates continuous. For the row to "touch"
-        we split the existing gap between them in half.
-
-        Parameters
-        ----------
-        rows_grouped : list
-            Two-dimensional list of text objects grouped into rows.
-        text_y_max : int
-        text_y_min : int
-
-        Returns
-        -------
-        rows : list
-            List of continuous row y-coordinate tuples.
-
-        """
-        row_boundaries = [
-            [
-                max(t.y1 for t in r),
-                min(t.y0 for t in r)
-            ]
-            for r in rows_grouped
-        ]
-        for i in range(0, len(row_boundaries)-1):
-            top_row = row_boundaries[i]
-            bottom_row = row_boundaries[i+1]
-            top_row[1] = bottom_row[0] = (top_row[1] + bottom_row[0]) / 2
-        row_boundaries[0][0] = text_y_max
-        row_boundaries[-1][1] = text_y_min
-        return row_boundaries
-
-    @staticmethod
-    def _add_columns(cols, text, row_tol):
-        """Adds columns to existing list by taking into account
-        the text that lies outside the current column x-coordinates.
-
-        Parameters
-        ----------
-        cols : list
-            List of column x-coordinate tuples.
-        text : list
-            List of PDFMiner text objects.
-        ytol : int
-
-        Returns
-        -------
-        cols : list
-            Updated list of column x-coordinate tuples.
-
-        """
-        if text:
-            text = Stream._group_rows(text, row_tol=row_tol)
-            elements = [len(r) for r in text]
-            new_cols = [
-                (t.x0, t.x1)
-                for r in text if len(r) == max(elements)
-                for t in r
-            ]
-            cols.extend(Stream._merge_columns(sorted(new_cols)))
-        return cols
-
-    @staticmethod
-    def _join_columns(cols, text_x_min, text_x_max):
-        """Makes column coordinates continuous.
-
-        Parameters
-        ----------
-        cols : list
-            List of column x-coordinate tuples.
-        text_x_min : int
-        text_y_max : int
-
-        Returns
-        -------
-        cols : list
-            Updated list of column x-coordinate tuples.
-
-        """
-        cols = sorted(cols)
-        cols = [(cols[i][0] + cols[i - 1][1]) / 2 for i in range(1, len(cols))]
-        cols.insert(0, text_x_min)
-        cols.append(text_x_max)
-        cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        return cols
-
-    def _validate_columns(self):
-        if self.table_areas is not None and self.columns is not None:
-            if len(self.table_areas) != len(self.columns):
-                raise ValueError("Length of table_areas and columns"
-                                 " should be equal")
+        self.textedges = []
 
     def _nurminen_table_detection(self, textlines):
         """A general implementation of the table detection algorithm
@@ -281,8 +101,13 @@ class Stream(TextBaseParser):
 
         return table_bbox
 
+    def record_parse_metadata(self, table):
+        """Record data about the origin of the table
+        """
+        super().record_parse_metadata(table)
+        table._textedges = self.textedges
+
     def _generate_table_bbox(self):
-        self.textedges = []
         if self.table_areas is None:
             hor_text = self.horizontal_text
             if self.table_regions is not None:
@@ -300,93 +125,3 @@ class Stream(TextBaseParser):
             for area_str in self.table_areas:
                 table_bbox[bbox_from_str(area_str)] = None
         self.table_bbox = table_bbox
-
-    def _generate_columns_and_rows(self, bbox, table_idx):
-        # select elements which lie within table_bbox
-        self.t_bbox = text_in_bbox_per_axis(
-            bbox,
-            self.horizontal_text,
-            self.vertical_text
-        )
-
-        text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
-            self.t_bbox["horizontal"] + self.t_bbox["vertical"]
-        )
-        rows_grouped = self._group_rows(
-            self.t_bbox["horizontal"], row_tol=self.row_tol)
-        rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
-        elements = [len(r) for r in rows_grouped]
-
-        if self.columns is not None and self.columns[table_idx] != "":
-            # user has to input boundary columns too
-            # take (0, pdf_width) by default
-            # similar to else condition
-            # len can't be 1
-            cols = self.columns[table_idx].split(",")
-            cols = [float(c) for c in cols]
-            cols.insert(0, text_x_min)
-            cols.append(text_x_max)
-            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        else:
-            # calculate mode of the list of number of elements in
-            # each row to guess the number of columns
-            ncols = max(set(elements), key=elements.count)
-            if ncols == 1:
-                # if mode is 1, the page usually contains not tables
-                # but there can be cases where the list can be skewed,
-                # try to remove all 1s from list in this case and
-                # see if the list contains elements, if yes, then use
-                # the mode after removing 1s
-                elements = list(filter(lambda x: x != 1, elements))
-                if elements:
-                    ncols = max(set(elements), key=elements.count)
-                else:
-                    warnings.warn(
-                        "No tables found in table area {}"
-                        .format(table_idx + 1)
-                    )
-            cols = [
-                (t.x0, t.x1)
-                for r in rows_grouped
-                if len(r) == ncols
-                for t in r
-            ]
-            cols = self._merge_columns(
-                sorted(cols),
-                column_tol=self.column_tol
-            )
-            inner_text = []
-            for i in range(1, len(cols)):
-                left = cols[i - 1][1]
-                right = cols[i][0]
-                inner_text.extend(
-                    [
-                        t
-                        for direction in self.t_bbox
-                        for t in self.t_bbox[direction]
-                        if t.x0 > left and t.x1 < right
-                    ]
-                )
-            outer_text = [
-                t
-                for direction in self.t_bbox
-                for t in self.t_bbox[direction]
-                if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
-            ]
-            inner_text.extend(outer_text)
-            cols = self._add_columns(cols, inner_text, self.row_tol)
-            cols = self._join_columns(cols, text_x_min, text_x_max)
-
-        return cols, rows, None, None
-
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
-        table = self._initialize_new_table(table_idx, cols, rows)
-        table = table.set_all_edges()
-        table.record_parse_metadata(self)
-
-        # for plotting
-        table._bbox = self.table_bbox
-        table._segments = None
-        table._textedges = self.textedges
-
-        return table
