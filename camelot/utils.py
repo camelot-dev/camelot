@@ -12,6 +12,7 @@ import tempfile
 import warnings
 from itertools import groupby
 from operator import itemgetter
+from urllib.request import Request
 
 import numpy as np
 import pandas as pd
@@ -96,7 +97,8 @@ def download_url(url):
     """
     filename = "{}.pdf".format(random_string(6))
     with tempfile.NamedTemporaryFile("wb", delete=False) as f:
-        obj = urlopen(url)
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        obj = urlopen(req)
         if PY3:
             content_type = obj.info().get_content_type()
         else:

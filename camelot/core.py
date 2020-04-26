@@ -68,8 +68,12 @@ class TextAlignment(object):
     def __repr__(self):
         text_inside = " | ".join(
             map(lambda x: x.get_text(), self.textlines[:2])).replace("\n", "")
-        return f"<TextEdge coord={self.coord} tl={len(self.textlines)} " \
-               f"textlines text='{text_inside}...'>"
+        return "<TextEdge coord={coord} tl={tl_count} " \
+               "textlines text='{text_inside}...'>".format(
+                   coord=self.coord,
+                   tl_count=len(self.textlines),
+                   text_inside=text_inside
+               )
 
     def register_aligned_textline(self, textline, coord):
         """Update new textline to this alignment, adapting its average."""
