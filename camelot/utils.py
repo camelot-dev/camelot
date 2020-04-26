@@ -156,7 +156,7 @@ def remove_extra(kwargs, flavor="lattice"):
 
 # https://stackoverflow.com/a/22726782
 # and https://stackoverflow.com/questions/10965479
-class TemporaryDirectory(object):
+class TemporaryDirectory():
     def __enter__(self):
         self.name = tempfile.mkdtemp()
         # Only delete the temporary directory upon
@@ -488,6 +488,17 @@ def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
     return t_bbox
 
 
+def expand_bbox_with_textline(bbox, textline):
+    """Expand (if needed) a bbox so that it fits the parameter textline.
+    """
+    return (
+        min(bbox[0], textline.x0),
+        min(bbox[1], textline.y0),
+        max(bbox[2], textline.x1),
+        max(bbox[3], textline.y1)
+    )
+
+
 def bbox_from_textlines(textlines):
     """Returns the smallest bbox containing all the text objects passed as
     a parameters.
@@ -514,12 +525,7 @@ def bbox_from_textlines(textlines):
     )
 
     for tl in textlines[1:]:
-        bbox = (
-            min(bbox[0], tl.x0),
-            min(bbox[1], tl.y0),
-            max(bbox[2], tl.x1),
-            max(bbox[3], tl.y1)
-        )
+        bbox = expand_bbox_with_textline(bbox, tl)
     return bbox
 
 
@@ -1039,13 +1045,12 @@ def compute_whitespace(d):
 
 
 def get_page_layout(
-    filename,
-    char_margin=1.0,
-    line_margin=0.5,
-    word_margin=0.1,
-    detect_vertical=True,
-    all_texts=True,
-):
+        filename,
+        char_margin=1.0,
+        line_margin=0.5,
+        word_margin=0.1,
+        detect_vertical=True,
+        all_texts=True):
     """Returns a PDFMiner LTPage object and page dimension of a single
     page pdf. See https://euske.github.io/pdfminer/ to get definitions
     of kwargs.
@@ -1163,14 +1168,14 @@ def compare_tables(left, right):
     diff_cols = right.shape[1]-left.shape[1]
     diff_rows = right.shape[0]-left.shape[0]
     differences = []
-    if (diff_rows):
+    if diff_rows:
         differences.append(
             "{diff_rows} {more_fewer} rows".format(
                 diff_rows=abs(diff_rows),
                 more_fewer='more' if diff_rows > 0 else 'fewer'
             )
         )
-    if (diff_cols):
+    if diff_cols:
         differences.append(
             "{diff_cols} {more_fewer} columns".format(
                 diff_cols=abs(diff_cols),

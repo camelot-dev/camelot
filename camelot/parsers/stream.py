@@ -50,18 +50,17 @@ class Stream(TextBaseParser):
     """
 
     def __init__(
-        self,
-        table_regions=None,
-        table_areas=None,
-        columns=None,
-        flag_size=False,
-        split_text=False,
-        strip_text="",
-        edge_tol=50,
-        row_tol=2,
-        column_tol=0,
-        **kwargs
-    ):
+            self,
+            table_regions=None,
+            table_areas=None,
+            columns=None,
+            flag_size=False,
+            split_text=False,
+            strip_text="",
+            edge_tol=50,
+            row_tol=2,
+            column_tol=0,
+            **kwargs):
         super().__init__(
             "stream",
             table_regions=table_regions,

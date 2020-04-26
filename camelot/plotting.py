@@ -136,7 +136,7 @@ def prepare_plot(table, ax=None, to_pdf_scale=True):
     return ax
 
 
-class PlotMethods(object):
+class PlotMethods():
     def __call__(self, table, kind="text", filename=None, ax=None):
         """Plot elements found on PDF page based on kind
         specified, useful for debugging and playing with different

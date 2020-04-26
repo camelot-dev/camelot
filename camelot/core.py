@@ -31,7 +31,7 @@ VERTICAL_ALIGNMENTS = ["top", "bottom", "center"]
 ALL_ALIGNMENTS = HORIZONTAL_ALIGNMENTS + VERTICAL_ALIGNMENTS
 
 
-class TextAlignment(object):
+class TextAlignment():
     """Represents a list of textlines sharing an alignment on a coordinate.
 
     The alignment can be left/right/middle or top/bottom/center.
@@ -137,7 +137,7 @@ class TextEdge(TextAlignment):
                 self.is_valid = True
 
 
-class TextAlignments(object):
+class TextAlignments():
     """Defines a dict of text edges across reference alignments.
     """
 
@@ -327,7 +327,7 @@ class TextEdges(TextAlignments):
         return table_areas_padded
 
 
-class Cell(object):
+class Cell():
     """Defines a cell in a table with coordinates relative to a
     left-bottom origin. (PDF coordinate space)
 
@@ -409,7 +409,7 @@ class Cell(object):
         return self.top + self.bottom + self.left + self.right
 
 
-class Table(object):
+class Table():
     """Defines a table with coordinates relative to a left-bottom
     origin. (PDF coordinate space)
 
@@ -815,7 +815,7 @@ class Table(object):
         return self
 
 
-class TableList(object):
+class TableList():
     """Defines a list of camelot.core.Table objects. Each table can
     be accessed using its index.
 

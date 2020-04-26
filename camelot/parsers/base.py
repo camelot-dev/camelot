@@ -19,24 +19,24 @@ from ..utils import (
 from ..core import Table
 
 
-class BaseParser(object):
+class BaseParser():
     """Defines a base parser.
     """
     def __init__(
-        self,
-        parser_id,
-        table_regions=None,
-        table_areas=None,
-        copy_text=None,
-        split_text=False,
-        strip_text="",
-        shift_text=None,
-        flag_size=False,
-        debug=False
-    ):
+            self,
+            parser_id,
+            table_regions=None,
+            table_areas=None,
+            copy_text=None,
+            split_text=False,
+            strip_text="",
+            shift_text=None,
+            flag_size=False,
+            debug=False):
         self.id = parser_id
         self.table_regions = table_regions
         self.table_areas = table_areas
+        self.table_bbox = {}
 
         self.copy_text = copy_text
         self.split_text = split_text
@@ -49,7 +49,9 @@ class BaseParser(object):
         self.t_bbox = None
 
         # For plotting details of parsing algorithms
-        self.parse_details = {} if debug else None
+        self.parse_details = {}
+        if not debug:
+            self.parse_details = None
 
     def prepare_page_parse(self, filename, layout, dimensions,
                            page_idx, layout_kwargs):
@@ -177,6 +179,18 @@ class BaseParser(object):
                         table.cells[r_idx][c_idx].text = text
         return pos_errors
 
+    def _generate_columns_and_rows(self, bbox, table_idx):
+        # Pure virtual, must be defined by the derived parser
+        raise NotImplementedError()
+
+    def _generate_table(self, table_idx, cols, rows, **kwargs):
+        # Pure virtual, must be defined by the derived parser
+        raise NotImplementedError()
+
+    def _generate_table_bbox(self):
+        # Pure virtual, must be defined by the derived parser
+        raise NotImplementedError()
+
     def extract_tables(self):
         if self._document_has_no_text():
             return []
@@ -188,8 +202,12 @@ class BaseParser(object):
         _tables = []
         # sort tables based on y-coord
         for table_idx, bbox in enumerate(
-            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
-        ):
+                sorted(
+                        self.table_bbox.keys(),
+                        key=lambda x: x[1],
+                        reverse=True
+                    )
+                ):
             cols, rows, v_s, h_s = self._generate_columns_and_rows(
                 bbox,
                 table_idx
@@ -232,20 +250,19 @@ class TextBaseParser(BaseParser):
     """
 
     def __init__(
-        self,
-        parser_id,
-        table_regions=None,
-        table_areas=None,
-        columns=None,
-        flag_size=False,
-        split_text=False,
-        strip_text="",
-        edge_tol=50,
-        row_tol=2,
-        column_tol=0,
-        debug=False,
-        **kwargs
-    ):
+            self,
+            parser_id,
+            table_regions=None,
+            table_areas=None,
+            columns=None,
+            flag_size=False,
+            split_text=False,
+            strip_text="",
+            edge_tol=50,
+            row_tol=2,
+            column_tol=0,
+            debug=False,
+            **kwargs):
         super().__init__(
             parser_id,
             table_regions=table_regions,
