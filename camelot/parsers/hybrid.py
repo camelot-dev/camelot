@@ -252,50 +252,6 @@ class TextNetworks(TextAlignments):
                         self._textline_to_alignments[textline] = alignments
                     alignments[align_id] = textedge.textlines
 
-    def _calculate_gaps_thresholds(self, percentile=75):
-        """Identify reasonable gaps between lines and columns based
-        on gaps observed across alignments.
-        This can be used to reject cells as too far away from
-        the core table.
-        """
-        h_gaps, v_gaps = [], []
-        for align_id in self._text_alignments:
-            edge_array = self._text_alignments[align_id]
-            gaps = []
-            vertical = align_id in HORIZONTAL_ALIGNMENTS
-            sort_function = (lambda tl: tl.y0) \
-                if vertical \
-                else (lambda tl: tl.x0)
-            for alignments in edge_array:
-                tls = sorted(
-                    alignments.textlines,
-                    key=sort_function,
-                    reverse=True
-                )
-                for i in range(1, len(tls)):
-                    # If the lines are vertically aligned (stacked up), we
-                    # record the vertical gap between them
-                    if vertical:
-                        gap = tls[i-1].y1 - tls[i].y0
-                    else:
-                        gap = tls[i-1].x1 - tls[i].x0
-                    gaps.append(gap)
-            if gaps:
-                if vertical:
-                    v_gaps.append(np.percentile(gaps, percentile))
-                else:
-                    h_gaps.append(np.percentile(gaps, percentile))
-                direction_str = 'vertical' if vertical else 'horizontal'
-                rounded_gaps = list(map(lambda x: round(x, 2), gaps))
-                print(
-                    f"{direction_str} gaps found "
-                    f"for {align_id}: "
-                    f"{rounded_gaps} "
-                    f"with {percentile}th percentile "
-                    f"{np.percentile(gaps, percentile)}"
-                )
-        return max(h_gaps, default=None), max(v_gaps, default=None)
-
     def _remove_unconnected_edges(self):
         """Weed out elements which are only connected to others vertically
         or horizontally. There needs to be connections across both
