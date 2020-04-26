@@ -18,7 +18,7 @@ logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)
 
 
-class Config(object):
+class Config():
     def __init__(self):
         self.config = {}
 

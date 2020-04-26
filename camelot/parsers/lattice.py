@@ -84,24 +84,23 @@ class Lattice(BaseParser):
     """
 
     def __init__(
-        self,
-        table_regions=None,
-        table_areas=None,
-        process_background=False,
-        line_scale=15,
-        copy_text=None,
-        shift_text=None,
-        split_text=False,
-        flag_size=False,
-        strip_text="",
-        line_tol=2,
-        joint_tol=2,
-        threshold_blocksize=15,
-        threshold_constant=-2,
-        iterations=0,
-        resolution=300,
-        **kwargs
-    ):
+            self,
+            table_regions=None,
+            table_areas=None,
+            process_background=False,
+            line_scale=15,
+            copy_text=None,
+            shift_text=None,
+            split_text=False,
+            flag_size=False,
+            strip_text="",
+            line_tol=2,
+            joint_tol=2,
+            threshold_blocksize=15,
+            threshold_constant=-2,
+            iterations=0,
+            resolution=300,
+            **kwargs):
         super().__init__(
             "lattice",
             table_regions=table_regions,

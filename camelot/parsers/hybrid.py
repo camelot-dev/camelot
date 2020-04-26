@@ -3,9 +3,9 @@
 
 from __future__ import division
 
-import numpy as np
 import copy
 import math
+import numpy as np
 
 from .base import TextBaseParser
 from ..core import (
@@ -16,6 +16,7 @@ from ..core import (
 )
 from ..utils import (
     bbox_from_str,
+    expand_bbox_with_textline,
     text_in_bbox,
     bbox_from_textlines,
     distance_tl_to_bbox,
@@ -24,6 +25,23 @@ from ..utils import (
 
 # maximum number of columns over which a header can spread
 MAX_COL_SPREAD_IN_HEADER = 3
+
+# Minimum number of textlines in a table
+MINIMUM_TEXTLINES_IN_TABLE = 6
+
+
+def column_spread(left, right, col_anchors):
+    """Get the number of columns crossed by a segment [left, right]."""
+    index_left = 0
+    while index_left < len(col_anchors) \
+            and col_anchors[index_left] < left:
+        index_left += 1
+    index_right = index_left
+    while index_right < len(col_anchors) \
+            and col_anchors[index_right] < right:
+        index_right += 1
+
+    return index_right - index_left
 
 
 def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
@@ -39,19 +57,6 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
     new_bbox = body_bbox
     (left, bottom, right, top) = body_bbox
     zones = []
-
-    def column_spread(left, right, col_anchors):
-        """Get the number of columns crossed by a segment [left, right]."""
-        indexLeft = 0
-        while indexLeft < len(col_anchors) \
-                and col_anchors[indexLeft] < left:
-            indexLeft += 1
-        indexRight = indexLeft
-        while indexRight < len(col_anchors) \
-                and col_anchors[indexRight] < right:
-            indexRight += 1
-
-        return indexRight - indexLeft
 
     keep_searching = True
     while keep_searching:
@@ -127,9 +132,8 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
             # columns.
             # This is to avoid picking unrelated paragraphs.
             if max_spread <= min(
-                MAX_COL_SPREAD_IN_HEADER,
-                math.ceil(len(col_anchors) / 2)
-            ):
+                    MAX_COL_SPREAD_IN_HEADER,
+                    math.ceil(len(col_anchors) / 2)):
                 # Combined, the elements we've identified don't cross more
                 # than the authorized number of columns.
                 # We're trying to avoid
@@ -145,7 +149,7 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
     return new_bbox
 
 
-class AlignmentCounter(object):
+class AlignmentCounter():
     """
     For a given textline, represent all other textlines aligned with it.
 
@@ -260,7 +264,7 @@ class TextNetworks(TextAlignments):
         removed_singletons = True
         while removed_singletons:
             removed_singletons = False
-            for alignment_id, textalignments in self._text_alignments.items():
+            for textalignments in self._text_alignments.values():
                 # For each alignment edge, remove items if they are singletons
                 # either horizontally or vertically
                 for ta in textalignments:
@@ -283,7 +287,7 @@ class TextNetworks(TextAlignments):
         return max(
             self._textline_to_alignments.keys(),
             key=lambda textline:
-                self._textline_to_alignments[textline].alignment_score(),
+            self._textline_to_alignments[textline].alignment_score(),
             default=None
         )
 
@@ -308,8 +312,8 @@ class TextNetworks(TextAlignments):
         # Retrieve the list of textlines it's aligned with, across both
         # axis
         best_alignment = self._textline_to_alignments[most_aligned_tl]
-        ref_h_alignment_id, ref_h_textlines = best_alignment.max_h()
-        ref_v_alignment_id, ref_v_textlines = best_alignment.max_v()
+        __, ref_h_textlines = best_alignment.max_h()
+        __, ref_v_textlines = best_alignment.max_v()
         if len(ref_v_textlines) <= 1 or len(ref_h_textlines) <= 1:
             return None
 
@@ -375,7 +379,6 @@ class TextNetworks(TextAlignments):
         else:
             parse_details_search = None
 
-        MINIMUM_TEXTLINES_IN_TABLE = 6
         bbox = (most_aligned_tl.x0, most_aligned_tl.y0,
                 most_aligned_tl.x1, most_aligned_tl.y1)
 
@@ -402,12 +405,7 @@ class TextNetworks(TextAlignments):
                 # if the textline is close.
                 if h_distance < max_h_gap and v_distance < max_v_gap:
                     tls_in_bbox.append(tl)
-                    bbox = (
-                        min(bbox[0], tl.x0),
-                        min(bbox[1], tl.y0),
-                        max(bbox[2], tl.x1),
-                        max(bbox[3], tl.y1)
-                    )
+                    bbox = expand_bbox_with_textline(bbox, tl)
                     del tls_search_space[i]
         if len(tls_in_bbox) > MINIMUM_TEXTLINES_IN_TABLE:
             return bbox
@@ -461,19 +459,18 @@ class Hybrid(TextBaseParser):
     """
 
     def __init__(
-        self,
-        table_regions=None,
-        table_areas=None,
-        columns=None,
-        flag_size=False,
-        split_text=False,
-        strip_text="",
-        edge_tol=None,
-        row_tol=2,
-        column_tol=0,
-        debug=False,
-        **kwargs
-    ):
+            self,
+            table_regions=None,
+            table_areas=None,
+            columns=None,
+            flag_size=False,
+            split_text=False,
+            strip_text="",
+            edge_tol=None,
+            row_tol=2,
+            column_tol=0,
+            debug=False,
+            **kwargs):
         super().__init__(
             "hybrid",
             table_regions=table_regions,
