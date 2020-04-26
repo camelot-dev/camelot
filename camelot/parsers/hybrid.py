@@ -411,9 +411,7 @@ class TextNetworks(TextAlignments):
                     del tls_search_space[i]
         if len(tls_in_bbox) > MINIMUM_TEXTLINES_IN_TABLE:
             return bbox
-        else:
-            print(f"Only {len(tls_in_bbox)}, that's not enough.")
-            return None
+        return None
 
     def generate(self, textlines):
         """Generate the text edge dictionaries based on the
