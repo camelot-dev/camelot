@@ -5,6 +5,7 @@ from __future__ import division
 
 import numpy as np
 import copy
+import math
 
 from .base import TextBaseParser
 from ..core import (
@@ -120,7 +121,15 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
                     )
                 )
             )
-            if max_spread <= MAX_COL_SPREAD_IN_HEADER:
+
+            # Accept textlines that cross columns boundaries, as long as they
+            # cross less than MAX_COL_SPREAD_IN_HEADER, and half the number of
+            # columns.
+            # This is to avoid picking unrelated paragraphs.
+            if max_spread <= min(
+                MAX_COL_SPREAD_IN_HEADER,
+                math.ceil(len(col_anchors) / 2)
+            ):
                 # Combined, the elements we've identified don't cross more
                 # than the authorized number of columns.
                 # We're trying to avoid

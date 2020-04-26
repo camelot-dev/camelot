@@ -1609,6 +1609,22 @@ data_stream_two_tables_2 = [
     ["1 Except forcible rape and prostitution.", "", "", "", "", ""],
 ]
 
+data_hybrid_two_tables_b_1 = [
+    ["1", "Ghfhbdhj", "1", "Hgfdhgjsdhjdsf"],
+    ["Vgvhgh", "Hj", "Hj", "Hj"],
+    ["Hj", "Hj", "Hj", "Hj"],
+    ["Hj", "Hj", "J", "Hj"],
+    ["V", "C", "D", "Gfhj"],
+    ["Hjb", "B", "Jhbh", "Hj"],
+    ["Hjdhshj", "Hjhjhh", "Ddnj", "dsxv"],
+]
+
+data_hybrid_two_tables_b_2 = [
+    ["Trtrt", "H", "Gh"],
+    ["Gh", "V", "Hv"],
+    ["Hv", "Bhjb", "hg"],
+]
+
 # The streaming algorithm incorrectly includes a header and a footer.
 # Trimming the table for the test of hybrid, which doesn't include it.
 data_hybrid_two_tables_2 = data_stream_two_tables_2[3:-1]
