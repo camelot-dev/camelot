@@ -169,11 +169,24 @@ def test_hybrid_table_rotated():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_two_tables():
+def test_hybrid_two_tables_a():
     df1 = pd.DataFrame(data_hybrid_two_tables_1)
     df2 = pd.DataFrame(data_hybrid_two_tables_2)
 
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid")
+
+    assert len(tables) == 2
+    assert df1.equals(tables[0].df)
+    assert df2.equals(tables[1].df)
+
+
+# Reported as https://github.com/camelot-dev/camelot/issues/132
+def test_hybrid_two_tables_b():
+    df1 = pd.DataFrame(data_hybrid_two_tables_b_1)
+    df2 = pd.DataFrame(data_hybrid_two_tables_b_2)
+
+    filename = os.path.join(testdir, "camelot-issue-132-multiple-tables.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid")
 
     assert len(tables) == 2

@@ -65,9 +65,9 @@ def draw_pdf(table, ax, to_pdf_scale=True):
     ----------
     table : camelot.core.Table
 
-    ax : matplotlib.axes.Axes
+    ax : matplotlib.axes.Axes (optional)
 
-    to_pdf_scale : bool
+    to_pdf_scale : bool (optional)
 
     """
     img = table.get_pdf_image()
@@ -83,6 +83,7 @@ def draw_parse_constraints(table, ax):
     Parameters
     ----------
     table : camelot.core.Table
+    ax : matplotlib.axes.Axes (optional)
 
     ax : matplotlib.axes.Axes
 
@@ -110,8 +111,33 @@ def draw_parse_constraints(table, ax):
             )
 
 
+def prepare_plot(table, ax=None, to_pdf_scale=True):
+    """Initialize plot and draw common components
+
+    Parameters
+    ----------
+    table : camelot.core.Table
+    ax : matplotlib.axes.Axes (optional)
+    to_pdf_scale :
+
+    ax : matplotlib.axes.Axes
+
+    to_pdf_scale : bool (optional)
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+    """
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, aspect="equal")
+    draw_pdf(table, ax, to_pdf_scale)
+    draw_parse_constraints(table, ax)
+    return ax
+
+
 class PlotMethods(object):
-    def __call__(self, table, kind="text", filename=None):
+    def __call__(self, table, kind="text", filename=None, ax=None):
         """Plot elements found on PDF page based on kind
         specified, useful for debugging and playing with different
         parameters to get the best output.
@@ -144,26 +170,24 @@ class PlotMethods(object):
             )
 
         plot_method = getattr(self, kind)
-        return plot_method(table)
+        return plot_method(table, ax)
 
     @staticmethod
-    def text(table):
+    def text(table, ax=None):
         """Generates a plot for all text elements present
         on the PDF page.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        draw_pdf(table, ax)
-        draw_parse_constraints(table, ax)
+        ax = prepare_plot(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -178,26 +202,24 @@ class PlotMethods(object):
                 )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
-        return fig
+        return ax.get_figure()
 
     @staticmethod
-    def grid(table):
+    def grid(table, ax=None):
         """Generates a plot for the detected table grids
         on the PDF page.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        draw_pdf(table, ax)
-        draw_parse_constraints(table, ax)
+        ax = prepare_plot(table, ax)
         for row in table.cells:
             for cell in row:
                 if cell.left:
@@ -208,27 +230,25 @@ class PlotMethods(object):
                     ax.plot([cell.lt[0], cell.rt[0]], [cell.lt[1], cell.rt[1]])
                 if cell.bottom:
                     ax.plot([cell.lb[0], cell.rb[0]], [cell.lb[1], cell.rb[1]])
-        return fig
+        return ax.get_figure()
 
     @staticmethod
-    def contour(table):
+    def contour(table, ax=None):
         """Generates a plot for all table boundaries present
         on the PDF page.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
         _FOR_LATTICE = table.flavor == "lattice"
-        draw_pdf(table, ax, to_pdf_scale=not _FOR_LATTICE)
-        draw_parse_constraints(table, ax)
+        ax = prepare_plot(table, ax, to_pdf_scale=not _FOR_LATTICE)
 
         if _FOR_LATTICE:
             table_bbox = table._bbox_unscaled
@@ -260,25 +280,23 @@ class PlotMethods(object):
                 ys.extend([t[1], t[3]])
                 ax.set_xlim(min(xs) - 10, max(xs) + 10)
                 ax.set_ylim(min(ys) - 10, max(ys) + 10)
-        return fig
+        return ax.get_figure()
 
     @staticmethod
-    def textedge(table):
+    def textedge(table, ax=None):
         """Generates a plot for relevant textedges.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        draw_pdf(table, ax)
-        draw_parse_constraints(table, ax)
+        ax = prepare_plot(table, ax)
         xs, ys = [], []
         for t in table._text:
             xs.extend([t[0], t[2]])
@@ -352,26 +370,24 @@ class PlotMethods(object):
         else:
             for te in table._textedges:
                 ax.plot([te.coord, te.coord], [te.y0, te.y1])
-        return fig
+        return ax.get_figure()
 
     @staticmethod
-    def joint(table):
+    def joint(table, ax=None):
         """Generates a plot for all line intersections present
         on the PDF page.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        draw_pdf(table, ax, to_pdf_scale=False)
-        draw_parse_constraints(table, ax)
+        ax = prepare_plot(table, ax, to_pdf_scale=False)
         table_bbox = table._bbox_unscaled
         x_coord = []
         y_coord = []
@@ -380,53 +396,48 @@ class PlotMethods(object):
                 x_coord.append(coord[0])
                 y_coord.append(coord[1])
         ax.plot(x_coord, y_coord, "ro")
-        return fig
+        return ax.get_figure()
 
     @staticmethod
-    def line(table):
+    def line(table, ax=None):
         """Generates a plot for all line segments present
         on the PDF page.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        draw_pdf(table, ax)
-        draw_parse_constraints(table, ax)
+        ax = prepare_plot(table, ax)
         vertical, horizontal = table._segments
         for v in vertical:
             ax.plot([v[0], v[2]], [v[1], v[3]])
         for h in horizontal:
             ax.plot([h[0], h[2]], [h[1], h[3]])
-        return fig
+        return ax.get_figure()
 
     @staticmethod
-    def hybrid_table_search(table):
+    def hybrid_table_search(table, ax=None):
         """Generates a plot illustrating the steps of the hybrid table search.
 
         Parameters
         ----------
         table : camelot.core.Table
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
         fig : matplotlib.fig.Figure
 
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-        draw_pdf(table, ax)
-        draw_parse_constraints(table, ax)
-
+        ax = prepare_plot(table, ax)
         if table.parse_details is None:
-            return fig
+            return ax.get_figure()
         parse_details = table.parse_details
         for box_id, bbox_search in enumerate(parse_details["bbox_searches"]):
             max_h_gap = bbox_search["max_h_gap"]
@@ -476,4 +487,4 @@ class PlotMethods(object):
                 label_pos="bottom,left"
             )
 
-        return fig
+        return ax.get_figure()
