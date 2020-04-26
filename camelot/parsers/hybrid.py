@@ -216,7 +216,7 @@ class TextNetworks(TextAlignments):
         super().__init__(ALL_ALIGNMENTS)
         # For each textline, dictionary "alignment type" to
         # "number of textlines aligned"
-        self._textlines_alignments = {}
+        self._textline_to_alignments = {}
 
     def _update_alignment(self, alignment, coord, textline):
         alignment.register_aligned_textline(textline, coord)
@@ -236,11 +236,11 @@ class TextNetworks(TextAlignments):
         for align_id, textedges in self._text_alignments.items():
             for textedge in textedges:
                 for textline in textedge.textlines:
-                    alignments = self._textlines_alignments.get(
+                    alignments = self._textline_to_alignments.get(
                         textline, None)
                     if alignments is None:
                         alignments = AlignmentCounter()
-                        self._textlines_alignments[textline] = alignments
+                        self._textline_to_alignments[textline] = alignments
                     alignments[align_id] = textedge.textlines
 
     def _calculate_gaps_thresholds(self, percentile=75):
@@ -301,12 +301,12 @@ class TextNetworks(TextAlignments):
                 for ta in textalignments:
                     for i in range(len(ta.textlines) - 1, -1, -1):
                         tl = ta.textlines[i]
-                        alignments = self._textlines_alignments[tl]
+                        alignments = self._textline_to_alignments[tl]
                         if alignments.max_h_count() <= 1 or \
                            alignments.max_v_count() <= 1:
                             del ta.textlines[i]
                             removed_singletons = True
-            self._textlines_alignments = {}
+            self._textline_to_alignments = {}
             self._compute_alignment_counts()
 
     def most_connected_textline(self):
@@ -316,9 +316,9 @@ class TextNetworks(TextAlignments):
         """
         # Find the textline with the highest alignment score
         return max(
-            self._textlines_alignments.keys(),
+            self._textline_to_alignments.keys(),
             key=lambda textline:
-                self._textlines_alignments[textline].alignment_score(),
+                self._textline_to_alignments[textline].alignment_score(),
             default=None
         )
 
@@ -342,7 +342,7 @@ class TextNetworks(TextAlignments):
 
         # Retrieve the list of textlines it's aligned with, across both
         # axis
-        best_alignment = self._textlines_alignments[most_aligned_tl]
+        best_alignment = self._textline_to_alignments[most_aligned_tl]
         ref_h_alignment_id, ref_h_textlines = best_alignment.max_h()
         ref_v_alignment_id, ref_v_textlines = best_alignment.max_v()
         if len(ref_v_textlines) <= 1 or len(ref_h_textlines) <= 1:
@@ -416,7 +416,7 @@ class TextNetworks(TextAlignments):
 
         # For the body of the table, we only consider cells with alignments
         # on both axis.
-        tls_search_space = list(self._textlines_alignments.keys())
+        tls_search_space = list(self._textline_to_alignments.keys())
         # tls_search_space = []
         tls_search_space.remove(most_aligned_tl)
         tls_in_bbox = [most_aligned_tl]

@@ -306,7 +306,7 @@ class PlotMethods(object):
                         alpha=0.5
                     )
                 )
-                for tl, alignments in network._textlines_alignments.items():
+                for tl, alignments in network._textline_to_alignments.items():
                     coords = get_textline_coords(tl)
                     alignment_id_h, tls_h = alignments.max_v()
                     alignment_id_v, tls_v = alignments.max_h()
@@ -325,7 +325,7 @@ class PlotMethods(object):
                     ax.plot(
                         [coords[alignment_id_h]] * len(ys), ys,
                         color="green",
-                        linestyle="dashed",
+                        linestyle="solid",
                         linewidth=1,
                         marker="o",
                         markersize=3
@@ -344,7 +344,7 @@ class PlotMethods(object):
                     ax.plot(
                         xs, [coords[alignment_id_v]] * len(xs),
                         color="blue",
-                        linestyle="dotted",
+                        linestyle="solid",
                         linewidth=1,
                         marker="o",
                         markersize=3
