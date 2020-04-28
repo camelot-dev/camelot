@@ -6,6 +6,7 @@ from __future__ import division
 import copy
 import math
 import numpy as np
+import warnings
 
 from .base import TextBaseParser
 from ..core import (
@@ -20,7 +21,8 @@ from ..utils import (
     text_in_bbox,
     bbox_from_textlines,
     distance_tl_to_bbox,
-    find_columns_coordinates
+    find_columns_coordinates,
+    text_in_bbox_per_axis,
 )
 
 # maximum number of columns over which a header can spread
@@ -574,3 +576,91 @@ class Hybrid(TextBaseParser):
                 lambda tl: tl not in textlines_processed,
                 textlines
             ))
+
+    def _generate_columns_and_rows(self, bbox, table_idx):
+        # select elements which lie within table_bbox
+        self.t_bbox = text_in_bbox_per_axis(
+            bbox,
+            self.horizontal_text,
+            self.vertical_text
+        )
+
+        all_tls = list(
+            filter(
+                lambda tl: len(tl.get_text().strip()) > 0,
+                self.t_bbox["horizontal"]  # + self.t_bbox["vertical"]
+            )
+        )
+        text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
+            all_tls
+        )
+        # FRHTODO:
+        # This algorithm takes the horizontal textlines in the bbox, and groups
+        # them into rows based on their bottom y0.
+        # That's wrong: it misses the vertical items, and misses out on all
+        # the alignment identification work we've done earlier.
+        rows_grouped = self._group_rows(all_tls, row_tol=self.row_tol)
+        rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
+        elements = [len(r) for r in rows_grouped]
+
+        if self.columns is not None and self.columns[table_idx] != "":
+            # user has to input boundary columns too
+            # take (0, pdf_width) by default
+            # similar to else condition
+            # len can't be 1
+            cols = self.columns[table_idx].split(",")
+            cols = [float(c) for c in cols]
+            cols.insert(0, text_x_min)
+            cols.append(text_x_max)
+            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
+        else:
+            # calculate mode of the list of number of elements in
+            # each row to guess the number of columns
+            ncols = max(set(elements), key=elements.count)
+            if ncols == 1:
+                # if mode is 1, the page usually contains not tables
+                # but there can be cases where the list can be skewed,
+                # try to remove all 1s from list in this case and
+                # see if the list contains elements, if yes, then use
+                # the mode after removing 1s
+                elements = list(filter(lambda x: x != 1, elements))
+                if elements:
+                    ncols = max(set(elements), key=elements.count)
+                else:
+                    warnings.warn(
+                        "No tables found in table area {}"
+                        .format(table_idx + 1)
+                    )
+            cols = [
+                (t.x0, t.x1)
+                for r in rows_grouped
+                if len(r) == ncols
+                for t in r
+            ]
+            cols = self._merge_columns(
+                sorted(cols),
+                column_tol=self.column_tol
+            )
+            inner_text = []
+            for i in range(1, len(cols)):
+                left = cols[i - 1][1]
+                right = cols[i][0]
+                inner_text.extend(
+                    [
+                        t
+                        for direction in self.t_bbox
+                        for t in self.t_bbox[direction]
+                        if t.x0 > left and t.x1 < right
+                    ]
+                )
+            outer_text = [
+                t
+                for direction in self.t_bbox
+                for t in self.t_bbox[direction]
+                if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
+            ]
+            inner_text.extend(outer_text)
+            cols = self._add_columns(cols, inner_text, self.row_tol)
+            cols = self._join_columns(cols, text_x_min, text_x_max)
+
+        return cols, rows, None, None
