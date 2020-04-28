@@ -384,8 +384,8 @@ class TextNetworks(TextAlignments):
         bbox = (most_aligned_tl.x0, most_aligned_tl.y0,
                 most_aligned_tl.x1, most_aligned_tl.y1)
 
-        # For the body of the table, we only consider cells with alignments
-        # on both axis.
+        # For the body of the table, we only consider cells that have
+        # alignments on both axis.
         tls_search_space = list(self._textline_to_alignments.keys())
         # tls_search_space = []
         tls_search_space.remove(most_aligned_tl)
@@ -586,9 +586,12 @@ class Hybrid(TextBaseParser):
         )
 
         all_tls = list(
-            filter(
-                lambda tl: len(tl.get_text().strip()) > 0,
-                self.t_bbox["horizontal"]  # + self.t_bbox["vertical"]
+            sorted(
+                filter(
+                    lambda tl: len(tl.get_text().strip()) > 0,
+                    self.t_bbox["horizontal"] + self.t_bbox["vertical"]
+                ),
+                key=lambda tl: (-tl.y0, tl.x0)
             )
         )
         text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(

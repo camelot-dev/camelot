@@ -487,5 +487,16 @@ class PlotMethods():
                 linewidth=2,
                 label_pos="bottom,left"
             )
+            for col_anchor in col_search["cols_anchors"]:
+                # Display a green line at the col boundary line throughout the
+                # table bbox.
+                ax.plot(
+                    [col_anchor, col_anchor],
+                    [
+                        col_search["core_bbox"][1] - 10,
+                        col_search["core_bbox"][3] + 10,
+                    ],
+                    color="green"
+                )
 
         return ax.get_figure()
