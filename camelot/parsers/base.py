@@ -8,13 +8,11 @@ import pandas as pd
 
 from ..utils import (
     bbox_from_str,
-    bbox_from_textlines,
     compute_accuracy,
     compute_whitespace,
     get_text_objects,
     get_table_index,
     text_in_bbox,
-    text_in_bbox_per_axis,
 )
 from ..core import Table
 
@@ -243,6 +241,7 @@ class BaseParser():
             [(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
         table._text = _text
+        table.textlines = self.horizontal_text + self.vertical_text
 
 
 class TextBaseParser(BaseParser):
@@ -453,84 +452,6 @@ class TextBaseParser(BaseParser):
             if len(self.table_areas) != len(self.columns):
                 raise ValueError("Length of table_areas and columns"
                                  " should be equal")
-
-    def _generate_columns_and_rows(self, bbox, table_idx):
-        # select elements which lie within table_bbox
-        self.t_bbox = text_in_bbox_per_axis(
-            bbox,
-            self.horizontal_text,
-            self.vertical_text
-        )
-
-        text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
-            self.t_bbox["horizontal"] + self.t_bbox["vertical"]
-        )
-        rows_grouped = self._group_rows(
-            self.t_bbox["horizontal"], row_tol=self.row_tol)
-        rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
-        elements = [len(r) for r in rows_grouped]
-
-        if self.columns is not None and self.columns[table_idx] != "":
-            # user has to input boundary columns too
-            # take (0, pdf_width) by default
-            # similar to else condition
-            # len can't be 1
-            cols = self.columns[table_idx].split(",")
-            cols = [float(c) for c in cols]
-            cols.insert(0, text_x_min)
-            cols.append(text_x_max)
-            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        else:
-            # calculate mode of the list of number of elements in
-            # each row to guess the number of columns
-            ncols = max(set(elements), key=elements.count)
-            if ncols == 1:
-                # if mode is 1, the page usually contains not tables
-                # but there can be cases where the list can be skewed,
-                # try to remove all 1s from list in this case and
-                # see if the list contains elements, if yes, then use
-                # the mode after removing 1s
-                elements = list(filter(lambda x: x != 1, elements))
-                if elements:
-                    ncols = max(set(elements), key=elements.count)
-                else:
-                    warnings.warn(
-                        "No tables found in table area {}"
-                        .format(table_idx + 1)
-                    )
-            cols = [
-                (t.x0, t.x1)
-                for r in rows_grouped
-                if len(r) == ncols
-                for t in r
-            ]
-            cols = self._merge_columns(
-                sorted(cols),
-                column_tol=self.column_tol
-            )
-            inner_text = []
-            for i in range(1, len(cols)):
-                left = cols[i - 1][1]
-                right = cols[i][0]
-                inner_text.extend(
-                    [
-                        t
-                        for direction in self.t_bbox
-                        for t in self.t_bbox[direction]
-                        if t.x0 > left and t.x1 < right
-                    ]
-                )
-            outer_text = [
-                t
-                for direction in self.t_bbox
-                for t in self.t_bbox[direction]
-                if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
-            ]
-            inner_text.extend(outer_text)
-            cols = self._add_columns(cols, inner_text, self.row_tol)
-            cols = self._join_columns(cols, text_x_min, text_x_max)
-
-        return cols, rows, None, None
 
     def record_parse_metadata(self, table):
         """Record data about the origin of the table

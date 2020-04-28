@@ -8,7 +8,20 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from .utils import (bbox_from_str, get_textline_coords)
+from .utils import (bbox_from_str, bbox_from_textlines, get_textline_coords)
+
+from pdfminer.layout import (
+    LTTextLineVertical,
+)
+
+
+def extend_axe_lim(ax, bbox, margin=10):
+    """Ensure the ax limits include the input bbox
+    """
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    ax.set_xlim(min(x0, bbox[0] - margin), max(x1, bbox[2] + margin))
+    ax.set_ylim(min(y0, bbox[1] - margin), max(y1, bbox[3] + margin))
 
 
 def draw_labeled_bbox(
@@ -17,6 +30,8 @@ def draw_labeled_bbox(
     linestyle="solid",
     label_pos="top,left"
 ):
+    """Utility drawing function to draw a box with an associated text label
+    """
     ax.add_patch(
         patches.Rectangle(
             (bbox[0], bbox[1]),
@@ -83,32 +98,55 @@ def draw_parse_constraints(table, ax):
     Parameters
     ----------
     table : camelot.core.Table
+
+    ax : matplotlib.axes.Axes (optional)
+
+    """
+    if table.parse_details:
+        zone_constraints = {
+            "region": "table_regions",
+            "area": "table_areas",
+        }
+        for zone_name, zone_id in zone_constraints.items():
+            # Display a bbox per region / area
+            for zone_str in table.parse_details[zone_id] or []:
+                draw_labeled_bbox(
+                    ax, bbox_from_str(zone_str),
+                    "{zone_name}: ({zone_str})".format(
+                        zone_name=zone_name,
+                        zone_str=zone_str
+                    ),
+                    color="purple",
+                    linestyle="dotted",
+                    linewidth=1,
+                    label_pos="bottom,right"
+                )
+
+
+def draw_text(table, ax):
+    """Draw text, horizontal in blue, vertical in red
+
+    Parameters
+    ----------
+    table : camelot.core.Table
     ax : matplotlib.axes.Axes (optional)
 
     ax : matplotlib.axes.Axes
 
     """
-    if table.parse_details:
-        # Display a bbox per region
-        for region_str in table.parse_details["table_regions"] or []:
-            draw_labeled_bbox(
-                ax, bbox_from_str(region_str),
-                "region: ({region_str})".format(region_str=region_str),
-                color="purple",
-                linestyle="dotted",
-                linewidth=1,
-                label_pos="bottom,right"
+    bbox = bbox_from_textlines(table.textlines)
+    for t in table.textlines:
+        color = "red" if isinstance(t, LTTextLineVertical) else "blue"
+        ax.add_patch(
+            patches.Rectangle(
+                    (t.x0, t.y0),
+                    t.x1 - t.x0,
+                    t.y1 - t.y0,
+                    color=color,
+                    alpha=0.2
+                )
             )
-        # Display a bbox per area
-        for area_str in table.parse_details["table_areas"] or []:
-            draw_labeled_bbox(
-                ax, bbox_from_str(area_str),
-                "area: ({area_str})".format(area_str=area_str),
-                color="pink",
-                linestyle="dotted",
-                linewidth=1,
-                label_pos="bottom,right"
-            )
+    extend_axe_lim(ax, bbox)
 
 
 def prepare_plot(table, ax=None, to_pdf_scale=True):
@@ -188,20 +226,7 @@ class PlotMethods():
 
         """
         ax = prepare_plot(table, ax)
-        xs, ys = [], []
-        for t in table._text:
-            xs.extend([t[0], t[2]])
-            ys.extend([t[1], t[3]])
-            ax.add_patch(
-                patches.Rectangle(
-                        (t[0], t[1]),
-                        t[2] - t[0],
-                        t[3] - t[1],
-                        alpha=0.5
-                    )
-                )
-        ax.set_xlim(min(xs) - 10, max(xs) + 10)
-        ax.set_ylim(min(ys) - 10, max(ys) + 10)
+        draw_text(table, ax)
         return ax.get_figure()
 
     @staticmethod
@@ -255,18 +280,8 @@ class PlotMethods():
         else:
             table_bbox = {table._bbox: None}
 
-        xs, ys = [], []
         if not _FOR_LATTICE:
-            for t in table._text:
-                xs.extend([t[0], t[2]])
-                ys.extend([t[1], t[3]])
-                ax.add_patch(
-                    patches.Rectangle(
-                        (t[0], t[1]), t[2] - t[0], t[3] - t[1],
-                        color="blue",
-                        alpha=0.5
-                    )
-                )
+            draw_text(table, ax)
 
         for t in table_bbox.keys():
             ax.add_patch(
@@ -276,10 +291,8 @@ class PlotMethods():
                 )
             )
             if not _FOR_LATTICE:
-                xs.extend([t[0], t[2]])
-                ys.extend([t[1], t[3]])
-                ax.set_xlim(min(xs) - 10, max(xs) + 10)
-                ax.set_ylim(min(ys) - 10, max(ys) + 10)
+                extend_axe_lim(ax, t)
+
         return ax.get_figure()
 
     @staticmethod
@@ -297,19 +310,7 @@ class PlotMethods():
 
         """
         ax = prepare_plot(table, ax)
-        xs, ys = [], []
-        for t in table._text:
-            xs.extend([t[0], t[2]])
-            ys.extend([t[1], t[3]])
-            ax.add_patch(
-                patches.Rectangle(
-                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
-                    color="blue",
-                    alpha=0.2
-                )
-            )
-        ax.set_xlim(min(xs) - 10, max(xs) + 10)
-        ax.set_ylim(min(ys) - 10, max(ys) + 10)
+        draw_text(table, ax)
 
         if table.flavor == "hybrid":
             for network in table.parse_details["network_searches"]:

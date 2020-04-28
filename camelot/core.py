@@ -171,11 +171,10 @@ class TextAlignments():
             idx_insert = None
             if idx_closest is None:
                 idx_insert = 0
-            elif np.isclose(
-                alignment_array[idx_closest].coord,
-                coord,
-                atol=0.5
-            ):
+            # Note: np.isclose is slow!
+            elif coord - 0.5 < \
+                    alignment_array[idx_closest].coord < \
+                    coord + 0.5:
                 self._update_alignment(
                     alignment_array[idx_closest],
                     coord,
@@ -460,7 +459,8 @@ class Table():
         self._image = None
         self._image_path = None  # Temporary file to hold an image of the pdf
 
-        self._text = []          # List of text box coordinates
+        self._text = []      # List of text box coordinates
+        self.textlines = []  # List of actual textlines on the page
 
     def __repr__(self):
         return "<{} shape={}>".format(self.__class__.__name__, self.shape)
