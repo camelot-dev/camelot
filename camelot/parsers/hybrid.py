@@ -6,7 +6,6 @@ from __future__ import division
 import copy
 import math
 import numpy as np
-import warnings
 
 from .base import TextBaseParser
 from ..core import (
@@ -18,6 +17,7 @@ from ..core import (
 from ..utils import (
     bbox_from_str,
     text_in_bbox,
+    textlines_overlapping_bbox,
     bbox_from_textlines,
     find_columns_coordinates,
     text_in_bbox_per_axis,
@@ -321,11 +321,17 @@ class TextNetworks(TextAlignments):
         horizontal axis.
 
         """
-        # Find the textline with the highest alignment score
+        # Find the textline with the highest alignment score, with a tie break
+        # to prefer textlines further down in the table.  Starting the search
+        # from the table's bottom allows the algo to collect data on more cells
+        # before going to the header, typically harder to parse.
         return max(
             self._textline_to_alignments.keys(),
             key=lambda textline:
-            self._textline_to_alignments[textline].alignment_score(),
+            (
+                self._textline_to_alignments[textline].alignment_score(),
+                -textline.y0
+            ),
             default=None
         )
 
@@ -566,12 +572,13 @@ class Hybrid(TextBaseParser):
         )
 
     def _generate_table_bbox(self):
+        user_provided_bboxes = None
         if self.table_areas is not None:
-            table_bbox = {}
+            # User gave us table areas already.  We will use their coordinates
+            # to find column anchors.
+            user_provided_bboxes = []
             for area_str in self.table_areas:
-                table_bbox[bbox_from_str(area_str)] = None
-            self.table_bbox = table_bbox
-            return
+                user_provided_bboxes.append(bbox_from_str(area_str))
 
         # Take all the textlines that are not just spaces
         all_textlines = [
@@ -593,59 +600,73 @@ class Hybrid(TextBaseParser):
             parse_details_bbox_searches = None
 
         while True:
-            text_network = TextNetworks()
-            text_network.generate(textlines)
-            text_network._remove_unconnected_edges()
-            gaps_hv = text_network._compute_plausible_gaps()
-            if gaps_hv is None:
-                return None
-            # edge_tol instructions override the calculated vertical gap
-            edge_tol_hv = (
-                gaps_hv[0],
-                gaps_hv[1] if self.edge_tol is None else self.edge_tol
-            )
-            bbox = text_network._build_bbox_candidate(
-                edge_tol_hv,
-                parse_details=parse_details_bbox_searches
-            )
-            if bbox is None:
-                break
+            # Find a bbox: either pulling from the user's or from the network
+            # algorithm.
 
-            if parse_details_network_searches is not None:
-                # Preserve the current edge calculation for display debugging
-                parse_details_network_searches.append(
-                    copy.deepcopy(text_network)
+            # First look for the body of the table
+            bbox_body = None
+            if user_provided_bboxes is not None:
+                if len(user_provided_bboxes) > 0:
+                    bbox_body = user_provided_bboxes.pop()
+            else:
+                text_network = TextNetworks()
+                text_network.generate(textlines)
+                text_network._remove_unconnected_edges()
+                gaps_hv = text_network._compute_plausible_gaps()
+                if gaps_hv is None:
+                    return None
+                # edge_tol instructions override the calculated vertical gap
+                edge_tol_hv = (
+                    gaps_hv[0],
+                    gaps_hv[1] if self.edge_tol is None else self.edge_tol
+                )
+                bbox_body = text_network._build_bbox_candidate(
+                    edge_tol_hv,
+                    parse_details=parse_details_bbox_searches
                 )
 
-            # Get all the textlines that are at least 50% in the box
-            tls_in_bbox = text_in_bbox(bbox, textlines)
+                if parse_details_network_searches is not None:
+                    # Preserve the current edge calculation for debugging
+                    parse_details_network_searches.append(
+                        copy.deepcopy(text_network)
+                    )
 
-            # and expand the text box to fully contain them
-            bbox = bbox_from_textlines(tls_in_bbox)
+            if bbox_body is None:
+                break
 
-            # FRH: do we need to repeat this?
-            # tls_in_bbox = text_in_bbox(bbox, textlines)
+            # Get all the textlines that overlap with the box, compute
+            # columns
+            tls_in_bbox = textlines_overlapping_bbox(bbox_body, textlines)
             cols_anchors = find_columns_coordinates(tls_in_bbox)
 
-            # Apply a heuristic to salvage headers which formatting might be
-            # off compared to the rest of the table.
-            expanded_bbox = search_header_from_body_bbox(
-                bbox,
-                textlines,
-                cols_anchors,
-                gaps_hv[1]
-            )
+            # Unless the user gave us strict bbox_body, try to find a header
+            # above the body to build the full bbox.
+            if user_provided_bboxes is not None:
+                bbox_full = bbox_body
+            else:
+                # Expand the text box to fully contain the tls we found
+                bbox_body = bbox_from_textlines(tls_in_bbox)
+
+                # Apply a heuristic to salvage headers which formatting might
+                # be off compared to the rest of the table.
+                bbox_full = search_header_from_body_bbox(
+                    bbox_body,
+                    textlines,
+                    cols_anchors,
+                    gaps_hv[1]
+                )
+
+            table_parse = {
+                "bbox_body": bbox_body,
+                "cols_anchors": cols_anchors,
+                "bbox_full": bbox_full
+            }
+            self.table_bbox[bbox_full] = table_parse
 
             if self.parse_details is not None:
                 if "col_searches" not in self.parse_details:
                     self.parse_details["col_searches"] = []
-                self.parse_details["col_searches"].append({
-                    "core_bbox": bbox,
-                    "cols_anchors": cols_anchors,
-                    "expanded_bbox": expanded_bbox
-                })
-
-            self.table_bbox[expanded_bbox] = None
+                self.parse_details["col_searches"].append(table_parse)
 
             # Remember what textlines we processed, and repeat
             for tl in tls_in_bbox:
@@ -682,7 +703,6 @@ class Hybrid(TextBaseParser):
         # the alignment identification work we've done earlier.
         rows_grouped = self._group_rows(all_tls, row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
-        elements = [len(r) for r in rows_grouped]
 
         if self.columns is not None and self.columns[table_idx] != "":
             # user has to input boundary columns too
@@ -695,53 +715,11 @@ class Hybrid(TextBaseParser):
             cols.append(text_x_max)
             cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
         else:
-            # calculate mode of the list of number of elements in
-            # each row to guess the number of columns
-            ncols = max(set(elements), key=elements.count)
-            if ncols == 1:
-                # if mode is 1, the page usually contains not tables
-                # but there can be cases where the list can be skewed,
-                # try to remove all 1s from list in this case and
-                # see if the list contains elements, if yes, then use
-                # the mode after removing 1s
-                elements = list(filter(lambda x: x != 1, elements))
-                if elements:
-                    ncols = max(set(elements), key=elements.count)
-                else:
-                    warnings.warn(
-                        "No tables found in table area {}"
-                        .format(table_idx + 1)
-                    )
-            cols = [
-                (t.x0, t.x1)
-                for r in rows_grouped
-                if len(r) == ncols
-                for t in r
-            ]
-            cols = self._merge_columns(
-                sorted(cols),
-                column_tol=self.column_tol
-            )
-            inner_text = []
-            for i in range(1, len(cols)):
-                left = cols[i - 1][1]
-                right = cols[i][0]
-                inner_text.extend(
-                    [
-                        t
-                        for direction in self.t_bbox
-                        for t in self.t_bbox[direction]
-                        if t.x0 > left and t.x1 < right
-                    ]
-                )
-            outer_text = [
-                t
-                for direction in self.t_bbox
-                for t in self.t_bbox[direction]
-                if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
-            ]
-            inner_text.extend(outer_text)
-            cols = self._add_columns(cols, inner_text, self.row_tol)
-            cols = self._join_columns(cols, text_x_min, text_x_max)
+            parse_details = self.table_bbox[bbox]
+            col_anchors = parse_details["cols_anchors"]
+            cols = list(map(
+                lambda idx: [col_anchors[idx], col_anchors[idx + 1]],
+                range(0, len(col_anchors) - 1)
+            ))
 
         return cols, rows, None, None

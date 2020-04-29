@@ -200,6 +200,17 @@ def test_hybrid_two_tables_b():
     assert df2.equals(tables[1].df)
 
 
+def test_hybrid_vertical_header():
+    """Tests a complex table with a vertically text header.
+    """
+    df = pd.DataFrame(data_hybrid_vertical_headers)
+
+    filename = os.path.join(testdir, "vertical_header.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid")
+    assert len(tables) == 1
+    assert_frame_equal(df, tables[0].df)
+
+
 def test_hybrid_table_regions():
     df = pd.DataFrame(data_hybrid_table_regions)
 

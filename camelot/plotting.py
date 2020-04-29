@@ -472,7 +472,7 @@ class PlotMethods():
 
         for box_id, col_search in enumerate(parse_details["col_searches"]):
             draw_labeled_bbox(
-                ax, col_search["expanded_bbox"],
+                ax, col_search["bbox_full"],
                 "box body + header #{box_id}".format(
                     box_id=box_id
                 ),
@@ -481,7 +481,7 @@ class PlotMethods():
                 label_pos="top,left"
             )
             draw_labeled_bbox(
-                ax, col_search["core_bbox"],
+                ax, col_search["bbox_body"],
                 "box body #{box_id}".format(
                     box_id=box_id
                 ),
@@ -495,8 +495,8 @@ class PlotMethods():
                 ax.plot(
                     [col_anchor, col_anchor],
                     [
-                        col_search["core_bbox"][1] - 10,
-                        col_search["core_bbox"][3] + 10,
+                        col_search["bbox_body"][1] - 10,
+                        col_search["bbox_body"][3] + 10,
                     ],
                     color="green"
                 )
