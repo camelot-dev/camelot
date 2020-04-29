@@ -171,19 +171,19 @@ class TextAlignments():
             idx_insert = None
             if idx_closest is None:
                 idx_insert = 0
-            # Note: np.isclose is slow!
-            elif coord - 0.5 < \
-                    alignment_array[idx_closest].coord < \
-                    coord + 0.5:
-                self._update_alignment(
-                    alignment_array[idx_closest],
-                    coord,
-                    textline
-                )
-            elif alignment_array[idx_closest].coord < coord:
-                idx_insert = idx_closest + 1
             else:
-                idx_insert = idx_closest
+                coord_closest = alignment_array[idx_closest].coord
+                # Note: np.isclose is slow!
+                if coord - 0.5 < coord_closest < coord + 0.5:
+                    self._update_alignment(
+                        alignment_array[idx_closest],
+                        coord,
+                        textline
+                    )
+                elif coord_closest < coord:
+                    idx_insert = idx_closest + 1
+                else:
+                    idx_insert = idx_closest
             if idx_insert is not None:
                 new_alignment = self._create_new_text_alignment(
                     coord, textline, alignment_id
@@ -212,8 +212,8 @@ class TextEdges(TextAlignments):
         te = self._create_new_text_alignment(coord, textline, align)
         self._text_alignments[align].append(te)
 
-    def _update_alignment(self, edge, coord, textline):
-        edge.update_coords(coord, textline, self.edge_tol)
+    def _update_alignment(self, alignment, coord, textline):
+        alignment.update_coords(coord, textline, self.edge_tol)
 
     def generate(self, textlines):
         """Generates the text edges dict based on horizontal text
@@ -469,8 +469,7 @@ class Table():
         if self.page == other.page:
             if self.order < other.order:
                 return True
-        if self.page < other.page:
-            return True
+        return self.page < other.page
 
     @property
     def data(self):
@@ -674,7 +673,7 @@ class Table():
                 bottom = cell.bottom
                 if cell.bound == 4:
                     continue
-                elif cell.bound == 3:
+                if cell.bound == 3:
                     if not left and (right and top and bottom):
                         cell.hspan = True
                     elif not right and (left and top and bottom):

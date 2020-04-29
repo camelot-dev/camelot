@@ -44,9 +44,9 @@ def draw_labeled_bbox(
     )
 
     vlabel, hlabel = label_pos.split(",")
-    if (vlabel == "top"):
+    if vlabel == "top":
         y = max(bbox[1], bbox[3])
-    elif (vlabel == "bottom"):
+    elif vlabel == "bottom":
         y = min(bbox[1], bbox[3])
     else:
         y = 0.5 * (bbox[1] + bbox[3])
@@ -58,9 +58,9 @@ def draw_labeled_bbox(
         "center": "center"
     }
     vlabel_out_of_box = label_align_swap[vlabel]
-    if (hlabel == "right"):
+    if hlabel == "right":
         x = max(bbox[0], bbox[2])
-    elif (hlabel == "left"):
+    elif hlabel == "left":
         x = min(bbox[0], bbox[2])
     else:
         x = 0.5 * (bbox[0] + bbox[2])
@@ -203,7 +203,7 @@ class PlotMethods():
             raise NotImplementedError(
                 "Lattice flavor does not support kind='{}'".format(kind)
             )
-        elif table.flavor in ["stream", "hybrid"] and kind in ["line"]:
+        if table.flavor in ["stream", "hybrid"] and kind in ["line"]:
             raise NotImplementedError(
                 "Stream flavor does not support kind='{}'".format(kind)
             )
