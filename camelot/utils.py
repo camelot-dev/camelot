@@ -564,7 +564,7 @@ def find_columns_coordinates(tls, min_gap=1.0):
     # Splits:         |        |        |         |
     cols_anchors = list(map(
         lambda idx: (cols_bounds[idx-1][1] + cols_bounds[idx][0]) / 2.0,
-        range(1, len(cols_bounds)-1)
+        range(1, len(cols_bounds))
     ))
     cols_anchors.insert(0, cols_bounds[0][0])
     cols_anchors.append(cols_bounds[-1][1])
