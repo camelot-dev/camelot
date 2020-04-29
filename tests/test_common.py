@@ -7,8 +7,9 @@ from pandas.testing import assert_frame_equal
 
 import camelot
 from camelot.core import Table, TableList
-from camelot.utils import compare_tables
 from camelot.__version__ import generate_version
+#  compare_tables used in console mode while debugging
+from camelot.utils import compare_tables  # noqa
 
 from .data import *
 

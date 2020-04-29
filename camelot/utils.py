@@ -157,12 +157,15 @@ def remove_extra(kwargs, flavor="lattice"):
 # https://stackoverflow.com/a/22726782
 # and https://stackoverflow.com/questions/10965479
 class TemporaryDirectory():
+    def __init__(self):
+        self.dir_path = None
+
     def __enter__(self):
-        self.name = tempfile.mkdtemp()
+        self.dir_path = tempfile.mkdtemp()
         # Only delete the temporary directory upon
         # program exit.
-        atexit.register(shutil.rmtree, self.name)
-        return self.name
+        atexit.register(shutil.rmtree, self.dir_path)
+        return self.dir_path
 
     def __exit__(self, exc_type, exc_value, traceback):
         pass
@@ -343,8 +346,8 @@ def get_rotation(chars, horizontal_text, vertical_text):
     hlen = len([t for t in horizontal_text if t.get_text().strip()])
     vlen = len([t for t in vertical_text if t.get_text().strip()])
     if hlen < vlen:
-        clockwise = sum(t.matrix[1] < 0 and t.matrix[2] > 0 for t in chars)
-        anticlockwise = sum(t.matrix[1] > 0 and t.matrix[2] < 0 for t in chars)
+        clockwise = sum(t.matrix[1] < 0 < t.matrix[2] for t in chars)
+        anticlockwise = sum(t.matrix[1] > 0 > t.matrix[2] for t in chars)
         rotation = "anticlockwise" if clockwise < anticlockwise \
             else "clockwise"
     return rotation
@@ -753,7 +756,7 @@ def flag_font_size(textline, direction, strip_text=""):
                     flist.append("".join(fchars))
         fstring = "".join(flist)
     else:
-        fstring = "".join([t.get_text() for t in textline])
+        fstring = "".join(t.get_text() for t in textline)
     return text_strip(fstring, strip_text)
 
 
@@ -815,10 +818,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                         ):
                             cut_text.append((r, cut[0], obj))
                             break
-                        else:
-                            # TODO: add test
-                            if cut == x_cuts[-1]:
-                                cut_text.append((r, cut[0] + 1, obj))
+                        # TODO: add test
+                        if cut == x_cuts[-1]:
+                            cut_text.append((r, cut[0] + 1, obj))
                     elif isinstance(obj, LTAnno):
                         cut_text.append((r, cut[0], obj))
         elif direction == "vertical" and not textline.is_empty():
@@ -848,10 +850,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                                 and (obj.y0 + obj.y1) / 2 >= cut[1]:
                             cut_text.append((cut[0], c, obj))
                             break
-                        else:
-                            # TODO: add test
-                            if cut == y_cuts[-1]:
-                                cut_text.append((cut[0] - 1, c, obj))
+                        # TODO: add test
+                        if cut == y_cuts[-1]:
+                            cut_text.append((cut[0] - 1, c, obj))
                     elif isinstance(obj, LTAnno):
                         cut_text.append((cut[0], c, obj))
     except IndexError:
@@ -964,23 +965,21 @@ def get_table_index(
             ),
             error,
         )
-    else:
-        if flag_size:
-            return (
-                [
-                    (
-                        r_idx,
-                        c_idx,
-                        flag_font_size(t._objs,
-                                       direction,
-                                       strip_text=strip_text),
-                    )
-                ],
-                error,
-            )
-        else:
-            return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], \
-                error
+    if flag_size:
+        return (
+            [
+                (
+                    r_idx,
+                    c_idx,
+                    flag_font_size(t._objs,
+                                   direction,
+                                   strip_text=strip_text),
+                )
+            ],
+            error,
+        )
+    return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], \
+        error
 
 
 def compute_accuracy(error_weights):
@@ -1002,7 +1001,7 @@ def compute_accuracy(error_weights):
     SCORE_VAL = 100
     try:
         score = 0
-        if sum([ew[0] for ew in error_weights]) != SCORE_VAL:
+        if sum(ew[0] for ew in error_weights) != SCORE_VAL:
             raise ValueError("Sum of weights should be equal to 100.")
         for ew in error_weights:
             weight = ew[0] / len(ew[1])
