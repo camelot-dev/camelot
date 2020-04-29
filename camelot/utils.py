@@ -431,8 +431,36 @@ def bbox_from_str(bbox_str):
     )
 
 
+def textlines_overlapping_bbox(bbox, textlines):
+    """Returns all text objects which overlap or are within a bounding box.
+
+    Parameters
+    ----------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+    textlines : List of PDFMiner text objects.
+
+    Returns
+    -------
+    t_bbox : list
+        List of PDFMiner text objects.
+
+    """
+    (left, bottom, right, top) = bbox
+    t_bbox = [
+        t
+        for t in textlines
+        if ((left < t.x0 < right) or (left < t.x1 < right))
+        and ((bottom < t.y0 < top) or (bottom < t.y1 < top))
+    ]
+    return t_bbox
+
+
 def text_in_bbox(bbox, text):
-    """Returns all text objects which lie at least 50% inside a bounding box.
+    """Returns all text objects which lie at least 50% inside a bounding box
+    across both dimensions.
 
     Parameters
     ----------
