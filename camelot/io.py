@@ -7,15 +7,14 @@ from .utils import validate_input, remove_extra
 
 
 def read_pdf(
-    filepath,
-    pages="1",
-    password=None,
-    flavor="lattice",
-    suppress_stdout=False,
-    layout_kwargs=None,
-    debug=False,
-    **kwargs
-):
+        filepath,
+        pages="1",
+        password=None,
+        flavor="lattice",
+        suppress_stdout=False,
+        layout_kwargs=None,
+        debug=False,
+        **kwargs):
     """Read PDF and return extracted tables.
 
     Note: kwargs annotated with ^ can only be used with flavor='stream'
