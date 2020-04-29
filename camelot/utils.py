@@ -640,12 +640,12 @@ def get_index_closest_point(point, sorted_list, fn=lambda x: x):
 
     if mid_val > point:
         if mid > 0 and (
-            point - fn(sorted_list[mid-1]) <
+                point - fn(sorted_list[mid-1]) <
                 mid_val - point):
             return mid-1
     elif mid_val < point:
         if mid < n - 1 and (
-            fn(sorted_list[mid+1]) - point <
+                fn(sorted_list[mid+1]) - point <
                 point - mid_val):
             return mid+1
     return mid
@@ -844,10 +844,8 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                 col = table.cols[c]
                 for cut in y_cuts:
                     if isinstance(obj, LTChar):
-                        if (
-                            col[0] <= (obj.x0 + obj.x1) / 2 <= col[1]
-                            and (obj.y0 + obj.y1) / 2 >= cut[1]
-                        ):
+                        if col[0] <= (obj.x0 + obj.x1) / 2 <= col[1] \
+                                and (obj.y0 + obj.y1) / 2 >= cut[1]:
                             cut_text.append((cut[0], c, obj))
                             break
                         else:

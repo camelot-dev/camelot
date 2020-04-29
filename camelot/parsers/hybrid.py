@@ -47,39 +47,39 @@ def column_spread(left, right, col_anchors):
 def find_closest_tls(bbox, tls):
     """ Search for tls that are the closest but outside in all 4 directions
     """
-    closest = {
-        "left": None,
-        "right": None,
-        "top": None,
-        "bottom": None,
-    }
+    left, right, top, bottom = None, None, None, None
     (bbox_left, bbox_bottom, bbox_right, bbox_top) = bbox
-    for tl in tls:
-        if tl.x1 < bbox_left:
+    for textline in tls:
+        if textline.x1 < bbox_left:
             # Left: check it overlaps horizontally
-            if tl.y0 > bbox_top or tl.y1 < bbox_bottom:
+            if textline.y0 > bbox_top or textline.y1 < bbox_bottom:
                 continue
-            if closest["left"] is None or closest["left"].x1 < tl.x1:
-                closest["left"] = tl
-        elif bbox_right < tl.x0:
+            if left is None or left.x1 < textline.x1:
+                left = textline
+        elif bbox_right < textline.x0:
             # Right: check it overlaps horizontally
-            if tl.y0 > bbox_top or tl.y1 < bbox_bottom:
+            if textline.y0 > bbox_top or textline.y1 < bbox_bottom:
                 continue
-            if closest["right"] is None or closest["right"].x0 > tl.x0:
-                closest["right"] = tl
+            if right is None or right.x0 > textline.x0:
+                right = textline
         else:
             # Either bottom or top: must overlap vertically
-            if tl.x0 > bbox_right or tl.x1 < bbox_left:
+            if textline.x0 > bbox_right or textline.x1 < bbox_left:
                 continue
-            elif tl.y1 < bbox_bottom:
+            if textline.y1 < bbox_bottom:
                 # Bottom
-                if closest["bottom"] is None or closest["bottom"].y1 < tl.y1:
-                    closest["bottom"] = tl
-            elif bbox_top < tl.y0:
+                if bottom is None or bottom.y1 < textline.y1:
+                    bottom = textline
+            elif bbox_top < textline.y0:
                 # Top
-                if closest["top"] is None or closest["top"].y0 > tl.y0:
-                    closest["top"] = tl
-    return closest
+                if top is None or top.y0 > textline.y0:
+                    top = textline
+    return {
+        "left": left,
+        "right": right,
+        "top": top,
+        "bottom": bottom,
+    }
 
 
 def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
@@ -103,16 +103,15 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
         # It will be the anchor for a possible new row.
         closest_above = None
         all_above = []
-        for te in textlines:
+        for textline in textlines:
             # higher than the table, >50% within its bounds
-            te_center = 0.5 * (te.x0 + te.x1)
-            if te.y0 > top and left < te_center < right:
-                all_above.append(te)
-                if closest_above is None or closest_above.y0 > te.y0:
-                    closest_above = te
+            textline_center = 0.5 * (textline.x0 + textline.x1)
+            if textline.y0 > top and left < textline_center < right:
+                all_above.append(textline)
+                if closest_above is None or closest_above.y0 > textline.y0:
+                    closest_above = textline
 
-        if closest_above and \
-                closest_above.y0 < top + max_v_gap:
+        if closest_above and closest_above.y0 < top + max_v_gap:
             # b/ We have a candidate cell that is within the correct
             # vertical band, and directly above the table. Starting from
             # this anchor, we list all the textlines within the same row.
@@ -124,23 +123,27 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
                 # Iterate and extract elements that fit in the row
                 # from our list
                 for i in range(len(all_above) - 1, -1, -1):
-                    te = all_above[i]
-                    if te.y0 < top:
+                    textline = all_above[i]
+                    if textline.y0 < top:
                         # The bottom of this element is within our row
                         # so we add it.
-                        tls_in_new_row.append(te)
+                        tls_in_new_row.append(textline)
                         all_above.pop(i)
-                        if te.y1 > top:
+                        if textline.y1 > top:
                             # If the top of this element raises our row's
                             # band, we'll need to keep on searching for
                             # overlapping items
-                            top = te.y1
+                            top = textline.y1
                             pushed_up = True
 
             # Get the x-ranges for all the textlines, and merge the
             # x-ranges that overlap
-            zones = zones + \
-                list(map(lambda tl: [tl.x0, tl.x1], tls_in_new_row))
+            zones = zones + list(
+                map(
+                    lambda textline: [textline.x0, textline.x1],
+                    tls_in_new_row
+                )
+            )
             zones.sort(key=lambda z: z[0])  # Sort by left coordinate
             # Starting from the right, if two zones overlap horizontally,
             # merge them
@@ -277,9 +280,9 @@ class TextNetworks(TextAlignments):
         identify alignments.
         """
         # Identify all the alignments
-        for tl in textlines:
-            if len(tl.get_text().strip()) > 0:
-                self._register_textline(tl)
+        for textline in textlines:
+            if len(textline.get_text().strip()) > 0:
+                self._register_textline(textline)
 
     def _compute_alignment_counts(self):
         """Build a dictionary textline -> alignment object.
@@ -294,7 +297,7 @@ class TextNetworks(TextAlignments):
                         self._textline_to_alignments[textline] = alignments
                     alignments[align_id] = textedge.textlines
 
-    def _remove_unconnected_edges(self):
+    def remove_unconnected_edges(self):
         """Weed out elements which are only connected to others vertically
         or horizontally. There needs to be connections across both
         dimensions.
@@ -302,16 +305,16 @@ class TextNetworks(TextAlignments):
         removed_singletons = True
         while removed_singletons:
             removed_singletons = False
-            for textalignments in self._text_alignments.values():
+            for text_alignments in self._text_alignments.values():
                 # For each alignment edge, remove items if they are singletons
                 # either horizontally or vertically
-                for ta in textalignments:
-                    for i in range(len(ta.textlines) - 1, -1, -1):
-                        tl = ta.textlines[i]
-                        alignments = self._textline_to_alignments[tl]
+                for text_alignment in text_alignments:
+                    for i in range(len(text_alignment.textlines) - 1, -1, -1):
+                        textline = text_alignment.textlines[i]
+                        alignments = self._textline_to_alignments[textline]
                         if alignments.max_h_count() <= 1 or \
                            alignments.max_v_count() <= 1:
-                            del ta.textlines[i]
+                            del text_alignment.textlines[i]
                             removed_singletons = True
             self._textline_to_alignments = {}
             self._compute_alignment_counts()
@@ -335,7 +338,7 @@ class TextNetworks(TextAlignments):
             default=None
         )
 
-    def _compute_plausible_gaps(self):
+    def compute_plausible_gaps(self):
         """ Evaluate plausible gaps between cells horizontally and vertically
         based on the textlines aligned with the most connected textline.
 
@@ -363,12 +366,12 @@ class TextNetworks(TextAlignments):
 
         h_textlines = sorted(
             ref_h_textlines,
-            key=lambda tl: tl.x0,
+            key=lambda textline: textline.x0,
             reverse=True
         )
         v_textlines = sorted(
             ref_v_textlines,
-            key=lambda tl: tl.y0,
+            key=lambda textline: textline.y0,
             reverse=True
         )
 
@@ -387,7 +390,7 @@ class TextNetworks(TextAlignments):
         )
         return gaps_hv
 
-    def _build_bbox_candidate(self, gaps_hv, parse_details=None):
+    def search_table_body(self, gaps_hv, parse_details=None):
         """ Build a candidate bbox for the body of a table using hybrid algo
 
         Seed the process with the textline with the highest alignment
@@ -445,27 +448,27 @@ class TextNetworks(TextAlignments):
             last_bbox = bbox
             cand_bbox = last_bbox.copy()
             closest_tls = find_closest_tls(bbox, tls_search_space)
-            for direction, tl in closest_tls.items():
-                if tl is None:
+            for direction, textline in closest_tls.items():
+                if textline is None:
                     continue
                 expanded_cand_bbox = cand_bbox.copy()
 
                 if direction == "left":
-                    if expanded_cand_bbox[0] - tl.x1 > gaps_hv[0]:
+                    if expanded_cand_bbox[0] - textline.x1 > gaps_hv[0]:
                         continue
-                    expanded_cand_bbox[0] = tl.x0
+                    expanded_cand_bbox[0] = textline.x0
                 elif direction == "right":
-                    if tl.x0 - expanded_cand_bbox[2] > gaps_hv[0]:
+                    if textline.x0 - expanded_cand_bbox[2] > gaps_hv[0]:
                         continue
-                    expanded_cand_bbox[2] = tl.x1
+                    expanded_cand_bbox[2] = textline.x1
                 elif direction == "bottom":
-                    if expanded_cand_bbox[1] - tl.y1 > gaps_hv[1]:
+                    if expanded_cand_bbox[1] - textline.y1 > gaps_hv[1]:
                         continue
-                    expanded_cand_bbox[1] = tl.y0
+                    expanded_cand_bbox[1] = textline.y0
                 elif direction == "top":
-                    if tl.y0 - expanded_cand_bbox[3] > gaps_hv[1]:
+                    if textline.y0 - expanded_cand_bbox[3] > gaps_hv[1]:
                         continue
-                    expanded_cand_bbox[3] = tl.y1
+                    expanded_cand_bbox[3] = textline.y1
 
                 # If they are, see what an expanded bbox in that direction
                 # would contain
@@ -477,9 +480,9 @@ class TextNetworks(TextAlignments):
                 # This happens when text covers multiple rows - that's only
                 # allowed in the header, treated separately.
                 cols_cand = find_columns_coordinates(tls_in_new_box)
-                if direction in ["bottom", "top"]:
-                    if len(cols_cand) < len(last_cols_cand):
-                        continue
+                if direction in ["bottom", "top"] and \
+                        len(cols_cand) < len(last_cols_cand):
+                    continue
 
                 # We have an expansion candidate: register it, update the
                 # search space and repeat
@@ -489,8 +492,8 @@ class TextNetworks(TextAlignments):
                 last_cols_cand = cols_cand
                 tls_in_bbox.extend(new_tls)
                 for i in range(len(tls_search_space) - 1, -1, -1):
-                    tl = tls_search_space[i]
-                    if tl in new_tls:
+                    textline = tls_search_space[i]
+                    if textline in new_tls:
                         del tls_search_space[i]
 
         if len(tls_in_bbox) > MINIMUM_TEXTLINES_IN_TABLE:
@@ -595,6 +598,7 @@ class Hybrid(TextBaseParser):
                 parse_details_network_searches
             parse_details_bbox_searches = []
             self.parse_details["bbox_searches"] = parse_details_bbox_searches
+            self.parse_details["col_searches"] = []
         else:
             parse_details_network_searches = None
             parse_details_bbox_searches = None
@@ -611,8 +615,8 @@ class Hybrid(TextBaseParser):
             else:
                 text_network = TextNetworks()
                 text_network.generate(textlines)
-                text_network._remove_unconnected_edges()
-                gaps_hv = text_network._compute_plausible_gaps()
+                text_network.remove_unconnected_edges()
+                gaps_hv = text_network.compute_plausible_gaps()
                 if gaps_hv is None:
                     return None
                 # edge_tol instructions override the calculated vertical gap
@@ -620,7 +624,7 @@ class Hybrid(TextBaseParser):
                     gaps_hv[0],
                     gaps_hv[1] if self.edge_tol is None else self.edge_tol
                 )
-                bbox_body = text_network._build_bbox_candidate(
+                bbox_body = text_network.search_table_body(
                     edge_tol_hv,
                     parse_details=parse_details_bbox_searches
                 )
@@ -664,15 +668,13 @@ class Hybrid(TextBaseParser):
             self.table_bbox[bbox_full] = table_parse
 
             if self.parse_details is not None:
-                if "col_searches" not in self.parse_details:
-                    self.parse_details["col_searches"] = []
                 self.parse_details["col_searches"].append(table_parse)
 
             # Remember what textlines we processed, and repeat
-            for tl in tls_in_bbox:
-                textlines_processed[tl] = None
+            for textline in tls_in_bbox:
+                textlines_processed[textline] = None
             textlines = list(filter(
-                lambda tl: tl not in textlines_processed,
+                lambda textline: textline not in textlines_processed,
                 textlines
             ))
 
@@ -687,10 +689,10 @@ class Hybrid(TextBaseParser):
         all_tls = list(
             sorted(
                 filter(
-                    lambda tl: len(tl.get_text().strip()) > 0,
+                    lambda textline: len(textline.get_text().strip()) > 0,
                     self.t_bbox["horizontal"] + self.t_bbox["vertical"]
                 ),
-                key=lambda tl: (-tl.y0, tl.x0)
+                key=lambda textline: (-textline.y0, textline.x0)
             )
         )
         text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
