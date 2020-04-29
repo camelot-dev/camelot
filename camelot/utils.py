@@ -432,7 +432,7 @@ def bbox_from_str(bbox_str):
 
 
 def text_in_bbox(bbox, text):
-    """Returns all text objects present inside a bounding box.
+    """Returns all text objects which lie at least 50% inside a bounding box.
 
     Parameters
     ----------
@@ -529,13 +529,17 @@ def bbox_from_textlines(textlines):
     return bbox
 
 
-def find_columns_coordinates(tls):
+def find_columns_coordinates(tls, min_gap=1.0):
     """Given a list of text objects, guess columns boundaries and returns a
     list of x-coordinates for split points between columns.
 
     Parameters
     ----------
     tls : list of PDFMiner text object.
+
+    min_gap : minimum distance between columns. Any elements closer than this
+        threshold are merged together.  This is to prevent spaces between words
+        to be misinterpreted as column boundaries.
 
     Returns
     -------
@@ -549,7 +553,7 @@ def find_columns_coordinates(tls):
     cols_bounds = []
     tls.sort(key=lambda tl: tl.x0)
     for tl in tls:
-        if (not cols_bounds) or cols_bounds[-1][1] < tl.x0:
+        if (not cols_bounds) or cols_bounds[-1][1] + min_gap < tl.x0:
             cols_bounds.append([tl.x0, tl.x1])
         else:
             cols_bounds[-1][1] = max(cols_bounds[-1][1], tl.x1)
@@ -617,44 +621,6 @@ def get_index_closest_point(point, sorted_list, fn=lambda x: x):
                 point - mid_val):
             return mid+1
     return mid
-
-
-def distance_tl_to_bbox(tl, bbox):
-    """Returns a tuple corresponding to the horizontal and vertical gaps
-    between a textline and a bbox.
-
-    Parameters
-    ----------
-    tl : PDFMiner text object.
-    bbox : tuple (x0, y0, x1, y1)
-
-    Returns
-    -------
-    distance : tuple
-        Tuple (horizontal distance, vertical distance)
-
-    """
-    v_distance, h_distance = None, None
-    if tl.x1 <= bbox[0]:
-        # tl to the left
-        h_distance = bbox[0] - tl.x1
-    elif bbox[2] <= tl.x0:
-        # tl to the right
-        h_distance = tl.x0 - bbox[2]
-    else:
-        # textline overlaps vertically
-        h_distance = 0
-
-    if tl.y1 <= bbox[1]:
-        # tl below
-        v_distance = bbox[1] - tl.y1
-    elif bbox[3] <= tl.y0:
-        # tl above
-        v_distance = tl.y0 - bbox[3]
-    else:
-        # tl overlaps horizontally
-        v_distance = 0
-    return (h_distance, v_distance)
 
 
 def merge_close_lines(ar, line_tol=2):
