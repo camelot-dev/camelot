@@ -17,10 +17,8 @@ from ..core import (
 )
 from ..utils import (
     bbox_from_str,
-    expand_bbox_with_textline,
     text_in_bbox,
     bbox_from_textlines,
-    distance_tl_to_bbox,
     find_columns_coordinates,
     text_in_bbox_per_axis,
 )
@@ -44,6 +42,44 @@ def column_spread(left, right, col_anchors):
         index_right += 1
 
     return index_right - index_left
+
+
+def find_closest_tls(bbox, tls):
+    """ Search for tls that are the closest but outside in all 4 directions
+    """
+    closest = {
+        "left": None,
+        "right": None,
+        "top": None,
+        "bottom": None,
+    }
+    (bbox_left, bbox_bottom, bbox_right, bbox_top) = bbox
+    for tl in tls:
+        if tl.x1 < bbox_left:
+            # Left: check it overlaps horizontally
+            if tl.y0 > bbox_top or tl.y1 < bbox_bottom:
+                continue
+            if closest["left"] is None or closest["left"].x1 < tl.x1:
+                closest["left"] = tl
+        elif bbox_right < tl.x0:
+            # Right: check it overlaps horizontally
+            if tl.y0 > bbox_top or tl.y1 < bbox_bottom:
+                continue
+            if closest["right"] is None or closest["right"].x0 > tl.x0:
+                closest["right"] = tl
+        else:
+            # Either bottom or top: must overlap vertically
+            if tl.x0 > bbox_right or tl.x1 < bbox_left:
+                continue
+            elif tl.y1 < bbox_bottom:
+                # Bottom
+                if closest["bottom"] is None or closest["bottom"].y1 < tl.y1:
+                    closest["bottom"] = tl
+            elif bbox_top < tl.y0:
+                # Top
+                if closest["top"] is None or closest["top"].y0 > tl.y0:
+                    closest["top"] = tl
+    return closest
 
 
 def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
@@ -346,14 +382,16 @@ class TextNetworks(TextAlignments):
         return gaps_hv
 
     def _build_bbox_candidate(self, gaps_hv, parse_details=None):
-        """ Seed the process with the textline with the highest alignment
+        """ Build a candidate bbox for the body of a table using hybrid algo
+
+        Seed the process with the textline with the highest alignment
         score, then expand the bbox with textlines within threshold.
 
         Parameters
         ----------
         gaps_hv : tuple
-             The maximum distance allowed to consider surrounding lines/columns
-             as part of the same table.
+            The maximum distance allowed to consider surrounding lines/columns
+            as part of the same table.
         parse_details : array (optional)
             Optional parameter array, in which to store extra information
             to help later visualization of the table creation.
@@ -381,8 +419,8 @@ class TextNetworks(TextAlignments):
         else:
             parse_details_search = None
 
-        bbox = (most_aligned_tl.x0, most_aligned_tl.y0,
-                most_aligned_tl.x1, most_aligned_tl.y1)
+        bbox = [most_aligned_tl.x0, most_aligned_tl.y0,
+                most_aligned_tl.x1, most_aligned_tl.y1]
 
         # For the body of the table, we only consider cells that have
         # alignments on both axis.
@@ -391,24 +429,64 @@ class TextNetworks(TextAlignments):
         tls_search_space.remove(most_aligned_tl)
         tls_in_bbox = [most_aligned_tl]
         last_bbox = None
+        last_cols_cand = [most_aligned_tl.x0, most_aligned_tl.x1]
         while last_bbox != bbox:
             if parse_details_search is not None:
                 # Store debug info
                 parse_details_search["iterations"].append(bbox)
 
+            # Check that the closest tls are within the gaps allowed
             last_bbox = bbox
-            # Go through all remaining textlines, expand our bbox
-            # if a textline is within our proximity tolerance
-            for i in range(len(tls_search_space) - 1, -1, -1):
-                tl = tls_search_space[i]
-                h_distance, v_distance = distance_tl_to_bbox(tl, bbox)
+            cand_bbox = last_bbox.copy()
+            closest_tls = find_closest_tls(bbox, tls_search_space)
+            for direction, tl in closest_tls.items():
+                if tl is None:
+                    continue
+                expanded_cand_bbox = cand_bbox.copy()
 
-                # Move textline to our bbox and expand the bbox accordingly
-                # if the textline is close.
-                if h_distance < max_h_gap and v_distance < max_v_gap:
-                    tls_in_bbox.append(tl)
-                    bbox = expand_bbox_with_textline(bbox, tl)
-                    del tls_search_space[i]
+                if direction == "left":
+                    if expanded_cand_bbox[0] - tl.x1 > gaps_hv[0]:
+                        continue
+                    expanded_cand_bbox[0] = tl.x0
+                elif direction == "right":
+                    if tl.x0 - expanded_cand_bbox[2] > gaps_hv[0]:
+                        continue
+                    expanded_cand_bbox[2] = tl.x1
+                elif direction == "bottom":
+                    if expanded_cand_bbox[1] - tl.y1 > gaps_hv[1]:
+                        continue
+                    expanded_cand_bbox[1] = tl.y0
+                elif direction == "top":
+                    if tl.y0 - expanded_cand_bbox[3] > gaps_hv[1]:
+                        continue
+                    expanded_cand_bbox[3] = tl.y1
+
+                # If they are, see what an expanded bbox in that direction
+                # would contain
+                new_tls = text_in_bbox(expanded_cand_bbox, tls_search_space)
+                tls_in_new_box = new_tls + tls_in_bbox
+
+                # And if we're expanding up or down, check that the addition
+                # of the new row won't reduce the number of columns.
+                # This happens when text covers multiple rows - that's only
+                # allowed in the header, treated separately.
+                cols_cand = find_columns_coordinates(tls_in_new_box)
+                if direction in ["bottom", "top"]:
+                    if len(cols_cand) < len(last_cols_cand):
+                        continue
+
+                # We have an expansion candidate: register it, update the
+                # search space and repeat
+                # We use bbox_from_textlines instead of cand_bbox in case some
+                # overlapping textlines require a large bbox for strict fit.
+                bbox = cand_bbox = list(bbox_from_textlines(tls_in_new_box))
+                last_cols_cand = cols_cand
+                tls_in_bbox.extend(new_tls)
+                for i in range(len(tls_search_space) - 1, -1, -1):
+                    tl = tls_search_space[i]
+                    if tl in new_tls:
+                        del tls_search_space[i]
+
         if len(tls_in_bbox) > MINIMUM_TEXTLINES_IN_TABLE:
             return bbox
         return None

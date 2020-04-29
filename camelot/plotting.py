@@ -28,7 +28,8 @@ def draw_labeled_bbox(
     ax, bbox, text,
     color="black", linewidth=3,
     linestyle="solid",
-    label_pos="top,left"
+    label_pos="top,left",
+    fontsize=12,
 ):
     """Utility drawing function to draw a box with an associated text label
     """
@@ -66,10 +67,10 @@ def draw_labeled_bbox(
     ax.text(
         x, y,
         text,
-        fontsize=12, color="black",
+        fontsize=fontsize, color="black",
         verticalalignment=vlabel_out_of_box,
         horizontalalignment=hlabel,
-        bbox=dict(facecolor=color, alpha=0.3)
+        bbox=dict(facecolor=color, alpha=0.1)
     )
 
 
@@ -449,12 +450,13 @@ class PlotMethods():
 
                 draw_labeled_bbox(
                     ax, bbox,
-                    "box #{box_id} / iter #{iteration}".format(
+                    "t{box_id}/i{iteration}".format(
                         box_id=box_id,
                         iteration=iteration
                     ),
                     color="red",
                     linewidth=5 if final else 2,
+                    fontsize=12 if final else 8,
                     label_pos="bottom,left"
                 )
 
