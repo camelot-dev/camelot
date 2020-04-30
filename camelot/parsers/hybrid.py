@@ -333,7 +333,7 @@ class TextNetworks(TextAlignments):
             key=lambda textline:
             (
                 self._textline_to_alignments[textline].alignment_score(),
-                -textline.y0
+                -textline.y0, -textline.x0
             ),
             default=None
         )

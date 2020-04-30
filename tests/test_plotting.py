@@ -3,7 +3,6 @@
 import os
 
 import pytest
-
 import matplotlib
 
 import camelot
@@ -16,7 +15,7 @@ import camelot
 # To force upgrade:
 #   pip install --upgrade --force-reinstall matplotlib
 # To force usage of a Python 3.6 compatible version:
-#   pip install "matplotlib==2.2.5"
+#   pip install "matplotlib==3.0.3"
 # This condition can be removed in favor of a version requirement bump for
 # matplotlib once support for Python 3.5 is dropped.
 
@@ -26,43 +25,43 @@ testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
+def unit_test_stable_plot(table, kind):
+    if not LEGACY_MATPLOTLIB:
+        # See https://matplotlib.org/3.2.1/users/whats_new.html#kerning-adjustments-now-use-correct-values  # noqa
+        matplotlib.rcParams["text.kerning_factor"] = 6
+    return camelot.plot(table, kind=kind)
+
+
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_text_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind='text')
+    return unit_test_stable_plot(tables[0], 'text')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind='grid')
+    return unit_test_stable_plot(tables[0], 'grid')
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
+
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_stream_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
-    return camelot.plot(tables[0], kind='grid')
+    return unit_test_stable_plot(tables[0], 'grid')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_hybrid_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid")
-    return camelot.plot(tables[0], kind='grid')
+    return unit_test_stable_plot(tables[0], 'grid')
 
 
 @pytest.mark.mpl_image_compare(
@@ -70,67 +69,55 @@ def test_hybrid_grid_plot():
 def test_lattice_contour_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind='contour')
+    return unit_test_stable_plot(tables[0], 'contour')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_stream_contour_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='stream')
-    return camelot.plot(tables[0], kind='contour')
+    return unit_test_stable_plot(tables[0], 'contour')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_hybrid_contour_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='hybrid')
-    return camelot.plot(tables[0], kind='contour')
+    return unit_test_stable_plot(tables[0], 'contour')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_line_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind='line')
+    return unit_test_stable_plot(tables[0], 'line')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_joint_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind='joint')
+    return unit_test_stable_plot(tables[0], 'joint')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_stream_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='stream')
-    return camelot.plot(tables[0], kind='textedge')
+    return unit_test_stable_plot(tables[0], 'textedge')
 
 
-@pytest.mark.skipif(LEGACY_MATPLOTLIB,
-                    reason="depends on a recent version of MatPlotLib")
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
 def test_hybrid_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, debug=True, flavor='hybrid')
-    return camelot.plot(tables[0], kind='textedge')
+    return unit_test_stable_plot(tables[0], 'textedge')
 
 
 @pytest.mark.mpl_image_compare(
@@ -141,7 +128,8 @@ def test_hybrid_table_regions_textedge_plot():
         filename, debug=True, flavor="hybrid",
         table_regions=["320,505,573,330"]
     )
-    return camelot.plot(tables[0], kind='textedge')
+    return unit_test_stable_plot(tables[0], 'textedge')
+
 
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True)
@@ -151,4 +139,4 @@ def test_hybrid_table_areas_text_plot():
         filename, debug=True, flavor="hybrid",
         table_areas=["320,500,573,335"]
     )
-    return camelot.plot(tables[0], kind='text')
+    return unit_test_stable_plot(tables[0], 'text')

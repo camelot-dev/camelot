@@ -326,7 +326,11 @@ class PlotMethods():
                         alpha=0.5
                     )
                 )
-                for tl, alignments in network._textline_to_alignments.items():
+                for tl in sorted(
+                            network._textline_to_alignments.keys(),
+                            key=lambda textline: (-textline.y0, textline.x0)
+                        ):
+                    alignments = network._textline_to_alignments[tl]
                     coords = get_textline_coords(tl)
                     alignment_id_h, tls_h = alignments.max_v()
                     alignment_id_v, tls_v = alignments.max_h()
