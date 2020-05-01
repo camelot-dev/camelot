@@ -21,6 +21,10 @@ import camelot
 
 LEGACY_MATPLOTLIB = matplotlib.__version__ < "3.2.1"
 
+# Bump the default plot tolerance from 2 to account for cross-platform testing
+# via Travis, and resulting minor font changes.
+TOLERANCE = 4
+
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
@@ -33,7 +37,7 @@ def unit_test_stable_plot(table, kind):
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_text_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -41,7 +45,7 @@ def test_text_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -49,7 +53,7 @@ def test_grid_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_stream_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
@@ -57,7 +61,7 @@ def test_stream_grid_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_hybrid_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid")
@@ -65,7 +69,7 @@ def test_hybrid_grid_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_lattice_contour_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -73,7 +77,7 @@ def test_lattice_contour_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_stream_contour_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='stream')
@@ -81,7 +85,7 @@ def test_stream_contour_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_hybrid_contour_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='hybrid')
@@ -89,7 +93,7 @@ def test_hybrid_contour_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_line_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -97,7 +101,7 @@ def test_line_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_joint_plot():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
@@ -105,7 +109,7 @@ def test_joint_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_stream_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, flavor='stream')
@@ -113,7 +117,7 @@ def test_stream_textedge_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_hybrid_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
     tables = camelot.read_pdf(filename, debug=True, flavor='hybrid')
@@ -121,7 +125,7 @@ def test_hybrid_textedge_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_hybrid_table_regions_textedge_plot():
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     tables = camelot.read_pdf(
@@ -132,7 +136,7 @@ def test_hybrid_table_regions_textedge_plot():
 
 
 @pytest.mark.mpl_image_compare(
-    baseline_dir="files/baseline_plots", remove_text=True)
+    baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
 def test_hybrid_table_areas_text_plot():
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     tables = camelot.read_pdf(
