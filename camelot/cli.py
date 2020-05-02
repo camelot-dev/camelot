@@ -313,7 +313,7 @@ def stream(c, *args, **kwargs):
         tables.export(output, f=f, compress=compress)
 
 
-@cli.command("hybrid")
+@cli.command("network")
 @click.option(
     "-R",
     "--table_regions",
@@ -365,7 +365,7 @@ def stream(c, *args, **kwargs):
 )
 @click.argument("filepath", type=click.Path(exists=True))
 @pass_config
-def hybrid(c, *args, **kwargs):
+def network(c, *args, **kwargs):
     """Use spaces between text to parse the table."""
     conf = c.config
     pages = conf.pop("pages")
@@ -396,7 +396,7 @@ def hybrid(c, *args, **kwargs):
                 "Please specify output file format using --format")
 
     tables = read_pdf(
-        filepath, pages=pages, flavor="hybrid", suppress_stdout=quiet, **kwargs
+        filepath, pages=pages, flavor="network", suppress_stdout=quiet, **kwargs
     )
     click.echo("Found {} tables".format(tables.n))
     if plot_type is not None:

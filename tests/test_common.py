@@ -156,32 +156,32 @@ def test_stream_layout_kwargs():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid():
+def test_network():
     df = pd.DataFrame(data_stream)
 
     filename = os.path.join(testdir, "health.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_table_rotated():
-    df = pd.DataFrame(data_hybrid_table_rotated)
+def test_network_table_rotated():
+    df = pd.DataFrame(data_network_table_rotated)
 
     filename = os.path.join(testdir, "clockwise_table_2.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
     assert_frame_equal(df, tables[0].df)
 
     filename = os.path.join(testdir, "anticlockwise_table_2.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_two_tables_a():
-    df1 = pd.DataFrame(data_hybrid_two_tables_1)
-    df2 = pd.DataFrame(data_hybrid_two_tables_2)
+def test_network_two_tables_a():
+    df1 = pd.DataFrame(data_network_two_tables_1)
+    df2 = pd.DataFrame(data_network_two_tables_2)
 
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
 
     assert len(tables) == 2
     assert df1.equals(tables[0].df)
@@ -189,104 +189,104 @@ def test_hybrid_two_tables_a():
 
 
 # Reported as https://github.com/camelot-dev/camelot/issues/132
-def test_hybrid_two_tables_b():
-    df1 = pd.DataFrame(data_hybrid_two_tables_b_1)
-    df2 = pd.DataFrame(data_hybrid_two_tables_b_2)
+def test_network_two_tables_b():
+    df1 = pd.DataFrame(data_network_two_tables_b_1)
+    df2 = pd.DataFrame(data_network_two_tables_b_2)
 
     filename = os.path.join(testdir, "camelot-issue-132-multiple-tables.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
 
     assert len(tables) == 2
     assert df1.equals(tables[0].df)
     assert df2.equals(tables[1].df)
 
 
-def test_hybrid_vertical_header():
+def test_network_vertical_header():
     """Tests a complex table with a vertically text header.
     """
-    df = pd.DataFrame(data_hybrid_vertical_headers)
+    df = pd.DataFrame(data_network_vertical_headers)
 
     filename = os.path.join(testdir, "vertical_header.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
     assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_table_regions():
-    df = pd.DataFrame(data_hybrid_table_regions)
+def test_network_table_regions():
+    df = pd.DataFrame(data_network_table_regions)
 
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     # The "stream" test looks for a region in ["320,460,573,335"], which
     # should exclude the header.
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", table_regions=["320,335,573,505"]
+        filename, flavor="network", table_regions=["320,335,573,505"]
     )
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_table_areas():
+def test_network_table_areas():
     df = pd.DataFrame(data_stream_table_areas)
 
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", table_areas=["320,500,573,335"]
+        filename, flavor="network", table_areas=["320,500,573,335"]
     )
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_columns():
+def test_network_columns():
     df = pd.DataFrame(data_stream_columns)
 
     filename = os.path.join(testdir, "mexican_towns.pdf")
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", columns=["67,180,230,425,475"], row_tol=10
+        filename, flavor="network", columns=["67,180,230,425,475"], row_tol=10
     )
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_split_text():
-    df = pd.DataFrame(data_hybrid_split_text)
+def test_network_split_text():
+    df = pd.DataFrame(data_network_split_text)
 
     filename = os.path.join(testdir, "tabula/m27.pdf")
     tables = camelot.read_pdf(
         filename,
-        flavor="hybrid",
+        flavor="network",
         columns=["72,95,209,327,442,529,566,606,683"],
         split_text=True,
     )
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_flag_size():
-    df = pd.DataFrame(data_hybrid_flag_size)
+def test_network_flag_size():
+    df = pd.DataFrame(data_network_flag_size)
 
     filename = os.path.join(testdir, "superscript.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid", flag_size=True)
+    tables = camelot.read_pdf(filename, flavor="network", flag_size=True)
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_strip_text():
-    df = pd.DataFrame(data_hybrid_strip_text)
+def test_network_strip_text():
+    df = pd.DataFrame(data_network_strip_text)
 
     filename = os.path.join(testdir, "detect_vertical_false.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid", strip_text=" ,\n")
+    tables = camelot.read_pdf(filename, flavor="network", strip_text=" ,\n")
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_edge_tol():
-    df = pd.DataFrame(data_hybrid_edge_tol)
+def test_network_edge_tol():
+    df = pd.DataFrame(data_network_edge_tol)
 
     filename = os.path.join(testdir, "edge_tol.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid", edge_tol=500)
+    tables = camelot.read_pdf(filename, flavor="network", edge_tol=500)
     assert_frame_equal(df, tables[0].df)
 
 
-def test_hybrid_layout_kwargs():
+def test_network_layout_kwargs():
     df = pd.DataFrame(data_stream_layout_kwargs)
 
     filename = os.path.join(testdir, "detect_vertical_false.pdf")
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", layout_kwargs={"detect_vertical": False}
+        filename, flavor="network", layout_kwargs={"detect_vertical": False}
     )
     assert_frame_equal(df, tables[0].df)
 

@@ -72,22 +72,22 @@ def test_cli_stream():
         assert format_error in result.output
 
 
-def test_cli_hybrid():
+def test_cli_network():
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "budget.pdf")
         outfile = os.path.join(tempdir, "budget.csv")
         runner = CliRunner()
         result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "hybrid", infile]
+            cli, ["--format", "csv", "--output", outfile, "network", infile]
         )
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
 
-        result = runner.invoke(cli, ["--format", "csv", "hybrid", infile])
+        result = runner.invoke(cli, ["--format", "csv", "network", infile])
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
-        result = runner.invoke(cli, ["--output", outfile, "hybrid", infile])
+        result = runner.invoke(cli, ["--output", outfile, "network", infile])
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
