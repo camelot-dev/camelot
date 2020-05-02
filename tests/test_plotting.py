@@ -62,9 +62,9 @@ def test_stream_grid_plot():
 
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
-def test_hybrid_grid_plot():
+def test_network_grid_plot():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(filename, flavor="network")
     return unit_test_stable_plot(tables[0], 'grid')
 
 
@@ -86,9 +86,9 @@ def test_stream_contour_plot():
 
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
-def test_hybrid_contour_plot():
+def test_network_contour_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
-    tables = camelot.read_pdf(filename, flavor='hybrid')
+    tables = camelot.read_pdf(filename, flavor='network')
     return unit_test_stable_plot(tables[0], 'contour')
 
 
@@ -118,18 +118,18 @@ def test_stream_textedge_plot():
 
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
-def test_hybrid_textedge_plot():
+def test_network_textedge_plot():
     filename = os.path.join(testdir, "tabula/12s0324.pdf")
-    tables = camelot.read_pdf(filename, debug=True, flavor='hybrid')
+    tables = camelot.read_pdf(filename, debug=True, flavor='network')
     return unit_test_stable_plot(tables[0], 'textedge')
 
 
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
-def test_hybrid_table_regions_textedge_plot():
+def test_network_table_regions_textedge_plot():
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     tables = camelot.read_pdf(
-        filename, debug=True, flavor="hybrid",
+        filename, debug=True, flavor="network",
         table_regions=["320,505,573,330"]
     )
     return unit_test_stable_plot(tables[0], 'textedge')
@@ -137,10 +137,10 @@ def test_hybrid_table_regions_textedge_plot():
 
 @pytest.mark.mpl_image_compare(
     baseline_dir="files/baseline_plots", remove_text=True, tolerance=TOLERANCE)
-def test_hybrid_table_areas_text_plot():
+def test_network_table_areas_text_plot():
     filename = os.path.join(testdir, "tabula/us-007.pdf")
     tables = camelot.read_pdf(
-        filename, debug=True, flavor="hybrid",
+        filename, debug=True, flavor="network",
         table_areas=["320,500,573,335"]
     )
     return unit_test_stable_plot(tables[0], 'text')

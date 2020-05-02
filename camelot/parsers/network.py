@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of hybrid table parser."""
+"""Implementation of network table parser."""
 
 from __future__ import division
 
@@ -391,7 +391,7 @@ class TextNetworks(TextAlignments):
         return gaps_hv
 
     def search_table_body(self, gaps_hv, parse_details=None):
-        """ Build a candidate bbox for the body of a table using hybrid algo
+        """ Build a candidate bbox for the body of a table using network algo
 
         Seed the process with the textline with the highest alignment
         score, then expand the bbox with textlines within threshold.
@@ -496,7 +496,7 @@ class TextNetworks(TextAlignments):
                     if textline in new_tls:
                         del tls_search_space[i]
 
-        if len(tls_in_bbox) > MINIMUM_TEXTLINES_IN_TABLE:
+        if len(tls_in_bbox) >= MINIMUM_TEXTLINES_IN_TABLE:
             return bbox
         return None
 
@@ -508,8 +508,8 @@ class TextNetworks(TextAlignments):
         self._compute_alignment_counts()
 
 
-class Hybrid(TextBaseParser):
-    """Hybrid method of parsing looks for spaces between text
+class Network(TextBaseParser):
+    """Network method of parsing looks for spaces between text
     to parse the table.
 
     If you want to specify columns when specifying multiple table
@@ -561,7 +561,7 @@ class Hybrid(TextBaseParser):
             debug=False,
             **kwargs):
         super().__init__(
-            "hybrid",
+            "network",
             table_regions=table_regions,
             table_areas=table_areas,
             columns=columns,

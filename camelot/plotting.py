@@ -203,7 +203,7 @@ class PlotMethods():
             raise NotImplementedError(
                 "Lattice flavor does not support kind='{}'".format(kind)
             )
-        if table.flavor in ["stream", "hybrid"] and kind in ["line"]:
+        if table.flavor in ["stream", "network"] and kind in ["line"]:
             raise NotImplementedError(
                 "Stream flavor does not support kind='{}'".format(kind)
             )
@@ -313,7 +313,7 @@ class PlotMethods():
         ax = prepare_plot(table, ax)
         draw_text(table, ax)
 
-        if table.flavor == "hybrid":
+        if table.flavor == "network":
             for network in table.parse_details["network_searches"]:
                 most_connected_tl = network.most_connected_textline()
 
@@ -428,8 +428,8 @@ class PlotMethods():
         return ax.get_figure()
 
     @staticmethod
-    def hybrid_table_search(table, ax=None):
-        """Generates a plot illustrating the steps of the hybrid table search.
+    def network_table_search(table, ax=None):
+        """Generates a plot illustrating the steps of the network table search.
 
         Parameters
         ----------

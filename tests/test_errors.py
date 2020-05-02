@@ -15,7 +15,7 @@ filename = os.path.join(testdir, 'foo.pdf')
 
 def test_unknown_flavor():
     message = ("Unknown flavor specified."
-               " Use either 'lattice', 'stream', or 'hybrid'")
+               " Use either 'lattice', 'stream', or 'network'")
     with pytest.raises(NotImplementedError, match=message):
         camelot.read_pdf(filename, flavor='chocolate')
 

@@ -824,8 +824,8 @@ data_stream_table_rotated = [
 ]
 
 # The streaming algorithm incorrectly includes a header in the result.
-# Trimming the table for the test of hybrid, which doesn't include it.
-data_hybrid_table_rotated = data_stream_table_rotated[1:]
+# Trimming the table for the test of network, which doesn't include it.
+data_network_table_rotated = data_stream_table_rotated[1:]
 
 data_stream_two_tables_1 = [
     [
@@ -1298,8 +1298,8 @@ data_stream_two_tables_1 = [
 ]
 
 # The streaming algorithm incorrectly includes a header and a footer.
-# Trimming the table for the test of hybrid, which doesn't include it.
-data_hybrid_two_tables_1 = data_stream_two_tables_1[3:-1]
+# Trimming the table for the test of network, which doesn't include it.
+data_network_two_tables_1 = data_stream_two_tables_1[3:-1]
 
 data_stream_two_tables_2 = [
     ["Table 325. Arrests by Race: 2009", "", "", "", "", ""],
@@ -1609,7 +1609,7 @@ data_stream_two_tables_2 = [
     ["1 Except forcible rape and prostitution.", "", "", "", "", ""],
 ]
 
-data_hybrid_two_tables_b_1 = [
+data_network_two_tables_b_1 = [
     ["1", "Ghfhbdhj", "1", "Hgfdhgjsdhjdsf"],
     ["Vgvhgh", "Hj", "Hj", "Hj"],
     ["Hj", "Hj", "Hj", "Hj"],
@@ -1619,17 +1619,17 @@ data_hybrid_two_tables_b_1 = [
     ["Hjdhshj", "Hjhjhh", "Ddnj", "dsxv"],
 ]
 
-data_hybrid_two_tables_b_2 = [
+data_network_two_tables_b_2 = [
     ["Trtrt", "H", "Gh"],
     ["Gh", "V", "Hv"],
     ["Hv", "Bhjb", "hg"],
 ]
 
 # The streaming algorithm incorrectly includes a header and a footer.
-# Trimming the table for the test of hybrid, which doesn't include it.
-data_hybrid_two_tables_2 = data_stream_two_tables_2[3:-1]
+# Trimming the table for the test of network, which doesn't include it.
+data_network_two_tables_2 = data_stream_two_tables_2[3:-1]
 
-data_hybrid_vertical_headers = [
+data_network_vertical_headers = [
     [
         "",
         "",
@@ -2090,8 +2090,8 @@ data_stream_table_areas = [
     ["(each day of the payroll period)", ""],
 ]
 
-# Hybrid doesn't recognize the footer as belonging to the table.
-data_hybrid_table_regions = data_stream_table_areas[:-1]
+# Network doesn't recognize the footer as belonging to the table.
+data_network_table_regions = data_stream_table_areas[:-1]
 
 data_stream_columns = [
     [
@@ -2613,9 +2613,9 @@ data_stream_split_text = [
 ]
 
 # The stream algorithm excludes the string "Alphabetic Listing by type"
-data_hybrid_split_text = []
-data_hybrid_split_text.extend(data_stream_split_text)
-data_hybrid_split_text[0] = [
+data_network_split_text = []
+data_network_split_text.extend(data_stream_split_text)
+data_network_split_text[0] = [
     'FEB', 'RUAR', 'Y 2014 M27 (BUS)', '',
     'ALPHABETIC LISTING BY T', 'YPE', '', '', '', 'ABLPDM27'
 ]
@@ -2851,15 +2851,15 @@ data_stream_flag_size = [
     ],
 ]
 
-# Hybrid adds more content into the header.
-data_hybrid_flag_size = [
+# Network adds more content into the header.
+data_network_flag_size = [
     ['', '', '', '', '(As at end-March)', '', '', '', '', '', ''],
     ['', '', '', '', '', '', '', '', '', '', '(` Billion)']
 ]
-data_hybrid_flag_size.extend(data_stream_flag_size)
+data_network_flag_size.extend(data_stream_flag_size)
 
 
-data_hybrid_strip_text = [
+data_network_strip_text = [
     ["VinsauVerre", ""],
     ["LesBlancs", "12.5CL"],
     ["A.O.PCôtesduRhône", ""],
@@ -2900,7 +2900,7 @@ data_hybrid_strip_text = [
 ]
 
 # Stream only detects part of the table
-data_stream_strip_text = data_hybrid_strip_text[0:-13]
+data_stream_strip_text = data_network_strip_text[0:-13]
 
 data_stream_edge_tol = [
     ["Key figures", ""],
@@ -2940,9 +2940,9 @@ data_stream_edge_tol = [
     ["period.", ""],
 ]
 
-# The stream algorithm ends up including a footer, which hybrid correctly
+# The stream algorithm ends up including a footer, which network correctly
 # skips.
-data_hybrid_edge_tol = data_stream_edge_tol[:-3]
+data_network_edge_tol = data_stream_edge_tol[:-3]
 
 data_lattice = [
     [
