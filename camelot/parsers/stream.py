@@ -122,14 +122,14 @@ class Stream(TextBaseParser):
                         self.horizontal_text)
                     hor_text.extend(region_text)
             # find tables based on nurminen's detection algorithm
-            table_bbox = self._nurminen_table_detection(hor_text)
+            table_bbox_parses = self._nurminen_table_detection(hor_text)
         else:
-            table_bbox = {}
+            table_bbox_parses = {}
             for area_str in self.table_areas:
-                table_bbox[bbox_from_str(area_str)] = None
-        self.table_bbox = table_bbox
+                table_bbox_parses[bbox_from_str(area_str)] = None
+        self.table_bbox_parses = table_bbox_parses
 
-    def _generate_columns_and_rows(self, bbox, table_idx):
+    def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
         self.t_bbox = text_in_bbox_per_axis(
             bbox,
@@ -140,26 +140,18 @@ class Stream(TextBaseParser):
         text_x_min, text_y_min, text_x_max, text_y_max = bbox_from_textlines(
             self.t_bbox["horizontal"] + self.t_bbox["vertical"]
         )
-        # FRHTODO:
-        # This algorithm takes the horizontal textlines in the bbox, and groups
-        # them into rows based on their bottom y0.
-        # That's wrong: it misses the vertical items, and misses out on all
-        # the alignment identification work we've done earlier.
+
         rows_grouped = self._group_rows(
             self.t_bbox["horizontal"], row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
 
-        if self.columns is not None and self.columns[table_idx] != "":
-            # user has to input boundary columns too
-            # take (0, pdf_width) by default
-            # similar to else condition
-            # len can't be 1
-            cols = self.columns[table_idx].split(",")
-            cols = [float(c) for c in cols]
-            cols.insert(0, text_x_min)
-            cols.append(text_x_max)
-            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
+        if user_cols is not None:
+            cols = [text_x_min] + user_cols + [text_x_max]
+            cols = [
+                (cols[i], cols[i + 1])
+                for i in range(0, len(cols) - 1)
+            ]
         else:
             # calculate mode of the list of number of elements in
             # each row to guess the number of columns
@@ -175,8 +167,8 @@ class Stream(TextBaseParser):
                     ncols = max(set(elements), key=elements.count)
                 else:
                     warnings.warn(
-                        "No tables found in table area {}"
-                        .format(table_idx + 1)
+                        "No tables found in table area {bbox}".format(
+                            bbox=bbox)
                     )
             cols = [
                 (t.x0, t.x1)

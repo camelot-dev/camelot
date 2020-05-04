@@ -454,7 +454,9 @@ class Table():
         self.page = None
         self.flavor = None         # Flavor of the parser used
         self.pdf_size = None       # Dimensions of the original PDF page
-        self.parse_details = None  # Field holding debug data
+        self._bbox = None          # Bounding box in original document
+        self.parse = None          # Parse information
+        self.parse_details = None  # Field holding extra debug data
 
         self._image = None
         self._image_path = None  # Temporary file to hold an image of the pdf

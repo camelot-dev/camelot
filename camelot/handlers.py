@@ -7,7 +7,7 @@ import logging
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 from .core import TableList
-from .parsers import Stream, Lattice, Network
+from .parsers import Stream, Lattice, Network, Hybrid
 from .utils import (
     build_file_path_in_temp_dir,
     get_page_layout,
@@ -23,6 +23,7 @@ PARSERS = {
     "lattice": Lattice,
     "stream": Stream,
     "network": Network,
+    "hybrid": Hybrid,
 }
 
 
@@ -177,7 +178,8 @@ class PDFHandler():
         Parameters
         ----------
         flavor : str (default: 'lattice')
-            The parsing method to use ('lattice', 'stream', or 'network').
+            The parsing method to use ('lattice', 'stream', 'network',
+            or 'hybrid').
             Lattice is used by default.
         suppress_stdout : str (default: False)
             Suppress logs and warnings.

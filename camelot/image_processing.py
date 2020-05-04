@@ -6,7 +6,9 @@ import cv2
 import numpy as np
 
 
-def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
+def adaptive_threshold(
+        imagename, process_background=False,
+        blocksize=15, c=-2):
     """Thresholds an image using OpenCV's adaptiveThreshold.
 
     Parameters
@@ -19,12 +21,12 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
         Size of a pixel neighborhood that is used to calculate a
         threshold value for the pixel: 3, 5, 7, and so on.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.  # noqa
     c : int, optional (default: -2)
         Constant subtracted from the mean or weighted mean.
         Normally, it is positive but may be zero or negative as well.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.  # noqa
 
     Returns
     -------
@@ -39,7 +41,10 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
 
     if process_background:
         threshold = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blocksize, c
+            gray,
+            255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY, blocksize, c
         )
     else:
         threshold = cv2.adaptiveThreshold(
@@ -54,7 +59,8 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
 
 
 def find_lines(
-    threshold, regions=None, direction="horizontal", line_scale=15, iterations=0
+    threshold, regions=None,
+    direction="horizontal", line_scale=15, iterations=0
 ):
     """Finds horizontal and vertical lines by applying morphological
     transformations on an image.
@@ -78,7 +84,7 @@ def find_lines(
     iterations : int, optional (default: 0)
         Number of times for erosion/dilation is applied.
 
-        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
+        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.  # noqa
 
     Returns
     -------
@@ -100,13 +106,15 @@ def find_lines(
         size = threshold.shape[1] // line_scale
         el = cv2.getStructuringElement(cv2.MORPH_RECT, (size, 1))
     elif direction is None:
-        raise ValueError("Specify direction as either 'vertical' or 'horizontal'")
+        raise ValueError(
+            "Specify direction as either 'vertical' or 'horizontal'"
+        )
 
     if regions is not None:
         region_mask = np.zeros(threshold.shape)
         for region in regions:
             x, y, w, h = region
-            region_mask[y : y + h, x : x + w] = 1
+            region_mask[y:y + h, x:x + w] = 1
         threshold = np.multiply(threshold, region_mask)
 
     threshold = cv2.erode(threshold, el)
@@ -115,12 +123,14 @@ def find_lines(
 
     try:
         _, contours, _ = cv2.findContours(
-            threshold.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            threshold.astype(np.uint8), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
         )
     except ValueError:
         # for opencv backward compatibility
         contours, _ = cv2.findContours(
-            threshold.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            threshold.astype(np.uint8), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
         )
 
     for c in contours:
@@ -202,7 +212,7 @@ def find_joints(contours, vertical, horizontal):
     tables = {}
     for c in contours:
         x, y, w, h = c
-        roi = joints[y : y + h, x : x + w]
+        roi = joints[y:y + h, x:x + w]
         try:
             __, jc, __ = cv2.findContours(
                 roi.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
