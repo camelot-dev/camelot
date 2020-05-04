@@ -19,7 +19,8 @@ from ..utils import (
     text_in_bbox,
     textlines_overlapping_bbox,
     bbox_from_textlines,
-    find_columns_coordinates,
+    find_columns_boundaries,
+    boundaries_to_split_lines,
     text_in_bbox_per_axis,
 )
 
@@ -438,7 +439,7 @@ class TextNetworks(TextAlignments):
         tls_search_space.remove(most_aligned_tl)
         tls_in_bbox = [most_aligned_tl]
         last_bbox = None
-        last_cols_cand = [most_aligned_tl.x0, most_aligned_tl.x1]
+        last_cols_bounds = [(most_aligned_tl.x0, most_aligned_tl.x1)]
         while last_bbox != bbox:
             if parse_details_search is not None:
                 # Store debug info
@@ -479,9 +480,9 @@ class TextNetworks(TextAlignments):
                 # of the new row won't reduce the number of columns.
                 # This happens when text covers multiple rows - that's only
                 # allowed in the header, treated separately.
-                cols_cand = find_columns_coordinates(tls_in_new_box)
+                cols_bounds = find_columns_boundaries(tls_in_new_box)
                 if direction in ["bottom", "top"] and \
-                        len(cols_cand) < len(last_cols_cand):
+                        len(cols_bounds) < len(last_cols_bounds):
                     continue
 
                 # We have an expansion candidate: register it, update the
@@ -489,7 +490,7 @@ class TextNetworks(TextAlignments):
                 # We use bbox_from_textlines instead of cand_bbox in case some
                 # overlapping textlines require a large bbox for strict fit.
                 bbox = cand_bbox = list(bbox_from_textlines(tls_in_new_box))
-                last_cols_cand = cols_cand
+                last_cols_bounds = cols_bounds
                 tls_in_bbox.extend(new_tls)
                 for i in range(len(tls_search_space) - 1, -1, -1):
                     textline = tls_search_space[i]
@@ -591,7 +592,7 @@ class Network(TextBaseParser):
         textlines = self._apply_regions_filter(all_textlines)
 
         textlines_processed = {}
-        self.table_bbox = {}
+        self.table_bbox_parses = {}
         if self.parse_details is not None:
             parse_details_network_searches = []
             self.parse_details["network_searches"] = \
@@ -641,7 +642,8 @@ class Network(TextBaseParser):
             # Get all the textlines that overlap with the box, compute
             # columns
             tls_in_bbox = textlines_overlapping_bbox(bbox_body, textlines)
-            cols_anchors = find_columns_coordinates(tls_in_bbox)
+            cols_boundaries = find_columns_boundaries(tls_in_bbox)
+            cols_anchors = boundaries_to_split_lines(cols_boundaries)
 
             # Unless the user gave us strict bbox_body, try to find a header
             # above the body to build the full bbox.
@@ -662,10 +664,11 @@ class Network(TextBaseParser):
 
             table_parse = {
                 "bbox_body": bbox_body,
+                "cols_boundaries": cols_boundaries,
                 "cols_anchors": cols_anchors,
                 "bbox_full": bbox_full
             }
-            self.table_bbox[bbox_full] = table_parse
+            self.table_bbox_parses[bbox_full] = table_parse
 
             if self.parse_details is not None:
                 self.parse_details["col_searches"].append(table_parse)
@@ -678,7 +681,7 @@ class Network(TextBaseParser):
                 textlines
             ))
 
-    def _generate_columns_and_rows(self, bbox, table_idx):
+    def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
         self.t_bbox = text_in_bbox_per_axis(
             bbox,
@@ -706,18 +709,14 @@ class Network(TextBaseParser):
         rows_grouped = self._group_rows(all_tls, row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
 
-        if self.columns is not None and self.columns[table_idx] != "":
-            # user has to input boundary columns too
-            # take (0, pdf_width) by default
-            # similar to else condition
-            # len can't be 1
-            cols = self.columns[table_idx].split(",")
-            cols = [float(c) for c in cols]
-            cols.insert(0, text_x_min)
-            cols.append(text_x_max)
-            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
+        if user_cols is not None:
+            cols = [text_x_min] + user_cols + [text_x_max]
+            cols = [
+                (cols[i], cols[i + 1])
+                for i in range(0, len(cols) - 1)
+            ]
         else:
-            parse_details = self.table_bbox[bbox]
+            parse_details = self.table_bbox_parses[bbox]
             col_anchors = parse_details["cols_anchors"]
             cols = list(map(
                 lambda idx: [col_anchors[idx], col_anchors[idx + 1]],

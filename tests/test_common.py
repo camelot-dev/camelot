@@ -291,6 +291,19 @@ def test_network_layout_kwargs():
     assert_frame_equal(df, tables[0].df)
 
 
+# Hybrid parser
+def test_hybrid_vertical_header():
+    """Tests a complex table with a vertically text header.
+    """
+    df = pd.DataFrame(data_hybrid_vertical_headers)
+
+    filename = os.path.join(testdir, "vertical_header.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid")
+    assert len(tables) == 1
+    assert_frame_equal(df, tables[0].df)
+
+
+# Lattice parser tests
 def test_lattice():
     df = pd.DataFrame(data_lattice)
 

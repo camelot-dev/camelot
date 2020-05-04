@@ -297,8 +297,9 @@ def scale_image(tables, v_segments, h_segments, factors):
         j_x, j_y = zip(*tables[k])
         j_x = [scale(j, scaling_factor_x) for j in j_x]
         j_y = [scale(abs(translate(-img_y, j)), scaling_factor_y) for j in j_y]
-        joints = zip(j_x, j_y)
-        tables_new[(x1, y1, x2, y2)] = joints
+        tables_new[(x1, y1, x2, y2)] = {
+            "joints": list(zip(j_x, j_y))
+        }
 
     v_segments_new = []
     for v in v_segments:
@@ -434,6 +435,16 @@ def bbox_from_str(bbox_str):
     )
 
 
+def bboxes_overlap(bbox1, bbox2):
+    (left1, bottom1, right1, top1) = bbox1
+    (left2, bottom2, right2, top2) = bbox2
+    return (
+            (left1 < left2 < right1) or (left1 < right2 < right1)
+        ) and (
+            (bottom1 < bottom2 < top1) or (bottom1 < top2 < top1)
+        )
+
+
 def textlines_overlapping_bbox(bbox, textlines):
     """Returns all text objects which overlap or are within a bounding box.
 
@@ -451,12 +462,10 @@ def textlines_overlapping_bbox(bbox, textlines):
         List of PDFMiner text objects.
 
     """
-    (left, bottom, right, top) = bbox
     t_bbox = [
         t
         for t in textlines
-        if ((left < t.x0 < right) or (left < t.x1 < right))
-        and ((bottom < t.y0 < top) or (bottom < t.y1 < top))
+        if bboxes_overlap(bbox, (t.x0, t.y0, t.x1, t.y1))
     ]
     return t_bbox
 
@@ -560,27 +569,25 @@ def bbox_from_textlines(textlines):
     return bbox
 
 
-def find_columns_coordinates(tls, min_gap=1.0):
-    """Given a list of text objects, guess columns boundaries and returns a
-    list of x-coordinates for split points between columns.
+def find_columns_boundaries(tls, min_gap=1.0):
+    """Make a list of disjunct cols boundaries for a list of text objects
 
     Parameters
     ----------
     tls : list of PDFMiner text object.
 
-    min_gap : minimum distance between columns. Any elements closer than this
-        threshold are merged together.  This is to prevent spaces between words
-        to be misinterpreted as column boundaries.
+    min_gap : minimum distance between columns. Any elements closer than
+        this threshold are merged together.  This is to prevent spaces between
+        words to be misinterpreted as boundaries.
 
     Returns
     -------
-    cols_anchors : list
-        List of x-coordinates for columns.
+    boundaries : list
+        List x-coordinates for cols.
+         [(1st col left, 1st col right), (2nd col left, 2nd col right), ...]
+
 
     """
-    # Make a list of disjunct cols boundaries across the textlines
-    # that comprise the table.
-    # [(1st col left, 1st col right), (2nd col left, 2nd col right), ...]
     cols_bounds = []
     tls.sort(key=lambda tl: tl.x0)
     for tl in tls:
@@ -588,18 +595,64 @@ def find_columns_coordinates(tls, min_gap=1.0):
             cols_bounds.append([tl.x0, tl.x1])
         else:
             cols_bounds[-1][1] = max(cols_bounds[-1][1], tl.x1)
+    return cols_bounds
 
+
+def find_rows_boundaries(tls, min_gap=1.0):
+    """Make a list of disjunct rows boundaries for a list of text objects
+
+    Parameters
+    ----------
+    tls : list of PDFMiner text object.
+
+    min_gap : minimum distance between rows. Any elements closer than
+        this threshold are merged together.
+
+    Returns
+    -------
+    boundaries : list
+        List y-coordinates for rows.
+         [(1st row bottom, 1st row top), (2nd row bottom, 2nd row top), ...]
+
+    """
+    rows_bounds = []
+    tls.sort(key=lambda tl: tl.y0)
+    for tl in tls:
+        if (not rows_bounds) or rows_bounds[-1][1] + min_gap < tl.y0:
+            rows_bounds.append([tl.y0, tl.y1])
+        else:
+            rows_bounds[-1][1] = max(rows_bounds[-1][1], tl.y1)
+    return rows_bounds
+
+
+def boundaries_to_split_lines(boundaries):
+    """Find split lines given a list of boundaries between rows or cols.
+
+    Boundaries:     [ a ]         [b]     [   c   ]  [d]
+    Splits:         |        |         |            |  |
+
+    Parameters
+    ----------
+    boundaries : list
+        List of tuples of x- (for columns) or y- (for rows) coord boundaries.
+        These are the (left, right most) or (bottom, top most) coordinates.
+
+    Returns
+    -------
+    anchors : list
+        List of coordinates representing the split points, each half way
+        between boundaries
+
+    """
     # From the row boundaries, identify splits by getting the mid points
     # between the boundaries.
-    # Row boundaries: [ a ]        [b]    [   c   ]
-    # Splits:         |        |        |         |
-    cols_anchors = list(map(
-        lambda idx: (cols_bounds[idx-1][1] + cols_bounds[idx][0]) / 2.0,
-        range(1, len(cols_bounds))
+    anchors = list(map(
+        lambda idx: (boundaries[idx-1][1] + boundaries[idx][0]) / 2.0,
+        range(1, len(boundaries))
     ))
-    cols_anchors.insert(0, cols_bounds[0][0])
-    cols_anchors.append(cols_bounds[-1][1])
-    return cols_anchors
+    anchors.insert(0, boundaries[0][0])
+    anchors.append(boundaries[-1][1])
+    return anchors
 
 
 def get_index_closest_point(point, sorted_list, fn=lambda x: x):
@@ -1129,17 +1182,20 @@ def get_text_objects(layout, ltype="char", t=None):
     return t
 
 
-def export_pdf_as_png(pdf_path, destination_path):
+def export_pdf_as_png(pdf_path, destination_path, resolution=300):
     """Generate an image from a pdf.
 
     Parameters
     ----------
     pdf_path : str
     destination_path : str
+    resolution : int
     """
-    gs_call = "-q -sDEVICE=png16m -o {destination_path} -r300 {pdf_path}"\
+    gs_call = "-q -sDEVICE=png16m -o " \
+        "{destination_path} -r{resolution} {pdf_path}" \
         .format(
             destination_path=destination_path,
+            resolution=resolution,
             pdf_path=pdf_path
         )
     gs_call = gs_call.encode().split()

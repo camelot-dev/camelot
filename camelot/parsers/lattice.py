@@ -2,8 +2,6 @@
 
 from __future__ import division
 import os
-import copy
-
 
 from .base import BaseParser
 from ..utils import (
@@ -173,7 +171,6 @@ class Lattice(BaseParser):
         super().record_parse_metadata(table)
         # for plotting
         table._image = self.pdf_image  # Reuse the image used for calc
-        table._bbox_unscaled = self.table_bbox_unscaled
         table._segments = (self.vertical_segments, self.horizontal_segments)
 
     def _generate_table_bbox(self):
@@ -193,7 +190,7 @@ class Lattice(BaseParser):
             os.path.basename(self.filename),
             ".png"
         )
-        export_pdf_as_png(self.filename, self.image_path)
+        export_pdf_as_png(self.filename, self.image_path, self.resolution)
         self.pdf_image, self.threshold = adaptive_threshold(
             self.image_path,
             process_background=self.process_background,
@@ -250,17 +247,59 @@ class Lattice(BaseParser):
             areas = scale_areas(self.table_areas)
             table_bbox = find_joints(areas, vertical_mask, horizontal_mask)
 
-        self.table_bbox_unscaled = copy.deepcopy(table_bbox)
-
         [
-            self.table_bbox,
+            self.table_bbox_parses,
             self.vertical_segments,
             self.horizontal_segments
         ] = scale_image(
             table_bbox, vertical_segments, horizontal_segments, pdf_scalers
         )
 
-    def _generate_columns_and_rows(self, bbox, table_idx):
+        for bbox, parse in self.table_bbox_parses.items():
+            joints = parse["joints"]
+
+            # Merge x coordinates that are close together
+            line_tol = self.line_tol
+            # Sort the joints, make them a list of lists (instead of sets)
+            joints_normalized = list(
+                map(
+                    lambda x: list(x),
+                    sorted(joints, key=lambda j: - j[0])
+                )
+            )
+            for idx in range(1, len(joints_normalized)):
+                x_left, x_right = \
+                    joints_normalized[idx-1][0], joints_normalized[idx][0]
+                if x_left - line_tol <= x_right <= x_left + line_tol:
+                    joints_normalized[idx][0] = x_left
+
+            # Merge y coordinates that are close together
+            joints_normalized = sorted(joints_normalized, key=lambda j: -j[1])
+            for idx in range(1, len(joints_normalized)):
+                y_bottom, y_top = \
+                    joints_normalized[idx-1][1], joints_normalized[idx][1]
+                if y_bottom - line_tol <= y_top <= y_bottom + line_tol:
+                    joints_normalized[idx][1] = y_bottom
+
+            # FRHTODO: check this is useful, otherwise get rid of the code
+            # above
+            parse["joints_normalized"] = joints_normalized
+
+            cols = list(map(lambda coords: coords[0], joints))
+            cols.extend([bbox[0], bbox[2]])
+            rows = list(map(lambda coords: coords[1], joints))
+            rows.extend([bbox[1], bbox[3]])
+
+            # sort horizontal and vertical segments
+            cols = merge_close_lines(sorted(cols), line_tol=self.line_tol)
+            rows = merge_close_lines(
+                sorted(rows, reverse=True),
+                line_tol=self.line_tol
+            )
+            parse["col_anchors"] = cols
+            parse["row_anchors"] = rows
+
+    def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
         v_s, h_s = segments_in_bbox(
             bbox, self.vertical_segments, self.horizontal_segments
@@ -270,21 +309,17 @@ class Lattice(BaseParser):
             self.horizontal_text,
             self.vertical_text
             )
+        parse = self.table_bbox_parses[bbox]
 
-        cols, rows = zip(*self.table_bbox[bbox])
-        cols, rows = list(cols), list(rows)
-        cols.extend([bbox[0], bbox[2]])
-        rows.extend([bbox[1], bbox[3]])
-        # sort horizontal and vertical segments
-        cols = merge_close_lines(sorted(cols), line_tol=self.line_tol)
-        rows = merge_close_lines(
-            sorted(rows, reverse=True),
-            line_tol=self.line_tol
-        )
         # make grid using x and y coord of shortlisted rows and cols
-        cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        rows = [(rows[i], rows[i + 1]) for i in range(0, len(rows) - 1)]
-
+        cols = [
+            (parse["col_anchors"][i], parse["col_anchors"][i + 1])
+            for i in range(0, len(parse["col_anchors"]) - 1)
+        ]
+        rows = [
+            (parse["row_anchors"][i], parse["row_anchors"][i + 1])
+            for i in range(0, len(parse["row_anchors"]) - 1)
+        ]
         return cols, rows, v_s, h_s
 
     def _generate_table(self, table_idx, cols, rows, **kwargs):

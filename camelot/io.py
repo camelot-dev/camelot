@@ -99,7 +99,7 @@ def read_pdf(
 
     """
     layout_kwargs = layout_kwargs or {}
-    if flavor not in ["lattice", "stream", "network"]:
+    if flavor not in ["lattice", "stream", "network", "hybrid"]:
         raise NotImplementedError(
             "Unknown flavor specified."
             " Use either 'lattice', 'stream', or 'network'"

@@ -34,8 +34,9 @@ class BaseParser():
         self.id = parser_id
         self.table_regions = table_regions
         self.table_areas = table_areas
-        self.table_bbox = {}
+        self.table_bbox_parses = {}
 
+        self.columns = None
         self.copy_text = copy_text
         self.split_text = split_text
         self.strip_text = strip_text
@@ -47,9 +48,17 @@ class BaseParser():
         self.t_bbox = None
 
         # For plotting details of parsing algorithms
+        self.resolution = 300  # default plotting resolution of the PDF.
         self.parse_details = {}
         if not debug:
             self.parse_details = None
+
+    def table_bboxes(self):
+        return sorted(
+            self.table_bbox_parses.keys(),
+            key=lambda x: x[1],
+            reverse=True
+        )
 
     def prepare_page_parse(self, filename, layout, dimensions,
                            page_idx, layout_kwargs):
@@ -142,6 +151,7 @@ class BaseParser():
         table = Table(cols, rows)
         table.page = self.page
         table.order = table_idx + 1
+        table._bbox = self.table_bboxes()[table_idx]
         return table
 
     @staticmethod
@@ -177,7 +187,7 @@ class BaseParser():
                         table.cells[r_idx][c_idx].text = text
         return pos_errors
 
-    def _generate_columns_and_rows(self, bbox, table_idx):
+    def _generate_columns_and_rows(self, bbox, user_cols):
         # Pure virtual, must be defined by the derived parser
         raise NotImplementedError()
 
@@ -199,20 +209,23 @@ class BaseParser():
 
         _tables = []
         # sort tables based on y-coord
-        for table_idx, bbox in enumerate(
-                sorted(
-                        self.table_bbox.keys(),
-                        key=lambda x: x[1],
-                        reverse=True
-                    )
-                ):
+        for table_idx, bbox in enumerate(self.table_bboxes()):
+            if self.columns is not None and self.columns[table_idx] != "":
+                # user has to input boundary columns too
+                # take (0, pdf_width) by default
+                # similar to else condition
+                # len can't be 1
+                user_cols = self.columns[table_idx].split(",")
+                user_cols = [float(c) for c in user_cols]
+            else:
+                user_cols = None
+
             cols, rows, v_s, h_s = self._generate_columns_and_rows(
                 bbox,
-                table_idx
+                user_cols
             )
             table = self._generate_table(
                 table_idx, cols, rows, v_s=v_s, h_s=h_s)
-            table._bbox = bbox
             _tables.append(table)
 
         return _tables
@@ -222,6 +235,7 @@ class BaseParser():
         """
         table.flavor = self.id
         table.filename = self.filename
+        table.parse = self.table_bbox_parses[table._bbox]
         table.parse_details = self.parse_details
         pos_errors = self.compute_parse_errors(table)
         table.accuracy = compute_accuracy([[100, pos_errors]])
@@ -453,17 +467,16 @@ class TextBaseParser(BaseParser):
                 raise ValueError("Length of table_areas and columns"
                                  " should be equal")
 
-    def record_parse_metadata(self, table):
-        """Record data about the origin of the table
-        """
-        super().record_parse_metadata(table)
-        # for plotting
-        table._bbox = self.table_bbox
-        table._segments = None
-
     def _generate_table(self, table_idx, cols, rows, **kwargs):
         table = self._initialize_new_table(table_idx, cols, rows)
         table = table.set_all_edges()
         self.record_parse_metadata(table)
 
         return table
+
+    def record_parse_metadata(self, table):
+        """Record data about the origin of the table
+        """
+        super().record_parse_metadata(table)
+        # for plotting
+        table._segments = None

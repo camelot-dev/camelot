@@ -74,7 +74,7 @@ def draw_labeled_bbox(
     )
 
 
-def draw_pdf(table, ax, to_pdf_scale=True):
+def draw_pdf(table, ax):
     """Draw the content of the table's source pdf into the passed subplot
 
     Parameters
@@ -83,14 +83,9 @@ def draw_pdf(table, ax, to_pdf_scale=True):
 
     ax : matplotlib.axes.Axes (optional)
 
-    to_pdf_scale : bool (optional)
-
     """
     img = table.get_pdf_image()
-    if to_pdf_scale:
-        ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
-    else:
-        ax.imshow(img)
+    ax.imshow(img, extent=(0, table.pdf_size[0], 0, table.pdf_size[1]))
 
 
 def draw_parse_constraints(table, ax):
@@ -132,8 +127,6 @@ def draw_text(table, ax):
     table : camelot.core.Table
     ax : matplotlib.axes.Axes (optional)
 
-    ax : matplotlib.axes.Axes
-
     """
     bbox = bbox_from_textlines(table.textlines)
     for t in table.textlines:
@@ -150,18 +143,14 @@ def draw_text(table, ax):
     extend_axe_lim(ax, bbox)
 
 
-def prepare_plot(table, ax=None, to_pdf_scale=True):
+def prepare_plot(table, ax=None):
     """Initialize plot and draw common components
 
     Parameters
     ----------
     table : camelot.core.Table
+
     ax : matplotlib.axes.Axes (optional)
-    to_pdf_scale :
-
-    ax : matplotlib.axes.Axes
-
-    to_pdf_scale : bool (optional)
 
     Returns
     -------
@@ -170,7 +159,7 @@ def prepare_plot(table, ax=None, to_pdf_scale=True):
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
-    draw_pdf(table, ax, to_pdf_scale)
+    draw_pdf(table, ax)
     draw_parse_constraints(table, ax)
     return ax
 
@@ -186,7 +175,8 @@ class PlotMethods():
         table: camelot.core.Table
             A Camelot Table.
         kind : str, optional (default: 'text')
-            {'text', 'grid', 'contour', 'joint', 'line'}
+            {'text', 'grid', 'contour', 'joint', 'line',
+                'network_table_search'}
             The element type for which a plot should be generated.
         filepath: str, optional (default: None)
             Absolute path for saving the generated plot.
@@ -203,9 +193,12 @@ class PlotMethods():
             raise NotImplementedError(
                 "Lattice flavor does not support kind='{}'".format(kind)
             )
-        if table.flavor in ["stream", "network"] and kind in ["line"]:
+        if table.flavor != "lattice" and kind in ["line"]:
             raise NotImplementedError(
-                "Stream flavor does not support kind='{}'".format(kind)
+                "{flavor} flavor does not support kind='{kind}'".format(
+                    flavor=table.flavor,
+                    kind=kind
+                )
             )
 
         plot_method = getattr(self, kind)
@@ -274,25 +267,21 @@ class PlotMethods():
 
         """
         _FOR_LATTICE = table.flavor == "lattice"
-        ax = prepare_plot(table, ax, to_pdf_scale=not _FOR_LATTICE)
-
-        if _FOR_LATTICE:
-            table_bbox = table._bbox_unscaled
-        else:
-            table_bbox = {table._bbox: None}
+        ax = prepare_plot(table, ax)
 
         if not _FOR_LATTICE:
             draw_text(table, ax)
 
-        for t in table_bbox.keys():
-            ax.add_patch(
-                patches.Rectangle(
-                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
-                    fill=False, color="red"
-                )
+        ax.add_patch(
+            patches.Rectangle(
+                (table._bbox[0], table._bbox[1]),
+                table._bbox[2] - table._bbox[0],
+                table._bbox[3] - table._bbox[1],
+                fill=False, color="red"
             )
-            if not _FOR_LATTICE:
-                extend_axe_lim(ax, t)
+        )
+        if not _FOR_LATTICE:
+            extend_axe_lim(ax, table._bbox)
 
         return ax.get_figure()
 
@@ -393,14 +382,12 @@ class PlotMethods():
         fig : matplotlib.fig.Figure
 
         """
-        ax = prepare_plot(table, ax, to_pdf_scale=False)
-        table_bbox = table._bbox_unscaled
+        ax = prepare_plot(table, ax)
         x_coord = []
         y_coord = []
-        for k in table_bbox.keys():
-            for coord in table_bbox[k]:
-                x_coord.append(coord[0])
-                y_coord.append(coord[1])
+        for coord in table.parse["joints"]:
+            x_coord.append(coord[0])
+            y_coord.append(coord[1])
         ax.plot(x_coord, y_coord, "ro")
         return ax.get_figure()
 
