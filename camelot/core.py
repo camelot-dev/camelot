@@ -712,7 +712,7 @@ class TableList(object):
                 filepath = os.path.join(dirname, filename)
                 z.write(filepath, os.path.basename(filepath))
 
-    def export(self, path, f="csv", compress=False):
+    def export(self, path, f="csv", compress=False, df_kwargs={}):
         """Exports the list of tables to specified file format.
 
         Parameters
@@ -723,6 +723,8 @@ class TableList(object):
             File format. Can be csv, json, excel, html and sqlite.
         compress : bool
             Whether or not to add files to a ZIP archive.
+        df_kwargs : dict, optional (default: {})
+            A dict of `pandas.DataFrame.to_excel https://github.com/pandas-dev/pandas/blob/master/pandas/core/generic.py#L1924`
 
         """
         dirname = os.path.dirname(path)
@@ -742,7 +744,7 @@ class TableList(object):
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = "page-{}-table-{}".format(table.page, table.order)
-                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
+                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8", **df_kwargs)
             writer.save()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"
