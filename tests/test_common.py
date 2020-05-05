@@ -292,6 +292,13 @@ def test_network_layout_kwargs():
 
 
 # Hybrid parser
+def test_hybrid():
+    df = pd.DataFrame(data_stream)
+
+    filename = os.path.join(testdir, "health.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid")
+    assert_frame_equal(df, tables[0].df)
+
 def test_hybrid_vertical_header():
     """Tests a complex table with a vertically text header.
     """
