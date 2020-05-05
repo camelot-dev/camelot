@@ -149,6 +149,11 @@ class Hybrid(BaseParser):
                     # Our boundary is fully after the split, move on
                     idx_boundaries = idx_boundaries - 1
                     previous_boundary = boundary
+                    if idx_boundaries < 0:
+                        # If this is the last boundary to the left, set its
+                        # edge at the split
+                        boundary[0] = split
+                        idx_splits = idx_splits - 1
                 else:
                     # The split is inside our boundary: split it
                     new_boundary = [split, boundary[1]]
