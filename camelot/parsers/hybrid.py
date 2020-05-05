@@ -179,7 +179,9 @@ class Hybrid(BaseParser):
             self.table_bbox_parses[lattice_bbox] = self.lattice_parser
         else:
             network_cols_boundaries = self._augment_boundaries_with_splits(
-                network_cols_boundaries, lattice_cols)  # self.column_tol???
+                network_cols_boundaries,
+                lattice_cols,
+                self.lattice_parser.joint_tol)
             augmented_bbox = (
                 network_cols_boundaries[0][0], network_bbox[1],
                 network_cols_boundaries[-1][1], network_bbox[3],
