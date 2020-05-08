@@ -131,13 +131,15 @@ class BaseParser():
             return True
         return False
 
-    def _initialize_new_table(self, table_idx, cols, rows):
+    def _initialize_new_table(self, table_idx, bbox, cols, rows):
         """Initialize new table object, ready to be populated
 
         Parameters
         ----------
         table_idx : int
             Index of this table within the pdf page analyzed
+        bbox : set
+            bounding box of this table within the pdf page analyzed
         cols : list
             list of coordinate boundaries tuples (left, right)
         rows : list
@@ -151,7 +153,7 @@ class BaseParser():
         table = Table(cols, rows)
         table.page = self.page
         table.order = table_idx + 1
-        table._bbox = self.table_bboxes()[table_idx]
+        table._bbox = bbox
         return table
 
     @staticmethod
@@ -191,7 +193,7 @@ class BaseParser():
         # Pure virtual, must be defined by the derived parser
         raise NotImplementedError()
 
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
+    def _generate_table(self, table_idx, bbox, cols, rows, **kwargs):
         # Pure virtual, must be defined by the derived parser
         raise NotImplementedError()
 
@@ -225,7 +227,7 @@ class BaseParser():
                 user_cols
             )
             table = self._generate_table(
-                table_idx, cols, rows, v_s=v_s, h_s=h_s)
+                table_idx, bbox, cols, rows, v_s=v_s, h_s=h_s)
             _tables.append(table)
 
         return _tables
@@ -467,8 +469,8 @@ class TextBaseParser(BaseParser):
                 raise ValueError("Length of table_areas and columns"
                                  " should be equal")
 
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
-        table = self._initialize_new_table(table_idx, cols, rows)
+    def _generate_table(self, table_idx, bbox, cols, rows, **kwargs):
+        table = self._initialize_new_table(table_idx, bbox, cols, rows)
         table = table.set_all_edges()
         self.record_parse_metadata(table)
 

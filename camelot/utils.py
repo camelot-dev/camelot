@@ -110,9 +110,21 @@ def download_url(url):
     shutil.move(f.name, filepath)
     return filepath
 
-
-stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol"]
-lattice_kwargs = [
+common_kwargs = [
+    "flag_size",
+    "margins",
+    "split_text",
+    "strip_text",
+    "table_areas",
+    "table_regions"
+]
+text_kwargs = common_kwargs + [
+    "columns",
+    "edge_tol",
+    "row_tol",
+    "column_tol"
+]
+lattice_kwargs = common_kwargs+ [
     "process_background",
     "line_scale",
     "copy_text",
@@ -124,33 +136,33 @@ lattice_kwargs = [
     "iterations",
     "resolution",
 ]
+flavor_to_kwargs = {
+    "stream": text_kwargs,
+    "network": text_kwargs,
+    "lattice": lattice_kwargs,
+    "hybrid": text_kwargs + lattice_kwargs,
+}
 
 
 def validate_input(kwargs, flavor="lattice"):
-    def check_intersection(parser_kwargs, input_kwargs):
-        isec = set(parser_kwargs).intersection(set(input_kwargs.keys()))
-        if isec:
-            raise ValueError(
-                "{} cannot be used with flavor='{}'".format(
-                    ",".join(sorted(isec)), flavor
-                )
+    parser_kwargs = flavor_to_kwargs[flavor]
+    # s.difference(t): new set with elements in s but not in t
+    isec = set(kwargs.keys()).difference(set(parser_kwargs))
+    if isec:
+        raise ValueError(
+            "{} cannot be used with flavor='{}'".format(
+                ",".join(sorted(isec)), flavor
             )
-
-    if flavor == "lattice":
-        check_intersection(stream_kwargs, kwargs)
-    else:
-        check_intersection(lattice_kwargs, kwargs)
+        )
 
 
 def remove_extra(kwargs, flavor="lattice"):
-    if flavor == "lattice":
-        for key in kwargs.keys():
-            if key in stream_kwargs:
-                kwargs.pop(key)
-    else:
-        for key in kwargs.keys():
-            if key in lattice_kwargs:
-                kwargs.pop(key)
+    parser_kwargs = flavor_to_kwargs[flavor]
+    # Avoid "dictionary changed size during iteration"
+    kwargs_keys = list(kwargs.keys())
+    for key in kwargs_keys:
+        if key not in parser_kwargs:
+            kwargs.pop(key)
     return kwargs
 
 
