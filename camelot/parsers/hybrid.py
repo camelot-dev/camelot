@@ -104,10 +104,15 @@ class Hybrid(BaseParser):
         parser = self.table_bbox_parses[bbox]
         return parser._generate_columns_and_rows(bbox, table_idx)
 
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
-        bbox = self.table_bboxes()[table_idx]
+    def _generate_table(self, table_idx, bbox, cols, rows, **kwargs):
         parser = self.table_bbox_parses[bbox]
-        return parser._generate_table(table_idx, cols, rows, **kwargs)
+        table = parser._generate_table(table_idx, bbox, cols, rows, **kwargs)
+        # Because hybrid can inject extraneous splits from both lattice and
+        # network, remove lines / cols that are completely empty.
+        df = table.df
+        df[df.astype(bool)].dropna(axis=0, how="all", inplace=True)
+        df[df.astype(bool)].dropna(axis=1, how="all", inplace=True)
+        return table
 
     @staticmethod
     def _augment_boundaries_with_splits(boundaries, splits, tolerance=0):
@@ -223,6 +228,3 @@ class Hybrid(BaseParser):
         # Add the bboxes from network that haven't been merged
         for network_bbox in _network_bboxes:
             self.table_bbox_parses[network_bbox] = self.network_parser
-
-    def record_parse_metadata(self, table):
-        super().record_parse_metadata(table)

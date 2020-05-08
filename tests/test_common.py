@@ -315,6 +315,15 @@ def test_hybrid_vertical_header():
     assert_frame_equal(df, tables[0].df)
 
 
+def test_hybrid_process_background():
+    df = pd.DataFrame(data_hybrid_process_background)
+
+    filename = os.path.join(testdir, "background_lines_1.pdf")
+    tables = camelot.read_pdf(
+        filename, flavor="hybrid", process_background=True)
+    assert_frame_equal(df, tables[1].df)
+
+
 # Lattice parser tests
 def test_lattice():
     df = pd.DataFrame(data_lattice)

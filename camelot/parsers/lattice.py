@@ -322,13 +322,13 @@ class Lattice(BaseParser):
         ]
         return cols, rows, v_s, h_s
 
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
+    def _generate_table(self, table_idx, bbox, cols, rows, **kwargs):
         v_s = kwargs.get("v_s")
         h_s = kwargs.get("h_s")
         if v_s is None or h_s is None:
             raise ValueError("No segments found on {}".format(self.rootname))
 
-        table = self._initialize_new_table(table_idx, cols, rows)
+        table = self._initialize_new_table(table_idx, bbox, cols, rows)
         # set table edges to True using ver+hor lines
         table = table.set_edges(v_s, h_s, joint_tol=self.joint_tol)
         # set table border edges to True

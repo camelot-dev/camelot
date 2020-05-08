@@ -58,7 +58,7 @@ pass_config = click.make_pass_decorator(Config)
     "-flag",
     "--flag_size",
     is_flag=True,
-    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+    help="Flag text based on font size. Useful to detect super/subscripts.",
 )
 @click.option(
     "-strip",
