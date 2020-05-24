@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
 
-import re
 import os
-import sys
+import re
 import random
 import shutil
 import string

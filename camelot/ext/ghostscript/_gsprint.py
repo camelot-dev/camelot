@@ -81,6 +81,7 @@ def delete_instance(instance):
     """
     return libgs.gsapi_delete_instance(instance)
 
+
 if sys.platform == "win32":
     c_stdstream_call_t = WINFUNCTYPE(c_int, gs_main_instance, POINTER(c_char), c_int)
 else:
@@ -247,7 +248,10 @@ if sys.platform == "win32":
     libgs = __win32_finddll()
     if not libgs:
         import ctypes.util
-        libgs = ctypes.util.find_library("".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))) # finds in %PATH%
+
+        libgs = ctypes.util.find_library(
+            "".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))
+        )  # finds in %PATH%
     if not libgs:
         raise RuntimeError("Please make sure that Ghostscript is installed")
     libgs = windll.LoadLibrary(libgs)

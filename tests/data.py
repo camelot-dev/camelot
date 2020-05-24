@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 
 data_stream = [
     ["States-A", "Revenue", "", "Capital", "", "Total", "Others(1)", "Total"],
