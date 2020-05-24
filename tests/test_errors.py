@@ -73,7 +73,7 @@ def test_no_tables_found_logs_suppressed():
             tables = camelot.read_pdf(filename, suppress_stdout=True)
         except Warning as e:
             warning_text = str(e)
-            pytest.fail("Unexpected warning: {}".format(warning_text))
+            pytest.fail(f"Unexpected warning: {warning_text}")
 
 
 def test_no_tables_found_warnings_suppressed():
@@ -85,7 +85,7 @@ def test_no_tables_found_warnings_suppressed():
             tables = camelot.read_pdf(filename, suppress_stdout=True)
         except Warning as e:
             warning_text = str(e)
-            pytest.fail("Unexpected warning: {}".format(warning_text))
+            pytest.fail(f"Unexpected warning: {warning_text}"
 
 
 def test_no_password():

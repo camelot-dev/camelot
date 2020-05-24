@@ -79,7 +79,7 @@ def download_url(url):
         Temporary filepath.
 
     """
-    filename = "{}.pdf".format(random_string(6))
+    filename = f"{random_string(6)}.pdf"
     with tempfile.NamedTemporaryFile("wb", delete=False) as f:
         headers = {"User-Agent": "Mozilla/5.0"}
         request = Request(url, None, headers)
@@ -113,9 +113,7 @@ def validate_input(kwargs, flavor="lattice"):
         isec = set(parser_kwargs).intersection(set(input_kwargs.keys()))
         if isec:
             raise ValueError(
-                "{} cannot be used with flavor='{}'".format(
-                    ",".join(sorted(isec)), flavor
-                )
+                f"{','.join(sorted(isec))} cannot be used with flavor='{flavor}'"
             )
 
     if flavor == "lattice":
@@ -413,7 +411,7 @@ def text_strip(text, strip=""):
         return text
 
     stripped = re.sub(
-        r"[{}]".format("".join(map(re.escape, strip))), "", text, re.UNICODE
+        fr"[{''.join(map(re.escape, strip))}]", "", text, re.UNICODE
     )
     return stripped
 
@@ -650,9 +648,7 @@ def get_table_index(
                 text_range = (t.x0, t.x1)
                 col_range = (table.cols[0][0], table.cols[-1][1])
                 warnings.warn(
-                    "{} {} does not lie in column range {}".format(
-                        text, text_range, col_range
-                    )
+                    f"{text} {text_range} does not lie in column range {col_range}"
                 )
             r_idx = r
             c_idx = lt_col_overlap.index(max(lt_col_overlap))

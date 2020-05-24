@@ -11,10 +11,6 @@ jobs:
     - stage: test
       script:
         - make test
-      python: '3.5'
-    - stage: test
-      script:
-        - make test
       python: '3.6'
     - stage: test
       script:

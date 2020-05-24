@@ -106,7 +106,7 @@ class PDFHandler(object):
             infile = PdfFileReader(fileobj, strict=False)
             if infile.isEncrypted:
                 infile.decrypt(self.password)
-            fpath = os.path.join(temp, "page-{0}.pdf".format(page))
+            fpath = os.path.join(temp, f"page-{page}.pdf")
             froot, fext = os.path.splitext(fpath)
             p = infile.getPage(page - 1)
             outfile = PdfFileWriter()
@@ -164,7 +164,7 @@ class PDFHandler(object):
             for p in self.pages:
                 self._save_page(self.filepath, p, tempdir)
             pages = [
-                os.path.join(tempdir, "page-{0}.pdf".format(p)) for p in self.pages
+                os.path.join(tempdir, f"page-{p}.pdf") for p in self.pages
             ]
             parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
             for p in pages:
