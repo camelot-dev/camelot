@@ -4,6 +4,18 @@ Release History
 master
 ------
 
+0.8.0 (2020-05-24)
+------------------
+
+**Improvements**
+
+* Drop Python 2 support!
+    * Remove Python 2.7 and 3.5 support.
+    * Replace all instances of `.format` with f-strings.
+    * Remove all `__future__` imports.
+    * Fix HTTP 403 forbidden exception in read_pdf(url) and remove Python 2 urllib support.
+    * Fix test data.
+
 **Bugfixes**
 
 * Fix library discovery on Windows. [#32](https://github.com/camelot-dev/camelot/pull/32) by [KOLANICH](https://github.com/KOLANICH).
