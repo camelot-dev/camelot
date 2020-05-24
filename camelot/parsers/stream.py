@@ -441,10 +441,10 @@ class Stream(BaseParser):
             if self.images:
                 warnings.warn(
                     f"{base_filename} is image-based, camelot only works on"
-                    " text-based pages.")
+                    " text-based pages."
                 )
             else:
-                warnings.warn(f"No tables found on {base_filename}"))
+                warnings.warn(f"No tables found on {base_filename}")
             return []
 
         self._generate_table_bbox()
