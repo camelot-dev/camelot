@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
 import os
 import logging
 import warnings
@@ -358,7 +357,7 @@ class Stream(BaseParser):
                     ncols = max(set(elements), key=elements.count)
                 else:
                     warnings.warn(
-                        "No tables found in table area {}".format(table_idx + 1)
+                        f"No tables found in table area {table_idx + 1}"
                     )
             cols = [(t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r]
             cols = self._merge_columns(sorted(cols), column_tol=self.column_tol)
@@ -433,19 +432,19 @@ class Stream(BaseParser):
 
     def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
         self._generate_layout(filename, layout_kwargs)
+        base_filename = os.path.basename(self.rootname)
+
         if not suppress_stdout:
-            logger.info("Processing {}".format(os.path.basename(self.rootname)))
+            logger.info(f"Processing {base_filename}")
 
         if not self.horizontal_text:
             if self.images:
                 warnings.warn(
-                    "{} is image-based, camelot only works on"
-                    " text-based pages.".format(os.path.basename(self.rootname))
+                    f"{base_filename} is image-based, camelot only works on"
+                    " text-based pages."
                 )
             else:
-                warnings.warn(
-                    "No tables found on {}".format(os.path.basename(self.rootname))
-                )
+                warnings.warn(f"No tables found on {base_filename}")
             return []
 
         self._generate_table_bbox()

@@ -1,19 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 
 data_stream = [
-    [
-        "",
-        "Table: 5            Public Health Outlay 2012-13 (Budget Estimates)        (Rs. in 000)",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
     ["States-A", "Revenue", "", "Capital", "", "Total", "Others(1)", "Total"],
     ["", "", "", "", "", "Revenue &", "", ""],
     ["", "Medical &", "Family", "Medical &", "Family", "", "", ""],
@@ -830,18 +818,6 @@ data_stream_table_rotated = [
 
 data_stream_two_tables_1 = [
     [
-        "[In thousands (11,062.6 represents 11,062,600) For year ending December 31. Based on Uniform Crime Reporting (UCR)",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
-    [
         "Program. Represents arrests reported (not charged) by 12,910 agencies with a total population of 247,526,916 as estimated",
         "",
         "",
@@ -915,7 +891,7 @@ data_stream_two_tables_1 = [
         "2,330 .9",
     ],
     [
-        "Violent crime  .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .  .",
+        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .  .",
         "467 .9",
         "69 .1",
         "398 .8",
@@ -1300,29 +1276,10 @@ data_stream_two_tables_1 = [
         "",
         "",
     ],
-    [
-        "",
-        "Source: U.S. Department of Justice, Federal Bureau of Investigation, Uniform Crime Reports, Arrests Master Files.",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    ],
 ]
 
+
 data_stream_two_tables_2 = [
-    [
-        "",
-        "Source: U.S. Department of Justice, Federal Bureau of Investigation, Uniform Crime Reports, Arrests Master Files.",
-        "",
-        "",
-        "",
-        "",
-    ],
     ["Table 325. Arrests by Race: 2009", "", "", "", "", ""],
     [
         "[Based on Uniform Crime Reporting (UCR) Program. Represents arrests reported (not charged) by 12,371 agencies",
@@ -1352,7 +1309,7 @@ data_stream_two_tables_2 = [
         "123,656",
     ],
     [
-        "Violent crime  .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .\n .\n .  .\n .  .\n .\n .\n .\n .\n .  .",
+        "Violent crime   .  .  .  .  .  .  .  .\n .  .\n .  .\n .  .\n .  .\n .\n .\n .  .\n .  .\n .\n .\n .\n .\n .  .",
         "456,965",
         "268,346",
         "177,766",
@@ -1600,15 +1557,8 @@ data_stream_two_tables_2 = [
         "3,950",
     ],
     ["1 Except forcible rape and prostitution.", "", "", "", "", ""],
-    [
-        "",
-        "Source: U.S. Department of Justice, Federal Bureau of Investigation, “Crime in the United States, Arrests,” September 2010,",
-        "",
-        "",
-        "",
-        "",
-    ],
 ]
+
 
 data_stream_table_areas = [
     ["", "One Withholding"],
@@ -1776,18 +1726,7 @@ data_stream_columns = [
 ]
 
 data_stream_split_text = [
-    [
-        "FEB",
-        "RUAR",
-        "Y 2014 M27 (BUS)",
-        "",
-        "ALPHABETIC LISTING BY T",
-        "YPE",
-        "",
-        "",
-        "",
-        "ABLPDM27",
-    ],
+    ["FEB", "RUAR", "Y 2014 M27 (BUS)", "", "", "", "", "", "", ""],
     ["", "", "", "", "OF ACTIVE LICENSES", "", "", "", "", "3/19/2014"],
     ["", "", "", "", "OKLAHOMA ABLE COMMIS", "SION", "", "", "", ""],
     ["LICENSE", "", "", "", "PREMISE", "", "", "", "", ""],
@@ -2120,6 +2059,7 @@ data_stream_split_text = [
         "2015/02/23",
     ],
 ]
+
 
 data_stream_flag_size = [
     [
@@ -2820,7 +2760,7 @@ data_arabic = [
 ]
 
 data_stream_layout_kwargs = [
-    ["V i n s   a u   Ve r r e", ""],
+    ["V i n s   a u   V e r r e", ""],
     ["Les Blancs", "12.5CL"],
     ["A.O.P Côtes du Rhône", ""],
     ["Domaine de la Guicharde «  Autour de la chapelle » 2016", "8 €"],

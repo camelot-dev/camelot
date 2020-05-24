@@ -52,13 +52,10 @@ class TextEdge(object):
         self.is_valid = False
 
     def __repr__(self):
-        return "<TextEdge x={} y0={} y1={} align={} valid={}>".format(
-            round(self.x, 2),
-            round(self.y0, 2),
-            round(self.y1, 2),
-            self.align,
-            self.is_valid,
-        )
+        x = round(self.x, 2)
+        y0 = round(self.y0, 2)
+        y1 = round(self.y1, 2)
+        return f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} valid={self.is_valid}>"
 
     def update_coords(self, x, y0, edge_tol=50):
         """Updates the text edge's x and bottom y coordinates and sets
@@ -291,9 +288,11 @@ class Cell(object):
         self._text = ""
 
     def __repr__(self):
-        return "<Cell x1={} y1={} x2={} y2={}>".format(
-            round(self.x1, 2), round(self.y1, 2), round(self.x2, 2), round(self.y2, 2)
-        )
+        x1 = round(self.x1, 2)
+        y1 = round(self.y1, 2)
+        x2 = round(self.x2, 2)
+        y2 = round(self.y2, 2)
+        return f"<Cell x1={x1} y1={y1} x2={x2} y2={y2}>"
 
     @property
     def text(self):
@@ -351,7 +350,7 @@ class Table(object):
         self.page = None
 
     def __repr__(self):
-        return "<{} shape={}>".format(self.__class__.__name__, self.shape)
+        return f"<{self.__class__.__name__} shape={self.shape}>"
 
     def __lt__(self, other):
         if self.page == other.page:
@@ -612,7 +611,7 @@ class Table(object):
 
         """
         kw = {
-            "sheet_name": "page-{}-table-{}".format(self.page, self.order),
+            "sheet_name": f"page-{self.page}-table-{self.order}",
             "encoding": "utf-8",
         }
         kw.update(kwargs)
@@ -649,7 +648,7 @@ class Table(object):
         kw = {"if_exists": "replace", "index": False}
         kw.update(kwargs)
         conn = sqlite3.connect(path)
-        table_name = "page-{}-table-{}".format(self.page, self.order)
+        table_name = f"page-{self.page}-table-{self.order}"
         self.df.to_sql(table_name, conn, **kw)
         conn.commit()
         conn.close()
@@ -670,7 +669,7 @@ class TableList(object):
         self._tables = tables
 
     def __repr__(self):
-        return "<{} n={}>".format(self.__class__.__name__, self.n)
+        return f"<{self.__class__.__name__} n={self.n}>"
 
     def __len__(self):
         return len(self._tables)
@@ -680,7 +679,7 @@ class TableList(object):
 
     @staticmethod
     def _format_func(table, f):
-        return getattr(table, "to_{}".format(f))
+        return getattr(table, f"to_{f}")
 
     @property
     def n(self):
@@ -691,9 +690,7 @@ class TableList(object):
         root = kwargs.get("root")
         ext = kwargs.get("ext")
         for table in self._tables:
-            filename = os.path.join(
-                "{}-page-{}-table-{}{}".format(root, table.page, table.order, ext)
-            )
+            filename = f"{root}-page-{table.page}-table-{table.order}{ext}"
             filepath = os.path.join(dirname, filename)
             to_format = self._format_func(table, f)
             to_format(filepath)
@@ -706,9 +703,7 @@ class TableList(object):
         zipname = os.path.join(os.path.dirname(path), root) + ".zip"
         with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:
             for table in self._tables:
-                filename = os.path.join(
-                    "{}-page-{}-table-{}{}".format(root, table.page, table.order, ext)
-                )
+                filename = f"{root}-page-{table.page}-table-{table.order}{ext}"
                 filepath = os.path.join(dirname, filename)
                 z.write(filepath, os.path.basename(filepath))
 
@@ -741,7 +736,7 @@ class TableList(object):
             filepath = os.path.join(dirname, basename)
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
-                sheet_name = "page-{}-table-{}".format(table.page, table.order)
+                sheet_name = f"page-{table.page}-table-{table.order}"
                 table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
             writer.save()
             if compress:
