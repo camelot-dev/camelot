@@ -49,10 +49,10 @@ def test_image_warning():
         warnings.simplefilter("error")
         with pytest.raises(UserWarning) as e:
             tables = camelot.read_pdf(filename)
-        assert (
-            str(e.value)
-            == "page-1 is image-based, camelot only works on text-based pages."
-        )
+            assert (
+                str(e.value)
+                == "page-1 is image-based, camelot only works on text-based pages."
+            )
 
 
 def test_no_tables_found():
