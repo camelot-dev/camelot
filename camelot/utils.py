@@ -29,16 +29,9 @@ from pdfminer.layout import (
     LTImage,
 )
 
-
-PY3 = sys.version_info[0] >= 3
-if PY3:
-    from urllib.request import urlopen
-    from urllib.parse import urlparse as parse_url
-    from urllib.parse import uses_relative, uses_netloc, uses_params
-else:
-    from urllib2 import urlopen
-    from urlparse import urlparse as parse_url
-    from urlparse import uses_relative, uses_netloc, uses_params
+from urllib.request import Request, urlopen
+from urllib.parse import urlparse as parse_url
+from urllib.parse import uses_relative, uses_netloc, uses_params
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -90,11 +83,10 @@ def download_url(url):
     """
     filename = "{}.pdf".format(random_string(6))
     with tempfile.NamedTemporaryFile("wb", delete=False) as f:
-        obj = urlopen(url)
-        if PY3:
-            content_type = obj.info().get_content_type()
-        else:
-            content_type = obj.info().getheader("Content-Type")
+        headers = {"User-Agent": "Mozilla/5.0"}
+        request = Request(url, None, headers)
+        obj = urlopen(request)
+        content_type = obj.info().get_content_type()
         if content_type != "application/pdf":
             raise NotImplementedError("File format not supported")
         f.write(obj.read())
