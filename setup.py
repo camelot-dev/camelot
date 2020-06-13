@@ -32,12 +32,12 @@ plot_requires = [
 ]
 
 dev_requires = [
-    'codecov>=2.0.15',
-    'pytest>=3.8.0',
-    'pytest-cov>=2.6.0',
-    'pytest-mpl>=0.10',
-    'pytest-runner>=4.2',
-    'Sphinx>=1.7.9'
+    'codecov>=2.1.3',
+    'pytest>=4.6',
+    'pytest-cov>=2.10.0',
+    'pytest-mpl>=0.11',
+    'pytest-runner>=5.2',
+    'Sphinx>=3.0.3'
 ]
 
 all_requires = cv_requires + plot_requires
