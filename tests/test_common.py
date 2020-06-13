@@ -33,17 +33,11 @@ def test_password():
 
     filename = os.path.join(testdir, "health_protected.pdf")
     tables = camelot.read_pdf(filename, password="ownerpass", flavor="stream")
-<<<<<<< HEAD
-    assert_frame_equal(df, tables[0].df)
-
-    tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
-=======
     assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
     tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
     assert len(tables) == 1
->>>>>>> Fix unit tests, lint, drop Python 2 support
     assert_frame_equal(df, tables[0].df)
 
 
