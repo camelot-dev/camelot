@@ -115,7 +115,8 @@ class TextEdge(TextAlignment):
         x = round(self.x, 2)
         y0 = round(self.y0, 2)
         y1 = round(self.y1, 2)
-        return f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} valid={self.is_valid}>"
+        return f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} " \
+            f"valid={self.is_valid}>"
 
     def update_coords(self, x, textline, edge_tol=50):
         """Updates the text edge's x and bottom y coordinates and sets
@@ -892,7 +893,11 @@ class TableList():
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = f"page-{table.page}-table-{table.order}"
-                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
+                table.df.to_excel(
+                    writer,
+                    sheet_name=sheet_name,
+                    encoding="utf-8"
+                )
             writer.save()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"

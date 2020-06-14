@@ -2,7 +2,6 @@
 
 import os
 import atexit
-import sys
 import re
 import random
 import shutil
@@ -33,7 +32,7 @@ from pdfminer.layout import (
 
 from .ext.ghostscript import Ghostscript
 
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 from urllib.parse import urlparse as parse_url
 from urllib.parse import uses_relative, uses_netloc, uses_params
 
@@ -139,8 +138,7 @@ def validate_input(kwargs, flavor="lattice"):
     isec = set(kwargs.keys()).difference(set(parser_kwargs))
     if isec:
         raise ValueError(
-            f"{",".join(sorted(isec))} cannot be used with flavor='{flavor}'"
-            )
+            f"{','.join(sorted(isec))} cannot be used with flavor='{flavor}'"
         )
 
 
@@ -986,7 +984,8 @@ def get_table_index(
                 text_range = (t.x0, t.x1)
                 col_range = (table.cols[0][0], table.cols[-1][1])
                 warnings.warn(
-                    f"{text} {text_range} does not lie in column range {col_range}"
+                    f"{text} {text_range} does not lie in column range "
+                    f"{col_range}"
                 )
             r_idx = r
             c_idx = lt_col_overlap.index(max(lt_col_overlap))
