@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 import warnings
 
 from .base import TextBaseParser
@@ -167,8 +165,7 @@ class Stream(TextBaseParser):
                     ncols = max(set(elements), key=elements.count)
                 else:
                     warnings.warn(
-                        "No tables found in table area {bbox}".format(
-                            bbox=bbox)
+                        f"No tables found in table area {bbox}"
                     )
             cols = [
                 (t.x0, t.x1)

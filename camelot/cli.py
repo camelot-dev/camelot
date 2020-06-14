@@ -210,7 +210,7 @@ def lattice(c, *args, **kwargs):
         filepath, pages=pages, flavor="lattice", suppress_stdout=quiet,
         **kwargs
     )
-    click.echo("Found {} tables".format(tables.n))
+    click.echo(f"Found {tables.n} tables")
     if plot_type is not None:
         for table in tables:
             plot(table, kind=plot_type)
@@ -304,7 +304,7 @@ def stream(c, *args, **kwargs):
     tables = read_pdf(
         filepath, pages=pages, flavor="stream", suppress_stdout=quiet, **kwargs
     )
-    click.echo("Found {} tables".format(tables.n))
+    click.echo(f"Found {tables.n} tables")
     if plot_type is not None:
         for table in tables:
             plot(table, kind=plot_type)
@@ -399,7 +399,7 @@ def network(c, *args, **kwargs):
         filepath, pages=pages, flavor="network",
         suppress_stdout=quiet, **kwargs
     )
-    click.echo("Found {} tables".format(tables.n))
+    click.echo(f"Found {tables.n} tables")
     if plot_type is not None:
         for table in tables:
             plot(table, kind=plot_type)

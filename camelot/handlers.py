@@ -133,8 +133,7 @@ class PDFHandler():
             infile = PdfFileReader(fileobj, strict=False)
             if infile.isEncrypted:
                 infile.decrypt(self.password)
-            fpath = build_file_path_in_temp_dir(
-                "page-{page}.pdf".format(page=page))
+            fpath = build_file_path_in_temp_dir(f"page-{page}.pdf")
             froot, fext = os.path.splitext(fpath)
             p = infile.getPage(page - 1)
             outfile = PdfFileWriter()
@@ -211,8 +210,7 @@ class PDFHandler():
                                       page_idx, layout_kwargs)
             if not suppress_stdout:
                 rootname = os.path.basename(parser.rootname)
-                logger.info(
-                    "Processing {rootname}".format(rootname=rootname))
+                logger.info(f"Processing {rootname}")
             t = parser.extract_tables()
             tables.extend(t)
         return TableList(sorted(tables))

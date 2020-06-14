@@ -140,10 +140,11 @@ def test_cli_password():
 def test_cli_output_format():
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health.pdf")
-        outfile = os.path.join(tempdir, "health.{}")
+
         runner = CliRunner()
 
         # json
+        outfile = os.path.join(tempdir, "health.json")
         result = runner.invoke(
             cli,
             ["--format", "json", "--output", outfile.format("json"), "stream",
@@ -152,6 +153,7 @@ def test_cli_output_format():
         assert result.exit_code == 0
 
         # excel
+        outfile = os.path.join(tempdir, "health.xlsx")
         result = runner.invoke(
             cli,
             ["--format", "excel", "--output", outfile.format("xlsx"), "stream",
@@ -160,6 +162,7 @@ def test_cli_output_format():
         assert result.exit_code == 0
 
         # html
+        outfile = os.path.join(tempdir, "health.html")
         result = runner.invoke(
             cli,
             ["--format", "html", "--output", outfile.format("html"), "stream",
@@ -168,6 +171,7 @@ def test_cli_output_format():
         assert result.exit_code == 0
 
         # zip
+        outfile = os.path.join(tempdir, "health.csv")
         result = runner.invoke(
             cli,
             [
@@ -175,7 +179,7 @@ def test_cli_output_format():
                 "--format",
                 "csv",
                 "--output",
-                outfile.format("csv"),
+                outfile,
                 "stream",
                 infile,
             ],

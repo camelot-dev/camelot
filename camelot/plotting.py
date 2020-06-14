@@ -191,14 +191,11 @@ class PlotMethods():
 
         if table.flavor == "lattice" and kind in ["textedge"]:
             raise NotImplementedError(
-                "Lattice flavor does not support kind='{}'".format(kind)
+                f"Lattice flavor does not support kind='{kind}'"
             )
         if table.flavor != "lattice" and kind in ["line"]:
             raise NotImplementedError(
-                "{flavor} flavor does not support kind='{kind}'".format(
-                    flavor=table.flavor,
-                    kind=kind
-                )
+                f"{table.flavor} flavor does not support kind='{kind}'"
             )
 
         plot_method = getattr(self, kind)
