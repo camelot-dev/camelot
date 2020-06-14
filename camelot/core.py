@@ -112,7 +112,7 @@ class TextEdge(TextAlignment):
         self.is_valid = False
 
     def __repr__(self):
-        x = round(self.x, 2)
+        x = round(self.coord, 2)
         y0 = round(self.y0, 2)
         y1 = round(self.y1, 2)
         return f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} " \
@@ -201,8 +201,7 @@ class TextEdges(TextAlignments):
         return TextEdge(coord, textline, align)
 
     def add(self, coord, textline, align):
-        """Adds a new text edge to the current dict.
-        """
+        """Adds a new text edge to the current dict."""
         te = self._create_new_text_alignment(coord, textline, align)
         self._text_alignments[align].append(te)
 
@@ -210,9 +209,7 @@ class TextEdges(TextAlignments):
         alignment.update_coords(coord, textline, self.edge_tol)
 
     def generate(self, textlines):
-        """Generates the text edges dict based on horizontal text
-        rows.
-        """
+        """Generates the text edges dict based on horizontal text rows."""
         for tl in textlines:
             if len(tl.get_text().strip()) > 1:  # TODO: hacky
                 self._register_textline(tl)
@@ -396,14 +393,13 @@ class Cell():
 
     @property
     def bound(self):
-        """The number of sides on which the cell is bounded.
-        """
+        """The number of sides on which the cell is bounded."""
         return self.top + self.bottom + self.left + self.right
 
 
 class Table():
-    """Defines a table with coordinates relative to a left-bottom
-    origin. (PDF coordinate space)
+    """Defines a table with coordinates relative to a left-bottom origin.
+    (PDF coordinate space)
 
     Parameters
     ----------

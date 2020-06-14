@@ -812,7 +812,7 @@ def flag_font_size(textline, direction, strip_text=""):
 
 
 def split_textline(table, textline, direction, flag_size=False, strip_text=""):
-    """Splits PDFMiner LTTextLine into substrings if it spans across
+    """Split PDFMiner LTTextLine into substrings if it spans across
     multiple rows/columns.
 
     Parameters
