@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
-data_stream = [
+data_hybrid = [
+    [
+        "", "Table: 5            Public Health Outlay 2012-13 (Budget"
+        " Estimates)        (Rs. in 000)", "", "", "", "", "", ""
+    ],
     ["States-A", "Revenue", "", "Capital", "", "Total", "Others(1)", "Total"],
     ["", "", "", "", "", "Revenue &", "", ""],
     ["", "Medical &", "Family", "Medical &", "Family", "", "", ""],
@@ -223,6 +227,10 @@ data_stream = [
         "25,891,232",
     ],
 ]
+
+# Hybrid includes the header because the boundaries of the table include it,
+# but stream/network don't include it.
+data_stream = data_hybrid[1:]
 
 data_stream_table_rotated = [
     [
@@ -2074,6 +2082,11 @@ data_network_vertical_headers = [
 
 # Compared to network, hybrid detects additional sparse columns
 data_hybrid_vertical_headers = [
+    [
+        "", "", "", "", "", "STATE", "", "", "", "CONGRESSIONAL", "", "",
+        "", "", "LEGISLATIVE", "", "", "COUNTY", "", "COUNTY", "", "",
+        "County Commissioner", "", "", "", ""
+    ],
     [
         "",
         "",

@@ -5,6 +5,7 @@ from ..utils import (
     boundaries_to_split_lines,
 )
 
+import numpy as np
 from .base import BaseParser
 from .network import Network
 from .lattice import Lattice
@@ -67,6 +68,7 @@ class Hybrid(BaseParser):
             strip_text=strip_text,
             debug=debug,
         )
+        self.columns = columns  # Columns settings impacts the hybrid table
         self.network_parser = Network(
             table_regions=table_regions,
             table_areas=table_areas,
@@ -109,9 +111,11 @@ class Hybrid(BaseParser):
         table = parser._generate_table(table_idx, bbox, cols, rows, **kwargs)
         # Because hybrid can inject extraneous splits from both lattice and
         # network, remove lines / cols that are completely empty.
-        df = table.df
-        df[df.astype(bool)].dropna(axis=0, how="all", inplace=True)
-        df[df.astype(bool)].dropna(axis=1, how="all", inplace=True)
+        table.df = table.df.replace('', np.nan)
+        table.df = table.df.dropna(axis=0, how="all")
+        table.df = table.df.dropna(axis=1, how="all")
+        table.df = table.df.replace(np.nan, '')
+        table.shape = table.df.shape
         return table
 
     @staticmethod
@@ -172,13 +176,12 @@ class Hybrid(BaseParser):
         """ Identify splits that were only detected by lattice or by network
         """
         lattice_parse = self.lattice_parser.table_bbox_parses[lattice_bbox]
-        lattice_cols, lattice_rows = \
-            lattice_parse["col_anchors"], lattice_parse["row_anchors"]
+        lattice_cols = lattice_parse["col_anchors"]
 
         network_bbox_data = self.network_parser.table_bbox_parses[network_bbox]
         network_cols_boundaries = network_bbox_data["cols_boundaries"]
 
-        # Favor hybrid, but complete or adjust its columns based on the
+        # Favor network, but complete or adjust its columns based on the
         # splits identified by lattice.
         if network_cols_boundaries is None:
             self.table_bbox_parses[lattice_bbox] = self.lattice_parser
@@ -188,8 +191,10 @@ class Hybrid(BaseParser):
                 lattice_cols,
                 self.lattice_parser.joint_tol)
             augmented_bbox = (
-                network_cols_boundaries[0][0], network_bbox[1],
-                network_cols_boundaries[-1][1], network_bbox[3],
+                network_cols_boundaries[0][0],
+                min(lattice_bbox[1], network_bbox[1]),
+                network_cols_boundaries[-1][1],
+                max(lattice_bbox[3], network_bbox[3]),
             )
             network_bbox_data["cols_anchors"] = \
                 boundaries_to_split_lines(network_cols_boundaries)

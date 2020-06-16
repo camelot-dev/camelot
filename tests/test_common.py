@@ -287,7 +287,7 @@ def test_network_layout_kwargs():
 
 # Hybrid parser
 def test_hybrid():
-    df = pd.DataFrame(data_stream)
+    df = pd.DataFrame(data_hybrid)
 
     filename = os.path.join(testdir, "health.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid")
@@ -322,6 +322,19 @@ def test_hybrid_process_background():
     tables = camelot.read_pdf(
         filename, flavor="hybrid", process_background=True)
     assert_frame_equal(df, tables[1].df)
+
+
+def test_hybrid_split_text():
+    df = pd.DataFrame(data_network_split_text)
+
+    filename = os.path.join(testdir, "tabula/m27.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="hybrid",
+        columns=["72,95,209,327,442,529,566,606,683"],
+        split_text=True,
+    )
+    assert_frame_equal(df, tables[0].df)
 
 
 # Lattice parser tests
