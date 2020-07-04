@@ -1,3 +1,4 @@
+sudo: true
 language: python
 cache: pip
 addons:
