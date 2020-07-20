@@ -25,7 +25,7 @@ Using pip
 
 After :ref:`installing the dependencies <install_deps>`, which include `Tkinter`_ and `ghostscript`_, you can simply use pip to install Camelot::
 
-    $ pip install camelot-py[cv]
+    $ pip install 'camelot-py[cv]'
 
 .. _Tkinter: https://wiki.python.org/moin/TkInter
 .. _ghostscript: https://www.ghostscript.com
