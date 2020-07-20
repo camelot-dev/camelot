@@ -37,7 +37,7 @@ Setting up a development environment
 
 To install the dependencies needed for development, you can use pip::
 
-    $ pip install camelot-py[dev]
+    $ pip install "camelot-py[dev]"
 
 Alternatively, you can clone the project repository, and install using pip::
 
