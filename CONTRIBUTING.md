@@ -23,7 +23,7 @@ A great way to start contributing to Camelot is to pick an issue tagged with the
 To install the dependencies needed for development, you can use pip:
 
 <pre>
-$ pip install camelot-py[dev]
+$ pip install "camelot-py[dev]"
 </pre>
 
 Alternatively, you can clone the project repository, and install using pip:
