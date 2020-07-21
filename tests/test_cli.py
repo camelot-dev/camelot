@@ -19,10 +19,16 @@ def test_help_output():
     output = result.output
 
     assert prog_name == "camelot"
-    assert result.output.startswith("Usage: %(prog_name)s [OPTIONS] COMMAND" % locals())
+    assert result.output.startswith(
+        "Usage: %(prog_name)s [OPTIONS] COMMAND" %
+        locals()
+    )
     assert all(
         v in result.output
-        for v in ["Options:", "--version", "--help", "Commands:", "lattice", "stream"]
+        for v in [
+            "Options:", "--version", "--help", "Commands:", "lattice",
+            "stream"
+        ]
     )
 
 
@@ -62,6 +68,26 @@ def test_cli_stream():
         assert output_error in result.output
 
         result = runner.invoke(cli, ["--output", outfile, "stream", infile])
+        format_error = "Please specify output file format using --format"
+        assert format_error in result.output
+
+
+def test_cli_network():
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "budget.pdf")
+        outfile = os.path.join(tempdir, "budget.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli, ["--format", "csv", "--output", outfile, "network", infile]
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 1 tables\n"
+
+        result = runner.invoke(cli, ["--format", "csv", "network", infile])
+        output_error = "Error: Please specify output file path using --output"
+        assert output_error in result.output
+
+        result = runner.invoke(cli, ["--output", outfile, "network", infile])
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
@@ -121,7 +147,8 @@ def test_cli_output_format():
         outfile = os.path.join(tempdir, "health.json")
         result = runner.invoke(
             cli,
-            ["--format", "json", "--output", outfile, "stream", infile],
+            ["--format", "json", "--output", outfile.format("json"), "stream",
+             infile],
         )
         assert result.exit_code == 0
 
@@ -129,7 +156,8 @@ def test_cli_output_format():
         outfile = os.path.join(tempdir, "health.xlsx")
         result = runner.invoke(
             cli,
-            ["--format", "excel", "--output", outfile, "stream", infile],
+            ["--format", "excel", "--output", outfile.format("xlsx"), "stream",
+             infile],
         )
         assert result.exit_code == 0
 
@@ -137,7 +165,8 @@ def test_cli_output_format():
         outfile = os.path.join(tempdir, "health.html")
         result = runner.invoke(
             cli,
-            ["--format", "html", "--output", outfile, "stream", infile],
+            ["--format", "html", "--output", outfile.format("html"), "stream",
+             infile],
         )
         assert result.exit_code == 0
 
@@ -170,6 +199,10 @@ def test_cli_quiet():
         assert "No tables found on page-1" in result.output
 
         result = runner.invoke(
-            cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
+            cli,
+            [
+                "--quiet", "--format", "csv", "--output", outfile, "stream",
+                infile
+            ]
         )
         assert "No tables found on page-1" not in result.output

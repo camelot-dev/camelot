@@ -19,7 +19,7 @@ requires = [
     'numpy>=1.13.3',
     'openpyxl>=2.5.8',
     'pandas>=0.23.4',
-    'pdfminer.six>=20170720',
+    'pdfminer.six>=20200402',
     'PyPDF2>=1.26.0'
 ]
 
@@ -32,12 +32,12 @@ plot_requires = [
 ]
 
 dev_requires = [
-    'codecov>=2.0.15',
-    'pytest>=3.8.0',
-    'pytest-cov>=2.6.0',
-    'pytest-mpl>=0.10',
-    'pytest-runner>=4.2',
-    'Sphinx>=1.7.9'
+    'codecov>=2.1.3',
+    'pytest>=4.6',
+    'pytest-cov>=2.10.0',
+    'pytest-mpl>=0.11',
+    'pytest-runner>=5.2',
+    'Sphinx>=3.0.3'
 ]
 
 all_requires = cv_requires + plot_requires
@@ -69,7 +69,7 @@ def setup_package():
                     },
                     classifiers=[
                         # Trove classifiers
-                        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+                        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers # noqa
                         'License :: OSI Approved :: MIT License',
                         'Programming Language :: Python :: 3.6',
                         'Programming Language :: Python :: 3.7',

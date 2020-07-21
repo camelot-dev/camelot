@@ -5,6 +5,6 @@ numpy>=1.13.3
 opencv-python>=3.4.2.17
 openpyxl>=2.5.8
 pandas>=0.23.4
-pdfminer.six>=20170720
+pdfminer.six>=20200402
 PyPDF2>=1.26.0
 Sphinx>=1.7.9

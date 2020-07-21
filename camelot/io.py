@@ -7,14 +7,14 @@ from .utils import validate_input, remove_extra
 
 
 def read_pdf(
-    filepath,
-    pages="1",
-    password=None,
-    flavor="lattice",
-    suppress_stdout=False,
-    layout_kwargs={},
-    **kwargs
-):
+        filepath,
+        pages="1",
+        password=None,
+        flavor="lattice",
+        suppress_stdout=False,
+        layout_kwargs=None,
+        debug=False,
+        **kwargs):
     """Read PDF and return extracted tables.
 
     Note: kwargs annotated with ^ can only be used with flavor='stream'
@@ -80,16 +80,16 @@ def read_pdf(
         Size of a pixel neighborhood that is used to calculate a
         threshold value for the pixel: 3, 5, 7, and so on.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_. # noqa
     threshold_constant* : int, optional (default: -2)
         Constant subtracted from the mean or weighted mean.
         Normally, it is positive but may be zero or negative as well.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_. # noqa
     iterations* : int, optional (default: 0)
         Number of times for erosion/dilation is applied.
 
-        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
+        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_. # noqa
     resolution* : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
 
@@ -98,9 +98,11 @@ def read_pdf(
     tables : camelot.core.TableList
 
     """
-    if flavor not in ["lattice", "stream"]:
+    layout_kwargs = layout_kwargs or {}
+    if flavor not in ["lattice", "stream", "network", "hybrid"]:
         raise NotImplementedError(
-            "Unknown flavor specified." " Use either 'lattice' or 'stream'"
+            "Unknown flavor specified."
+            " Use either 'lattice', 'stream', or 'network'"
         )
 
     with warnings.catch_warnings():
@@ -108,7 +110,7 @@ def read_pdf(
             warnings.simplefilter("ignore")
 
         validate_input(kwargs, flavor=flavor)
-        p = PDFHandler(filepath, pages=pages, password=password)
+        p = PDFHandler(filepath, pages=pages, password=password, debug=debug)
         kwargs = remove_extra(kwargs, flavor=flavor)
         tables = p.parse(
             flavor=flavor,

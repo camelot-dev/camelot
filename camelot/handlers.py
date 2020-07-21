@@ -2,13 +2,14 @@
 
 import os
 import sys
+import logging
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 from .core import TableList
-from .parsers import Stream, Lattice
+from .parsers import Stream, Lattice, Network, Hybrid
 from .utils import (
-    TemporaryDirectory,
+    build_file_path_in_temp_dir,
     get_page_layout,
     get_text_objects,
     get_rotation,
@@ -16,8 +17,17 @@ from .utils import (
     download_url,
 )
 
+logger = logging.getLogger("camelot")
 
-class PDFHandler(object):
+PARSERS = {
+    "lattice": Lattice,
+    "stream": Stream,
+    "network": Network,
+    "hybrid": Hybrid,
+}
+
+
+class PDFHandler():
     """Handles all operations like temp directory creation, splitting
     file into single page PDFs, parsing each PDF and then removing the
     temp directory.
@@ -31,10 +41,13 @@ class PDFHandler(object):
         Example: '1,3,4' or '1,4-end' or 'all'.
     password : str, optional (default: None)
         Password for decryption.
+    debug : bool, optional (default: False)
+        Whether the parser should store debug information during parsing.
 
     """
 
-    def __init__(self, filepath, pages="1", password=None):
+    def __init__(self, filepath, pages="1", password=None, debug=False):
+        self.debug = debug
         if is_url(filepath):
             filepath = download_url(filepath)
         self.filepath = filepath
@@ -89,38 +102,54 @@ class PDFHandler(object):
             P.extend(range(p["start"], p["end"] + 1))
         return sorted(set(P))
 
-    def _save_page(self, filepath, page, temp):
-        """Saves specified page from PDF into a temporary directory.
+    def _read_pdf_page(self, page=1, layout_kwargs=None):
+        """Saves specified page from PDF into a temporary directory. Removes
+        password protection and normalizes rotation.
 
         Parameters
         ----------
-        filepath : str
-            Filepath or URL of the PDF file.
         page : int
             Page number.
-        temp : str
-            Tmp directory.
+        layout_kwargs : dict, optional (default: {})
+            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.  # noqa
+
+
+        Returns
+        -------
+        layout : object
+
+        dimensions : tuple
+            The dimensions of the pdf page
+
+        filepath : str
+            The path of the single page PDF - either the original, or a
+            normalized version.
 
         """
-        with open(filepath, "rb") as fileobj:
+        layout_kwargs = layout_kwargs or {}
+        with open(self.filepath, "rb") as fileobj:
+            # Normalize the pdf file, but skip if it's not encrypted or has
+            # only one page.
             infile = PdfFileReader(fileobj, strict=False)
             if infile.isEncrypted:
                 infile.decrypt(self.password)
-            fpath = os.path.join(temp, f"page-{page}.pdf")
+            fpath = build_file_path_in_temp_dir(f"page-{page}.pdf")
             froot, fext = os.path.splitext(fpath)
             p = infile.getPage(page - 1)
             outfile = PdfFileWriter()
             outfile.addPage(p)
             with open(fpath, "wb") as f:
                 outfile.write(f)
-            layout, dim = get_page_layout(fpath)
+            layout, dimensions = get_page_layout(
+                fpath, **layout_kwargs)
             # fix rotated PDF
             chars = get_text_objects(layout, ltype="char")
             horizontal_text = get_text_objects(layout, ltype="horizontal_text")
             vertical_text = get_text_objects(layout, ltype="vertical_text")
             rotation = get_rotation(chars, horizontal_text, vertical_text)
             if rotation != "":
-                fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
+                fpath_new = "".join(
+                    [froot.replace("page", "p"), "_rotated", fext])
                 os.rename(fpath, fpath_new)
                 infile = PdfFileReader(open(fpath_new, "rb"), strict=False)
                 if infile.isEncrypted:
@@ -134,9 +163,13 @@ class PDFHandler(object):
                 outfile.addPage(p)
                 with open(fpath, "wb") as f:
                     outfile.write(f)
+                layout, dimensions = get_page_layout(
+                    fpath, **layout_kwargs)
+        return layout, dimensions, fpath
 
     def parse(
-        self, flavor="lattice", suppress_stdout=False, layout_kwargs={}, **kwargs
+        self, flavor="lattice", suppress_stdout=False,
+        layout_kwargs=None, **kwargs
     ):
         """Extracts tables by calling parser.get_tables on all single
         page PDFs.
@@ -144,12 +177,13 @@ class PDFHandler(object):
         Parameters
         ----------
         flavor : str (default: 'lattice')
-            The parsing method to use ('lattice' or 'stream').
+            The parsing method to use ('lattice', 'stream', 'network',
+            or 'hybrid').
             Lattice is used by default.
         suppress_stdout : str (default: False)
             Suppress logs and warnings.
         layout_kwargs : dict, optional (default: {})
-            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
+            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs. # noqa
         kwargs : dict
             See camelot.read_pdf kwargs.
 
@@ -159,17 +193,24 @@ class PDFHandler(object):
             List of tables found in PDF.
 
         """
+        layout_kwargs = layout_kwargs or {}
         tables = []
-        with TemporaryDirectory() as tempdir:
-            for p in self.pages:
-                self._save_page(self.filepath, p, tempdir)
-            pages = [
-                os.path.join(tempdir, f"page-{p}.pdf") for p in self.pages
-            ]
-            parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
-            for p in pages:
-                t = parser.extract_tables(
-                    p, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
-                )
-                tables.extend(t)
+
+        parser_obj = PARSERS[flavor]
+        parser = parser_obj(debug=self.debug, **kwargs)
+
+        # Read the layouts/dimensions of each of the pages we need to
+        # parse. This might require creating a temporary .pdf.
+        for page_idx in self.pages:
+            layout, dimensions, source_file = self._read_pdf_page(
+                page_idx,
+                layout_kwargs=layout_kwargs
+            )
+            parser.prepare_page_parse(source_file, layout, dimensions,
+                                      page_idx, layout_kwargs)
+            if not suppress_stdout:
+                rootname = os.path.basename(parser.rootname)
+                logger.info(f"Processing {rootname}")
+            t = parser.extract_tables()
+            tables.extend(t)
         return TableList(sorted(tables))
