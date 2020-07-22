@@ -7,4 +7,4 @@ openpyxl>=2.5.8
 pandas>=0.23.4
 pdfminer.six>=20200720
 PyPDF2>=1.26.0
-Sphinx>=1.7.9
+Sphinx>=3.1.2
