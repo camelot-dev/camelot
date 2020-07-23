@@ -4,6 +4,13 @@ Release History
 master
 ------
 
+0.8.1 (2020-07-21)
+------------------
+
+**Bugfixes**
+
+* [#169](https://github.com/camelot-dev/camelot/issues/169) Fix import error caused by `pdfminer.six==20200720`. [#171](https://github.com/camelot-dev/camelot/pull/171) by Vinayak Mehta.
+
 0.8.0 (2020-05-24)
 ------------------
 
