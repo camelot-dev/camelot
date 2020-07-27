@@ -14,7 +14,7 @@ import numpy as np
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowedError
+from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.converter import PDFPageAggregator
@@ -780,7 +780,7 @@ def get_page_layout(
         parser = PDFParser(f)
         document = PDFDocument(parser)
         if not document.is_extractable:
-            raise PDFTextExtractionNotAllowedError(f"Text extraction is not allowed: {filename}")
+            raise PDFTextExtractionNotAllowed(f"Text extraction is not allowed: {filename}")
         laparams = LAParams(
             char_margin=char_margin,
             line_margin=line_margin,
