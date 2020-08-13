@@ -16,7 +16,7 @@ Stream can be used to parse tables that have whitespaces between cells to simula
 
 1. Words on the PDF page are grouped into text rows based on their *y* axis overlaps.
 
-2. Textedges are calculated and then used to guess interesting table areas on the PDF page. You can read `Anssi Nurminen's master's thesis <http://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_ to know more about this table detection technique. [See pages 20, 35 and 40]
+2. Textedges are calculated and then used to guess interesting table areas on the PDF page. You can read `Anssi Nurminen's master's thesis <https://pdfs.semanticscholar.org/a9b1/67a86fb189bfcd366c3839f33f0404db9c10.pdf>`_ to know more about this table detection technique. [See pages 20, 35 and 40]
 
 3. The number of columns inside each table area are then guessed. This is done by calculating the mode of number of words in each text row. Based on this mode, words in each text row are chosen to calculate a list of column *x* ranges.
 
