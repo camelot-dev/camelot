@@ -66,8 +66,7 @@ Let's plot all the text present on the table's PDF page.
 
 ::
 
-    >>> camelot.plot(tables[0], kind='text')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='text').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -93,8 +92,7 @@ Let's plot the table (to see if it was detected correctly or not). This plot typ
 
 ::
 
-    >>> camelot.plot(tables[0], kind='grid')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='grid').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -118,8 +116,7 @@ Now, let's plot all table boundaries present on the table's PDF page.
 
 ::
 
-    >>> camelot.plot(tables[0], kind='contour')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='contour').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -141,8 +138,7 @@ Cool, let's plot all line segments present on the table's PDF page.
 
 ::
 
-    >>> camelot.plot(tables[0], kind='line')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='line').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -164,8 +160,7 @@ Finally, let's plot all line intersections present on the table's PDF page.
 
 ::
 
-    >>> camelot.plot(tables[0], kind='joint')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='joint').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -187,8 +182,7 @@ You can also visualize the textedges found on a page by specifying ``kind='texte
 
 ::
 
-    >>> camelot.plot(tables[0], kind='textedge')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='textedge').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -375,8 +369,7 @@ Let's see the table area that is detected by default.
 ::
 
     >>> tables = camelot.read_pdf('edge_tol.pdf', flavor='stream')
-    >>> camelot.plot(tables[0], kind='contour')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='contour').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -396,8 +389,7 @@ To improve the detected area, you can increase the ``edge_tol`` (default: 50) va
 ::
 
     >>> tables = camelot.read_pdf('edge_tol.pdf', flavor='stream', edge_tol=500)
-    >>> camelot.plot(tables[0], kind='contour')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='contour').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -472,8 +464,7 @@ Let's plot the table for this PDF.
 ::
 
     >>> tables = camelot.read_pdf('short_lines.pdf')
-    >>> camelot.plot(tables[0], kind='grid')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='grid').show()
 
 .. figure:: ../_static/png/short_lines_1.png
     :alt: A plot of the PDF table with short lines
@@ -484,8 +475,7 @@ Clearly, the smaller lines separating the headers, couldn't be detected. Let's t
 ::
 
     >>> tables = camelot.read_pdf('short_lines.pdf', line_scale=40)
-    >>> camelot.plot(tables[0], kind='grid')
-    >>> plt.show()
+    >>> camelot.plot(tables[0], kind='grid').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
