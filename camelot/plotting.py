@@ -45,8 +45,9 @@ class PlotMethods(object):
         plot_method = getattr(self, kind)
         fig = plot_method(table)
 
-        if filename:
+        if filename is not None:
             fig.savefig(filename)
+            return None
             
         return fig
 
