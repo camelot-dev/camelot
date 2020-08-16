@@ -93,7 +93,7 @@ def download_url(url):
     return filepath
 
 
-stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol"]
+stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol", "rows"]
 lattice_kwargs = [
     "process_background",
     "line_scale",

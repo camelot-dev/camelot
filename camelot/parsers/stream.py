@@ -19,7 +19,7 @@ class Stream(BaseParser):
     """Stream method of parsing looks for spaces between text
     to parse the table.
 
-    If you want to specify columns when specifying multiple table
+    If you want to specify rows or columns when specifying multiple table
     areas, make sure that the length of both lists are equal.
 
     Parameters
@@ -51,6 +51,9 @@ class Stream(BaseParser):
     column_tol : int, optional (default: 0)
         Tolerance parameter used to combine text horizontally,
         to generate columns.
+    rows : list, optional (default: None)
+        List of rows y-coordinates strings where the coordinates
+        are comma-separated
 
     """
 
@@ -65,6 +68,7 @@ class Stream(BaseParser):
         edge_tol=50,
         row_tol=2,
         column_tol=0,
+        rows=None,
         **kwargs
     ):
         self.table_regions = table_regions
@@ -77,6 +81,7 @@ class Stream(BaseParser):
         self.edge_tol = edge_tol
         self.row_tol = row_tol
         self.column_tol = column_tol
+        self.rows = rows
 
     @staticmethod
     def _text_bbox(t_bbox):
@@ -283,7 +288,7 @@ class Stream(BaseParser):
         # guess table areas using textlines and relevant edges
         table_bbox = textedges.get_table_areas(textlines, relevant_textedges)
         # treat whole page as table area if no table areas found
-        if not len(table_bbox):
+        if not table_bbox:
             table_bbox = {(0, 0, self.pdf_width, self.pdf_height): None}
 
         return table_bbox
@@ -329,7 +334,14 @@ class Stream(BaseParser):
 
         text_x_min, text_y_min, text_x_max, text_y_max = self._text_bbox(self.t_bbox)
         rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=self.row_tol)
-        rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
+        if self.rows is not None and self.rows[table_idx] != "":
+            rows = self.rows[table_idx].split(",")
+            rows = [float(c) for c in rows]
+            rows.insert(0, text_y_max)
+            rows.append(text_y_min)
+            rows = [(rows[i], rows[i+1]) for i in range(0, len(rows) - 1)]
+        else:
+            rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
 
         if self.columns is not None and self.columns[table_idx] != "":
@@ -353,7 +365,7 @@ class Stream(BaseParser):
                 # see if the list contains elements, if yes, then use
                 # the mode after removing 1s
                 elements = list(filter(lambda x: x != 1, elements))
-                if len(elements):
+                if elements:
                     ncols = max(set(elements), key=elements.count)
                 else:
                     warnings.warn(

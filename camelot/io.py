@@ -43,6 +43,9 @@ def read_pdf(
     columns^ : list, optional (default: None)
         List of column x-coordinates strings where the coordinates
         are comma-separated.
+    rows^ : list, optional (default: None)
+        List of rows y-coordinates strings where the coordinates
+        are comma-separated.
     split_text : bool, optional (default: False)
         Split text that spans across multiple cells.
     flag_size : bool, optional (default: False)
