@@ -411,7 +411,7 @@ def text_strip(text, strip=""):
         return text
 
     stripped = re.sub(
-        fr"[{''.join(map(re.escape, strip))}]", "", text, re.UNICODE
+        fr"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
     )
     return stripped
 
