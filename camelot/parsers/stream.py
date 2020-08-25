@@ -331,7 +331,7 @@ class Stream(BaseParser):
         rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=self.row_tol)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
-
+        cols = []
         if self.columns is not None and self.columns[table_idx] != "":
             # user has to input boundary columns too
             # take (0, pdf_width) by default
@@ -342,7 +342,7 @@ class Stream(BaseParser):
             cols.insert(0, text_x_min)
             cols.append(text_x_max)
             cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        else:
+        elif elements:
             # calculate mode of the list of number of elements in
             # each row to guess the number of columns
             ncols = max(set(elements), key=elements.count)
@@ -455,8 +455,9 @@ class Stream(BaseParser):
             sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
         ):
             cols, rows = self._generate_columns_and_rows(table_idx, tk)
-            table = self._generate_table(table_idx, cols, rows)
-            table._bbox = tk
-            _tables.append(table)
+            if cols and rows:
+                table = self._generate_table(table_idx, cols, rows)
+                table._bbox = tk
+                _tables.append(table)
 
         return _tables
