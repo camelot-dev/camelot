@@ -121,6 +121,7 @@ class Stream(BaseParser):
         row_y = 0
         rows = []
         temp = []
+
         for t in text:
             # is checking for upright necessary?
             # if t.get_text().strip() and all([obj.upright for obj in t._objs if
@@ -131,8 +132,10 @@ class Stream(BaseParser):
                     temp = []
                     row_y = t.y0
                 temp.append(t)
+
         rows.append(sorted(temp, key=lambda t: t.x0))
-        __ = rows.pop(0)  # TODO: hacky
+        if len(rows) > 1:
+            __ = rows.pop(0)  # TODO: hacky
         return rows
 
     @staticmethod
@@ -345,43 +348,46 @@ class Stream(BaseParser):
         else:
             # calculate mode of the list of number of elements in
             # each row to guess the number of columns
-            ncols = max(set(elements), key=elements.count)
-            if ncols == 1:
-                # if mode is 1, the page usually contains not tables
-                # but there can be cases where the list can be skewed,
-                # try to remove all 1s from list in this case and
-                # see if the list contains elements, if yes, then use
-                # the mode after removing 1s
-                elements = list(filter(lambda x: x != 1, elements))
-                if len(elements):
-                    ncols = max(set(elements), key=elements.count)
-                else:
-                    warnings.warn(
-                        f"No tables found in table area {table_idx + 1}"
+            if not len(elements):
+                cols = [(text_x_min, text_x_max)]
+            else:
+                ncols = max(set(elements), key=elements.count)
+                if ncols == 1:
+                    # if mode is 1, the page usually contains not tables
+                    # but there can be cases where the list can be skewed,
+                    # try to remove all 1s from list in this case and
+                    # see if the list contains elements, if yes, then use
+                    # the mode after removing 1s
+                    elements = list(filter(lambda x: x != 1, elements))
+                    if len(elements):
+                        ncols = max(set(elements), key=elements.count)
+                    else:
+                        warnings.warn(
+                            f"No tables found in table area {table_idx + 1}"
+                        )
+                cols = [(t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r]
+                cols = self._merge_columns(sorted(cols), column_tol=self.column_tol)
+                inner_text = []
+                for i in range(1, len(cols)):
+                    left = cols[i - 1][1]
+                    right = cols[i][0]
+                    inner_text.extend(
+                        [
+                            t
+                            for direction in self.t_bbox
+                            for t in self.t_bbox[direction]
+                            if t.x0 > left and t.x1 < right
+                        ]
                     )
-            cols = [(t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r]
-            cols = self._merge_columns(sorted(cols), column_tol=self.column_tol)
-            inner_text = []
-            for i in range(1, len(cols)):
-                left = cols[i - 1][1]
-                right = cols[i][0]
-                inner_text.extend(
-                    [
-                        t
-                        for direction in self.t_bbox
-                        for t in self.t_bbox[direction]
-                        if t.x0 > left and t.x1 < right
-                    ]
-                )
-            outer_text = [
-                t
-                for direction in self.t_bbox
-                for t in self.t_bbox[direction]
-                if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
-            ]
-            inner_text.extend(outer_text)
-            cols = self._add_columns(cols, inner_text, self.row_tol)
-            cols = self._join_columns(cols, text_x_min, text_x_max)
+                outer_text = [
+                    t
+                    for direction in self.t_bbox
+                    for t in self.t_bbox[direction]
+                    if t.x0 > cols[-1][1] or t.x1 < cols[0][0]
+                ]
+                inner_text.extend(outer_text)
+                cols = self._add_columns(cols, inner_text, self.row_tol)
+                cols = self._join_columns(cols, text_x_min, text_x_max)
 
         return cols, rows
 
