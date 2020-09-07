@@ -36,15 +36,15 @@ Release v\ |version|. (:ref:`Installation <install>`)
 .. image:: https://img.shields.io/badge/continous%20quality-deepsource-lightgrey
     :target: https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge
 
-**Camelot** is a Python library that makes it easy for *anyone* to extract tables from PDF files!
+**Camelot** is a Python library that can help you extract tables from PDFs!
 
-.. note:: You can also check out `Excalibur`_, which is a web interface for Camelot!
+.. note:: You can also check out `Excalibur`_, the web interface to Camelot!
 
 .. _Excalibur: https://github.com/camelot-dev/excalibur
 
 ----
 
-**Here's how you can extract tables from PDF files.** Check out the PDF used in this example `here`_.
+**Here's how you can extract tables from PDFs.** You can check out the PDF used in this example `here`_.
 
 .. _here: _static/pdf/foo.pdf
 
@@ -70,7 +70,7 @@ Release v\ |version|. (:ref:`Installation <install>`)
 .. csv-table::
   :file: _static/csv/foo.csv
 
-There's a :ref:`command-line interface <cli>` too!
+Camelot also comes packaged with a :ref:`command-line interface <cli>`!
 
 .. note:: Camelot only works with text-based PDFs and not scanned documents. (As Tabula `explains`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
@@ -79,27 +79,27 @@ There's a :ref:`command-line interface <cli>` too!
 Why Camelot?
 ------------
 
-- **You are in control.** Unlike other libraries and tools which either give a nice output or fail miserably (with no in-between), Camelot gives you the power to tweak table extraction. (This is important since everything in the real world, including PDF table extraction, is fuzzy.)
-- *Bad* tables can be discarded based on **metrics** like accuracy and whitespace, without ever having to manually look at each table.
-- Each table is a **pandas DataFrame**, which seamlessly integrates into `ETL and data analysis workflows`_.
-- **Export** to multiple formats, including JSON, Excel and HTML.
-
-See `comparison with other PDF table extraction libraries and tools`_.
+- **Configurability**: Camelot gives you control over the table extraction process with its :ref:`tweakable settings <advanced>`.
+- **Metrics**: Bad tables can be discarded based on metrics like accuracy and whitespace, without having to manually look at each table.
+- **Output**: Each table is extracted into a **pandas DataFrame**, which seamlessly integrates into `ETL and data analysis workflows`_. You can also export tables to multiple formats, which include CSV, JSON, Excel, HTML and Sqlite.
 
 .. _ETL and data analysis workflows: https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873
-.. _comparison with other PDF table extraction libraries and tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
 
-Support us on OpenCollective
-----------------------------
+See `comparison with similar libraries and tools`_.
 
-If Camelot helped you extract tables from PDFs, please consider supporting its development by `becoming a backer or a sponsor on OpenCollective`_!
+.. _comparison with similar libraries and tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
 
-.. _becoming a backer or a sponsor on OpenCollective: https://opencollective.com/camelot
+Support the development
+-----------------------
+
+If Camelot has helped you, please consider supporting its development with a one-time or monthly donation `on OpenCollective`_!
+
+.. _on OpenCollective: https://opencollective.com/camelot
 
 The User Guide
 --------------
 
-This part of the documentation begins with some background information about why Camelot was created, takes a small dip into the implementation details and then focuses on step-by-step instructions for getting the most out of Camelot.
+This part of the documentation begins with some background information about why Camelot was created, takes you through some implementation details, and then focuses on step-by-step instructions for getting the most out of Camelot.
 
 .. toctree::
    :maxdepth: 2
@@ -115,8 +115,7 @@ This part of the documentation begins with some background information about why
 The API Documentation/Guide
 ---------------------------
 
-If you are looking for information on a specific function, class, or method,
-this part of the documentation is for you.
+If you are looking for information on a specific function, class, or method, this part of the documentation is for you.
 
 .. toctree::
    :maxdepth: 2
@@ -126,8 +125,7 @@ this part of the documentation is for you.
 The Contributor Guide
 ---------------------
 
-If you want to contribute to the project, this part of the documentation is for
-you.
+If you want to contribute to the project, this part of the documentation is for you.
 
 .. toctree::
    :maxdepth: 2
