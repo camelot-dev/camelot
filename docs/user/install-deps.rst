@@ -72,3 +72,31 @@ Or for Windows 32-bit::
     C:\> gswin32c.exe -version
 
 If you have ghostscript, you should see the ghostscript version and copyright information.
+
+If you choose not to install ghostscript using the Camelot `OS-specific
+instructions`_, there is risk of an incomplete installation (for example,
+the choosen distribution only installs the ghostscript ``gs`` binary and not
+the libraries).
+
+.. _OS-specific instructions: #os-specific-instructions
+
+If the ghostscript application libraries are not installed correctly, the
+attempt to use ``read_pdf`` (using the example on the Camelot home page) will
+fail as follows (Traceback truncated - full example stack trace available
+`here`_)::
+
+    >>> import camelot
+    >>> tables = camelot.read_pdf('foo.pdf')
+    OSError: dlopen(libgs.so, 6): image not found
+
+.. _here: https://github.com/camelot-dev/camelot/issues/193
+
+A correct installation of ghostscript will result in the example returning a
+TableList object::
+
+    >>> import camelot
+    >>> tables = camelot.read_pdf('foo.pdf')
+    >>> tables
+    <TableList n=1>
+
+
