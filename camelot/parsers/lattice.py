@@ -208,17 +208,10 @@ class Lattice(BaseParser):
         return t
 
     def _generate_image(self):
-        from ..ext.ghostscript import Ghostscript
+        from pdftopng import pdftopng
 
         self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r{} {}".format(
-            self.imagename, self.resolution, self.filename
-        )
-        gs_call = gs_call.encode().split()
-        null = open(os.devnull, "wb")
-        with Ghostscript(*gs_call, stdout=null) as gs:
-            pass
-        null.close()
+        pdftopng.convert(pdf_path=self.filename, png_path=self.rootname)
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
