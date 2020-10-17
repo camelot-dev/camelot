@@ -3,100 +3,59 @@
 Installation of dependencies
 ============================
 
-The dependencies `Tkinter`_ and `ghostscript`_ can be installed using your system's package manager. You can run one of the following, based on your OS.
-
-.. _Tkinter: https://wiki.python.org/moin/TkInter
-.. _ghostscript: https://www.ghostscript.com
+The dependencies `Ghostscript <https://www.ghostscript.com>`_ and `Tkinter <https://wiki.python.org/moin/TkInter>`_ can be installed using your system's package manager or by running their installer.
 
 OS-specific instructions
 ------------------------
 
-For Ubuntu
-^^^^^^^^^^
+Ubuntu
+^^^^^^
 ::
 
-    $ apt install python-tk ghostscript
+    $ apt install ghostscript python3-tk
 
-Or for Python 3::
-
-    $ apt install python3-tk ghostscript
-
-For macOS
-^^^^^^^^^
+MacOS
+^^^^^
 ::
 
-    $ brew install tcl-tk ghostscript
+    $ brew install ghostscript tcl-tk
 
-For Windows
-^^^^^^^^^^^
+Windows
+^^^^^^^
 
-For Tkinter, you can download the `ActiveTcl Community Edition`_ from ActiveState. For ghostscript, you can get the installer at the `ghostscript downloads page`_.
+For Ghostscript, you can get the installer at their `downloads page <https://www.ghostscript.com/download/gsdnld.html>`_. And for Tkinter, you can download the `ActiveTcl Community Edition <https://www.activestate.com/activetcl/downloads>`_ from ActiveState.
 
-.. _ActiveTcl Community Edition: https://www.activestate.com/activetcl/downloads
-.. _ghostscript downloads page: https://www.ghostscript.com/download/gsdnld.html
-.. _as shown here: https://java.com/en/download/help/path.xml
+Checks to see if dependencies are installed correctly
+-----------------------------------------------------
 
-Checks to see if dependencies were installed correctly
-------------------------------------------------------
+You can run the following checks to see if the dependencies were installed correctly.
 
-You can do the following checks to see if the dependencies were installed correctly.
+For Ghostscript
+^^^^^^^^^^^^^^^
+
+Open the Python REPL and run the following:
+
+For Ubuntu/MacOS::
+
+    >>> from ctypes.util import find_library
+    >>> find_library("gs")
+    "libgs.so.9"
+
+For Windows::
+
+    >>> from ctypes.util import find_library
+    >>> find_library("".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))
+    <name-of-ghostscript-library-on-windows>
+
+**Check:** The output of the ``find_library`` function should not be empty.
+
+If the output is empty, then it's possible that the Ghostscript library is not available one of the ``LD_LIBRARY_PATH``/``DYLD_LIBRARY_PATH``/``PATH`` variables depending on your operating system. In this case, you may have to modify one of those path variables.
 
 For Tkinter
 ^^^^^^^^^^^
 
-Launch Python, and then at the prompt, type::
-
-    >>> import Tkinter
-
-Or in Python 3::
+Launch Python and then import Tkinter::
 
     >>> import tkinter
 
-If you have Tkinter, Python will not print an error message, and if not, you will see an ``ImportError``.
-
-For ghostscript
-^^^^^^^^^^^^^^^
-
-Run the following to check the ghostscript version.
-
-For Ubuntu/macOS::
-
-    $ gs -version
-
-For Windows::
-
-    C:\> gswin64c.exe -version
-
-Or for Windows 32-bit::
-
-    C:\> gswin32c.exe -version
-
-If you have ghostscript, you should see the ghostscript version and copyright information.
-
-If you choose not to install ghostscript using the Camelot `OS-specific
-instructions`_, there is risk of an incomplete installation (for example,
-the choosen distribution only installs the ghostscript ``gs`` binary and not
-the libraries).
-
-.. _OS-specific instructions: #os-specific-instructions
-
-If the ghostscript application libraries are not installed correctly, the
-attempt to use ``read_pdf`` (using the example on the Camelot home page) will
-fail as follows (Traceback truncated - full example stack trace available
-`here`_)::
-
-    >>> import camelot
-    >>> tables = camelot.read_pdf('foo.pdf')
-    OSError: dlopen(libgs.so, 6): image not found
-
-.. _here: https://github.com/camelot-dev/camelot/issues/193
-
-A correct installation of ghostscript will result in the example returning a
-TableList object::
-
-    >>> import camelot
-    >>> tables = camelot.read_pdf('foo.pdf')
-    >>> tables
-    <TableList n=1>
-
-
+**Check:** Importing ``tkinter`` should not raise an import error.
