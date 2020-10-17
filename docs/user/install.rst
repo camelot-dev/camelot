@@ -5,42 +5,35 @@ Installation of Camelot
 
 This part of the documentation covers the steps to install Camelot.
 
-Using conda
------------
+After :ref:`installing the dependencies <install_deps>`, which include `Ghostscript <https://www.ghostscript.com>`_ and `Tkinter <https://wiki.python.org/moin/TkInter>`_, you can use one of the following methods to install Camelot:
 
-The easiest way to install Camelot is to install it with `conda`_, which is a package manager and environment management system for the `Anaconda`_ distribution.
-::
+.. warning:: The ``lattice`` flavor will fail to run if Ghostscript is not installed. You may run into errors as shown in `issue #193 <https://github.com/camelot-dev/camelot/issues/193>`_.
 
-    $ conda install -c conda-forge camelot-py
+pip
+---
 
-.. note:: Camelot is available for Python 2.7, 3.5, 3.6 and 3.7 on Linux, macOS and Windows. For Windows, you will need to install ghostscript which you can get from their `downloads page`_.
-
-.. _conda: https://conda.io/docs/
-.. _Anaconda: http://docs.continuum.io/anaconda/
-.. _downloads page: https://www.ghostscript.com/download/gsdnld.html
-.. _conda-forge: https://conda-forge.org/
-
-Using pip
----------
-
-After :ref:`installing the dependencies <install_deps>`, which include `Tkinter`_ and `ghostscript`_, you can simply use pip to install Camelot::
+To install Camelot from PyPI using ``pip``, please include the extra ``cv`` requirement as shown::
 
     $ pip install "camelot-py[cv]"
 
-.. _Tkinter: https://wiki.python.org/moin/TkInter
-.. _ghostscript: https://www.ghostscript.com
+conda
+-----
+
+`conda`_ is a package manager and environment management system for the `Anaconda <https://anaconda.org>`_ distribution. It can be used to install Camelot from the ``conda-forge`` channel::
+
+    $ conda install -c conda-forge camelot-py
 
 From the source code
 --------------------
 
-After :ref:`installing the dependencies <install_deps>`, you can install from the source by:
+After :ref:`installing the dependencies <install_deps>`, you can install Camelot from source by:
 
 1. Cloning the GitHub repository.
 ::
 
     $ git clone https://www.github.com/camelot-dev/camelot
 
-2. Then simply using pip again.
+2. And then simply using pip again.
 ::
 
     $ cd camelot
