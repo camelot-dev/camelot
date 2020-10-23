@@ -59,6 +59,8 @@ def read_pdf(
         to generate columns.
     process_background* : bool, optional (default: False)
         Process background lines.
+    process_color_background* : bool, optional (default: False)
+        Increase contrast for better background line processing.
     line_scale* : int, optional (default: 15)
         Line size scaling factor. The larger the value the smaller
         the detected lines. Making it very large will lead to text

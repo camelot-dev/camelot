@@ -101,6 +101,9 @@ def cli(ctx, *args, **kwargs):
     "-back", "--process_background", is_flag=True, help="Process background lines."
 )
 @click.option(
+    "-color", "--process_color_background", is_flag=True, help="Increase contrast for better background line processing."
+)
+@click.option(
     "-scale",
     "--line_scale",
     default=15,

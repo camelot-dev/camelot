@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 
-def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
+def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2, process_color_background=False, saturation_threshold=5):
     """Thresholds an image using OpenCV's adaptiveThreshold.
 
     Parameters
@@ -36,6 +36,17 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     if process_background:
+        if process_color_background:
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            initial = hsv[:, :, 1]
+            hsv[initial > saturation_threshold, 0] = 0
+            hsv[initial > saturation_threshold, 1] = 255
+            hsv[initial > saturation_threshold, 2] = 0
+            hsv[initial <= saturation_threshold, 0] = 128
+            hsv[initial <= saturation_threshold, 1] = 0
+            hsv[initial <= saturation_threshold, 2] = 255
+            hsv[initial == 255, 1] = 0
+            gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
         threshold = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blocksize, c
         )
