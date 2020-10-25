@@ -335,16 +335,18 @@ class Stream(BaseParser):
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
 
-        if self.columns is not None and self.columns[table_idx] != "":
-            # user has to input boundary columns too
-            # take (0, pdf_width) by default
-            # similar to else condition
-            # len can't be 1
-            cols = self.columns[table_idx].split(",")
-            cols = [float(c) for c in cols]
-            cols.insert(0, text_x_min)
-            cols.append(text_x_max)
-            cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
+        if self.columns is not None:
+            column_idx = table_idx if table_idx < len(self.columns) else -1
+            if self.columns[column_idx] != "":
+                # user has to input boundary columns too
+                # take (0, pdf_width) by default
+                # similar to else condition
+                # len can't be 1
+                cols = self.columns[column_idx].split(",")
+                cols = [float(c) for c in cols]
+                cols.insert(0, text_x_min)
+                cols.append(text_x_max)
+                cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
         else:
             # calculate mode of the list of number of elements in
             # each row to guess the number of columns

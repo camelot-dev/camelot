@@ -66,6 +66,19 @@ def test_stream_two_tables():
     assert df2.equals(tables[1].df)
 
 
+def test_stream_all_pages_with_known_column_coordinates():
+    df = pd.DataFrame(canada_manitoba_bills_first_table)
+
+    filename = os.path.join(testdir, "canada-manitoba-bills.pdf")
+    columns = ["93,242,305,350,395,468,517,566,629,693"]
+    tables = camelot.read_pdf(
+        filename, flavor="stream", pages="all", columns=columns, edge_tol=200
+    )
+
+    assert len(tables) == 5
+    assert df.equals(tables[0].df)
+
+
 def test_stream_table_regions():
     df = pd.DataFrame(data_stream_table_areas)
 
