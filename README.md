@@ -5,7 +5,7 @@
 # Camelot: PDF Table Extraction for Humans
 
 [![Build Status](https://travis-ci.org/camelot-dev/camelot.svg?branch=master)](https://travis-ci.org/camelot-dev/camelot) [![Documentation Status](https://readthedocs.org/projects/camelot-py/badge/?version=master)](https://camelot-py.readthedocs.io/en/master/)
- [![codecov.io](https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github)](https://codecov.io/github/camelot-dev/camelot?branch=master)
+ [![Financial Contributors on Open Collective](https://opencollective.com/camelot/all/badge.svg?label=financial+contributors)](https://opencollective.com/camelot) [![codecov.io](https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github)](https://codecov.io/github/camelot-dev/camelot?branch=master)
  [![image](https://img.shields.io/pypi/v/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/l/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/pyversions/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![Gitter chat](https://badges.gitter.im/camelot-dev/Lobby.png)](https://gitter.im/camelot-dev/Lobby)
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![image](https://img.shields.io/badge/continous%20quality-deepsource-lightgrey)](https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge)
 
@@ -110,6 +110,36 @@ The [Contributor's Guide](https://camelot-py.readthedocs.io/en/master/dev/contri
 ## Versioning
 
 Camelot uses [Semantic Versioning](https://semver.org/). For the available versions, see the tags on this repository. For the changelog, you can check out [HISTORY.md](https://github.com/camelot-dev/camelot/blob/master/HISTORY.md).
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/camelot-dev/camelot/graphs/contributors"><img src="https://opencollective.com/camelot/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/camelot/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/camelot"><img src="https://opencollective.com/camelot/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/camelot/contribute)]
+
+<a href="https://opencollective.com/camelot/organization/0/website"><img src="https://opencollective.com/camelot/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/1/website"><img src="https://opencollective.com/camelot/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/2/website"><img src="https://opencollective.com/camelot/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/3/website"><img src="https://opencollective.com/camelot/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/4/website"><img src="https://opencollective.com/camelot/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/5/website"><img src="https://opencollective.com/camelot/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/6/website"><img src="https://opencollective.com/camelot/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/7/website"><img src="https://opencollective.com/camelot/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/8/website"><img src="https://opencollective.com/camelot/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/camelot/organization/9/website"><img src="https://opencollective.com/camelot/organization/9/avatar.svg"></a>
 
 ## License
 
