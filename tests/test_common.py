@@ -314,3 +314,11 @@ def test_version_generation_with_prerelease_revision():
         generate_version(version, prerelease=prerelease, revision=revision)
         == "0.7.3-alpha.2"
     )
+
+
+def test_stream_duplicated_text():
+    df = pd.DataFrame(data_stream_duplicated_text)
+
+    filename = os.path.join(testdir, "birdisland.pdf")
+    tables = camelot.read_pdf(filename, flavor="stream")
+    assert_frame_equal(df, tables[0].df)
