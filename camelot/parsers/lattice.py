@@ -30,6 +30,7 @@ from ..image_processing import (
     find_joints,
 )
 
+from pdf2image import convert_from_path
 
 logger = logging.getLogger("camelot")
 
@@ -208,17 +209,20 @@ class Lattice(BaseParser):
         return t
 
     def _generate_image(self):
-        from ..ext.ghostscript import Ghostscript
+        # from ..ext.ghostscript import Ghostscript
+        # self.imagename = "".join([self.rootname, ".png"])
+        # gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
+        #     self.imagename, self.filename
+        # )
+        # gs_call = gs_call.encode().split()
+        # null = open(os.devnull, "wb")
+        # with Ghostscript(*gs_call, stdout=null) as gs:
+        #     pass
+        # null.close()
 
+        convert_from_path(self.filename, output_file=self.rootname, dpi=300, fmt='png',
+                          single_file=True, use_pdftocairo=True, paths_only=True)
         self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
-            self.imagename, self.filename
-        )
-        gs_call = gs_call.encode().split()
-        null = open(os.devnull, "wb")
-        with Ghostscript(*gs_call, stdout=null) as gs:
-            pass
-        null.close()
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
