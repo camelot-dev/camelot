@@ -6,7 +6,7 @@ import sys
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 from .core import TableList
-from .parsers import Stream, Lattice
+from .parsers import Lattice, Stream, LatticeOCR, StreamOCR
 from .utils import (
     TemporaryDirectory,
     get_page_layout,
@@ -163,14 +163,19 @@ class PDFHandler(object):
             List of tables found in PDF.
 
         """
+        parsers = {
+            "lattice": Lattice,
+            "stream": Stream,
+            "lattice_ocr": LatticeOCR,
+            "stream_ocr": StreamOCR,
+        }
+
         tables = []
         with TemporaryDirectory() as tempdir:
             for p in self.pages:
                 self._save_page(self.filepath, p, tempdir)
-            pages = [
-                os.path.join(tempdir, f"page-{p}.pdf") for p in self.pages
-            ]
-            parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
+            pages = [os.path.join(tempdir, f"page-{p}.pdf") for p in self.pages]
+            parser = parsers[flavor](**kwargs)
             for p in pages:
                 t = parser.extract_tables(
                     p, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
