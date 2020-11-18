@@ -48,7 +48,7 @@ class PlotMethods(object):
         if filename is not None:
             fig.savefig(filename)
             return None
-            
+
         return fig
 
     def text(self, table):
