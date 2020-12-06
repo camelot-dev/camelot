@@ -93,7 +93,6 @@ def download_url(url):
     return filepath
 
 
-stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol"]
 lattice_kwargs = [
     "process_background",
     "line_scale",
@@ -106,6 +105,7 @@ lattice_kwargs = [
     "iterations",
     "resolution",
 ]
+stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol"]
 
 
 def validate_input(kwargs, flavor="lattice"):
@@ -116,14 +116,14 @@ def validate_input(kwargs, flavor="lattice"):
                 f"{','.join(sorted(isec))} cannot be used with flavor='{flavor}'"
             )
 
-    if flavor == "lattice":
+    if flavor in ["lattice", "lattice_ocr"]:
         check_intersection(stream_kwargs, kwargs)
     else:
         check_intersection(lattice_kwargs, kwargs)
 
 
 def remove_extra(kwargs, flavor="lattice"):
-    if flavor == "lattice":
+    if flavor in ["lattice", "lattice_ocr"]:
         for key in kwargs.keys():
             if key in stream_kwargs:
                 kwargs.pop(key)

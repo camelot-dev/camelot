@@ -27,6 +27,10 @@ cv_requires = [
     'opencv-python>=3.4.2.17'
 ]
 
+ocr_requires = [
+    'easyocr>=1.1.10'
+]
+
 plot_requires = [
     'matplotlib>=2.2.3',
 ]
@@ -40,7 +44,7 @@ dev_requires = [
     'Sphinx>=3.1.2'
 ]
 
-all_requires = cv_requires + plot_requires
+all_requires = cv_requires + ocr_requires + plot_requires
 dev_requires = dev_requires + all_requires
 
 
@@ -57,10 +61,11 @@ def setup_package():
                     packages=find_packages(exclude=('tests',)),
                     install_requires=requires,
                     extras_require={
-                        'all': all_requires,
                         'cv': cv_requires,
+                        'ocr': ocr_requires,
+                        'plot': plot_requires,
+                        'all': all_requires,
                         'dev': dev_requires,
-                        'plot': plot_requires
                     },
                     entry_points={
                         'console_scripts': [
