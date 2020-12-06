@@ -133,11 +133,35 @@ class LatticeOCR(BaseParser):
         # set spanning cells to True
         table = table.set_span()
 
+        _seen = set()
         for r_idx in range(len(table.cells)):
             for c_idx in range(len(table.cells[r_idx])):
+                if (r_idx, c_idx) in _seen:
+                    continue
+
+                _seen.add((r_idx, c_idx))
+
+                _r_idx = r_idx
+                _c_idx = c_idx
+
+                if table.cells[r_idx][_c_idx].hspan:
+                    while not table.cells[r_idx][_c_idx].right:
+                        _c_idx += 1
+                        _seen.add((r_idx, _c_idx))
+
+                if table.cells[_r_idx][c_idx].vspan:
+                    while not table.cells[_r_idx][c_idx].bottom:
+                        _r_idx += 1
+                        _seen.add((_r_idx, c_idx))
+
+                for i in range(r_idx, _r_idx + 1):
+                    for j in range(c_idx, _c_idx + 1):
+                        _seen.add((i, j))
+
                 x1 = int(table.cells[r_idx][c_idx].x1)
-                y1 = int(table.cells[r_idx][c_idx].y1)
-                x2 = int(table.cells[r_idx][c_idx].x2)
+                y1 = int(table.cells[_r_idx][_c_idx].y1)
+
+                x2 = int(table.cells[_r_idx][_c_idx].x2)
                 y2 = int(table.cells[r_idx][c_idx].y2)
 
                 with TemporaryDirectory() as tempdir:
