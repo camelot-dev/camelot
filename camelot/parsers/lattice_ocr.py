@@ -17,7 +17,7 @@ from PIL import Image
 
 from .base import BaseParser
 from ..core import Table
-from ..utils import TemporaryDirectory, merge_close_lines, scale_image, segments_in_bbox
+from ..utils import TemporaryDirectory, merge_close_lines, scale_pdf, segments_in_bbox
 from ..image_processing import (
     adaptive_threshold,
     find_lines,
@@ -32,6 +32,7 @@ logger = logging.getLogger("camelot")
 class LatticeOCR(BaseParser):
     def __init__(
         self,
+        table_regions=None,
         table_areas=None,
         line_scale=15,
         line_tol=2,
@@ -41,6 +42,7 @@ class LatticeOCR(BaseParser):
         iterations=0,
         resolution=300,
     ):
+        self.table_regions = table_regions
         self.table_areas = table_areas
         self.line_scale = line_scale
         self.line_tol = line_tol
@@ -59,7 +61,7 @@ class LatticeOCR(BaseParser):
         from ..ext.ghostscript import Ghostscript
 
         self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
+        gs_call = "-q -sDEVICE=png16m -o {} -r900 {}".format(
             self.imagename, self.filename
         )
         gs_call = gs_call.encode().split()
@@ -69,39 +71,66 @@ class LatticeOCR(BaseParser):
         null.close()
 
     def _generate_table_bbox(self):
+        def scale_areas(areas, scalers):
+            scaled_areas = []
+            for area in areas:
+                x1, y1, x2, y2 = area.split(",")
+                x1 = float(x1)
+                y1 = float(y1)
+                x2 = float(x2)
+                y2 = float(y2)
+                x1, y1, x2, y2 = scale_pdf((x1, y1, x2, y2), scalers)
+                scaled_areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
+            return scaled_areas
+
         self.image, self.threshold = adaptive_threshold(
             self.imagename, blocksize=self.threshold_blocksize, c=self.threshold_constant
         )
 
         image_width = self.image.shape[1]
         image_height = self.image.shape[0]
+        image_width_scaler = image_width / float(self.pdf_width)
+        image_height_scaler = image_height / float(self.pdf_height)
+        image_scalers = (image_width_scaler, image_height_scaler, self.pdf_height)
 
-        vertical_mask, vertical_segments = find_lines(
-            self.threshold,
-            direction="vertical",
-            line_scale=self.line_scale,
-            iterations=self.iterations,
-        )
-        horizontal_mask, horizontal_segments = find_lines(
-            self.threshold,
-            direction="horizontal",
-            line_scale=self.line_scale,
-            iterations=self.iterations,
-        )
+        if self.table_areas is None:
+            regions = None
+            if self.table_regions is not None:
+                regions = scale_areas(self.table_regions, image_scalers)
 
-        if self.table_areas is not None:
-            areas = []
-            for area in self.table_areas:
-                x1, y1, x2, y2 = area.split(",")
-                x1 = int(float(x1))
-                y1 = int(float(y1))
-                x2 = int(float(x2))
-                y2 = int(float(y2))
-                areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
-            table_bbox = find_joints(areas, vertical_mask, horizontal_mask)
-        else:
+            vertical_mask, vertical_segments = find_lines(
+                self.threshold,
+                regions=regions,
+                direction="vertical",
+                line_scale=self.line_scale,
+                iterations=self.iterations,
+            )
+            horizontal_mask, horizontal_segments = find_lines(
+                self.threshold,
+                regions=regions,
+                direction="horizontal",
+                line_scale=self.line_scale,
+                iterations=self.iterations,
+            )
+
             contours = find_contours(vertical_mask, horizontal_mask)
             table_bbox = find_joints(contours, vertical_mask, horizontal_mask)
+        else:
+            vertical_mask, vertical_segments = find_lines(
+                self.threshold,
+                direction="vertical",
+                line_scale=self.line_scale,
+                iterations=self.iterations,
+            )
+            horizontal_mask, horizontal_segments = find_lines(
+                self.threshold,
+                direction="horizontal",
+                line_scale=self.line_scale,
+                iterations=self.iterations,
+            )
+
+            areas = scale_areas(self.table_areas, image_scalers)
+            table_bbox = find_joints(areas, vertical_mask, horizontal_mask)
 
         self.table_bbox_unscaled = copy.deepcopy(table_bbox)
 
