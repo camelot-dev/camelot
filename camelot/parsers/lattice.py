@@ -211,7 +211,7 @@ class Lattice(BaseParser):
         from ..ext.ghostscript import Ghostscript
 
         self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r900 {}".format(
+        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
             self.imagename, self.filename
         )
         gs_call = gs_call.encode().split()
@@ -329,7 +329,6 @@ class Lattice(BaseParser):
 
         table = Table(cols, rows)
         # set table edges to True using ver+hor lines
-
         table = table.set_edges(v_s, h_s, joint_tol=self.joint_tol)
         # set table border edges to True
         table = table.set_border()
