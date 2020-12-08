@@ -160,8 +160,8 @@ def test_cli_output_format():
 
 def test_cli_quiet():
     with TemporaryDirectory() as tempdir:
-        infile = os.path.join(testdir, "blank.pdf")
-        outfile = os.path.join(tempdir, "blank.csv")
+        infile = os.path.join(testdir, "empty.pdf")
+        outfile = os.path.join(tempdir, "empty.csv")
         runner = CliRunner()
 
         result = runner.invoke(

@@ -353,7 +353,7 @@ def text_in_bbox(bbox, text):
     Returns
     -------
     t_bbox : list
-        List of PDFMiner text objects that lie inside table.
+        List of PDFMiner text objects that lie inside table, discarding the overlapping ones
 
     """
     lb = (bbox[0], bbox[1])
@@ -364,7 +364,97 @@ def text_in_bbox(bbox, text):
         if lb[0] - 2 <= (t.x0 + t.x1) / 2.0 <= rt[0] + 2
         and lb[1] - 2 <= (t.y0 + t.y1) / 2.0 <= rt[1] + 2
     ]
-    return t_bbox
+
+    # Avoid duplicate text by discarding overlapping boxes
+    rest = {t for t in t_bbox}
+    for ba in t_bbox:
+        for bb in rest.copy():
+            if ba == bb:
+                continue
+            if bbox_intersect(ba, bb):
+                # if the intersection is larger than 80% of ba's size, we keep the longest
+                if (bbox_intersection_area(ba, bb) / bbox_area(ba)) > 0.8:
+                    if bbox_longer(bb, ba):
+                        rest.discard(ba)
+    unique_boxes = list(rest)
+
+    return unique_boxes
+
+
+def bbox_intersection_area(ba, bb) -> float:
+    """Returns area of the intersection of the bounding boxes of two PDFMiner objects.
+
+    Parameters
+    ----------
+    ba : PDFMiner text object
+    bb : PDFMiner text object
+
+    Returns
+    -------
+    intersection_area : float
+        Area of the intersection of the bounding boxes of both objects
+
+    """
+    x_left = max(ba.x0, bb.x0)
+    y_top = min(ba.y1, bb.y1)
+    x_right = min(ba.x1, bb.x1)
+    y_bottom = max(ba.y0, bb.y0)
+
+    if x_right < x_left or y_bottom > y_top:
+        return 0.0
+
+    intersection_area = (x_right - x_left) * (y_top - y_bottom)
+    return intersection_area
+
+
+def bbox_area(bb) -> float:
+    """Returns area of the bounding box of a PDFMiner object.
+
+    Parameters
+    ----------
+    bb : PDFMiner text object
+
+    Returns
+    -------
+    area : float
+        Area of the bounding box of the object
+
+    """
+    return (bb.x1 - bb.x0) * (bb.y1 - bb.y0)
+
+
+def bbox_intersect(ba, bb) -> bool:
+    """Returns True if the bounding boxes of two PDFMiner objects intersect.
+
+    Parameters
+    ----------
+    ba : PDFMiner text object
+    bb : PDFMiner text object
+
+    Returns
+    -------
+    overlaps : bool
+        True if the bounding boxes intersect
+
+    """
+    return ba.x1 >= bb.x0 and bb.x1 >= ba.x0 and ba.y1 >= bb.y0 and bb.y1 >= ba.y0
+
+
+def bbox_longer(ba, bb) -> bool:
+    """Returns True if the bounding box of the first PDFMiner object is longer or equal to the second.
+
+    Parameters
+    ----------
+    ba : PDFMiner text object
+    bb : PDFMiner text object
+
+    Returns
+    -------
+    longer : bool
+        True if the bounding box of the first object is longer or equal
+
+    """
+    return (ba.x1 - ba.x0) >= (bb.x1 - bb.x0)
 
 
 def merge_close_lines(ar, line_tol=2):
@@ -411,7 +501,7 @@ def text_strip(text, strip=""):
         return text
 
     stripped = re.sub(
-        fr"[{''.join(map(re.escape, strip))}]", "", text, re.UNICODE
+        fr"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
     )
     return stripped
 

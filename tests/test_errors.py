@@ -55,13 +55,31 @@ def test_image_warning():
             )
 
 
-def test_no_tables_found():
-    filename = os.path.join(testdir, "blank.pdf")
+def test_lattice_no_tables_on_page():
+    filename = os.path.join(testdir, "empty.pdf")
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         with pytest.raises(UserWarning) as e:
-            tables = camelot.read_pdf(filename)
+            tables = camelot.read_pdf(filename, flavor="lattice")
         assert str(e.value) == "No tables found on page-1"
+
+
+def test_stream_no_tables_on_page():
+    filename = os.path.join(testdir, "empty.pdf")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            tables = camelot.read_pdf(filename, flavor="stream")
+        assert str(e.value) == "No tables found on page-1"
+
+
+def test_stream_no_tables_in_area():
+    filename = os.path.join(testdir, "only_page_number.pdf")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            tables = camelot.read_pdf(filename, flavor="stream")
+        assert str(e.value) == "No tables found in table area 1"
 
 
 def test_no_tables_found_logs_suppressed():
@@ -77,7 +95,7 @@ def test_no_tables_found_logs_suppressed():
 
 
 def test_no_tables_found_warnings_suppressed():
-    filename = os.path.join(testdir, "blank.pdf")
+    filename = os.path.join(testdir, "empty.pdf")
     with warnings.catch_warnings():
         # the test should fail if any warning is thrown
         warnings.simplefilter("error")
