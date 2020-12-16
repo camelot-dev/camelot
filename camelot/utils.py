@@ -34,6 +34,7 @@ from urllib.parse import uses_relative, uses_netloc, uses_params
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
 _VALID_URLS.discard("")
+SMOOTHING_FACTOR = 0.000001
 
 
 # https://github.com/pandas-dev/pandas/blob/master/pandas/io/common.py
@@ -373,7 +374,7 @@ def text_in_bbox(bbox, text):
                 continue
             if bbox_intersect(ba, bb):
                 # if the intersection is larger than 80% of ba's size, we keep the longest
-                if (bbox_intersection_area(ba, bb) / bbox_area(ba)) > 0.8:
+                if (bbox_intersection_area(ba, bb) / (bbox_area(ba) + SMOOTHING_FACTOR)) > 0.8:
                     if bbox_longer(bb, ba):
                         rest.discard(ba)
     unique_boxes = list(rest)
@@ -622,8 +623,12 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                             break
                         else:
                             # TODO: add test
-                            if cut == x_cuts[-1]:
-                                cut_text.append((r, cut[0] + 1, obj))
+                            if cut == x_cuts[-1] :
+                                col = cut[0]
+                                #avoid list out of range
+                                if col + 1 < len(table.cols) :
+                                    col = cut[0] + 1
+                                cut_text.append((r, col, obj))
                     elif isinstance(obj, LTAnno):
                         cut_text.append((r, cut[0], obj))
         elif direction == "vertical" and not textline.is_empty():
