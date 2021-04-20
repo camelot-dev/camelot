@@ -82,9 +82,9 @@ class PDFHandler(object):
                         a, b = r.split("-")
                         if b == "end":
                             b = infile.getNumPages()
-                        page_numbers.append({"start": int(a), "end": int(b)})
+                        page_numbers.append({"start": int(float(a)), "end": int(float(b))})
                     else:
-                        page_numbers.append({"start": int(r), "end": int(r)})
+                        page_numbers.append({"start": int(float(r)), "end": int(float(r))})
             instream.close()
         P = []
         for p in page_numbers:
