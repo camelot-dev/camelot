@@ -15,6 +15,7 @@ def read_pdf(
     password=None,
     flavor="lattice",
     suppress_stdout=False,
+    parallel=False,
     layout_kwargs=None,
     **kwargs
 ):
@@ -37,6 +38,8 @@ def read_pdf(
         Lattice is used by default.
     suppress_stdout : bool, optional (default: True)
         Print all logs and warnings.
+    parallel : bool, optional (default: False)
+        Process pages in parallel using all available cpu cores.
     layout_kwargs : dict, optional (default: {})
         A dict of `pdfminer.layout.LAParams
         <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
@@ -122,6 +125,7 @@ def read_pdf(
         tables = p.parse(
             flavor=flavor,
             suppress_stdout=suppress_stdout,
+            parallel=parallel,
             layout_kwargs=layout_kwargs,
             **kwargs
         )
