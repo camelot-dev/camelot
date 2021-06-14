@@ -6,6 +6,7 @@ master
 
 **Bugfixes**
 
+- Fix use of resolution argument to generate image with ghostscript. [#231](https://github.com/camelot-dev/camelot/pull/231) by [Tiago Samaha Cordeiro](https://github.com/tiagosamaha).
 - [#15](https://github.com/camelot-dev/camelot/issues/15) Fix duplicate strings being assigned to the same cell. [#206](https://github.com/camelot-dev/camelot/pull/206) by [Eduardo Gonzalez Lopez de Murillas](https://github.com/edugonza).
 - Save plot when filename is specified. [#121](https://github.com/camelot-dev/camelot/pull/121) by [Jens Diemer](https://github.com/jedie).
 - Close file streams explicitly. [#202](https://github.com/camelot-dev/camelot/pull/202) by [Martin Abente Lahaye](https://github.com/tchx84).
