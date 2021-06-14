@@ -211,8 +211,8 @@ class Lattice(BaseParser):
         from ..ext.ghostscript import Ghostscript
 
         self.imagename = "".join([self.rootname, ".png"])
-        gs_call = "-q -sDEVICE=png16m -o {} -r300 {}".format(
-            self.imagename, self.filename
+        gs_call = "-q -sDEVICE=png16m -o {} -r{} {}".format(
+            self.imagename, self.resolution, self.filename
         )
         gs_call = gs_call.encode().split()
         null = open(os.devnull, "wb")
