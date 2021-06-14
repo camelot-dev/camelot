@@ -167,9 +167,7 @@ class PDFHandler(object):
         with TemporaryDirectory() as tempdir:
             for p in self.pages:
                 self._save_page(self.filepath, p, tempdir)
-            pages = [
-                os.path.join(tempdir, f"page-{p}.pdf") for p in self.pages
-            ]
+            pages = [os.path.join(tempdir, f"page-{p}.pdf") for p in self.pages]
             parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
             for p in pages:
                 t = parser.extract_tables(

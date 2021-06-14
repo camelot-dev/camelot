@@ -870,7 +870,9 @@ def get_page_layout(
         parser = PDFParser(f)
         document = PDFDocument(parser)
         if not document.is_extractable:
-            raise PDFTextExtractionNotAllowed(f"Text extraction is not allowed: {filename}")
+            raise PDFTextExtractionNotAllowed(
+                f"Text extraction is not allowed: {filename}"
+            )
         laparams = LAParams(
             char_margin=char_margin,
             line_margin=line_margin,

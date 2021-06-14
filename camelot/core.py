@@ -55,7 +55,9 @@ class TextEdge(object):
         x = round(self.x, 2)
         y0 = round(self.y0, 2)
         y1 = round(self.y1, 2)
-        return f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} valid={self.is_valid}>"
+        return (
+            f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} valid={self.is_valid}>"
+        )
 
     def update_coords(self, x, y0, edge_tol=50):
         """Updates the text edge's x and bottom y coordinates and sets
@@ -102,8 +104,7 @@ class TextEdges(object):
         return None
 
     def add(self, textline, align):
-        """Adds a new text edge to the current dict.
-        """
+        """Adds a new text edge to the current dict."""
         x = self.get_x_coord(textline, align)
         y0 = textline.y0
         y1 = textline.y1
@@ -111,8 +112,7 @@ class TextEdges(object):
         self._textedges[align].append(te)
 
     def update(self, textline):
-        """Updates an existing text edge in the current dict.
-        """
+        """Updates an existing text edge in the current dict."""
         for align in ["left", "right", "middle"]:
             x_coord = self.get_x_coord(textline, align)
             idx = self.find(x_coord, align)
@@ -304,8 +304,7 @@ class Cell(object):
 
     @property
     def bound(self):
-        """The number of sides on which the cell is bounded.
-        """
+        """The number of sides on which the cell is bounded."""
         return self.top + self.bottom + self.left + self.right
 
 
@@ -361,8 +360,7 @@ class Table(object):
 
     @property
     def data(self):
-        """Returns two-dimensional list of strings in table.
-        """
+        """Returns two-dimensional list of strings in table."""
         d = []
         for row in self.cells:
             d.append([cell.text.strip() for cell in row])
@@ -383,8 +381,7 @@ class Table(object):
         return report
 
     def set_all_edges(self):
-        """Sets all table edges to True.
-        """
+        """Sets all table edges to True."""
         for row in self.cells:
             for cell in row:
                 cell.left = cell.right = cell.top = cell.bottom = True
@@ -526,8 +523,7 @@ class Table(object):
         return self
 
     def set_border(self):
-        """Sets table border edges to True.
-        """
+        """Sets table border edges to True."""
         for r in range(len(self.rows)):
             self.cells[r][0].left = True
             self.cells[r][len(self.cols) - 1].right = True

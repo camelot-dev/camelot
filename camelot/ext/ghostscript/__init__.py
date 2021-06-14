@@ -81,8 +81,7 @@ class __Ghostscript(object):
 
 
 def Ghostscript(*args, **kwargs):
-    """Factory function for setting up a Ghostscript instance
-    """
+    """Factory function for setting up a Ghostscript instance"""
     global __instance__
     # Ghostscript only supports a single instance
     if __instance__ is None:
