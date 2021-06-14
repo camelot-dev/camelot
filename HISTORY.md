@@ -16,6 +16,7 @@ master
 
 **Improvements**
 
+- Add `line_overlap` and `boxes_flow` to `LAParams`. [#219](https://github.com/camelot-dev/camelot/pull/219) by [Arnie97](https://github.com/Arnie97).
 - [Add bug report template.](https://github.com/camelot-dev/camelot/commit/0a3944e54d133b701edfe9c7546ff11289301ba8)
 - Move from [Travis to GitHub Actions](https://github.com/camelot-dev/camelot/pull/241).
 - Update `.readthedocs.yml` and [remove requirements.txt](https://github.com/camelot-dev/camelot/commit/7ab5db39d07baa4063f975e9e00f6073340e04c1#diff-cde814ef2f549dc093f5b8fc533b7e8f47e7b32a8081e0760e57d5c25a1139d9)
