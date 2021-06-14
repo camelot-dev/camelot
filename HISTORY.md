@@ -4,6 +4,9 @@ Release History
 master
 ------
 
+0.9.0 (2021-06-15)
+------------------
+
 **Bugfixes**
 
 - Fix use of resolution argument to generate image with ghostscript. [#231](https://github.com/camelot-dev/camelot/pull/231) by [Tiago Samaha Cordeiro](https://github.com/tiagosamaha).
