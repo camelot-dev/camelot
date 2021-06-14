@@ -838,23 +838,27 @@ def compute_whitespace(d):
 
 def get_page_layout(
     filename,
+    line_overlap=0.5,
     char_margin=1.0,
     line_margin=0.5,
     word_margin=0.1,
+    boxes_flow=0.5,
     detect_vertical=True,
     all_texts=True,
 ):
     """Returns a PDFMiner LTPage object and page dimension of a single
-    page pdf. See https://euske.github.io/pdfminer/ to get definitions
-    of kwargs.
+    page pdf. To get the definitions of kwargs, see
+    https://pdfminersix.rtfd.io/en/latest/reference/composable.html.
 
     Parameters
     ----------
     filename : string
         Path to pdf file.
+    line_overlap : float
     char_margin : float
     line_margin : float
     word_margin : float
+    boxes_flow : float
     detect_vertical : bool
     all_texts : bool
 
@@ -874,9 +878,11 @@ def get_page_layout(
                 f"Text extraction is not allowed: {filename}"
             )
         laparams = LAParams(
+            line_overlap=line_overlap,
             char_margin=char_margin,
             line_margin=line_margin,
             word_margin=word_margin,
+            boxes_flow=boxes_flow,
             detect_vertical=detect_vertical,
             all_texts=all_texts,
         )
