@@ -49,10 +49,12 @@ Camelot also comes packaged with a [command-line interface](https://camelot-py.r
 
 **Note:** Camelot only works with text-based PDFs and not scanned documents. (As Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
+You can check out some frequently asked questions [here](https://camelot-py.readthedocs.io/en/master/user/faq.html).
+
 ## Why Camelot?
 
-- **Configurability**: Camelot gives you control over the table extraction process with its [tweakable settings](https://camelot-py.readthedocs.io/en/master/user/advanced.html).
-- **Metrics**: Bad tables can be discarded based on metrics like accuracy and whitespace, without having to manually look at each table.
+- **Configurability**: Camelot gives you control over the table extraction process with [tweakable settings](https://camelot-py.readthedocs.io/en/master/user/advanced.html).
+- **Metrics**: You can discard bad tables based on metrics like accuracy and whitespace, without having to manually look at each table.
 - **Output**: Each table is extracted into a **pandas DataFrame**, which seamlessly integrates into [ETL and data analysis workflows](https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873). You can also export tables to multiple formats, which include CSV, JSON, Excel, HTML and Sqlite.
 
 See [comparison with similar libraries and tools](https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools).

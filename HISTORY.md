@@ -4,6 +4,8 @@ Release History
 master
 ------
 
+- Add faq section. [#216](https://github.com/camelot-dev/camelot/pull/216) by [Stefano Fiorucci](https://github.com/anakin87).
+
 0.9.0 (2021-06-15)
 ------------------
 
