@@ -109,8 +109,8 @@ This part of the documentation begins with some background information about why
    user/install
    user/how-it-works
    user/quickstart
-   user/faq
    user/advanced
+   user/faq
    user/cli
 
 The API Documentation/Guide

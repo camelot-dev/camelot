@@ -5,6 +5,11 @@ Frequently Asked Questions
 
 This part of the documentation answers some common questions. To add questions, please open an issue `here <https://github.com/camelot-dev/camelot/issues/new>`_.
 
+Does Camelot work with image-based PDFs?
+----------------------------------------
+
+**No**, Camelot only works with text-based PDFs and not scanned documents. (As Tabula `explains <https://github.com/tabulapdf/tabula#why-tabula>`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
+
 How to reduce memory usage for long PDFs?
 -----------------------------------------
 
