@@ -129,6 +129,7 @@ class Lattice(BaseParser):
         self.threshold_constant = threshold_constant
         self.iterations = iterations
         self.resolution = resolution
+        self.backend = ImageConversionBackend()
 
     @staticmethod
     def _reduce_index(t, idx, shift_text):
@@ -207,10 +208,6 @@ class Lattice(BaseParser):
                             if t.cells[i][j].vspan and not t.cells[i][j].top:
                                 t.cells[i][j].text = t.cells[i - 1][j].text
         return t
-
-    def _generate_image(self):
-        converter = ImageConversionBackend()
-        converter.convert(self.filename, self.imagename)
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
@@ -391,7 +388,8 @@ class Lattice(BaseParser):
                 )
             return []
 
-        self._generate_image()
+        self.backend.convert(self.filename, self.imagename)
+
         self._generate_table_bbox()
 
         _tables = []
