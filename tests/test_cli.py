@@ -123,7 +123,7 @@ def test_cli_output_format():
             cli,
             ["--format", "json", "--output", outfile, "stream", infile],
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"Output: {result.output}"
 
         # excel
         outfile = os.path.join(tempdir, "health.xlsx")
@@ -131,7 +131,7 @@ def test_cli_output_format():
             cli,
             ["--format", "excel", "--output", outfile, "stream", infile],
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"Output: {result.output}"
 
         # html
         outfile = os.path.join(tempdir, "health.html")
@@ -139,7 +139,15 @@ def test_cli_output_format():
             cli,
             ["--format", "html", "--output", outfile, "stream", infile],
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"Output: {result.output}"
+
+        # markdown
+        outfile = os.path.join(tempdir, "health.md")
+        result = runner.invoke(
+            cli,
+            ["--format", "markdown", "--output", outfile, "stream", infile],
+        )
+        assert result.exit_code == 0, f"Output: {result.output}"
 
         # zip
         outfile = os.path.join(tempdir, "health.csv")
@@ -155,7 +163,7 @@ def test_cli_output_format():
                 infile,
             ],
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"Output: {result.output}"
 
 
 def test_cli_quiet():

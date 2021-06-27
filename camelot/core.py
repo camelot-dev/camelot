@@ -630,6 +630,21 @@ class Table(object):
         with open(path, "w", encoding="utf-8") as f:
             f.write(html_string)
 
+    def to_markdown(self, path, **kwargs):
+        """Writes Table to a Markdown file.
+
+        For kwargs, check :meth:`pandas.DataFrame.to_markdown`.
+
+        Parameters
+        ----------
+        path : str
+            Output filepath.
+
+        """
+        md_string = self.df.to_markdown(**kwargs)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(md_string)
+
     def to_sqlite(self, path, **kwargs):
         """Writes Table to sqlite database.
 
@@ -711,7 +726,7 @@ class TableList(object):
         path : str
             Output filepath.
         f : str
-            File format. Can be csv, json, excel, html and sqlite.
+            File format. Can be csv, excel, html, json, markdown or sqlite.
         compress : bool
             Whether or not to add files to a ZIP archive.
 
@@ -724,7 +739,7 @@ class TableList(object):
 
         kwargs = {"path": path, "dirname": dirname, "root": root, "ext": ext}
 
-        if f in ["csv", "json", "html"]:
+        if f in ["csv", "html", "json", "markdown"]:
             self._write_file(f=f, **kwargs)
             if compress:
                 self._compress_dir(**kwargs)
