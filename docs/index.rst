@@ -54,7 +54,7 @@ Release v\ |version|. (:ref:`Installation <install>`)
     >>> tables = camelot.read_pdf('foo.pdf')
     >>> tables
     <TableList n=1>
-    >>> tables.export('foo.csv', f='csv', compress=True) # json, excel, html
+    >>> tables.export('foo.csv', f='csv', compress=True) # json, excel, html, markdown, sqlite
     >>> tables[0]
     <Table shape=(7, 7)>
     >>> tables[0].parsing_report
@@ -64,7 +64,7 @@ Release v\ |version|. (:ref:`Installation <install>`)
         'order': 1,
         'page': 1
     }
-    >>> tables[0].to_csv('foo.csv') # to_json, to_excel, to_html
+    >>> tables[0].to_csv('foo.csv') # to_json, to_excel, to_html, to_markdown, to_sqlite
     >>> tables[0].df # get a pandas DataFrame!
 
 .. csv-table::
@@ -79,9 +79,9 @@ Camelot also comes packaged with a :ref:`command-line interface <cli>`!
 Why Camelot?
 ------------
 
-- **Configurability**: Camelot gives you control over the table extraction process with its :ref:`tweakable settings <advanced>`.
-- **Metrics**: Bad tables can be discarded based on metrics like accuracy and whitespace, without having to manually look at each table.
-- **Output**: Each table is extracted into a **pandas DataFrame**, which seamlessly integrates into `ETL and data analysis workflows`_. You can also export tables to multiple formats, which include CSV, JSON, Excel, HTML and Sqlite.
+- **Configurability**: Camelot gives you control over the table extraction process with :ref:`tweakable settings <advanced>`.
+- **Metrics**: You can discard bad tables based on metrics like accuracy and whitespace, without having to manually look at each table.
+- **Output**: Each table is extracted into a **pandas DataFrame**, which seamlessly integrates into `ETL and data analysis workflows`_. You can also export tables to multiple formats, which include CSV, JSON, Excel, HTML, Markdown, and Sqlite.
 
 .. _ETL and data analysis workflows: https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873
 

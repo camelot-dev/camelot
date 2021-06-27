@@ -4,6 +4,12 @@ Release History
 master
 ------
 
+**Improvements**
+
+- Add markdown export format. [#222](https://github.com/camelot-dev/camelot/pull/222/) by [Lucas Cimon](https://github.com/Lucas-C).
+
+**Documentation**
+
 - Add faq section. [#216](https://github.com/camelot-dev/camelot/pull/216) by [Stefano Fiorucci](https://github.com/anakin87).
 
 0.9.0 (2021-06-15)
