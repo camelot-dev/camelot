@@ -43,8 +43,9 @@ For Ubuntu/MacOS::
 
 For Windows::
 
+    >>> import ctypes
     >>> from ctypes.util import find_library
-    >>> find_library("".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))
+    >>> find_library("".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll")))
     <name-of-ghostscript-library-on-windows>
 
 **Check:** The output of the ``find_library`` function should not be empty.
