@@ -29,6 +29,7 @@ from ..image_processing import (
     find_contours,
     find_joints,
 )
+from ..backends import ImageConversionBackend
 
 
 logger = logging.getLogger("camelot")
@@ -111,7 +112,7 @@ class Lattice(BaseParser):
         threshold_constant=-2,
         iterations=0,
         resolution=300,
-        **kwargs
+        **kwargs,
     ):
         self.table_regions = table_regions
         self.table_areas = table_areas
@@ -208,9 +209,8 @@ class Lattice(BaseParser):
         return t
 
     def _generate_image(self):
-        from pdftopng import pdftopng
-
-        pdftopng.convert(pdf_path=self.filename, png_path=self.imagename)
+        converter = ImageConversionBackend()
+        converter.convert(self.filename, self.imagename)
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
