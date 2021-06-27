@@ -210,8 +210,7 @@ class Lattice(BaseParser):
     def _generate_image(self):
         from pdftopng import pdftopng
 
-        self.imagename = "".join([self.rootname, ".png"])
-        pdftopng.convert(pdf_path=self.filename, png_path=self.rootname)
+        pdftopng.convert(pdf_path=self.filename, png_path=self.imagename)
 
     def _generate_table_bbox(self):
         def scale_areas(areas):

@@ -17,3 +17,4 @@ class BaseParser(object):
         self.vertical_text = get_text_objects(self.layout, ltype="vertical_text")
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
+        self.imagename = "".join([self.rootname, ".png"])
