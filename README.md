@@ -4,11 +4,10 @@
 
 # Camelot: PDF Table Extraction for Humans
 
-[![Build Status](https://travis-ci.org/camelot-dev/camelot.svg?branch=master)](https://travis-ci.org/camelot-dev/camelot) [![Documentation Status](https://readthedocs.org/projects/camelot-py/badge/?version=master)](https://camelot-py.readthedocs.io/en/master/)
+![Build Status](https://github.com/camelot-dev/camelot/actions/workflows/tests.yml/badge.svg) [![Documentation Status](https://readthedocs.org/projects/camelot-py/badge/?version=master)](https://camelot-py.readthedocs.io/en/master/)
  [![codecov.io](https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github)](https://codecov.io/github/camelot-dev/camelot?branch=master)
  [![image](https://img.shields.io/pypi/v/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/l/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/pyversions/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![Gitter chat](https://badges.gitter.im/camelot-dev/Lobby.png)](https://gitter.im/camelot-dev/Lobby)
-[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![image](https://img.shields.io/badge/continous%20quality-deepsource-lightgrey)](https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge)
-
+[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 **Camelot** is a Python library that can help you extract tables from PDFs!
 
@@ -50,10 +49,12 @@ Camelot also comes packaged with a [command-line interface](https://camelot-py.r
 
 **Note:** Camelot only works with text-based PDFs and not scanned documents. (As Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
+You can check out some frequently asked questions [here](https://camelot-py.readthedocs.io/en/master/user/faq.html).
+
 ## Why Camelot?
 
-- **Configurability**: Camelot gives you control over the table extraction process with its [tweakable settings](https://camelot-py.readthedocs.io/en/master/user/advanced.html).
-- **Metrics**: Bad tables can be discarded based on metrics like accuracy and whitespace, without having to manually look at each table.
+- **Configurability**: Camelot gives you control over the table extraction process with [tweakable settings](https://camelot-py.readthedocs.io/en/master/user/advanced.html).
+- **Metrics**: You can discard bad tables based on metrics like accuracy and whitespace, without having to manually look at each table.
 - **Output**: Each table is extracted into a **pandas DataFrame**, which seamlessly integrates into [ETL and data analysis workflows](https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873). You can also export tables to multiple formats, which include CSV, JSON, Excel, HTML and Sqlite.
 
 See [comparison with similar libraries and tools](https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools).

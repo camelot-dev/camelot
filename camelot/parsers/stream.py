@@ -65,7 +65,7 @@ class Stream(BaseParser):
         edge_tol=50,
         row_tol=2,
         column_tol=0,
-        **kwargs
+        **kwargs,
     ):
         self.table_regions = table_regions
         self.table_areas = table_areas
@@ -362,10 +362,10 @@ class Stream(BaseParser):
                     if len(elements):
                         ncols = max(set(elements), key=elements.count)
                     else:
-                        warnings.warn(
-                            f"No tables found in table area {table_idx + 1}"
-                        )
-                cols = [(t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r]
+                        warnings.warn(f"No tables found in table area {table_idx + 1}")
+                cols = [
+                    (t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r
+                ]
                 cols = self._merge_columns(sorted(cols), column_tol=self.column_tol)
                 inner_text = []
                 for i in range(1, len(cols)):

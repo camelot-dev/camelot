@@ -4,6 +4,33 @@ Release History
 master
 ------
 
+- Add faq section. [#216](https://github.com/camelot-dev/camelot/pull/216) by [Stefano Fiorucci](https://github.com/anakin87).
+
+0.9.0 (2021-06-15)
+------------------
+
+**Bugfixes**
+
+- Fix use of resolution argument to generate image with ghostscript. [#231](https://github.com/camelot-dev/camelot/pull/231) by [Tiago Samaha Cordeiro](https://github.com/tiagosamaha).
+- [#15](https://github.com/camelot-dev/camelot/issues/15) Fix duplicate strings being assigned to the same cell. [#206](https://github.com/camelot-dev/camelot/pull/206) by [Eduardo Gonzalez Lopez de Murillas](https://github.com/edugonza).
+- Save plot when filename is specified. [#121](https://github.com/camelot-dev/camelot/pull/121) by [Jens Diemer](https://github.com/jedie).
+- Close file streams explicitly. [#202](https://github.com/camelot-dev/camelot/pull/202) by [Martin Abente Lahaye](https://github.com/tchx84).
+- Use correct re.sub signature. [#186](https://github.com/camelot-dev/camelot/pull/186) by [pevisscher](https://github.com/pevisscher).
+- [#183](https://github.com/camelot-dev/camelot/issues/183) Fix UnicodeEncodeError when using Stream flavor by adding encoding kwarg to `to_html`. [#188](https://github.com/camelot-dev/camelot/pull/188) by [Stefano Fiorucci](https://github.com/anakin87).
+- [#179](https://github.com/camelot-dev/camelot/issues/179) Fix `max() arg is an empty sequence` error on PDFs with blank pages. [#189](https://github.com/camelot-dev/camelot/pull/189) by Vinayak Mehta.
+
+**Improvements**
+
+- Add `line_overlap` and `boxes_flow` to `LAParams`. [#219](https://github.com/camelot-dev/camelot/pull/219) by [Arnie97](https://github.com/Arnie97).
+- [Add bug report template.](https://github.com/camelot-dev/camelot/commit/0a3944e54d133b701edfe9c7546ff11289301ba8)
+- Move from [Travis to GitHub Actions](https://github.com/camelot-dev/camelot/pull/241).
+- Update `.readthedocs.yml` and [remove requirements.txt](https://github.com/camelot-dev/camelot/commit/7ab5db39d07baa4063f975e9e00f6073340e04c1#diff-cde814ef2f549dc093f5b8fc533b7e8f47e7b32a8081e0760e57d5c25a1139d9)
+
+**Documentation**
+
+- [#193](https://github.com/camelot-dev/camelot/issues/193) Add better checks to confirm proper installation of ghostscript. [#196](https://github.com/camelot-dev/camelot/pull/196) by [jimhall](https://github.com/jimhall).
+- Update `advanced.rst` plotting examples. [#119](https://github.com/camelot-dev/camelot/pull/119) by [Jens Diemer](https://github.com/jedie).
+
 0.8.2 (2020-07-27)
 ------------------
 
