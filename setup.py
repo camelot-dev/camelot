@@ -36,6 +36,7 @@ dev_requires = [
     "pytest-mpl>=0.11",
     "pytest-runner>=5.2",
     "Sphinx>=3.1.2",
+    "sphinx-autobuild>=2021.3.14",
 ]
 
 all_requires = cv_requires + plot_requires
