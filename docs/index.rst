@@ -74,6 +74,8 @@ Camelot also comes packaged with a :ref:`command-line interface <cli>`!
 
 .. note:: Camelot only works with text-based PDFs and not scanned documents. (As Tabula `explains`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
+You can check out some frequently asked questions :ref:`here <faq>`.
+
 .. _explains: https://github.com/tabulapdf/tabula#why-tabula
 
 Why Camelot?
