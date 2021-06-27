@@ -26,7 +26,7 @@ requires = [
 
 base_requires = [
     'opencv-python>=3.4.2.17',
-    'pdftopng>=0.1.0'
+    'pdftopng>=0.1.1'
 ]
 
 plot_requires = [
