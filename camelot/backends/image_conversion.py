@@ -23,7 +23,9 @@ class ImageConversionBackend(object):
             converter = backends[self.backend]()
             converter.convert(pdf_path, png_path)
         except Exception as e:
-            logger.info(f"Image conversion backend '{self.backend}' failed with '{str(e)}'")
+            logger.info(
+                f"Image conversion backend '{self.backend}' failed with '{str(e)}'"
+            )
 
             if self.use_fallback:
                 for fallback in self.fallbacks:
@@ -33,7 +35,9 @@ class ImageConversionBackend(object):
                         converter = backends[fallback]()
                         converter.convert(pdf_path, png_path)
                     except Exception as e:
-                        logger.info(f"Image conversion backend '{fallback}' failed with '{str(e)}'")
+                        logger.info(
+                            f"Image conversion backend '{fallback}' failed with '{str(e)}'"
+                        )
                         continue
                     else:
                         logger.info(f"Image conversion backend '{fallback}' succeeded")

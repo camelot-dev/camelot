@@ -112,6 +112,7 @@ class Lattice(BaseParser):
         threshold_constant=-2,
         iterations=0,
         resolution=300,
+        backend=ImageConversionBackend(),
         **kwargs,
     ):
         self.table_regions = table_regions
@@ -129,7 +130,7 @@ class Lattice(BaseParser):
         self.threshold_constant = threshold_constant
         self.iterations = iterations
         self.resolution = resolution
-        self.backend = ImageConversionBackend()
+        self.backend = backend
 
     @staticmethod
     def _reduce_index(t, idx, shift_text):
