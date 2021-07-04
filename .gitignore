@@ -1,3 +1,4 @@
+fontconfig/
 __pycache__/
 *.py[cod]
 *.so

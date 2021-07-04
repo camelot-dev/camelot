@@ -288,10 +288,10 @@ class Cell(object):
         self._text = ""
 
     def __repr__(self):
-        x1 = round(self.x1, 2)
-        y1 = round(self.y1, 2)
-        x2 = round(self.x2, 2)
-        y2 = round(self.y2, 2)
+        x1 = round(self.x1)
+        y1 = round(self.y1)
+        x2 = round(self.x2)
+        y2 = round(self.y2)
         return f"<Cell x1={x1} y1={y1} x2={x2} y2={y2}>"
 
     @property

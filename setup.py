@@ -24,7 +24,7 @@ requires = [
     "tabulate>=0.8.9",
 ]
 
-cv_requires = ["opencv-python>=3.4.2.17"]
+base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17", "pdftopng>=0.2.3"]
 
 plot_requires = [
     "matplotlib>=2.2.3",
@@ -40,7 +40,7 @@ dev_requires = [
     "sphinx-autobuild>=2021.3.14",
 ]
 
-all_requires = cv_requires + plot_requires
+all_requires = base_requires + plot_requires
 dev_requires = dev_requires + all_requires
 
 
@@ -59,7 +59,8 @@ def setup_package():
         install_requires=requires,
         extras_require={
             "all": all_requires,
-            "cv": cv_requires,
+            "base": base_requires,
+            "cv": base_requires,  # deprecate in v0.12.0
             "dev": dev_requires,
             "plot": plot_requires,
         },
@@ -75,7 +76,6 @@ def setup_package():
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
         ],
     )
 

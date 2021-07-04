@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+
+from .poppler_backend import PopplerBackend
+from .ghostscript_backend import GhostscriptBackend
+
+backends = {"poppler": PopplerBackend, "ghostscript": GhostscriptBackend}
+
+
+class ImageConversionBackend(object):
+    def __init__(self, backend="poppler", use_fallback=True):
+        if backend not in backends.keys():
+            raise ValueError(f"Image conversion backend '{backend}' not supported")
+
+        self.backend = backend
+        self.use_fallback = use_fallback
+        self.fallbacks = list(filter(lambda x: x != backend, backends.keys()))
+
+    def convert(self, pdf_path, png_path):
+        try:
+            converter = backends[self.backend]()
+            converter.convert(pdf_path, png_path)
+        except Exception as e:
+            import sys
+
+            if self.use_fallback:
+                for fallback in self.fallbacks:
+                    try:
+                        converter = backends[fallback]()
+                        converter.convert(pdf_path, png_path)
+                    except Exception as e:
+                        raise type(e)(
+                            str(e) + f" with image conversion backend '{fallback}'"
+                        ).with_traceback(sys.exc_info()[2])
+                        continue
+                    else:
+                        break
+            else:
+                raise type(e)(
+                    str(e) + f" with image conversion backend '{self.backend}'"
+                ).with_traceback(sys.exc_info()[2])

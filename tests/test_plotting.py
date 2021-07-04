@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import pytest
 
 import camelot
+from camelot.backends.image_conversion import ImageConversionBackend
 
 
 testdir = os.path.dirname(os.path.abspath(__file__))
@@ -19,16 +21,26 @@ def test_text_plot():
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_grid_plot():
-    filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind="grid")
+def test_textedge_plot():
+    filename = os.path.join(testdir, "tabula/12s0324.pdf")
+    tables = camelot.read_pdf(filename, flavor="stream")
+    return camelot.plot(tables[0], kind="textedge")
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_lattice_contour_plot():
+def test_lattice_contour_plot_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
+    return camelot.plot(tables[0], kind="contour")
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
+def test_lattice_contour_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        pytest.skip("Skipping ghostscript test on Windows")
+
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
     return camelot.plot(tables[0], kind="contour")
 
 
@@ -40,21 +52,51 @@ def test_stream_contour_plot():
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_line_plot():
+def test_line_plot_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
     return camelot.plot(tables[0], kind="line")
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_joint_plot():
+def test_line_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        pytest.skip("Skipping ghostscript test on Windows")
+
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
+    return camelot.plot(tables[0], kind="line")
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
+def test_joint_plot_poppler():
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
     return camelot.plot(tables[0], kind="joint")
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_textedge_plot():
-    filename = os.path.join(testdir, "tabula/12s0324.pdf")
-    tables = camelot.read_pdf(filename, flavor="stream")
-    return camelot.plot(tables[0], kind="textedge")
+def test_joint_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        pytest.skip("Skipping ghostscript test on Windows")
+
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
+    return camelot.plot(tables[0], kind="joint")
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
+def test_grid_plot_poppler():
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
+    return camelot.plot(tables[0], kind="grid")
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
+def test_grid_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        pytest.skip("Skipping ghostscript test on Windows")
+
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
+    return camelot.plot(tables[0], kind="grid")
