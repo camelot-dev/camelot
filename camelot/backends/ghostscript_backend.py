@@ -4,8 +4,6 @@ import sys
 import ctypes
 from ctypes.util import find_library
 
-import ghostscript
-
 
 def installed_posix():
     library = find_library("gs")
@@ -34,6 +32,8 @@ class GhostscriptBackend(object):
                 "Ghostscript is not installed. Please install it using the instructions"
                 "here: https://camelot-py.readthedocs.io/en/master/user/install-deps.html"
             )
+
+        import ghostscript
 
         gs_command = [
             "gs",
