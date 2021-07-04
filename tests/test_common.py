@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
@@ -59,6 +60,9 @@ def test_repr_poppler():
 
 
 def test_repr_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(
         filename, backend=ImageConversionBackend(backend="ghostscript")
@@ -77,6 +81,9 @@ def test_url_poppler():
 
 
 def test_url_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(
         url, backend=ImageConversionBackend(backend="ghostscript")
@@ -105,6 +112,9 @@ def test_pages_poppler():
 
 
 def test_pages_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url)
     assert repr(tables) == "<TableList n=1>"

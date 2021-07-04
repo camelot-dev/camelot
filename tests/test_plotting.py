@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import pytest
 
@@ -35,6 +36,9 @@ def test_lattice_contour_plot_poppler():
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_lattice_contour_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
     return camelot.plot(tables[0], kind="contour")
@@ -56,6 +60,9 @@ def test_line_plot_poppler():
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_line_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
     return camelot.plot(tables[0], kind="line")
@@ -70,6 +77,9 @@ def test_joint_plot_poppler():
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_joint_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
     return camelot.plot(tables[0], kind="joint")
@@ -84,6 +94,9 @@ def test_grid_plot_poppler():
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_grid_plot_ghostscript():
+    if sys.platform not in ["linux", "darwin"]:
+        return True
+
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
     return camelot.plot(tables[0], kind="grid")
