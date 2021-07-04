@@ -24,7 +24,7 @@ requires = [
     "tabulate>=0.8.9",
 ]
 
-base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17", "pdftopng>=0.1.1"]
+base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17", "pdftopng>=0.2.3"]
 
 plot_requires = [
     "matplotlib>=2.2.3",
