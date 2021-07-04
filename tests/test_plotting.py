@@ -30,7 +30,7 @@ def test_textedge_plot():
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_lattice_contour_plot_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
     return camelot.plot(tables[0], kind="contour")
 
 
@@ -40,7 +40,7 @@ def test_lattice_contour_plot_ghostscript():
         pytest.skip("Skipping ghostscript test on Windows")
 
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
     return camelot.plot(tables[0], kind="contour")
 
 
@@ -54,7 +54,7 @@ def test_stream_contour_plot():
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_line_plot_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
     return camelot.plot(tables[0], kind="line")
 
 
@@ -64,14 +64,14 @@ def test_line_plot_ghostscript():
         pytest.skip("Skipping ghostscript test on Windows")
 
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
     return camelot.plot(tables[0], kind="line")
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_joint_plot_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
     return camelot.plot(tables[0], kind="joint")
 
 
@@ -81,14 +81,14 @@ def test_joint_plot_ghostscript():
         pytest.skip("Skipping ghostscript test on Windows")
 
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
     return camelot.plot(tables[0], kind="joint")
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_grid_plot_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("poppler", use_fallback=False))
     return camelot.plot(tables[0], kind="grid")
 
 
@@ -98,5 +98,5 @@ def test_grid_plot_ghostscript():
         pytest.skip("Skipping ghostscript test on Windows")
 
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript"))
+    tables = camelot.read_pdf(filename, backend=ImageConversionBackend("ghostscript", use_fallback=False))
     return camelot.plot(tables[0], kind="grid")

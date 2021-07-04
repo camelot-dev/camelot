@@ -53,7 +53,9 @@ def test_password():
 
 def test_repr_poppler():
     filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
+    tables = camelot.read_pdf(
+        filename, backend=ImageConversionBackend(backend="poppler", use_fallback=False)
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
@@ -65,7 +67,8 @@ def test_repr_ghostscript():
 
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(
-        filename, backend=ImageConversionBackend(backend="ghostscript")
+        filename,
+        backend=ImageConversionBackend(backend="ghostscript", use_fallback=False),
     )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
@@ -74,7 +77,9 @@ def test_repr_ghostscript():
 
 def test_url_poppler():
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
-    tables = camelot.read_pdf(url)
+    tables = camelot.read_pdf(
+        url, backend=ImageConversionBackend(backend="poppler", use_fallback=False)
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
@@ -86,7 +91,7 @@ def test_url_ghostscript():
 
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(
-        url, backend=ImageConversionBackend(backend="ghostscript")
+        url, backend=ImageConversionBackend(backend="ghostscript", use_fallback=False)
     )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
@@ -95,17 +100,27 @@ def test_url_ghostscript():
 
 def test_pages_poppler():
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
-    tables = camelot.read_pdf(url)
+    tables = camelot.read_pdf(
+        url, backend=ImageConversionBackend(backend="poppler", use_fallback=False)
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="1-end")
+    tables = camelot.read_pdf(
+        url,
+        pages="1-end",
+        backend=ImageConversionBackend(backend="poppler", use_fallback=False),
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="all")
+    tables = camelot.read_pdf(
+        url,
+        pages="all",
+        backend=ImageConversionBackend(backend="poppler", use_fallback=False),
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
@@ -116,20 +131,30 @@ def test_pages_ghostscript():
         return True
 
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
-    tables = camelot.read_pdf(url)
+    tables = camelot.read_pdf(
+        url, backend=ImageConversionBackend(backend="ghostscript", use_fallback=False)
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="1-end")
+    tables = camelot.read_pdf(
+        url,
+        pages="1-end",
+        backend=ImageConversionBackend(backend="ghostscript", use_fallback=False),
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="all")
+    tables = camelot.read_pdf(
+        url,
+        pages="all",
+        backend=ImageConversionBackend(backend="ghostscript", use_fallback=False),
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
-    assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
 
 def test_table_order():
