@@ -24,8 +24,6 @@ class ImageConversionBackend(object):
 
             if self.use_fallback:
                 for fallback in self.fallbacks:
-                    logger.info(f"Falling back on '{fallback}'")
-
                     try:
                         converter = backends[fallback]()
                         converter.convert(pdf_path, png_path)
