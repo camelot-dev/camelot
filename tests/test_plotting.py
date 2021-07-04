@@ -19,10 +19,10 @@ def test_text_plot():
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_grid_plot():
-    filename = os.path.join(testdir, "foo.pdf")
-    tables = camelot.read_pdf(filename)
-    return camelot.plot(tables[0], kind="grid")
+def test_textedge_plot():
+    filename = os.path.join(testdir, "tabula/12s0324.pdf")
+    tables = camelot.read_pdf(filename, flavor="stream")
+    return camelot.plot(tables[0], kind="textedge")
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
@@ -54,7 +54,7 @@ def test_joint_plot():
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
-def test_textedge_plot():
-    filename = os.path.join(testdir, "tabula/12s0324.pdf")
-    tables = camelot.read_pdf(filename, flavor="stream")
-    return camelot.plot(tables[0], kind="textedge")
+def test_grid_plot():
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename)
+    return camelot.plot(tables[0], kind="grid")
