@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import logging
-
 from .poppler_backend import PopplerBackend
 from .ghostscript_backend import GhostscriptBackend
 
-logger = logging.getLogger("camelot")
 backends = {"poppler": PopplerBackend, "ghostscript": GhostscriptBackend}
 
 
@@ -23,9 +20,7 @@ class ImageConversionBackend(object):
             converter = backends[self.backend]()
             converter.convert(pdf_path, png_path)
         except Exception as e:
-            logger.info(
-                f"Image conversion backend '{self.backend}' failed with '{str(e)}'"
-            )
+            import sys
 
             if self.use_fallback:
                 for fallback in self.fallbacks:
@@ -35,10 +30,13 @@ class ImageConversionBackend(object):
                         converter = backends[fallback]()
                         converter.convert(pdf_path, png_path)
                     except Exception as e:
-                        logger.info(
-                            f"Image conversion backend '{fallback}' failed with '{str(e)}'"
-                        )
+                        raise type(e)(
+                            str(e) + f" with image conversion backend '{fallback}'"
+                        ).with_traceback(sys.exc_info()[2])
                         continue
                     else:
-                        logger.info(f"Image conversion backend '{fallback}' succeeded")
                         break
+            else:
+                raise type(e)(
+                    str(e) + f" with image conversion backend '{self.backend}'"
+                ).with_traceback(sys.exc_info()[2])
