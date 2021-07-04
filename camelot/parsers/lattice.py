@@ -6,7 +6,6 @@ import copy
 import locale
 import logging
 import warnings
-import subprocess
 
 import numpy as np
 import pandas as pd

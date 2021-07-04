@@ -35,7 +35,7 @@ class GhostscriptBackend(object):
                 "here: https://camelot-py.readthedocs.io/en/master/user/install-deps.html"
             )
 
-        gs_args = [
+        gs_command = [
             "gs",
             "-q",
             "-sDEVICE=png16m",
@@ -44,4 +44,4 @@ class GhostscriptBackend(object):
             f"-r{resolution}",
             pdf_path,
         ]
-        ghostscript.Ghostscript(*gs_args)
+        ghostscript.Ghostscript(*gs_command)
