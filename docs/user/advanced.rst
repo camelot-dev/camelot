@@ -623,3 +623,29 @@ To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://gith
 ::
 
     >>> tables = camelot.read_pdf('foo.pdf', layout_kwargs={'detect_vertical': False})
+
+.. _image-conversion-backend:
+
+Use alternate image conversion backends
+---------------------------------------
+
+When using the :ref:`Lattice <lattice>` flavor, Camelot uses `pdftopng <https://github.com/vinayak-mehta/pdftopng>`_ to convert PDF pages to images for line recognition. This should work out of the box on most operating systems. However, if you get an error, you can supply your own image conversion backend to Camelot::
+
+    >>> class ConversionBackend(object):
+    >>>     def convert(pdf_path, png_path):
+    >>>         # read pdf page from pdf_path
+    >>>         # convert pdf page to image
+    >>>         # write image to png_path
+    >>>         pass
+    >>>
+    >>> tables = camelot.read_pdf(filename, backend=ConversionBackend())
+
+.. note:: If image conversion using ``pdftopng`` fails, Camelot falls back to ``ghostscript`` to try image conversion again, and if that fails, it raises an error.
+
+In case you want to be explicit about the image conversion backend that Camelot should use, you can supply them like this::
+
+    >>> from camelot.backends.poppler_backend import PopplerBackend
+    >>> from camelot.backends.ghostscript_backend import GhostscriptBackend
+    >>>
+    >>> tables = camelot.read_pdf(filename, backend=PopplerBackend())
+    >>> tables = camelot.read_pdf(filename, backend=GhostscriptBackend())

@@ -6,6 +6,7 @@ master
 
 **Improvements**
 
+- Add pdftopng for image conversion and use ghostscript as fallback. [#198](https://github.com/camelot-dev/camelot/pull/198) by Vinayak Mehta.
 - Add markdown export format. [#222](https://github.com/camelot-dev/camelot/pull/222/) by [Lucas Cimon](https://github.com/Lucas-C).
 
 **Documentation**

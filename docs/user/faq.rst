@@ -54,3 +54,17 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
             pages_string = str(chunk).replace("[", "").replace("]", "")
             tables = camelot.read_pdf(filepath, pages=pages_string, **params)
             tables.export(f"{export_path}/tables.csv")
+
+How can I supply my own image conversion backend to Lattice?
+------------------------------------------------------------
+
+When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`image conversion backend <image-conversion-backend>` by creating a class with a ``convert`` method as follows::
+
+    >>> class ConversionBackend(object):
+    >>>     def convert(pdf_path, png_path):
+    >>>         # read pdf page from pdf_path
+    >>>         # convert pdf page to image
+    >>>         # write image to png_path
+    >>>         pass
+    >>>
+    >>> tables = camelot.read_pdf(filename, backend=ConversionBackend())
