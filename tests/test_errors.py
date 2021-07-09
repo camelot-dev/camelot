@@ -2,6 +2,7 @@
 
 import os
 import warnings
+from camelot.utils import is_url
 
 import pytest
 
@@ -120,6 +121,4 @@ def test_bad_password():
 
 def test_invalid_url():
     url = 'fttp://google.com/pdf'
-    message = "File format not supported"
-    with pytest.raises(Exception, match=message):
-        url = camelot.read_pdf(url)    
+    assert is_url(url) == False
