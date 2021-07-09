@@ -213,3 +213,9 @@ def test_cli_quiet(testdir):
             cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
         )
         assert "No tables found on page-1" not in result.output
+
+def test_cli_lattice_plot_type():
+    with TemporaryDirectory() as tempdir:
+        runner = CliRunner()
+        result = runner.invoke(cli, ["--plot_type", ""])
+        assert result.exit_code != 0, f"Output: {result.output}"
