@@ -118,3 +118,9 @@ def test_bad_password():
     message = "file has not been decrypted"
     with pytest.raises(Exception, match=message):
         tables = camelot.read_pdf(filename, password="wrongpass")
+
+def test_content_type():
+    url="https://camelot-py.readthedocs.io/en/master/_static/csv/foo.csv"
+    message = "File format not supported"
+    with pytest.raises(NotImplementedError, match=message):
+        tables = camelot.read_pdf(url)
