@@ -7,7 +7,6 @@ import pytest
 
 import camelot
 
-
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 filename = os.path.join(testdir, "foo.pdf")
@@ -118,3 +117,9 @@ def test_bad_password():
     message = "file has not been decrypted"
     with pytest.raises(Exception, match=message):
         tables = camelot.read_pdf(filename, password="wrongpass")
+
+def test_invalid_url():
+    url = 'fttp://google.com/pdf'
+    message = "File format not supported"
+    with pytest.raises(Exception, match=message):
+        url = camelot.read_pdf(url)    
