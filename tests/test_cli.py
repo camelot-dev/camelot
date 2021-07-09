@@ -45,7 +45,6 @@ def test_cli_lattice():
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
-
 def test_cli_stream():
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "budget.pdf")
@@ -181,3 +180,9 @@ def test_cli_quiet():
             cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
         )
         assert "No tables found on page-1" not in result.output
+
+def test_cli_lattice_plot_type():
+    with TemporaryDirectory() as tempdir:
+        runner = CliRunner()
+        result = runner.invoke(cli, ["--plot_type", ""])
+        assert result.exit_code != 0, f"Output: {result.output}"
