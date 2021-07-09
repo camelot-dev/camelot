@@ -1,5 +1,6 @@
 import os
 import warnings
+from camelot.utils import is_url
 
 import pytest
 
@@ -141,3 +142,11 @@ def test_lattice_ghostscript_deprecation_warning(foo_pdf):
         with pytest.raises(DeprecationWarning) as e:
             camelot.read_pdf(foo_pdf)
             assert str(e.value) == ghostscript_deprecation_warning
+
+
+def test_invalid_url():
+    url = 'fttp://google.com/pdf'
+    message = "File format not supported"
+    with pytest.raises(Exception, match=message):
+        url = camelot.read_pdf(url)
+    assert is_url(url) == False
