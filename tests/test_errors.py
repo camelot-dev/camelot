@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import warnings
 
 import pytest
@@ -12,7 +13,10 @@ testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 filename = os.path.join(testdir, "foo.pdf")
 
-skip_on_windows = pytest.mark.skip(sys.platform.startswith("win"))
+skip_on_windows = pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Ghostscript not installed in Windows test environment",
+)
 
 
 def test_unknown_flavor():
@@ -87,7 +91,7 @@ def test_stream_equal_length():
 def test_image_warning():
     filename = os.path.join(testdir, "image.pdf")
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
+        warnings.simplefilter("error", category=UserWarning)
         with pytest.raises(UserWarning) as e:
             tables = camelot.read_pdf(filename)
             assert (
@@ -117,7 +121,7 @@ def test_stream_no_tables_in_area():
 def test_lattice_no_tables_on_page():
     filename = os.path.join(testdir, "empty.pdf")
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
+        warnings.simplefilter("error", category=UserWarning)
         with pytest.raises(UserWarning) as e:
             tables = camelot.read_pdf(filename, flavor="lattice")
         assert str(e.value) == "No tables found on page-1"

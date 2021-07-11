@@ -142,9 +142,10 @@ class Lattice(BaseParser):
         if isinstance(backend, str):
             if backend in BACKENDS.keys():
                 if backend == "ghostscript":
-                    raise DeprecationWarning(
+                    warnings.warn(
                         "'ghostscript' will be replaced by 'poppler' as the default image conversion"
-                        " backend in v0.12.0. You can try out 'poppler' with backend='poppler'."
+                        " backend in v0.12.0. You can try out 'poppler' with backend='poppler'.",
+                        DeprecationWarning
                     )
 
                 return BACKENDS[backend]()

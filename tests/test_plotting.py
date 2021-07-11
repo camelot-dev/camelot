@@ -10,7 +10,10 @@ import camelot
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
-skip_on_windows = pytest.mark.skip(sys.platform.startswith("win"))
+skip_on_windows = pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Ghostscript not installed in Windows test environment",
+)
 
 
 @skip_on_windows
