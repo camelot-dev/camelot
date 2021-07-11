@@ -644,8 +644,5 @@ When using the :ref:`Lattice <lattice>` flavor, Camelot uses `pdftopng <https://
 
 In case you want to be explicit about the image conversion backend that Camelot should use, you can supply them like this::
 
-    >>> from camelot.backends.poppler_backend import PopplerBackend
-    >>> from camelot.backends.ghostscript_backend import GhostscriptBackend
-    >>>
-    >>> tables = camelot.read_pdf(filename, backend=PopplerBackend())
-    >>> tables = camelot.read_pdf(filename, backend=GhostscriptBackend())
+    >>> tables = camelot.read_pdf(filename, backend="poppler")
+    >>> tables = camelot.read_pdf(filename, backend="ghostscript")

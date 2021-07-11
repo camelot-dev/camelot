@@ -28,7 +28,7 @@ from ..image_processing import (
     find_contours,
     find_joints,
 )
-from ..backends import ImageConversionBackend
+from ..backends.image_conversion import BACKENDS
 
 
 logger = logging.getLogger("camelot")
@@ -111,7 +111,7 @@ class Lattice(BaseParser):
         threshold_constant=-2,
         iterations=0,
         resolution=300,
-        backend=ImageConversionBackend(),
+        backend="ghostscript",
         **kwargs,
     ):
         self.table_regions = table_regions
@@ -129,7 +129,30 @@ class Lattice(BaseParser):
         self.threshold_constant = threshold_constant
         self.iterations = iterations
         self.resolution = resolution
-        self.backend = backend
+        self.backend = Lattice._get_backend(backend)
+
+    @staticmethod
+    def _get_backend(backend):
+        def implements_convert():
+            methods = [
+                method for method in dir(backend) if method.startswith("__") is False
+            ]
+            return "convert" in methods
+
+        if isinstance(backend, str):
+            if backend in BACKENDS.keys():
+                return BACKENDS[backend]()
+            else:
+                raise NotImplementedError(
+                    f"Unknown backend '{backend}' specified. Please use either 'poppler' or 'ghostscript'."
+                )
+        else:
+            if not implements_convert():
+                raise NotImplementedError(
+                    f"'{backend}' must implement a 'convert' method"
+                )
+
+            return backend
 
     @staticmethod
     def _reduce_index(t, idx, shift_text):

@@ -3,21 +3,21 @@
 from .poppler_backend import PopplerBackend
 from .ghostscript_backend import GhostscriptBackend
 
-backends = {"poppler": PopplerBackend, "ghostscript": GhostscriptBackend}
+BACKENDS = {"poppler": PopplerBackend, "ghostscript": GhostscriptBackend}
 
 
 class ImageConversionBackend(object):
     def __init__(self, backend="poppler", use_fallback=True):
-        if backend not in backends.keys():
+        if backend not in BACKENDS.keys():
             raise ValueError(f"Image conversion backend '{backend}' not supported")
 
         self.backend = backend
         self.use_fallback = use_fallback
-        self.fallbacks = list(filter(lambda x: x != backend, backends.keys()))
+        self.fallbacks = list(filter(lambda x: x != backend, BACKENDS.keys()))
 
     def convert(self, pdf_path, png_path):
         try:
-            converter = backends[self.backend]()
+            converter = BACKENDS[self.backend]()
             converter.convert(pdf_path, png_path)
         except Exception as e:
             import sys
@@ -25,7 +25,7 @@ class ImageConversionBackend(object):
             if self.use_fallback:
                 for fallback in self.fallbacks:
                     try:
-                        converter = backends[fallback]()
+                        converter = BACKENDS[fallback]()
                         converter.convert(pdf_path, png_path)
                     except Exception as e:
                         raise type(e)(

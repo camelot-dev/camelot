@@ -32,56 +32,6 @@ def test_unsupported_format():
         tables = camelot.read_pdf(filename)
 
 
-def test_stream_equal_length():
-    message = "Length of table_areas and columns" " should be equal"
-    with pytest.raises(ValueError, match=message):
-        tables = camelot.read_pdf(
-            filename,
-            flavor="stream",
-            table_areas=["10,20,30,40"],
-            columns=["10,20,30,40", "10,20,30,40"],
-        )
-
-
-def test_image_warning():
-    filename = os.path.join(testdir, "image.pdf")
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        with pytest.raises(UserWarning) as e:
-            tables = camelot.read_pdf(filename)
-            assert (
-                str(e.value)
-                == "page-1 is image-based, camelot only works on text-based pages."
-            )
-
-
-def test_lattice_no_tables_on_page():
-    filename = os.path.join(testdir, "empty.pdf")
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        with pytest.raises(UserWarning) as e:
-            tables = camelot.read_pdf(filename, flavor="lattice")
-        assert str(e.value) == "No tables found on page-1"
-
-
-def test_stream_no_tables_on_page():
-    filename = os.path.join(testdir, "empty.pdf")
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        with pytest.raises(UserWarning) as e:
-            tables = camelot.read_pdf(filename, flavor="stream")
-        assert str(e.value) == "No tables found on page-1"
-
-
-def test_stream_no_tables_in_area():
-    filename = os.path.join(testdir, "only_page_number.pdf")
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        with pytest.raises(UserWarning) as e:
-            tables = camelot.read_pdf(filename, flavor="stream")
-        assert str(e.value) == "No tables found in table area 1"
-
-
 def test_no_tables_found_logs_suppressed():
     filename = os.path.join(testdir, "foo.pdf")
     with warnings.catch_warnings():
@@ -118,3 +68,68 @@ def test_bad_password():
     message = "file has not been decrypted"
     with pytest.raises(Exception, match=message):
         tables = camelot.read_pdf(filename, password="wrongpass")
+
+
+def test_stream_equal_length():
+    message = "Length of table_areas and columns" " should be equal"
+    with pytest.raises(ValueError, match=message):
+        tables = camelot.read_pdf(
+            filename,
+            flavor="stream",
+            table_areas=["10,20,30,40"],
+            columns=["10,20,30,40", "10,20,30,40"],
+        )
+
+
+def test_image_warning():
+    filename = os.path.join(testdir, "image.pdf")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            tables = camelot.read_pdf(filename)
+            assert (
+                str(e.value)
+                == "page-1 is image-based, camelot only works on text-based pages."
+            )
+
+
+def test_stream_no_tables_on_page():
+    filename = os.path.join(testdir, "empty.pdf")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            tables = camelot.read_pdf(filename, flavor="stream")
+        assert str(e.value) == "No tables found on page-1"
+
+
+def test_stream_no_tables_in_area():
+    filename = os.path.join(testdir, "only_page_number.pdf")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            tables = camelot.read_pdf(filename, flavor="stream")
+        assert str(e.value) == "No tables found in table area 1"
+
+
+def test_lattice_no_tables_on_page():
+    filename = os.path.join(testdir, "empty.pdf")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            tables = camelot.read_pdf(filename, flavor="lattice")
+        assert str(e.value) == "No tables found on page-1"
+
+
+def test_lattice_unknown_backend():
+    message = "Unknown backend 'mupdf' specified. Please use either 'poppler' or 'ghostscript'."
+    with pytest.raises(NotImplementedError, match=message):
+        tables = camelot.read_pdf(filename, backend="mupdf")
+
+
+def test_lattice_no_convert_method():
+    class ConversionBackend(object):
+        pass
+
+    message = "must implement a 'convert' method"
+    with pytest.raises(NotImplementedError, match=message):
+        tables = camelot.read_pdf(filename, backend=ConversionBackend())
