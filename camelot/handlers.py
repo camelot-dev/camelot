@@ -47,9 +47,9 @@ class PDFHandler(object):
             self.password = password
             if sys.version_info[0] < 3:
                 self.password = self.password.encode("ascii")
-        self.pages = self._get_pages(self.filepath, pages)
+        self.pages = self._get_pages(pages)
 
-    def _get_pages(self, filepath, pages):
+    def _get_pages(self, pages):
         """Converts pages string to list of ints.
 
         Parameters
@@ -67,25 +67,28 @@ class PDFHandler(object):
 
         """
         page_numbers = []
+
         if pages == "1":
             page_numbers.append({"start": 1, "end": 1})
         else:
-            instream = open(filepath, "rb")
-            infile = PdfFileReader(instream, strict=False)
-            if infile.isEncrypted:
-                infile.decrypt(self.password)
-            if pages == "all":
-                page_numbers.append({"start": 1, "end": infile.getNumPages()})
-            else:
-                for r in pages.split(","):
-                    if "-" in r:
-                        a, b = r.split("-")
-                        if b == "end":
-                            b = infile.getNumPages()
-                        page_numbers.append({"start": int(a), "end": int(b)})
-                    else:
-                        page_numbers.append({"start": int(r), "end": int(r)})
-            instream.close()
+            with open(self.filepath, "rb") as f:
+                infile = PdfFileReader(f, strict=False)
+
+                if infile.isEncrypted:
+                    infile.decrypt(self.password)
+
+                if pages == "all":
+                    page_numbers.append({"start": 1, "end": infile.getNumPages()})
+                else:
+                    for r in pages.split(","):
+                        if "-" in r:
+                            a, b = r.split("-")
+                            if b == "end":
+                                b = infile.getNumPages()
+                            page_numbers.append({"start": int(a), "end": int(b)})
+                        else:
+                            page_numbers.append({"start": int(r), "end": int(r)})
+
         P = []
         for p in page_numbers:
             P.extend(range(p["start"], p["end"] + 1))
