@@ -60,7 +60,7 @@ def setup_package():
         extras_require={
             "all": all_requires,
             "base": base_requires,
-            "cv": base_requires,  # deprecate in v0.12.0
+            "cv": base_requires,  # deprecate
             "dev": dev_requires,
             "plot": plot_requires,
         },
