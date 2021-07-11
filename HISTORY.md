@@ -4,6 +4,9 @@ Release History
 master
 ------
 
+0.10.0 (2021-07-11)
+------------------
+
 **Improvements**
 
 - Add support for multiple image conversion backends. [#198](https://github.com/camelot-dev/camelot/pull/198) and [#253](https://github.com/camelot-dev/camelot/pull/253) by Vinayak Mehta.
