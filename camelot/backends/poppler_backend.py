@@ -9,7 +9,7 @@ class PopplerBackend(object):
         pdftopng_executable = shutil.which("pdftopng")
         if pdftopng_executable is None:
             raise OSError(
-                "pdftopng is not installed. Please install it using the `pip install pdftopng` command."
+                "pdftopng is not installed. You can install it using the 'pip install pdftopng' command."
             )
 
         pdftopng_command = [pdftopng_executable, pdf_path, png_path]

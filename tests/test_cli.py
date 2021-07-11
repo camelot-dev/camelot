@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
+import pytest
 from click.testing import CliRunner
 
 from camelot.cli import cli
@@ -10,6 +12,11 @@ from camelot.utils import TemporaryDirectory
 
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
+
+skip_on_windows = pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Ghostscript not installed in Windows test environment",
+)
 
 
 def test_help_output():
@@ -26,6 +33,7 @@ def test_help_output():
     )
 
 
+@skip_on_windows
 def test_cli_lattice():
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "foo.pdf")
@@ -35,7 +43,7 @@ def test_cli_lattice():
             cli, ["--format", "csv", "--output", outfile, "lattice", infile]
         )
         assert result.exit_code == 0
-        assert result.output == "Found 1 tables\n"
+        assert "Found 1 tables" in result.output
 
         result = runner.invoke(cli, ["--format", "csv", "lattice", infile])
         output_error = "Error: Please specify output file path using --output"

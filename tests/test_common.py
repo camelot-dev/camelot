@@ -3,6 +3,7 @@
 import os
 import sys
 
+import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
@@ -15,6 +16,11 @@ from .data import *
 
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
+
+skip_on_windows = pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Ghostscript not installed in Windows test environment",
+)
 
 
 def test_version_generation():
@@ -32,6 +38,7 @@ def test_version_generation_with_prerelease_revision():
     )
 
 
+@skip_on_windows
 def test_parsing_report():
     parsing_report = {"accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1}
 
@@ -61,10 +68,8 @@ def test_repr_poppler():
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
 
+@skip_on_windows
 def test_repr_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        return True
-
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(
         filename,
@@ -85,10 +90,8 @@ def test_url_poppler():
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
 
+@skip_on_windows
 def test_url_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        return True
-
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(
         url, backend=ImageConversionBackend(backend="ghostscript", use_fallback=False)
@@ -126,10 +129,8 @@ def test_pages_poppler():
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
 
+@skip_on_windows
 def test_pages_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        return True
-
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(
         url, backend=ImageConversionBackend(backend="ghostscript", use_fallback=False)

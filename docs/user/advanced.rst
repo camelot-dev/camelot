@@ -629,7 +629,14 @@ To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://gith
 Use alternate image conversion backends
 ---------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, Camelot uses `pdftopng <https://github.com/vinayak-mehta/pdftopng>`_ to convert PDF pages to images for line recognition. This should work out of the box on most operating systems. However, if you get an error, you can supply your own image conversion backend to Camelot::
+When using the :ref:`Lattice <lattice>` flavor, Camelot uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternate image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with::
+
+    >>> tables = camelot.read_pdf(filename, backend="ghostscript")  # default
+    >>> tables = camelot.read_pdf(filename, backend="poppler")
+
+.. note:: ``poppler`` will be made the default image conversion backend (replacing ``ghostscript``) with ``v0.12.0``.
+
+If you face issues with both ``ghostscript`` and ``poppler``, you can supply your own image conversion backend::
 
     >>> class ConversionBackend(object):
     >>>     def convert(pdf_path, png_path):
@@ -639,13 +646,3 @@ When using the :ref:`Lattice <lattice>` flavor, Camelot uses `pdftopng <https://
     >>>         pass
     >>>
     >>> tables = camelot.read_pdf(filename, backend=ConversionBackend())
-
-.. note:: If image conversion using ``pdftopng`` fails, Camelot falls back to ``ghostscript`` to try image conversion again, and if that fails, it raises an error.
-
-In case you want to be explicit about the image conversion backend that Camelot should use, you can supply them like this::
-
-    >>> from camelot.backends.poppler_backend import PopplerBackend
-    >>> from camelot.backends.ghostscript_backend import GhostscriptBackend
-    >>>
-    >>> tables = camelot.read_pdf(filename, backend=PopplerBackend())
-    >>> tables = camelot.read_pdf(filename, backend=GhostscriptBackend())
