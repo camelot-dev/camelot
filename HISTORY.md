@@ -4,6 +4,11 @@ Release History
 master
 ------
 
+0.10.1 (2021-07-11)
+------------------
+
+- Change extra requirements from `cv` to `base`. You can use `pip install "camelot-py[base]"` to install everything required to run camelot.
+
 0.10.0 (2021-07-11)
 ------------------
 
