@@ -634,7 +634,7 @@ When using the :ref:`Lattice <lattice>` flavor, Camelot uses ``ghostscript`` to 
     >>> tables = camelot.read_pdf(filename, backend="ghostscript")  # default
     >>> tables = camelot.read_pdf(filename, backend="poppler")
 
-.. note:: ``poppler`` will be made the default image conversion backend (replacing ``ghostscript``) with ``v0.12.0``.
+.. note:: ``ghostscript`` will be replaced by ``poppler`` as the default image conversion backend in ``v0.12.0``.
 
 If you face issues with both ``ghostscript`` and ``poppler``, you can supply your own image conversion backend::
 
