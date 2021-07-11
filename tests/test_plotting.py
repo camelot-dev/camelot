@@ -10,7 +10,10 @@ import camelot
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
+skip_on_windows = pytest.mark.skip(sys.platform.startswith("win"))
 
+
+@skip_on_windows
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_text_plot():
     filename = os.path.join(testdir, "foo.pdf")
@@ -32,11 +35,9 @@ def test_lattice_contour_plot_poppler():
     return camelot.plot(tables[0], kind="contour")
 
 
+@skip_on_windows
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_lattice_contour_plot_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        pytest.skip("Skipping ghostscript test on Windows")
-
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend="ghostscript")
     return camelot.plot(tables[0], kind="contour")
@@ -56,11 +57,9 @@ def test_line_plot_poppler():
     return camelot.plot(tables[0], kind="line")
 
 
+@skip_on_windows
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_line_plot_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        pytest.skip("Skipping ghostscript test on Windows")
-
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend="ghostscript")
     return camelot.plot(tables[0], kind="line")
@@ -73,11 +72,9 @@ def test_joint_plot_poppler():
     return camelot.plot(tables[0], kind="joint")
 
 
+@skip_on_windows
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_joint_plot_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        pytest.skip("Skipping ghostscript test on Windows")
-
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend="ghostscript")
     return camelot.plot(tables[0], kind="joint")
@@ -90,11 +87,9 @@ def test_grid_plot_poppler():
     return camelot.plot(tables[0], kind="grid")
 
 
+@skip_on_windows
 @pytest.mark.mpl_image_compare(baseline_dir="files/baseline_plots", remove_text=True)
 def test_grid_plot_ghostscript():
-    if sys.platform not in ["linux", "darwin"]:
-        pytest.skip("Skipping ghostscript test on Windows")
-
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend="ghostscript")
     return camelot.plot(tables[0], kind="grid")

@@ -11,6 +11,8 @@ from camelot.utils import TemporaryDirectory
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 
+skip_on_windows = pytest.mark.skip(sys.platform.startswith("win"))
+
 
 def test_help_output():
     runner = CliRunner()
@@ -26,6 +28,7 @@ def test_help_output():
     )
 
 
+@skip_on_windows
 def test_cli_lattice():
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "foo.pdf")

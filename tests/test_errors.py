@@ -12,6 +12,8 @@ testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
 filename = os.path.join(testdir, "foo.pdf")
 
+skip_on_windows = pytest.mark.skip(sys.platform.startswith("win"))
+
 
 def test_unknown_flavor():
     message = "Unknown flavor specified." " Use either 'lattice' or 'stream'"
@@ -32,6 +34,7 @@ def test_unsupported_format():
         tables = camelot.read_pdf(filename)
 
 
+@skip_on_windows
 def test_no_tables_found_logs_suppressed():
     filename = os.path.join(testdir, "foo.pdf")
     with warnings.catch_warnings():
@@ -133,3 +136,16 @@ def test_lattice_no_convert_method():
     message = "must implement a 'convert' method"
     with pytest.raises(NotImplementedError, match=message):
         tables = camelot.read_pdf(filename, backend=ConversionBackend())
+
+
+def test_lattice_ghostscript_deprecation_warning():
+    ghostscript_deprecation_warning = (
+        "'ghostscript' will be replaced by 'poppler' as the default image conversion"
+        " backend in v0.12.0. You can try out 'poppler' with backend='poppler'."
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(DeprecationWarning) as e:
+            tables = camelot.read_pdf(filename)
+            assert str(e.value) == ghostscript_deprecation_warning
