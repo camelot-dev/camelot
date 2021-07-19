@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os,mock,sys
 
 from click.testing import CliRunner
 
@@ -181,3 +181,12 @@ def test_cli_quiet():
             cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
         )
         assert "No tables found on page-1" not in result.output
+
+
+def test_import_error():
+    with mock.patch.dict(sys.modules, {'matplotlib':None}):
+        try:            
+            from camelot.cli import cli
+        except ImportError:
+            assert cli._HAS_MPL is False
+    
