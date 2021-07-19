@@ -1,5 +1,7 @@
 import os
+import sys
 
+from unittest import mock
 import pytest
 from click.testing import CliRunner
 
@@ -298,3 +300,11 @@ def test_cli_lattice_plot_type():
             ],
         )
         assert result.exit_code != 0, f"Output: {result.output}"
+
+
+def test_import_error():
+    with mock.patch.dict(sys.modules, {"matplotlib": None}):
+        try:
+            from camelot.cli import cli
+        except ImportError:
+            assert cli._HAS_MPL is False
