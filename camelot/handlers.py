@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from contextlib import contextmanager
+import io
 import os
 import sys
 
@@ -8,12 +10,13 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 from .core import TableList
 from .parsers import Stream, Lattice
 from .utils import (
+    InvalidArguments,
     TemporaryDirectory,
     get_page_layout,
     get_text_objects,
     get_rotation,
     is_url,
-    download_url,
+    get_url_bytes,
 )
 
 
@@ -24,19 +27,33 @@ class PDFHandler(object):
 
     Parameters
     ----------
-    filepath : str
-        Filepath or URL of the PDF file.
+    filepath : str | pathlib.Path, optional (default: None)
+        Filepath or URL of the PDF file. Required if file_bytes is not given
     pages : str, optional (default: '1')
         Comma-separated page numbers.
         Example: '1,3,4' or '1,4-end' or 'all'.
     password : str, optional (default: None)
         Password for decryption.
+    file_bytes : io.IOBase, optional (default: None)
+        A file-like stream. Required if filepath is not given
 
     """
 
-    def __init__(self, filepath, pages="1", password=None):
+    def __init__(self, filepath=None, pages="1", password=None, file_bytes=None):
         if is_url(filepath):
-            filepath = download_url(filepath)
+            file_bytes = get_url_bytes(filepath)
+
+        if not filepath and not file_bytes:
+            raise InvalidArguments('Either `filepath` or `file_bytes` is required')
+        if not filepath:
+            # filepath must either be passed, or taken from the name attribute
+            filepath = getattr(file_bytes, 'name')
+            if not filepath:
+                msg = ('Either pass a `filepath`, or give the '
+                       '`file_bytes` argument a name attribute')
+                raise InvalidArguments(msg)
+        self.file_bytes = file_bytes  # ok to be None
+
         self.filepath = filepath
         if not filepath.lower().endswith(".pdf"):
             raise NotImplementedError("File format not supported")
@@ -48,6 +65,28 @@ class PDFHandler(object):
             if sys.version_info[0] < 3:
                 self.password = self.password.encode("ascii")
         self.pages = self._get_pages(pages)
+
+    @contextmanager
+    def managed_file_context(self):
+        """Reads from either the `filepath` or `file_bytes`
+        attribute of this instance, to return a file-like object.
+        Closes any open file handles on exit or error.
+
+        Returns
+        -------
+        file_bytes : io.IOBase
+            A readable, seekable, file-like object
+        """
+        if self.file_bytes:
+            # if we can't seek, write to a BytesIO object that can,
+            # then seek to the beginning before yielding
+            if not hasattr(self.file_bytes, 'seek'):
+                self.file_bytes = io.BytesIO(self.file_bytes.read())
+            self.file_bytes.seek(0)
+            yield self.file_bytes
+        else:
+            with open(self.filepath, "rb") as file_bytes:
+                yield file_bytes
 
     def _get_pages(self, pages):
         """Converts pages string to list of ints.
@@ -71,7 +110,7 @@ class PDFHandler(object):
         if pages == "1":
             page_numbers.append({"start": 1, "end": 1})
         else:
-            with open(self.filepath, "rb") as f:
+            with self.managed_file_context() as f:
                 infile = PdfFileReader(f, strict=False)
 
                 if infile.isEncrypted:
@@ -107,7 +146,7 @@ class PDFHandler(object):
             Tmp directory.
 
         """
-        with open(filepath, "rb") as fileobj:
+        with self.managed_file_context() as fileobj:
             infile = PdfFileReader(fileobj, strict=False)
             if infile.isEncrypted:
                 infile.decrypt(self.password)
