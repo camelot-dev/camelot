@@ -7,7 +7,7 @@ If you're reading this, you're probably looking to contributing to Camelot. *Tim
 
 This document will help you get started with contributing documentation, code, testing and filing issues. If you have any questions, feel free to reach out to `Vinayak Mehta`_, the author and maintainer.
 
-.. _Vinayak Mehta: https://www.vinayakmehta.com
+.. _Vinayak Mehta: https://vinayak.io
 
 Code Of Conduct
 ---------------
@@ -18,7 +18,7 @@ The following quote sums up the **Code Of Conduct**.
 
 Kenneth Reitz has also written an `essay`_ on this topic, which you should read.
 
-.. _essay: https://www.kennethreitz.org/essays/be-cordial-or-be-on-your-way
+.. _essay: https://kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way
 
 As the `Requests Code Of Conduct`_ states, **all contributions are welcome**, as long as everyone involved is treated with respect.
 
