@@ -1,5 +1,5 @@
 fontconfig/
-__pycache__/
+__pycache__/*
 *.py[cod]
 *.so
 
@@ -18,3 +18,5 @@ htmlcov/
 
 # vscode
 .vscode
+.env
+changelog.txt

@@ -524,12 +524,12 @@ class Table(object):
 
     def set_border(self):
         """Sets table border edges to True."""
-        for r in range(len(self.rows)):
-            self.cells[r][0].left = True
-            self.cells[r][len(self.cols) - 1].right = True
-        for c in range(len(self.cols)):
-            self.cells[0][c].top = True
-            self.cells[len(self.rows) - 1][c].bottom = True
+        for index, row in enumerate(self.rows):
+            self.cells[index][0].left = True
+            self.cells[index][len(self.cols) - 1].right = True
+        for index, col in enumerate(self.cols):
+            self.cells[0][index].top = True
+            self.cells[len(self.rows) - 1][index].bottom = True
         return self
 
     def set_span(self):
