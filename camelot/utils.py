@@ -370,8 +370,9 @@ def text_in_bbox(bbox, text):
             if ba == bb:
                 continue
             if bbox_intersect(ba, bb):
+                ba_area = bbox_area(ba)
                 # if the intersection is larger than 80% of ba's size, we keep the longest
-                if (bbox_intersection_area(ba, bb) / bbox_area(ba)) > 0.8:
+                if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
                     if bbox_longer(bb, ba):
                         rest.discard(ba)
     unique_boxes = list(rest)
