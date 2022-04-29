@@ -889,12 +889,14 @@ def get_page_layout(
         rsrcmgr = PDFResourceManager()
         device = PDFPageAggregator(rsrcmgr, laparams=laparams)
         interpreter = PDFPageInterpreter(rsrcmgr, device)
-        for page in PDFPage.create_pages(document):
-            interpreter.process_page(page)
-            layout = device.get_result()
-            width = layout.bbox[2]
-            height = layout.bbox[3]
-            dim = (width, height)
+        page = next(PDFPage.create_pages(document), None)
+        if page is None:
+            raise PDFTextExtractionNotAllowed
+        interpreter.process_page(page)
+        layout = device.get_result()
+        width = layout.bbox[2]
+        height = layout.bbox[3]
+        dim = (width, height)
         return layout, dim
 
 
