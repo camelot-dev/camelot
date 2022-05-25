@@ -10,8 +10,9 @@ from ..core import Table
 from ..utils import bbox_from_str
 from ..utils import compute_accuracy
 from ..utils import compute_whitespace
+from ..utils import get_image_and_text_objects
+from ..utils import get_page_layout
 from ..utils import get_table_index
-from ..utils import get_text_objects
 from ..utils import text_in_bbox
 
 
@@ -69,9 +70,10 @@ class BaseParser:
         self.layout = layout
         self.dimensions = dimensions
         self.page = page_idx
-        self.images = get_text_objects(self.layout, ltype="image")
-        self.horizontal_text = get_text_objects(self.layout, ltype="horizontal_text")
-        self.vertical_text = get_text_objects(self.layout, ltype="vertical_text")
+        self.layout, self.dimensions = get_page_layout(filename, **layout_kwargs)
+        self.images, self.horizontal_text, self.vertical_text = (
+            get_image_and_text_objects(self.layout)
+        )
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
 

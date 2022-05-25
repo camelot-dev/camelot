@@ -18,9 +18,9 @@ from .parsers import Network
 from .parsers import Stream
 from .utils import TemporaryDirectory
 from .utils import download_url
+from .utils import get_char_and_text_objects
 from .utils import get_page_layout
 from .utils import get_rotation
-from .utils import get_text_objects
 from .utils import is_url
 
 
@@ -156,9 +156,7 @@ class PDFHandler:
             outfile.write(f)
         layout, dimensions = get_page_layout(fpath, **layout_kwargs)
         # fix rotated PDF
-        chars = get_text_objects(layout, ltype="char")
-        horizontal_text = get_text_objects(layout, ltype="horizontal_text")
-        vertical_text = get_text_objects(layout, ltype="vertical_text")
+        chars, horizontal_text, vertical_text = get_char_and_text_objects(layout)
         rotation = get_rotation(chars, horizontal_text, vertical_text)
         if rotation != "":
             fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
