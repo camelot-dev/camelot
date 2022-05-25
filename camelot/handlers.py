@@ -117,7 +117,9 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _save_page(self, filepath: StrByteType | Path, page: int, temp: str):
+    def _save_page(
+        self, filepath: StrByteType | Path, page: int, temp: str, **layout_kwargs
+    ):
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
@@ -152,7 +154,7 @@ class PDFHandler:
         outfile.add_page(p)
         with open(fpath, "wb") as f:
             outfile.write(f)
-        layout, dim = get_page_layout(fpath)
+        layout, dimensions = get_page_layout(fpath, **layout_kwargs)
         # fix rotated PDF
         chars = get_text_objects(layout, ltype="char")
         horizontal_text = get_text_objects(layout, ltype="horizontal_text")
@@ -174,7 +176,11 @@ class PDFHandler:
             outfile.add_page(p)
             with open(fpath, "wb") as f:
                 outfile.write(f)
+            # Only recompute layout and dimension after rotating the pdf
+            layout, dimensions = get_page_layout(fpath, **layout_kwargs)
             instream.close()
+            return layout, dimensions
+        return layout, dimensions
 
     def parse(
         self,
@@ -264,9 +270,10 @@ class PDFHandler:
             List of tables found in PDF.
 
         """
-        self._save_page(self.filepath, page, tempdir)
+        layout, dimensions = self._save_page(
+            self.filepath, page, tempdir, **layout_kwargs
+        )
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
-        layout, dimensions = get_page_layout(page_path, **layout_kwargs)
         parser.prepare_page_parse(
             page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
         )
