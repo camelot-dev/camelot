@@ -392,9 +392,13 @@ class Lattice(BaseParser):
 
         # for plotting
         _text = []
+        _stext = []
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
+        _stext.extend([(t) for t in self.horizontal_text])
         _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
+        _stext.extend([(t) for t in self.vertical_text])
         table._text = _text
+        table._stext = _stext
         table._image = (self.image, self.table_bbox_unscaled)
         table._segments = (self.vertical_segments, self.horizontal_segments)
         table._textedges = None
