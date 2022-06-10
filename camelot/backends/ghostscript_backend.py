@@ -11,9 +11,7 @@ def installed_posix():
 
 
 def installed_windows():
-    library = find_library(
-        "".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))
-    )
+    library = ctypes.WinDLL('gsdll64')
     return library is not None
 
 
