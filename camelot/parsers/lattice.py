@@ -361,7 +361,7 @@ class Lattice(BaseParser):
                     flag_size=self.flag_size,
                     strip_text=self.strip_text,
                 )
-                if indices[:2] != (-1, -1):
+                if indices[0][:2] != (-1, -1):
                     pos_errors.append(error)
                     indices = Lattice._reduce_index(
                         table, indices, shift_text=self.shift_text
