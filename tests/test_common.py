@@ -10,7 +10,7 @@ from pandas.testing import assert_frame_equal
 import camelot
 from camelot.io import PDFHandler
 from camelot.core import Table, TableList
-from camelot.__version__ import generate_version
+from setup import cfg
 from camelot.backends import ImageConversionBackend
 
 from .data import *
@@ -26,7 +26,7 @@ skip_on_windows = pytest.mark.skipif(
 
 def test_version_generation():
     version = (0, 7, 3)
-    assert generate_version(version, prerelease=None, revision=None) == "0.7.3"
+    assert cfg.generate_version(cfg.__version__, prerelease=None, revision=None) == "0.7.3"
 
 
 def test_version_generation_with_prerelease_revision():
@@ -34,7 +34,7 @@ def test_version_generation_with_prerelease_revision():
     prerelease = "alpha"
     revision = 2
     assert (
-        generate_version(version, prerelease=prerelease, revision=revision)
+        cfg.generate_version(cfg.__version__, prerelease=prerelease, revision=revision)
         == "0.7.3-alpha.2"
     )
 

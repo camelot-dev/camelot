@@ -2,7 +2,7 @@
 
 import logging
 
-from .__version__ import __version__
+from setup import cfg
 from .io import read_pdf
 from .plotting import PlotMethods
 
