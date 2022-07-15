@@ -11,7 +11,8 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from . import __version__, read_pdf, plot
+from . import  read_pdf, plot
+from setup import cfg
 
 
 logger = logging.getLogger("camelot")
@@ -30,7 +31,7 @@ pass_config = click.make_pass_decorator(Config)
 
 
 @click.group(name="camelot")
-@click.version_option(version=__version__)
+@click.version_option(version=cfg.__version__)
 @click.option("-q", "--quiet", is_flag=False, help="Suppress logs and warnings.")
 @click.option(
     "-p",

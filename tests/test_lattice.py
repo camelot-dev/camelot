@@ -9,7 +9,7 @@ from pandas.testing import assert_frame_equal
 
 import camelot
 from camelot.core import Table, TableList
-from camelot.__version__ import generate_version
+from setup import cfg
 
 from .data import *
 
