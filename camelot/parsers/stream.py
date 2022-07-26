@@ -132,6 +132,7 @@ class Stream(BaseParser):
                     temp = []
                     row_y = t.y0
                 temp.append(t)
+                row_y = t.y0
 
         rows.append(sorted(temp, key=lambda t: t.x0))
         if len(rows) > 1:
@@ -395,6 +396,8 @@ class Stream(BaseParser):
         table = Table(cols, rows)
         table = table.set_all_edges()
 
+        cells_tmp = [[None for c in cols] for r in rows]
+
         pos_errors = []
         # TODO: have a single list in place of two directional ones?
         # sorted on x-coordinate based on reading order i.e. LTR or RTL
@@ -411,7 +414,17 @@ class Stream(BaseParser):
                 if indices[:2] != (-1, -1):
                     pos_errors.append(error)
                     for r_idx, c_idx, text in indices:
+                        text = text.strip('\n')
+                        text = text.strip(' ')
+                        if cells_tmp[r_idx][c_idx]:
+                            if cells_tmp[r_idx][c_idx] != int(t.y0):
+                                text = f"\n{text}"
+                            else:
+                                text = f" {text}"
+
                         table.cells[r_idx][c_idx].text = text
+                        cells_tmp[r_idx][c_idx] = int(t.y0)
+
         accuracy = compute_accuracy([[100, pos_errors]])
 
         data = table.data

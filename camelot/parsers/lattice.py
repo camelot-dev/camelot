@@ -354,6 +354,8 @@ class Lattice(BaseParser):
         # set spanning cells to True
         table = table.set_span()
 
+        cells_tmp = [[None for c in cols] for r in rows]
+
         pos_errors = []
         # TODO: have a single list in place of two directional ones?
         # sorted on x-coordinate based on reading order i.e. LTR or RTL
@@ -373,6 +375,14 @@ class Lattice(BaseParser):
                         table, indices, shift_text=self.shift_text
                     )
                     for r_idx, c_idx, text in indices:
+                        text = text.strip('\n')
+                        text = text.strip(' ')
+                        if cells_tmp[r_idx][c_idx]:
+                            if cells_tmp[r_idx][c_idx] != int(t.y0):
+                                text = f"\n{text}"
+                            else:
+                                text = f" {text}"
+
                         table.cells[r_idx][c_idx].text = text
         accuracy = compute_accuracy([[100, pos_errors]])
 
