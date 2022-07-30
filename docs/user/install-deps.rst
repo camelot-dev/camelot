@@ -25,6 +25,25 @@ Windows
 
 For Ghostscript, you can get the installer at their `downloads page <https://www.ghostscript.com/download/gsdnld.html>`_. And for Tkinter, you can download the `ActiveTcl Community Edition <https://www.activestate.com/activetcl/downloads>`_ from ActiveState.
 
+
+With [cv] option
+^^^^^^^^^^^^^^^^
+
+For installing with
+::
+    $ pip install "camelot-py[cv]"
+
+you will have add libGL to the dependencies
+
+::
+
+    $ apt install ghostscript python3-tk libgl1
+
+This will fix the error that ``cv2 could not be imported``.
+
+
+
+
 Checks to see if dependencies are installed correctly
 -----------------------------------------------------
 
