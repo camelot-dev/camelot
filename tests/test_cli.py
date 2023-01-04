@@ -95,7 +95,7 @@ def test_cli_password():
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
 
-        output_error = "file has not been decrypted"
+        output_error = "File has not been decrypted"
         # no password
         result = runner.invoke(
             cli, ["--format", "csv", "--output", outfile, "stream", infile]
@@ -183,7 +183,7 @@ def test_cli_quiet():
         result = runner.invoke(
             cli, ["--format", "csv", "--output", outfile, "stream", infile]
         )
-        assert "No tables found on page-1" in result.output
+        assert "Found 0 tables" in result.output
 
         result = runner.invoke(
             cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
