@@ -339,7 +339,7 @@ class Table:
         self.cols = cols
         self.rows = rows
         self.cells = [[Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows]
-        self.df = None
+        self.df = pd.DataFrame()
         self.shape = (0, 0)
         self.accuracy = 0
         self.whitespace = 0
