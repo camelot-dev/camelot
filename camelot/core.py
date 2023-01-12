@@ -69,7 +69,7 @@ class TextEdge(object):
             self.intersections += 1
             # a textedge is valid only if it extends uninterrupted
             # over a required number of textlines
-            if self.intersections > TEXTEDGE_REQUIRED_ELEMENTS:
+            if self.intersections >= TEXTEDGE_REQUIRED_ELEMENTS:
                 self.is_valid = True
 
 
