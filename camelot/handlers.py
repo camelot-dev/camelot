@@ -74,7 +74,7 @@ class PDFHandler(object):
             with open(self.filepath, "rb") as f:
                 infile = PdfReader(f, strict=False)
 
-                if infile.isEncrypted:
+                if infile.is_encrypted:
                     infile.decrypt(self.password)
 
                 if pages == "all":
@@ -109,7 +109,7 @@ class PDFHandler(object):
         """
         with open(filepath, "rb") as fileobj:
             infile = PdfReader(fileobj, strict=False)
-            if infile.isEncrypted:
+            if infile.is_encrypted:
                 infile.decrypt(self.password)
             fpath = os.path.join(temp, f"page-{page}.pdf")
             froot, fext = os.path.splitext(fpath)
@@ -129,7 +129,7 @@ class PDFHandler(object):
                 os.rename(fpath, fpath_new)
                 instream = open(fpath_new, "rb")
                 infile = PdfReader(instream, strict=False)
-                if infile.isEncrypted:
+                if infile.is_encrypted:
                     infile.decrypt(self.password)
                 outfile = PdfFileWriter()
                 p = infile.getPage(0)
