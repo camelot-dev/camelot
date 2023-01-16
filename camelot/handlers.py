@@ -115,7 +115,7 @@ class PDFHandler(object):
             froot, fext = os.path.splitext(fpath)
             p = infile.pages[page - 1]
             outfile = PdfWriter()
-            outfile.addPage(p)
+            outfile.add_page(p)
             with open(fpath, "wb") as f:
                 outfile.write(f)
             layout, dim = get_page_layout(fpath)
@@ -137,7 +137,7 @@ class PDFHandler(object):
                     p.rotateClockwise(90)
                 elif rotation == "clockwise":
                     p.rotateCounterClockwise(90)
-                outfile.addPage(p)
+                outfile.add_page(p)
                 with open(fpath, "wb") as f:
                     outfile.write(f)
                 instream.close()
