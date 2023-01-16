@@ -3,7 +3,7 @@
 import os
 import sys
 
-from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfReader, PdfFileWriter
 
 from .core import TableList
 from .parsers import Stream, Lattice
@@ -72,7 +72,7 @@ class PDFHandler(object):
             page_numbers.append({"start": 1, "end": 1})
         else:
             with open(self.filepath, "rb") as f:
-                infile = PdfFileReader(f, strict=False)
+                infile = PdfReader(f, strict=False)
 
                 if infile.isEncrypted:
                     infile.decrypt(self.password)
@@ -108,7 +108,7 @@ class PDFHandler(object):
 
         """
         with open(filepath, "rb") as fileobj:
-            infile = PdfFileReader(fileobj, strict=False)
+            infile = PdfReader(fileobj, strict=False)
             if infile.isEncrypted:
                 infile.decrypt(self.password)
             fpath = os.path.join(temp, f"page-{page}.pdf")
@@ -128,7 +128,7 @@ class PDFHandler(object):
                 fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
                 os.rename(fpath, fpath_new)
                 instream = open(fpath_new, "rb")
-                infile = PdfFileReader(instream, strict=False)
+                infile = PdfReader(instream, strict=False)
                 if infile.isEncrypted:
                     infile.decrypt(self.password)
                 outfile = PdfFileWriter()
