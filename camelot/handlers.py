@@ -113,7 +113,7 @@ class PDFHandler(object):
                 infile.decrypt(self.password)
             fpath = os.path.join(temp, f"page-{page}.pdf")
             froot, fext = os.path.splitext(fpath)
-            p = infile.getPage(page - 1)
+            p = infile.pages[page - 1]
             outfile = PdfFileWriter()
             outfile.addPage(p)
             with open(fpath, "wb") as f:
