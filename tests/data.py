@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+# noqa
 
 data_stream = [
     ["States-A", "Revenue", "", "Capital", "", "Total", "Others(1)", "Total"],
