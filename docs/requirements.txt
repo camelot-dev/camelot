@@ -1,0 +1,7 @@
+furo==2022.4.7
+sphinx==4.5.0
+sphinx-click==4.1.0
+myst_parser==0.17.2
+ghostscript==0.7
+opencv-python==4.7.0.68
+matplotlib==3.6.3

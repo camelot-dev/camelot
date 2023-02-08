@@ -1,0 +1,6 @@
+lockfile<0.13.0,>=0.12.2
+pip==23.0
+nox==2022.11.21
+nox-poetry==1.0.2
+poetry>=1.2.0
+virtualenv==20.19.0
