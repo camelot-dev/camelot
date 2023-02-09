@@ -1,15 +1,17 @@
-# -*- coding: utf-8 -*-
-
-import os
 import logging
+import os
 import warnings
 
 import numpy as np
 import pandas as pd
 
+from ..core import Table
+from ..core import TextEdges
+from ..utils import compute_accuracy
+from ..utils import compute_whitespace
+from ..utils import get_table_index
+from ..utils import text_in_bbox
 from .base import BaseParser
-from ..core import TextEdges, Table
-from ..utils import text_in_bbox, get_table_index, compute_accuracy, compute_whitespace
 
 
 logger = logging.getLogger("camelot")

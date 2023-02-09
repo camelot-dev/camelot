@@ -8,6 +8,7 @@ from textwrap import dedent
 
 import nox
 
+
 try:
     from nox_poetry import Session
     from nox_poetry import session
@@ -94,8 +95,8 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
         text = hook.read_text()
 
         if not any(
-                Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
-                for bindir in bindirs
+            Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
+            for bindir in bindirs
         ):
             continue
 
@@ -119,7 +120,6 @@ def precommit(session: Session) -> None:
     ]
     session.install(
         "black",
-        "darglint",
         "flake8",
         "flake8-bandit",
         "flake8-bugbear",
@@ -221,7 +221,9 @@ def docs_build(session: Session) -> None:
         args.insert(0, "--color")
 
     session.install(".")
-    session.install("sphinx", "sphinx-click", "furo", "myst-parser", *base_requires, *plot_requires)
+    session.install(
+        "sphinx", "sphinx-click", "furo", "myst-parser", *base_requires, *plot_requires
+    )
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():

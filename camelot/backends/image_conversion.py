@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
-
-from .poppler_backend import PopplerBackend
 from .ghostscript_backend import GhostscriptBackend
+from .poppler_backend import PopplerBackend
+
 
 BACKENDS = {"poppler": PopplerBackend, "ghostscript": GhostscriptBackend}
 
 
-class ImageConversionBackend(object):
+class ImageConversionBackend:
     def __init__(self, backend="poppler", use_fallback=True):
         if backend not in BACKENDS.keys():
             raise ValueError(f"Image conversion backend '{backend}' not supported")

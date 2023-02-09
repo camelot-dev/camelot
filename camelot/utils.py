@@ -1,35 +1,33 @@
-# -*- coding: utf-8 -*-
-
 import os
-import re
 import random
+import re
 import shutil
 import string
 import tempfile
 import warnings
 from itertools import groupby
 from operator import itemgetter
+from urllib.parse import urlparse as parse_url
+from urllib.parse import uses_netloc
+from urllib.parse import uses_params
+from urllib.parse import uses_relative
+from urllib.request import Request
+from urllib.request import urlopen
 
 import numpy as np
-from pdfminer.pdfparser import PDFParser
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LAParams
+from pdfminer.layout import LTAnno
+from pdfminer.layout import LTChar
+from pdfminer.layout import LTImage
+from pdfminer.layout import LTTextLineHorizontal
+from pdfminer.layout import LTTextLineVertical
 from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFPageInterpreter
+from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import (
-    LAParams,
-    LTAnno,
-    LTChar,
-    LTTextLineHorizontal,
-    LTTextLineVertical,
-    LTImage,
-)
-
-from urllib.request import Request, urlopen
-from urllib.parse import urlparse as parse_url
-from urllib.parse import uses_relative, uses_netloc, uses_params
+from pdfminer.pdfparser import PDFParser
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -135,7 +133,7 @@ def remove_extra(kwargs, flavor="lattice"):
 
 
 # https://stackoverflow.com/a/22726782
-class TemporaryDirectory(object):
+class TemporaryDirectory:
     def __enter__(self):
         self.name = tempfile.mkdtemp()
         return self.name
@@ -501,7 +499,7 @@ def text_strip(text, strip=""):
         return text
 
     stripped = re.sub(
-        fr"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
+        rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
     )
     return stripped
 

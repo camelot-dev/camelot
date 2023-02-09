@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sqlite3
-import zipfile
 import tempfile
+import zipfile
 from itertools import chain
 from operator import itemgetter
 
@@ -18,7 +16,7 @@ TEXTEDGE_REQUIRED_ELEMENTS = 4
 TABLE_AREA_PADDING = 10
 
 
-class TextEdge(object):
+class TextEdge:
     """Defines a text edge coordinates relative to a left-bottom
     origin. (PDF coordinate space)
 
@@ -73,7 +71,7 @@ class TextEdge(object):
                 self.is_valid = True
 
 
-class TextEdges(object):
+class TextEdges:
     """Defines a dict of left, right and middle text edges found on
     the PDF page. The dict has three keys based on the alignments,
     and each key's value is a list of camelot.core.TextEdge objects.
@@ -228,7 +226,7 @@ class TextEdges(object):
         return table_areas_padded
 
 
-class Cell(object):
+class Cell:
     """Defines a cell in a table with coordinates relative to a
     left-bottom origin. (PDF coordinate space)
 
@@ -308,7 +306,7 @@ class Cell(object):
         return self.top + self.bottom + self.left + self.right
 
 
-class Table(object):
+class Table:
     """Defines a table with coordinates relative to a left-bottom
     origin. (PDF coordinate space)
 
@@ -665,7 +663,7 @@ class Table(object):
         conn.close()
 
 
-class TableList(object):
+class TableList:
     """Defines a list of camelot.core.Table objects. Each table can
     be accessed using its index.
 

@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import shutil
 import subprocess
 
 
-class PopplerBackend(object):
+class PopplerBackend:
     def convert(self, pdf_path, png_path):
         pdftopng_executable = shutil.which("pdftopng")
         if pdftopng_executable is None:
