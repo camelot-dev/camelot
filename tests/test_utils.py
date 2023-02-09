@@ -1,35 +1,23 @@
 "Test to check intersection logic when no intersection area returned"
 import os
-import sys
 
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import (
     LAParams,
-    LTAnno,
-    LTChar,
-    LTTextLineHorizontal,
-    LTTextLineVertical,
-    LTImage,
     LTTextBoxHorizontal
 )
-
-testdir = os.path.dirname(os.path.abspath(__file__))
-testdir = os.path.join(testdir, "files")
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.pdfpage import PDFPage
 
 from camelot.utils import bbox_intersection_area
 
+
 def get_text_from_pdf(filename):
     "Method to extract text object from pdf"
-    #https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
-    #https://pdfminer-docs.readthedocs.io/programming.html#performing-layout-analysis
+    # https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
+    # https://pdfminer-docs.readthedocs.io/programming.html#performing-layout-analysis
     document = open(filename, 'rb')
-    #Create resource manager
+    # Create resource manager
     rsrcmgr = PDFResourceManager()
     # Set parameters for analysis.
     laparams = LAParams()
@@ -44,7 +32,8 @@ def get_text_from_pdf(filename):
             if isinstance(element, LTTextBoxHorizontal):
                 return element
 
-def test_bbox_intersection_text():
+
+def test_bbox_intersection_text(testdir):
     """
     Test to check area of intersection between both boxes when no intersection area returned
     """
