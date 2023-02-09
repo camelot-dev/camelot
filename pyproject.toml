@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "camelot-fork"
-version = "0.20.0"
+version = "0.20.1"
 description = "Camelot Fork"
 authors = ["Jelmer Draaijer <info@jelmert.nl>"]
 license = "MIT"
