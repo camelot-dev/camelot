@@ -20,7 +20,7 @@ requires = [
     "openpyxl>=2.5.8",
     "pandas>=0.23.4",
     "pdfminer.six>=20200726",
-    "PyPDF2>=1.26.0",
+    "pypdf>=3.0.0",
     "tabulate>=0.8.9",
 ]
 
@@ -60,7 +60,7 @@ def setup_package():
         extras_require={
             "all": all_requires,
             "base": base_requires,
-            "cv": base_requires,  # deprecate in v0.12.0
+            "cv": base_requires,  # deprecate
             "dev": dev_requires,
             "plot": plot_requires,
         },

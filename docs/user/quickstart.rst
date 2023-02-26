@@ -116,7 +116,7 @@ To extract tables from encrypted PDF files you must provide a password when call
 
         $ camelot --password userpass lattice foo.pdf
 
-Currently Camelot only supports PDFs encrypted with ASCII passwords and algorithm `code 1 or 2`_. An exception is thrown if the PDF cannot be read. This may be due to no password being provided, an incorrect password, or an unsupported encryption algorithm.
+Camelot supports PDFs with all encryption types supported by `pypdf`_. This might require installing PyCryptodome. An exception is thrown if the PDF cannot be read. This may be due to no password being provided, an incorrect password, or an unsupported encryption algorithm.
 
 Further encryption support may be added in future, however in the meantime if your PDF files are using unsupported encryption algorithms you are advised to remove encryption before calling :meth:`read_pdf() <camelot.read_pdf>`. This can been successfully achieved with third-party tools such as `QPDF`_.
 
@@ -124,7 +124,7 @@ Further encryption support may be added in future, however in the meantime if yo
 
     $ qpdf --password=<PASSWORD> --decrypt input.pdf output.pdf
 
-.. _code 1 or 2: https://github.com/mstamy2/PyPDF2/issues/378
+.. _pypdf: https://pypdf.readthedocs.io/en/latest/user/pdf-version-support.html
 .. _QPDF: https://www.github.com/qpdf/qpdf
 
 ----

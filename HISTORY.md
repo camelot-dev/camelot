@@ -4,9 +4,23 @@ Release History
 master
 ------
 
+0.11.0 (2023-02-26)
+------------------
+
+- Replace `PdfFileReader` with `PdfReader` and pin PyPDF to `>=3.0.0`. [#307](https://github.com/camelot-dev/camelot/pull/307) by [Martin Thoma](https://github.com/MartinThoma).
+
+
+0.10.1 (2021-07-11)
+------------------
+
+- Change extra requirements from `cv` to `base`. You can use `pip install "camelot-py[base]"` to install everything required to run camelot.
+
+0.10.0 (2021-07-11)
+------------------
+
 **Improvements**
 
-- Add pdftopng for image conversion and use ghostscript as fallback. [#198](https://github.com/camelot-dev/camelot/pull/198) by Vinayak Mehta.
+- Add support for multiple image conversion backends. [#198](https://github.com/camelot-dev/camelot/pull/198) and [#253](https://github.com/camelot-dev/camelot/pull/253) by Vinayak Mehta.
 - Add markdown export format. [#222](https://github.com/camelot-dev/camelot/pull/222/) by [Lucas Cimon](https://github.com/Lucas-C).
 
 **Documentation**
