@@ -14,7 +14,7 @@ pip
 
 To install Camelot from PyPI using ``pip``, please include the extra ``cv`` requirement as shown::
 
-    $ pip install "camelot-py[cv]"
+    $ pip install "camelot-py[base]"
 
 conda
 -----
@@ -37,4 +37,4 @@ After :ref:`installing the dependencies <install_deps>`, you can install Camelot
 ::
 
     $ cd camelot
-    $ pip install ".[cv]"
+    $ pip install ".[base]"

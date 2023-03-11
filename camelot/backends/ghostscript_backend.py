@@ -29,8 +29,8 @@ class GhostscriptBackend(object):
     def convert(self, pdf_path, png_path, resolution=300):
         if not self.installed():
             raise OSError(
-                "Ghostscript is not installed. Please install it using the instructions"
-                "here: https://camelot-py.readthedocs.io/en/master/user/install-deps.html"
+                "Ghostscript is not installed. You can install it using the instructions"
+                " here: https://camelot-py.readthedocs.io/en/master/user/install-deps.html"
             )
 
         import ghostscript
