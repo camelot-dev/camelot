@@ -870,6 +870,55 @@ def get_page_layout(
         Dimension of pdf page in the form (width, height).
 
     """
+    layouts, dims = get_multi_page_layouts(
+        filename=filename,
+        line_overlap=line_overlap,
+        char_margin=char_margin,
+        line_margin=line_margin,
+        word_margin=word_margin,
+        boxes_flow=boxes_flow,
+        detect_vertical=detect_vertical,
+        all_texts=all_texts,
+    )
+    
+    # There is at least one page contained in the pdf
+    return layouts[0], dims[0]
+
+
+def get_multi_page_layouts(
+    filename,
+    line_overlap=0.5,
+    char_margin=1.0,
+    line_margin=0.5,
+    word_margin=0.1,
+    boxes_flow=0.5,
+    detect_vertical=True,
+    all_texts=True,
+):
+    """Returns PDFMiner LTPage objects and page dimensions of each 
+    page of a multiple page pdf. To get the definitions of kwargs, see
+    https://pdfminersix.rtfd.io/en/latest/reference/composable.html.
+
+    Parameters
+    ----------
+    filename : string
+        Path to pdf file.
+    line_overlap : float
+    char_margin : float
+    line_margin : float
+    word_margin : float
+    boxes_flow : float
+    detect_vertical : bool
+    all_texts : bool
+
+    Returns
+    -------
+    layout : List[object]
+        PDFMiner LTPage objects.
+    dim : List[tuple]
+        Dimensions of each page in the form (width, height).
+    """
+    layouts, dims = [], []
     with open(filename, "rb") as f:
         parser = PDFParser(f)
         document = PDFDocument(parser)
@@ -895,7 +944,11 @@ def get_page_layout(
             width = layout.bbox[2]
             height = layout.bbox[3]
             dim = (width, height)
-        return layout, dim
+            
+            layouts.append(layout)
+            dims.append(dim)
+            
+        return layouts, dims
 
 
 def get_text_objects(layout, ltype="char", t=None):
