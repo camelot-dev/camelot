@@ -12,7 +12,7 @@ After :ref:`installing the dependencies <install_deps>`, which include `Ghostscr
 pip
 ---
 
-To install Camelot from PyPI using ``pip``, please include the extra ``cv`` requirement as shown::
+To install Camelot from PyPI using ``pip``::
 
     $ pip install "camelot-py[base]"
 
