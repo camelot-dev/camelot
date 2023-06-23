@@ -7,12 +7,14 @@ from typing import Type
 
 from .base import ConversionBackend
 from .ghostscript_backend import GhostscriptBackend
+from .pdfium_backend import PdfiumBackend
 from .poppler_backend import PopplerBackend
 
 
 BACKENDS: Dict[str, Type[ConversionBackend]] = {
-    "poppler": PopplerBackend,
+    "pdfium": PdfiumBackend,
     "ghostscript": GhostscriptBackend,
+    "poppler": PopplerBackend,
 }
 
 
@@ -23,13 +25,13 @@ class ImageConversionError(ValueError):  # noqa D101
 class ImageConversionBackend:
     """Classes the ImageConversionBackend backend."""
 
-    def __init__(self, backend: Any = "poppler", use_fallback: bool = True) -> None:
+    def __init__(self, backend: Any = "pdfium", use_fallback: bool = True) -> None:
         """Initialize the conversion backend .
 
         Parameters
         ----------
-        backend : str, optional
-            Backend for image conversion, by default "poppler"
+        backend : Any, optional
+            Backend for image conversion, by default "pdfium"
         use_fallback : bool, optional
             Fallback to another backend if unavailable, by default True
 
