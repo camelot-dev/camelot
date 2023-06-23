@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+
+try:
+    import pypdfium2 as pdfium
+except Exception:
+    pdfium = None
+
+class PdfiumBackend(object):
+    def convert(self, pdf_path, png_path, resolution=300):
+        if not pdfium:
+            raise OSError("pypdfium2 is not installed.")
+        doc = pdfium.PdfDocument(pdf_path)
+        assert len(doc) == 1
+        image = doc[0].render(scale=resolution/72).to_pil()
+        image.save(png_path)

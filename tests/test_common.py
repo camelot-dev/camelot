@@ -59,6 +59,14 @@ def test_password():
     assert_frame_equal(df, tables[0].df)
 
 
+def test_repr_pdfium():
+    filename = os.path.join(testdir, "foo.pdf")
+    tables = camelot.read_pdf(filename, backend="pdfium")
+    assert repr(tables) == "<TableList n=1>"
+    assert repr(tables[0]) == "<Table shape=(7, 7)>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=121 y1=218 x2=165 y2=234>"
+
+
 def test_repr_poppler():
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend="poppler")
@@ -76,6 +84,14 @@ def test_repr_ghostscript():
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
 
+def test_url_pdfium():
+    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    tables = camelot.read_pdf(url, backend="pdfium")
+    assert repr(tables) == "<TableList n=1>"
+    assert repr(tables[0]) == "<Table shape=(7, 7)>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=121 y1=218 x2=165 y2=234>"
+
+
 def test_url_poppler():
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="poppler")
@@ -91,6 +107,24 @@ def test_url_ghostscript():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
+
+
+def test_pages_pdfium():
+    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    tables = camelot.read_pdf(url, backend="pdfium")
+    assert repr(tables) == "<TableList n=1>"
+    assert repr(tables[0]) == "<Table shape=(7, 7)>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=121 y1=218 x2=165 y2=234>"
+
+    tables = camelot.read_pdf(url, pages="1-end", backend="pdfium")
+    assert repr(tables) == "<TableList n=1>"
+    assert repr(tables[0]) == "<Table shape=(7, 7)>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=121 y1=218 x2=165 y2=234>"
+
+    tables = camelot.read_pdf(url, pages="all", backend="pdfium")
+    assert repr(tables) == "<TableList n=1>"
+    assert repr(tables[0]) == "<Table shape=(7, 7)>"
+    assert repr(tables[0].cells[0][0]) == "<Cell x1=121 y1=218 x2=165 y2=234>"
 
 
 def test_pages_poppler():
