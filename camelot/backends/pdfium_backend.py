@@ -11,5 +11,6 @@ class PdfiumBackend(object):
             raise OSError("pypdfium2 is not installed.")
         doc = pdfium.PdfDocument(pdf_path)
         assert len(doc) == 1
+        doc.init_forms()
         image = doc[0].render(scale=resolution/72).to_pil()
         image.save(png_path)
