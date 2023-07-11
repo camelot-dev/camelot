@@ -603,14 +603,11 @@ class Table:
             Output filepath.
 
         """
-        kw = {
-            "sheet_name": f"page-{self.page}-table-{self.order}",
-            "encoding": "utf-8",
-        }
+        kw = {"encoding": "utf-8"}
+        sheet_name = f"page-{self.page}-table-{self.order}"
         kw.update(kwargs)
         writer = pd.ExcelWriter(path)
-        self.df.to_excel(writer, **kw)
-        writer.save()
+        self.df.to_excel(writer, sheet_name=sheet_name, **kw)
 
     def to_html(self, path, **kwargs):
         """Writes Table to an HTML file.
