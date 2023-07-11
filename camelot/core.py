@@ -686,8 +686,11 @@ class TableList:
     def __getitem__(self, idx) -> Table:
         return self._tables[idx]
 
-    def __iter__(self):
-        yield from self._tables
+    def __iter__(self) -> Iterator[Table]:
+        return iter(self._tables)
+
+    def __next__(self) -> Table:
+        return next(self)
 
     @staticmethod
     def _format_func(table, f):
