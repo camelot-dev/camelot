@@ -4,6 +4,12 @@ Release History
 master
 ------
 
+0.11.0 (2023-02-26)
+------------------
+
+- Replace `PdfFileReader` with `PdfReader` and pin PyPDF to `>=3.0.0`. [#307](https://github.com/camelot-dev/camelot/pull/307) by [Martin Thoma](https://github.com/MartinThoma).
+
+
 0.10.1 (2021-07-11)
 ------------------
 

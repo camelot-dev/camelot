@@ -5,7 +5,7 @@ import io
 import os
 import sys
 
-from PyPDF2 import PdfFileReader, PdfFileWriter
+from pypdf import PdfReader, PdfWriter
 
 from .core import TableList
 from .parsers import Stream, Lattice
@@ -111,19 +111,19 @@ class PDFHandler(object):
             page_numbers.append({"start": 1, "end": 1})
         else:
             with self.managed_file_context() as f:
-                infile = PdfFileReader(f, strict=False)
+                infile = PdfReader(f, strict=False)
 
-                if infile.isEncrypted:
+                if infile.is_encrypted:
                     infile.decrypt(self.password)
 
                 if pages == "all":
-                    page_numbers.append({"start": 1, "end": infile.getNumPages()})
+                    page_numbers.append({"start": 1, "end": len(infile.pages)})
                 else:
                     for r in pages.split(","):
                         if "-" in r:
                             a, b = r.split("-")
                             if b == "end":
-                                b = infile.getNumPages()
+                                b = len(infile.pages)
                             page_numbers.append({"start": int(a), "end": int(b)})
                         else:
                             page_numbers.append({"start": int(r), "end": int(r)})
@@ -147,14 +147,14 @@ class PDFHandler(object):
 
         """
         with self.managed_file_context() as fileobj:
-            infile = PdfFileReader(fileobj, strict=False)
-            if infile.isEncrypted:
+            infile = PdfReader(fileobj, strict=False)
+            if infile.is_encrypted:
                 infile.decrypt(self.password)
             fpath = os.path.join(temp, f"page-{page}.pdf")
             froot, fext = os.path.splitext(fpath)
-            p = infile.getPage(page - 1)
-            outfile = PdfFileWriter()
-            outfile.addPage(p)
+            p = infile.pages[page - 1]
+            outfile = PdfWriter()
+            outfile.add_page(p)
             with open(fpath, "wb") as f:
                 outfile.write(f)
             layout, dim = get_page_layout(fpath)
@@ -167,16 +167,16 @@ class PDFHandler(object):
                 fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
                 os.rename(fpath, fpath_new)
                 instream = open(fpath_new, "rb")
-                infile = PdfFileReader(instream, strict=False)
-                if infile.isEncrypted:
+                infile = PdfReader(instream, strict=False)
+                if infile.is_encrypted:
                     infile.decrypt(self.password)
-                outfile = PdfFileWriter()
-                p = infile.getPage(0)
+                outfile = PdfWriter()
+                p = infile.pages[0]
                 if rotation == "anticlockwise":
-                    p.rotateClockwise(90)
+                    p.rotate(90)
                 elif rotation == "clockwise":
-                    p.rotateCounterClockwise(90)
-                outfile.addPage(p)
+                    p.rotate(-90)
+                outfile.add_page(p)
                 with open(fpath, "wb") as f:
                     outfile.write(f)
                 instream.close()

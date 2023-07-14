@@ -18,7 +18,7 @@ The following quote sums up the **Code Of Conduct**.
 
 Kenneth Reitz has also written an `essay`_ on this topic, which you should read.
 
-.. _essay: https://www.kennethreitz.org/essays/be-cordial-or-be-on-your-way
+.. _essay: https://www.kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way
 
 As the `Requests Code Of Conduct`_ states, **all contributions are welcome**, as long as everyone involved is treated with respect.
 
