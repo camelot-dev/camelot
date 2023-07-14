@@ -10,7 +10,7 @@ The following quote sums up the **Code Of Conduct**.
 
    > Be cordial or be on your way. --Kenneth Reitz
 
-Kenneth Reitz has also written an [essay](https://www.kennethreitz.org/essays/be-cordial-or-be-on-your-way) on this topic, which you should read.
+Kenneth Reitz has also written an [essay](https://www.kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way) on this topic, which you should read.
 
 As the [Requests Code Of Conduct](http://docs.python-requests.org/en/master/dev/contributing/#be-cordial) states, **all contributions are welcome**, as long as everyone involved is treated with respect.
 
