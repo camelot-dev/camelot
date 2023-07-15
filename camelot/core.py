@@ -748,8 +748,8 @@ class TableList(object):
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = f"page-{table.page}-table-{table.order}"
-                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
-            writer.save()
+                table.df.to_excel(writer, sheet_name=sheet_name)
+            writer.close()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"
                 with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:
