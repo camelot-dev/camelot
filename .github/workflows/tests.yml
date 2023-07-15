@@ -71,6 +71,7 @@ jobs:
       - name: Install ghostscript
         if: matrix.os == 'ubuntu-latest'
         run: |
+          sudo apt update
           sudo apt install ghostscript
 
       - name: Compute pre-commit cache key
