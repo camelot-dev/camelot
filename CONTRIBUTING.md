@@ -4,6 +4,8 @@ Thank you for your interest in improving this project.
 This project is open-source under the [MIT license] and
 welcomes contributions in the form of bug reports, feature requests, and pull requests.
 
+Kenneth Reitz has also written an [essay](https://www.kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way) on this topic, which you should read.
+
 Here is a list of important resources for contributors:
 
 - [Source Code]

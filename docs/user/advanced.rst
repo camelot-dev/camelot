@@ -178,7 +178,7 @@ Finally, let's plot all line intersections present on the table's PDF page.
 textedge
 ^^^^^^^^
 
-You can also visualize the textedges found on a page by specifying ``kind='textedge'``. To know more about what a "textedge" is, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <http://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
+You can also visualize the textedges found on a page by specifying ``kind='textedge'``. To know more about what a "textedge" is, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf>`_.
 
 ::
 
@@ -362,7 +362,7 @@ Improve guessed table areas
 
 While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs like `this one <https://github.com/camelot-dev/camelot/blob/master/tests/files/edge_tol.pdf>`_. That's because the text is relatively far apart vertically, which can lead to shorter textedges being calculated.
 
-.. note:: To know more about how textedges are calculated to guess table areas, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <http://dspace.cc.tut.fi/dpub/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
+.. note:: To know more about how textedges are calculated to guess table areas, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
 
 Let's see the table area that is detected by default.
 
