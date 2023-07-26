@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import io
 import os
 import sys
 
@@ -172,3 +173,20 @@ def test_handler_pages_generator():
 
     handler = PDFHandler(filename)
     assert handler._get_pages("1,2,5-10") == [1, 2, 5, 6, 7, 8, 9, 10]
+
+
+def test_from_open():
+    filename = os.path.join(testdir, "foo.pdf")
+    with open(filename, "rb") as file_bytes:
+        tables = camelot.read_pdf(file_bytes=file_bytes)
+        assert repr(tables) == "<TableList n=1>"
+        assert repr(tables[0]) == "<Table shape=(7, 7)>"
+
+def test_from_bytes():
+    filename = os.path.join(testdir, "foo.pdf")
+    file_bytes = io.BytesIO()
+    with open(filename, "rb") as f:
+        file_bytes.write(f.read())  # note that we didn't seek, done by PDFHandler
+    tables = camelot.read_pdf(file_bytes=file_bytes)
+    assert repr(tables) == "<TableList n=1>"
+    assert repr(tables[0]) == "<Table shape=(7, 7)>"
