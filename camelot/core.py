@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+import cv_Oracle
 import zipfile
 import tempfile
 from itertools import chain
@@ -659,6 +660,25 @@ class Table(object):
         kw = {"if_exists": "replace", "index": False}
         kw.update(kwargs)
         conn = sqlite3.connect(path)
+        table_name = f"page-{self.page}-table-{self.order}"
+        self.df.to_sql(table_name, conn, **kw)
+        conn.commit()
+        conn.close()
+
+    def to_oracle(self, path, **kwargs):
+        """Writes Table to oracle database.
+
+        For kwargs, check :meth:`pandas.DataFrame.to_sql`.
+
+        Parameters
+        ----------
+        path : str
+            Output filepath.
+
+        """
+        kw = {"if_exists": "replace", "index": False}
+        kw.update(kwargs)
+        conn = cx_Oracle.connect(path)
         table_name = f"page-{self.page}-table-{self.order}"
         self.df.to_sql(table_name, conn, **kw)
         conn.commit()
