@@ -142,6 +142,20 @@ def test_lattice_no_convert_method():
         tables = camelot.read_pdf(filename, backend=ConversionBackend())
 
 
+def test_bad_password():
+    filename = os.path.join(testdir, "health_protected.pdf")
+    message = "file has not been decrypted"
+    with pytest.raises(Exception, match=message):
+        tables = camelot.read_pdf(filename, password="wrongpass")
+
+
+def test_content_type():
+    url="https://camelot-py.readthedocs.io/en/master/_static/csv/foo.csv"
+    message = "File format not supported"
+    with pytest.raises(NotImplementedError, match=message):
+        tables = camelot.read_pdf(url)
+
+
 def test_lattice_ghostscript_deprecation_warning():
     ghostscript_deprecation_warning = (
         "'ghostscript' will be replaced by 'poppler' as the default image conversion"
