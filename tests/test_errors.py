@@ -3,11 +3,11 @@
 import os
 import sys
 import warnings
+from camelot.utils import is_url
 
 import pytest
 
 import camelot
-
 
 testdir = os.path.dirname(os.path.abspath(__file__))
 testdir = os.path.join(testdir, "files")
@@ -140,6 +140,18 @@ def test_lattice_no_convert_method():
     message = "must implement a 'convert' method"
     with pytest.raises(NotImplementedError, match=message):
         tables = camelot.read_pdf(filename, backend=ConversionBackend())
+
+
+def test_bad_password():
+    filename = os.path.join(testdir, "health_protected.pdf")
+    message = "file has not been decrypted"
+    with pytest.raises(Exception, match=message):
+        tables = camelot.read_pdf(filename, password="wrongpass")
+
+
+def test_invalid_url():
+    url = "fttp://google.com/pdf"
+    assert is_url(url) is False
 
 
 def test_lattice_ghostscript_deprecation_warning():
