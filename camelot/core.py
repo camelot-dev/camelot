@@ -61,7 +61,7 @@ class TextEdge:
         """Updates the text edge's x and bottom y coordinates and sets
         the is_valid attribute.
         """
-        if math.isclose(self.y0, y0, atol=edge_tol):
+        if math.isclose(self.y0, y0, abs_tol=edge_tol):
             self.x = (self.intersections * self.x + x) / float(self.intersections + 1)
             self.y0 = y0
             self.intersections += 1
@@ -97,7 +97,7 @@ class TextEdges:
         the specified x coordinate and alignment.
         """
         for i, te in enumerate(self._textedges[align]):
-            if math.isclose(te.x, x_coord, atol=0.5):
+            if math.isclose(te.x, x_coord, abs_tol=0.5):
                 return i
         return None
 
