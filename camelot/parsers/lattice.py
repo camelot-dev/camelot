@@ -1,34 +1,28 @@
-# -*- coding: utf-8 -*-
-
-import os
-import sys
 import copy
 import locale
 import logging
+import os
+import sys
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from .base import BaseParser
-from ..core import Table
-from ..utils import (
-    scale_image,
-    scale_pdf,
-    segments_in_bbox,
-    text_in_bbox,
-    merge_close_lines,
-    get_table_index,
-    compute_accuracy,
-    compute_whitespace,
-)
-from ..image_processing import (
-    adaptive_threshold,
-    find_lines,
-    find_contours,
-    find_joints,
-)
 from ..backends.image_conversion import BACKENDS
+from ..core import Table
+from ..image_processing import adaptive_threshold
+from ..image_processing import find_contours
+from ..image_processing import find_joints
+from ..image_processing import find_lines
+from ..utils import compute_accuracy
+from ..utils import compute_whitespace
+from ..utils import get_table_index
+from ..utils import merge_close_lines
+from ..utils import scale_image
+from ..utils import scale_pdf
+from ..utils import segments_in_bbox
+from ..utils import text_in_bbox
+from .base import BaseParser
 
 
 logger = logging.getLogger("camelot")
@@ -344,7 +338,7 @@ class Lattice(BaseParser):
         v_s = kwargs.get("v_s")
         h_s = kwargs.get("h_s")
         if v_s is None or h_s is None:
-            raise ValueError("No segments found on {}".format(self.rootname))
+            raise ValueError(f"No segments found on {self.rootname}")
 
         table = Table(cols, rows)
         # set table edges to True using ver+hor lines
@@ -367,7 +361,7 @@ class Lattice(BaseParser):
                     flag_size=self.flag_size,
                     strip_text=self.strip_text,
                 )
-                if indices[:2] != (-1, -1):
+                if indices[0][:2] != (-1, -1):
                     pos_errors.append(error)
                     indices = Lattice._reduce_index(
                         table, indices, shift_text=self.shift_text
@@ -404,7 +398,7 @@ class Lattice(BaseParser):
     def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
         self._generate_layout(filename, layout_kwargs)
         if not suppress_stdout:
-            logger.info("Processing {}".format(os.path.basename(self.rootname)))
+            logger.info(f"Processing {os.path.basename(self.rootname)}")
 
         if not self.horizontal_text:
             if self.images:
@@ -413,9 +407,7 @@ class Lattice(BaseParser):
                     " text-based pages.".format(os.path.basename(self.rootname))
                 )
             else:
-                warnings.warn(
-                    "No tables found on {}".format(os.path.basename(self.rootname))
-                )
+                warnings.warn(f"No tables found on {os.path.basename(self.rootname)}")
             return []
 
         self.backend.convert(self.filename, self.imagename)

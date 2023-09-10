@@ -1,131 +1,117 @@
-# Contributor's Guide
+# Contributor Guide
 
-If you're reading this, you're probably looking to contributing to Camelot. *Time is the only real currency*, and the fact that you're considering spending some here is *very* generous of you. Thank you very much!
-
-This document will help you get started with contributing documentation, code, testing and filing issues. If you have any questions, feel free to reach out to [Vinayak Mehta](https://vinayak-mehta.github.io), the author and maintainer.
-
-## Code Of Conduct
-
-The following quote sums up the **Code Of Conduct**.
-
-   > Be cordial or be on your way. --Kenneth Reitz
+Thank you for your interest in improving this project.
+This project is open-source under the [MIT license] and
+welcomes contributions in the form of bug reports, feature requests, and pull requests.
 
 Kenneth Reitz has also written an [essay](https://www.kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way) on this topic, which you should read.
 
-As the [Requests Code Of Conduct](http://docs.python-requests.org/en/master/dev/contributing/#be-cordial) states, **all contributions are welcome**, as long as everyone involved is treated with respect.
+Here is a list of important resources for contributors:
 
-## Your first contribution
+- [Source Code]
+- [Documentation]
+- [Issue Tracker]
+- [Code of Conduct]
 
-A great way to start contributing to Camelot is to pick an issue tagged with the [help wanted](https://github.com/camelot-dev/camelot/labels/help%20wanted) tag or the [good first issue](https://github.com/camelot-dev/camelot/labels/good%20first%20issue) tag. If you're unable to find a good first issue, feel free to contact the maintainer.
+[mit license]: https://opensource.org/licenses/MIT
+[source code]: https://github.com/camelot-dev/camelot
+[documentation]: https://camelot-py.readthedocs.io/
+[issue tracker]: https://github.com/camelot-dev/camelot/issues
 
-## Setting up a development environment
+## How to report a bug
 
-To install the dependencies needed for development, you can use pip:
+Report bugs on the [Issue Tracker].
 
-<pre>
-$ pip install "camelot-py[dev]"
-</pre>
+When filing an issue, make sure to answer these questions:
 
-Alternatively, you can clone the project repository, and install using pip:
+- Which operating system and Python version are you using?
+- Which version of this project are you using?
+- What did you do?
+- What did you expect to see?
+- What did you see instead?
 
-<pre>
-$ pip install ".[dev]"
-</pre>
+The best way to get your bug fixed is to provide a test case,
+and/or steps to reproduce the issue.
 
-## Pull Requests
+## How to request a feature
 
-### Submit a pull request
+Request features on the [Issue Tracker].
 
-The preferred workflow for contributing to Camelot is to fork the [project repository](https://github.com/camelot-dev/camelot) on GitHub, clone, develop on a branch and then finally submit a pull request. Here are the steps:
+## How to set up your development environment
 
-1. Fork the project repository. Click on the ‘Fork’ button near the top of the page. This creates a copy of the code under your account on the GitHub.
+You need Python 3.7+ and the following tools:
 
-2. Clone your fork of Camelot from your GitHub account:
+- [Poetry]
+- [Nox]
+- [nox-poetry]
 
-<pre>
-$ git clone https://www.github.com/[username]/camelot
-</pre>
+Install the package with development requirements:
 
-3. Create a branch to hold your changes:
+```console
+$ poetry install
+```
 
-<pre>
-$ git checkout -b my-feature
-</pre>
+You can now run an interactive Python session,
+or the command-line interface:
 
-Always branch out from `master` to work on your contribution. It's good practice to never work on the `master` branch!
+```console
+$ poetry run python
+$ poetry run camelot
+```
 
-**Protip: `git stash` is a great way to save the work that you haven't committed yet, to move between branches.**
+[poetry]: https://python-poetry.org/
+[nox]: https://nox.thea.codes/
+[nox-poetry]: https://nox-poetry.readthedocs.io/
 
-4. Work on your contribution. Add changed files using `git add` and then `git commit` them:
+## How to test the project
 
-<pre>
-$ git add modified_files
-$ git commit
-</pre>
+Run the full test suite:
 
-5. Finally, push them to your GitHub fork:
+```console
+$ nox
+```
 
-<pre>
-$ git push -u origin my-feature
-</pre>
+List the available Nox sessions:
 
-Now it's time to go to the your fork of Camelot and create a pull request! You can [follow these instructions](https://help.github.com/articles/creating-a-pull-request-from-a-fork/) to do this.
+```console
+$ nox --list-sessions
+```
 
-### Work on your pull request
+You can also run a specific Nox session.
+For example, invoke the unit test suite like this:
 
-We recommend that your pull request complies with the following rules:
+```console
+$ nox --session=tests
+```
 
-- Make sure your code follows [pep8](http://pep8.org).
+Unit tests are located in the _tests_ directory,
+and are written using the [pytest] testing framework.
 
-- In case your pull request contains function docstrings, make sure you follow the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) format. All function docstrings in Camelot follow this format. Moreover, following the format will make sure that the API documentation is generated flawlessly.
+[pytest]: https://pytest.readthedocs.io/
 
-- Make sure your commit messages follow [the seven rules of a great git commit message](https://chris.beams.io/posts/git-commit/):
-    - Separate subject from body with a blank line
-    - Limit the subject line to 50 characters
-    - Capitalize the subject line
-    - Do not end the subject line with a period
-    - Use the imperative mood in the subject line
-    - Wrap the body at 72 characters
-    - Use the body to explain what and why vs. how
+## How to submit changes
 
-- Please prefix the title of your pull request with [MRG] (Ready for Merge), if the contribution is complete and ready for a detailed review. An incomplete pull request's title should be prefixed with [WIP] (to indicate a work in progress), and changed to [MRG] when it's complete. A good [task list](https://blog.github.com/2013-01-09-task-lists-in-gfm-issues-pulls-comments/) in the PR description will ensure that other people get a better idea of what it proposes to do, which will also increase collaboration.
+Open a [pull request] to submit changes to this project.
 
-- If contributing new functionality, make sure that you add a unit test for it, while making sure that all previous tests pass. Camelot uses [pytest](https://docs.pytest.org/en/latest/) for testing. Tests can be run using:
+Your pull request needs to meet the following guidelines for acceptance:
 
-<pre>
-$ python setup.py test
-</pre>
+- The Nox test suite must pass without errors and warnings.
+- Include unit tests. This project maintains 100% code coverage.
+- If your changes add functionality, update the documentation accordingly.
 
-## Writing Documentation
+Feel free to submit early, though—we can always iterate on this.
 
-Writing documentation, function docstrings, examples and tutorials is a great way to start contributing to open-source software! The documentation is present inside the `docs/` directory of the project repository.
+To run linting and code formatting checks before committing your change, you can install pre-commit as a Git hook by running the following command:
 
-It is written in [reStructuredText](https://en.wikipedia.org/wiki/ReStructuredText), with [Sphinx](http://www.sphinx-doc.org/en/master/) used to generate these lovely HTML files that you're currently reading (unless you're reading this on GitHub). You can edit the documentation using any text editor and then generate the HTML output by running `make html` in the `docs/` directory.
+```console
+$ nox --session=pre-commit -- install
+```
 
-The function docstrings are written using the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) extension for Sphinx. Make sure you check out its format guidelines before you start writing one.
+It is recommended to open an issue before starting work on anything.
+This will allow a chance to talk it over with the owners and validate your approach.
 
-## Filing Issues
+[pull request]: https://github.com/camelot-dev/camelot/pulls
 
-We use [GitHub issues](https://github.com/camelot-dev/camelot/issues) to keep track of all issues and pull requests. Before opening an issue (which asks a question or reports a bug), please use GitHub search to look for existing issues (both open and closed) that may be similar.
+<!-- github-only -->
 
-### Questions
-
-Please don't use GitHub issues for support questions. A better place for them would be [Stack Overflow](http://stackoverflow.com). Make sure you tag them using the `python-camelot` tag.
-
-### Bug Reports
-
-In bug reports, make sure you include:
-
-- Your operating system type and Python version number, along with the version numbers of NumPy, OpenCV and Camelot. You can use the following code snippet to find this information:
-
-<pre>
-import platform; print(platform.platform())
-import sys; print('Python', sys.version)
-import numpy; print('NumPy', numpy.__version__)
-import cv2; print('OpenCV', cv2.__version__)
-import camelot; print('Camelot', camelot.__version__)
-</pre>
-
-- The complete traceback. Just adding the exception message or a part of the traceback won't help us fix your issue sooner.
-- Steps to reproduce the bug, using code snippets. See [Creating and highlighting code blocks](https://help.github.com/articles/creating-and-highlighting-code-blocks/).
-- A link to the PDF document that you were trying to extract tables from, telling us what you expected the code to do and what actually happened.
+[code of conduct]: CODE_OF_CONDUCT.md
