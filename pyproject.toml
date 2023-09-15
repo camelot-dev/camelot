@@ -1,3 +1,30 @@
+[project]
+name = "camelot"
+authors = [{ name = "Vinayak Mehta", email = "vmehta94@gmail.com"}]
+description = "PDF Table Extraction for Humans."
+license = { file = "LICENSE" }
+version = "0.20.1"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "click >=8.0.1",
+    "chardet >=5.1.0",
+    "numpy >=1.24.2",
+    "openpyxl >=3.1.0",
+    "pandas >=1.5.3",
+    "pdfminer-six >=20221105",
+    "pypdf >=3.4.0",
+    "tabulate >=0.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/camelot-dev/camelot"
+Repository = "https://github.com/camelot-dev/camelot"
+Documentation = "https://camelot-py.readthedocs.io"
+Changelog = "https://github.com/camelot-dev/camelot/blob/master/HISTORY.md"
+
 [tool.poetry]
 name = "camelot"
 version = "0.20.1"
