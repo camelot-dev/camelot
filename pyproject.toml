@@ -1,0 +1,94 @@
+[tool.poetry]
+name = "camelot"
+version = "0.20.1"
+description = "PDF Table Extraction for Humans."
+authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/camelot-dev/camelot"
+repository = "https://github.com/camelot-dev/camelot"
+documentation = "https://camelot-py.readthedocs.io"
+packages = [
+    { include = "camelot", from = "." },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+]
+
+[tool.poetry.urls]
+Changelog = "https://github.com/camelot-dev/camelot/blob/master/HISTORY.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = ">=8.0.1"
+chardet = "^5.1.0"
+numpy = "^1.24.2"
+openpyxl = "^3.1.0"
+pandas = "^1.5.3"
+pdfminer-six = "^20221105"
+pypdf = "^3.4.0"
+tabulate = "^0.9.0"
+
+[tool.poetry.dev-dependencies]
+Pygments = ">=2.10.0"
+black = ">=23.1.0"
+coverage = {extras = ["toml"], version = ">=6.2"}
+flake8 = ">=4.0.1"
+flake8-bandit = ">=2.1.2"
+flake8-bugbear = ">=21.9.2"
+flake8-rst-docstrings = ">=0.2.5"
+furo = ">=2021.11.12"
+isort = ">=5.10.1"
+mypy = ">=0.930"
+pep8-naming = ">=0.12.1"
+pre-commit = ">=2.16.0"
+pre-commit-hooks = ">=4.1.0"
+pytest = ">=6.2.5"
+pyupgrade = ">=2.29.1"
+safety = ">=2.2.3"
+sphinx = ">=4.3.2"
+sphinx-autobuild = ">=2021.3.14"
+sphinx-click = ">=3.0.2"
+typeguard = ">=2.13.3"
+xdoctest = {extras = ["colors"], version = ">=0.15.10"}
+myst-parser = {version = ">=0.16.1"}
+
+[tool.poetry.scripts]
+camelot = "camelot.__main__:main"
+
+[tool.poetry.group.base.dependencies]
+ghostscript = "^0.7"
+opencv-python = "^4.7.0.68"
+
+
+[tool.poetry.group.plot.dependencies]
+matplotlib = "^3.6.3"
+
+[tool.coverage.paths]
+source = ["camelot", "*/site-packages"]
+tests = ["tests", "*/tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["camelot", "tests"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+
+[tool.isort]
+profile = "black"
+force_single_line = true
+lines_after_imports = 2
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

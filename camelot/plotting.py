@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
-
 try:
-    import matplotlib.pyplot as plt
     import matplotlib.patches as patches
+    import matplotlib.pyplot as plt
 except ImportError:
     _HAS_MPL = False
 else:
     _HAS_MPL = True
 
 
-class PlotMethods(object):
+class PlotMethods:
     def __call__(self, table, kind="text", filename=None):
         """Plot elements found on PDF page based on kind
         specified, useful for debugging and playing with different

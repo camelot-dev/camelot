@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import logging
 
 import click
+
 
 try:
     import matplotlib.pyplot as plt
@@ -11,14 +10,16 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from . import __version__, read_pdf, plot
+from . import __version__
+from . import plot
+from . import read_pdf
 
 
 logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)
 
 
-class Config(object):
+class Config:
     def __init__(self):
         self.config = {}
 
