@@ -1,29 +1,16 @@
-# -*- coding: utf-8 -*-
-
 import os
-import sys
 
-import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
 import camelot
-from camelot.core import Table, TableList
-from camelot.__version__ import generate_version
 
+from .conftest import skip_on_windows
 from .data import *
-
-testdir = os.path.dirname(os.path.abspath(__file__))
-testdir = os.path.join(testdir, "files")
-
-skip_on_windows = pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="Ghostscript not installed in Windows test environment",
-)
 
 
 @skip_on_windows
-def test_lattice():
+def test_lattice(testdir):
     df = pd.DataFrame(data_lattice)
 
     filename = os.path.join(
@@ -34,7 +21,7 @@ def test_lattice():
 
 
 @skip_on_windows
-def test_lattice_table_rotated():
+def test_lattice_table_rotated(testdir):
     df = pd.DataFrame(data_lattice_table_rotated)
 
     filename = os.path.join(testdir, "clockwise_table_1.pdf")
@@ -47,7 +34,7 @@ def test_lattice_table_rotated():
 
 
 @skip_on_windows
-def test_lattice_two_tables():
+def test_lattice_two_tables(testdir):
     df1 = pd.DataFrame(data_lattice_two_tables_1)
     df2 = pd.DataFrame(data_lattice_two_tables_2)
 
@@ -59,7 +46,7 @@ def test_lattice_two_tables():
 
 
 @skip_on_windows
-def test_lattice_table_regions():
+def test_lattice_table_regions(testdir):
     df = pd.DataFrame(data_lattice_table_regions)
 
     filename = os.path.join(testdir, "table_region.pdf")
@@ -68,7 +55,7 @@ def test_lattice_table_regions():
 
 
 @skip_on_windows
-def test_lattice_table_areas():
+def test_lattice_table_areas(testdir):
     df = pd.DataFrame(data_lattice_table_areas)
 
     filename = os.path.join(testdir, "twotables_2.pdf")
@@ -77,7 +64,7 @@ def test_lattice_table_areas():
 
 
 @skip_on_windows
-def test_lattice_process_background():
+def test_lattice_process_background(testdir):
     df = pd.DataFrame(data_lattice_process_background)
 
     filename = os.path.join(testdir, "background_lines_1.pdf")
@@ -86,7 +73,7 @@ def test_lattice_process_background():
 
 
 @skip_on_windows
-def test_lattice_copy_text():
+def test_lattice_copy_text(testdir):
     df = pd.DataFrame(data_lattice_copy_text)
 
     filename = os.path.join(testdir, "row_span_1.pdf")
@@ -95,7 +82,7 @@ def test_lattice_copy_text():
 
 
 @skip_on_windows
-def test_lattice_shift_text():
+def test_lattice_shift_text(testdir):
     df_lt = pd.DataFrame(data_lattice_shift_text_left_top)
     df_disable = pd.DataFrame(data_lattice_shift_text_disable)
     df_rb = pd.DataFrame(data_lattice_shift_text_right_bottom)
@@ -112,7 +99,7 @@ def test_lattice_shift_text():
 
 
 @skip_on_windows
-def test_lattice_arabic():
+def test_lattice_arabic(testdir):
     df = pd.DataFrame(data_arabic)
 
     filename = os.path.join(testdir, "tabula/arabic.pdf")

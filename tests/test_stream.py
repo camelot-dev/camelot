@@ -1,22 +1,14 @@
-# -*- coding: utf-8 -*-
-
 import os
 
-import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
 import camelot
-from camelot.core import Table, TableList
-from camelot.__version__ import generate_version
 
 from .data import *
 
-testdir = os.path.dirname(os.path.abspath(__file__))
-testdir = os.path.join(testdir, "files")
 
-
-def test_stream():
+def test_stream(testdir):
     df = pd.DataFrame(data_stream)
 
     filename = os.path.join(testdir, "health.pdf")
@@ -24,7 +16,7 @@ def test_stream():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_table_rotated():
+def test_stream_table_rotated(testdir):
     df = pd.DataFrame(data_stream_table_rotated)
 
     filename = os.path.join(testdir, "clockwise_table_2.pdf")
@@ -36,7 +28,7 @@ def test_stream_table_rotated():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_two_tables():
+def test_stream_two_tables(testdir):
     df1 = pd.DataFrame(data_stream_two_tables_1)
     df2 = pd.DataFrame(data_stream_two_tables_2)
 
@@ -48,7 +40,7 @@ def test_stream_two_tables():
     assert df2.equals(tables[1].df)
 
 
-def test_stream_table_regions():
+def test_stream_table_regions(testdir):
     df = pd.DataFrame(data_stream_table_areas)
 
     filename = os.path.join(testdir, "tabula/us-007.pdf")
@@ -58,7 +50,7 @@ def test_stream_table_regions():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_table_areas():
+def test_stream_table_areas(testdir):
     df = pd.DataFrame(data_stream_table_areas)
 
     filename = os.path.join(testdir, "tabula/us-007.pdf")
@@ -68,7 +60,7 @@ def test_stream_table_areas():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_columns():
+def test_stream_columns(testdir):
     df = pd.DataFrame(data_stream_columns)
 
     filename = os.path.join(testdir, "mexican_towns.pdf")
@@ -78,7 +70,7 @@ def test_stream_columns():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_split_text():
+def test_stream_split_text(testdir):
     df = pd.DataFrame(data_stream_split_text)
 
     filename = os.path.join(testdir, "tabula/m27.pdf")
@@ -91,7 +83,7 @@ def test_stream_split_text():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_flag_size():
+def test_stream_flag_size(testdir):
     df = pd.DataFrame(data_stream_flag_size)
 
     filename = os.path.join(testdir, "superscript.pdf")
@@ -99,7 +91,7 @@ def test_stream_flag_size():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_strip_text():
+def test_stream_strip_text(testdir):
     df = pd.DataFrame(data_stream_strip_text)
 
     filename = os.path.join(testdir, "detect_vertical_false.pdf")
@@ -107,7 +99,7 @@ def test_stream_strip_text():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_edge_tol():
+def test_stream_edge_tol(testdir):
     df = pd.DataFrame(data_stream_edge_tol)
 
     filename = os.path.join(testdir, "edge_tol.pdf")
@@ -115,7 +107,7 @@ def test_stream_edge_tol():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_layout_kwargs():
+def test_stream_layout_kwargs(testdir):
     df = pd.DataFrame(data_stream_layout_kwargs)
 
     filename = os.path.join(testdir, "detect_vertical_false.pdf")
@@ -125,7 +117,7 @@ def test_stream_layout_kwargs():
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_duplicated_text():
+def test_stream_duplicated_text(testdir):
     df = pd.DataFrame(data_stream_duplicated_text)
 
     filename = os.path.join(testdir, "birdisland.pdf")

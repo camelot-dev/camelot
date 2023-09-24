@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
-import sys
 import ctypes
+import sys
 from ctypes.util import find_library
 
 
@@ -17,7 +15,7 @@ def installed_windows():
     return library is not None
 
 
-class GhostscriptBackend(object):
+class GhostscriptBackend:
     def installed(self):
         if sys.platform in ["linux", "darwin"]:
             return installed_posix()

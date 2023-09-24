@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import os
 
-from ..utils import get_page_layout, get_text_objects
+from ..utils import get_page_layout
+from ..utils import get_text_objects
 
 
-class BaseParser(object):
+class BaseParser:
     """Defines a base parser."""
 
     def _generate_layout(self, filename, layout_kwargs):

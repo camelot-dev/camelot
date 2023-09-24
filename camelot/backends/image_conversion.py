@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 from .pdfium_backend import PdfiumBackend
-from .poppler_backend import PopplerBackend
 from .ghostscript_backend import GhostscriptBackend
+from .poppler_backend import PopplerBackend
+
 
 BACKENDS = {
     "pdfium": PdfiumBackend,
@@ -11,7 +10,7 @@ BACKENDS = {
 }
 
 
-class ImageConversionBackend(object):
+class ImageConversionBackend:
     def __init__(self, backend="pdfium", use_fallback=True):
         if backend not in BACKENDS.keys():
             raise ValueError(f"Image conversion backend '{backend}' not supported")

@@ -12,7 +12,7 @@ At a high level, PostScript defines instructions, such as "place this character 
 
 Sadly, a lot of today's open data is trapped in PDF tables.
 
-.. _PostScript: http://www.planetpdf.com/planetpdf/pdfs/warnock_camelot.pdf
+.. _PostScript: https://web.archive.org/web/20210203041543/http://www.planetpdf.com/planetpdf/pdfs/warnock_camelot.pdf
 
 Why another PDF table extraction library?
 -----------------------------------------
@@ -36,7 +36,7 @@ As you can already guess, this library is named after `The Camelot Project`_.
 
 Fun fact: In the British comedy film `Monty Python and the Holy Grail`_ (and in the `Arthurian legend`_ depicted in the film), "Camelot" is the name of the castle where Arthur leads his men, the Knights of the Round Table, and then sets off elsewhere after deciding that it is "a silly place". Interestingly, the language in which this library is written (Python) was named after Monty Python.
 
-.. _The Camelot Project: http://www.planetpdf.com/planetpdf/pdfs/warnock_camelot.pdf
+.. _The Camelot Project: https://web.archive.org/web/20210203041543/http://www.planetpdf.com/planetpdf/pdfs/warnock_camelot.pdf
 .. _Monty Python and the Holy Grail: https://en.wikipedia.org/wiki/Monty_Python_and_the_Holy_Grail
 .. _Arthurian legend: https://en.wikipedia.org/wiki/King_Arthur
 

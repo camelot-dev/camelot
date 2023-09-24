@@ -1,4 +1,2 @@
-# -*- coding: utf-8 -*-
-
-from .stream import Stream
 from .lattice import Lattice
+from .stream import Stream
