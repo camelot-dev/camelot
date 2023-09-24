@@ -3,4 +3,4 @@ pip==23.0
 nox==2023.4.22
 nox-poetry==1.0.2
 poetry>=1.2.0
-virtualenv==20.19.0
+virtualenv==20.24.5
