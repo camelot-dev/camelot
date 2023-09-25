@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 try:
     import pypdfium2 as pdfium
 except Exception:
