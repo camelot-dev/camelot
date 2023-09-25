@@ -50,6 +50,7 @@ def test_password(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
+@skip_on_windows
 def test_repr_pdfium(testdir):
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename, backend="pdfium")
@@ -76,6 +77,7 @@ def test_repr_ghostscript(testdir):
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
 
+@skip_on_windows
 def test_url_pdfium():
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="pdfium")
@@ -102,6 +104,7 @@ def test_url_ghostscript(testdir):
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
 
+@skip_on_windows
 def test_pages_pdfium():
     url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="pdfium")
