@@ -57,7 +57,7 @@ myst-parser = {version = ">=0.16.1"}
 camelot = "camelot.__main__:main"
 
 [tool.poetry.group.base.dependencies]
-pypdfium2 = ">=4,<5"
+pypdfium2 = "^4"
 ghostscript = "^0.7"  # remove in favor of pypdfium2?
 opencv-python = "^4.7.0.68"
 
