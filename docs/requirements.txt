@@ -3,5 +3,5 @@ sphinx==7.2.6
 sphinx-click==5.0.1
 myst_parser==2.0.0
 ghostscript==0.7
-opencv-python==4.8.0.76
+opencv-python==4.8.1.78
 matplotlib==3.8.0
