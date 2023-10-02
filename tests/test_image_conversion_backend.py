@@ -2,6 +2,8 @@ import pytest
 
 from camelot.backends import ImageConversionBackend
 
+# TODO consider adding pdfium backend
+
 
 @pytest.fixture
 def patch_backends(monkeypatch):
@@ -31,7 +33,7 @@ class GhostscriptBackendNoError:
 
 
 def test_poppler_backend_error_when_no_use_fallback(patch_backends):
-    backend = ImageConversionBackend(use_fallback=False)
+    backend = ImageConversionBackend(backend="poppler", use_fallback=False)
 
     message = "Image conversion failed with image conversion backend 'poppler'"
     with pytest.raises(ValueError, match=message):
@@ -39,7 +41,7 @@ def test_poppler_backend_error_when_no_use_fallback(patch_backends):
 
 
 def test_ghostscript_backend_when_use_fallback(patch_backends):
-    backend = ImageConversionBackend()
+    backend = ImageConversionBackend(backend="ghostscript")
     backend.convert("foo", "bar")
 
 
@@ -49,7 +51,7 @@ def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
     monkeypatch.setattr(
         "camelot.backends.image_conversion.BACKENDS", backends, raising=True
     )
-    backend = ImageConversionBackend()
+    backend = ImageConversionBackend(backend="poppler")
 
     message = "Image conversion failed with image conversion backend 'ghostscript'"
     with pytest.raises(ValueError, match=message):

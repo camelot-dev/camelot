@@ -155,7 +155,7 @@ def mypy(session: Session) -> None:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
-base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17"]
+base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17", "pypdfium2>=4,<5"]
 
 plot_requires = [
     "matplotlib>=2.2.3",
