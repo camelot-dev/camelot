@@ -129,6 +129,7 @@ class Stream(BaseParser):
         rows = []
         temp = []
 
+        text.sort(key=lambda x: (-x.y0, x.x0))
         for t in text:
             # is checking for upright necessary?
             # if t.get_text().strip() and all([obj.upright for obj in t._objs if
