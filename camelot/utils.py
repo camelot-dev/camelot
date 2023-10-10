@@ -94,6 +94,7 @@ def download_url(url):
 stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol"]
 lattice_kwargs = [
     "process_background",
+    "process_color_background",
     "line_scale",
     "copy_text",
     "shift_text",

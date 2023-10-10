@@ -93,6 +93,7 @@ class Lattice(BaseParser):
         table_regions=None,
         table_areas=None,
         process_background=False,
+        process_color_background=False,
         line_scale=15,
         copy_text=None,
         shift_text=["l", "t"],
@@ -111,6 +112,7 @@ class Lattice(BaseParser):
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.process_background = process_background
+        self.process_color_background = process_color_background
         self.line_scale = line_scale
         self.copy_text = copy_text
         self.shift_text = shift_text
@@ -249,6 +251,7 @@ class Lattice(BaseParser):
         self.image, self.threshold = adaptive_threshold(
             self.imagename,
             process_background=self.process_background,
+            process_color_background=self.process_color_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
         )
