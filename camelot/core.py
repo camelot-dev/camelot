@@ -682,7 +682,7 @@ class TableList:
     def __len__(self):
         return len(self._tables)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> Table:
         return self._tables[idx]
 
     @staticmethod
