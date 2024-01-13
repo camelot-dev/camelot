@@ -21,6 +21,17 @@ def test_lattice(testdir):
 
 
 @skip_on_windows
+def test_lattice_text_replace(testdir):
+    df = pd.DataFrame(data_lattice_text_replace)
+
+    filename = os.path.join(
+        testdir, "tabula/icdar2013-dataset/competition-dataset-us/us-030.pdf"
+    )
+    tables = camelot.read_pdf(filename, pages="2", replace_text={".": ","})
+    assert_frame_equal(df, tables[0].df)
+
+
+@skip_on_windows
 def test_lattice_table_rotated(testdir):
     df = pd.DataFrame(data_lattice_table_rotated)
 

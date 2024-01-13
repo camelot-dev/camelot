@@ -63,6 +63,9 @@ class Lattice(BaseParser):
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
         assigning it to a cell.
+    replace_text : dict, optional (default: {})
+        Characters that should be replaced from a string before
+        assigning it to a cell.
     line_tol : int, optional (default: 2)
         Tolerance parameter used to merge close vertical and horizontal
         lines.
@@ -99,6 +102,7 @@ class Lattice(BaseParser):
         split_text=False,
         flag_size=False,
         strip_text="",
+        replace_text={},
         line_tol=2,
         joint_tol=2,
         threshold_blocksize=15,
@@ -117,6 +121,7 @@ class Lattice(BaseParser):
         self.split_text = split_text
         self.flag_size = flag_size
         self.strip_text = strip_text
+        self.replace_text = replace_text
         self.line_tol = line_tol
         self.joint_tol = joint_tol
         self.threshold_blocksize = threshold_blocksize
@@ -360,6 +365,7 @@ class Lattice(BaseParser):
                     split_text=self.split_text,
                     flag_size=self.flag_size,
                     strip_text=self.strip_text,
+                    replace_text=self.replace_text,
                 )
                 if indices[0][:2] != (-1, -1):
                     pos_errors.append(error)

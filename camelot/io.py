@@ -55,6 +55,9 @@ def read_pdf(
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
         assigning it to a cell.
+    replace_text : dict, optional (default: {})
+        Characters that should be replaced from a string before
+        assigning it to a cell.
     row_tol^ : int, optional (default: 2)
         Tolerance parameter used to combine text vertically,
         to generate rows.

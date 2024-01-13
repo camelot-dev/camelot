@@ -67,6 +67,12 @@ pass_config = click.make_pass_decorator(Config)
     " assigning it to a cell.",
 )
 @click.option(
+    "-replace",
+    "--replace_text",
+    help="Characters that should be replaced from a string before"
+    " assigning it to a cell.",
+)
+@click.option(
     "-M",
     "--margins",
     nargs=3,
