@@ -2306,6 +2306,32 @@ data_stream_strip_text = [
     ["ChâteauLéoube2016", "10€"],
 ]
 
+data_stream_replace_text = [
+    ["VinsauVerre", ""],
+    ["LesBlancs", "12.5CL"],
+    ["A.O.PCôtesduRhône", ""],
+    ["DomainedelaGuicharde«Autourdelachapelle»3316", "8$"],
+    ["A.O.PVacqueyras", ""],
+    ["DomainedeMontvac«Melodine»3316", "10$"],
+    ["A.O.PChâteauneufduPape", ""],
+    ["DomainedeBeaurenard3317", "13$"],
+    ["A.O.PCôteauxduLanguedoc", ""],
+    ["VillaTempora«Untempspourelle»3314", "9$"],
+    ["A.O.PCôtesdeProvence", ""],
+    ["ChâteauGrandBoise3317", "9$"],
+    ["LesRosés", "125CL"],
+    ["A.O.PCôtesduRhône", ""],
+    ["DomainedelaFlorane«AfleurdePampre»3316", "8$"],
+    ["FamilleCoulon(DomaineBeaurenard)Biotifulfox3317", "8$"],
+    ["A.O.PVacqueyras", ""],
+    ["DomainedeMontvac3317", "9$"],
+    ["A.O.PLanguedoc", ""],
+    ["DomainedeJoncas«Nébla»3315", "8$"],
+    ["VillaTempora«L’arroseurarrosé»3315", "9$"],
+    ["A.O.PCôtesdeProvence", ""],
+    ["ChâteauGrandBoise«SainteVictoire»3317", "9$"],
+    ["ChâteauLéoube3316", "10$"],
+]
 data_stream_edge_tol = [
     ["Key figures", ""],
     ["", "2016"],
@@ -2366,6 +2392,32 @@ data_lattice = [
     ["4234_1", "0.59", "58.7", "8.5%", "1.3%", "8.5%", "3.3%"],
     ["2032_2", "0.17", "57.8", "21.7%", "0.3%", "2.7%", "1.2%"],
     ["4171_1", "0.07", "173.9", "58.1%", "1.6%", "2.1%", "0.5%"],
+]
+
+data_lattice_text_replace = [
+    [
+        "Cycle \nName",
+        "KI \n(1/km)",
+        "Distance \n(mi)",
+        "Percent Fuel Savings",
+        "",
+        "",
+        "",
+    ],
+    [
+        "",
+        "",
+        "",
+        "Improved \nSpeed",
+        "Decreased \nAccel",
+        "Eliminate \nStops",
+        "Decreased \nIdle",
+    ],
+    ["2012_2", "3,30", "1,3", "5,9%", "9,5%", "29,2%", "17,4%"],
+    ["2145_1", "0,68", "11,2", "2,4%", "0,1%", "9,5%", "2,7%"],
+    ["4234_1", "0,59", "58,7", "8,5%", "1,3%", "8,5%", "3,3%"],
+    ["2032_2", "0,17", "57,8", "21,7%", "0,3%", "2,7%", "1,2%"],
+    ["4171_1", "0,07", "173,9", "58,1%", "1,6%", "2,1%", "0,5%"],
 ]
 
 data_lattice_table_rotated = [

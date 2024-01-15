@@ -505,12 +505,33 @@ def text_strip(text, strip=""):
     return stripped
 
 
+def text_replace(text, replace={}):
+    """Replaces the keys for the values that are present in `text`.
+    Parameters
+    ----------
+    text : str
+        Text to process and modify.
+    replace : dict, optional (default: {})
+        key value pairs, where keys are swapped for the values in `text`.
+    Returns
+    -------
+    text : str
+    """
+    if replace is {}:
+        return text
+
+    for key, value in replace.items():
+        text = text.replace(key, value)
+
+    return text
+
+
 # TODO: combine the following functions into a TextProcessor class which
 # applies corresponding transformations sequentially
 # (inspired from sklearn.pipeline.Pipeline)
 
 
-def flag_font_size(textline, direction, strip_text=""):
+def flag_font_size(textline, direction, strip_text="", replace_text={}):
     """Flags super/subscripts in text by enclosing them with <s></s>.
     May give false positives.
 
@@ -523,7 +544,9 @@ def flag_font_size(textline, direction, strip_text=""):
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
         assigning it to a cell.
-
+    replace_text : dict, optional (default: {})
+        Characters that should be replaced from a string before
+        assigning it to a cell.
     Returns
     -------
     fstring : string
@@ -559,10 +582,14 @@ def flag_font_size(textline, direction, strip_text=""):
         fstring = "".join(flist)
     else:
         fstring = "".join([t.get_text() for t in textline])
+
+    fstring = text_replace(fstring, replace_text)
     return text_strip(fstring, strip_text)
 
 
-def split_textline(table, textline, direction, flag_size=False, strip_text=""):
+def split_textline(
+    table, textline, direction, flag_size=False, strip_text="", replace_text={}
+):
     """Splits PDFMiner LTTextLine into substrings if it spans across
     multiple rows/columns.
 
@@ -580,7 +607,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
         assigning it to a cell.
-
+    replace_text : dict, optional (default: {})
+        Characters that should be replaced from a string before
+        assigning it to a cell.
     Returns
     -------
     grouped_chars : list
@@ -668,20 +697,28 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                     key[0],
                     key[1],
                     flag_font_size(
-                        [t[2] for t in chars], direction, strip_text=strip_text
+                        [t[2] for t in chars],
+                        direction,
+                        strip_text=strip_text,
+                        replace_text=replace_text,
                     ),
                 )
             )
         else:
-            gchars = [t[2].get_text() for t in chars]
-            grouped_chars.append(
-                (key[0], key[1], text_strip("".join(gchars), strip_text))
-            )
+            gchars = "".join([t[2].get_text() for t in chars])
+            gchars = text_replace(gchars, replace_text)
+            grouped_chars.append((key[0], key[1], text_strip(gchars, strip_text)))
     return grouped_chars
 
 
 def get_table_index(
-    table, t, direction, split_text=False, flag_size=False, strip_text=""
+    table,
+    t,
+    direction,
+    split_text=False,
+    flag_size=False,
+    strip_text="",
+    replace_text={},
 ):
     """Gets indices of the table cell where given text object lies by
     comparing their y and x-coordinates.
@@ -703,7 +740,9 @@ def get_table_index(
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
         assigning it to a cell.
-
+    replace_text : dict, optional (default: {})
+        Characters that should be replaced from a string before
+        assigning it to a cell.
     Returns
     -------
     indices : list
@@ -761,7 +800,12 @@ def get_table_index(
     if split_text:
         return (
             split_textline(
-                table, t, direction, flag_size=flag_size, strip_text=strip_text
+                table,
+                t,
+                direction,
+                flag_size=flag_size,
+                strip_text=strip_text,
+                replace_text=replace_text,
             ),
             error,
         )
@@ -772,13 +816,20 @@ def get_table_index(
                     (
                         r_idx,
                         c_idx,
-                        flag_font_size(t._objs, direction, strip_text=strip_text),
+                        flag_font_size(
+                            t._objs,
+                            direction,
+                            strip_text=strip_text,
+                            replace_text=replace_text,
+                        ),
                     )
                 ],
                 error,
             )
         else:
-            return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], error
+            text = t.get_text()
+            text = text_replace(text, replace_text)
+            return [(r_idx, c_idx, text_strip(text, strip_text))], error
 
 
 def compute_accuracy(error_weights):

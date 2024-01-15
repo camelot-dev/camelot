@@ -45,6 +45,9 @@ class Stream(BaseParser):
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
         assigning it to a cell.
+    replace_text : dict, optional (default: {})
+        Characters that should be replaced from a string before
+        assigning it to a cell.
     edge_tol : int, optional (default: 50)
         Tolerance parameter for extending textedges vertically.
     row_tol : int, optional (default: 2)
@@ -64,6 +67,7 @@ class Stream(BaseParser):
         split_text=False,
         flag_size=False,
         strip_text="",
+        replace_text={},
         edge_tol=50,
         row_tol=2,
         column_tol=0,
@@ -76,6 +80,7 @@ class Stream(BaseParser):
         self.split_text = split_text
         self.flag_size = flag_size
         self.strip_text = strip_text
+        self.replace_text = replace_text
         self.edge_tol = edge_tol
         self.row_tol = row_tol
         self.column_tol = column_tol
@@ -414,6 +419,7 @@ class Stream(BaseParser):
                     split_text=self.split_text,
                     flag_size=self.flag_size,
                     strip_text=self.strip_text,
+                    replace_text=self.replace_text,
                 )
                 if indices[:2] != (-1, -1):
                     pos_errors.append(error)
