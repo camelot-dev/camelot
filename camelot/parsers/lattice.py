@@ -60,8 +60,8 @@ class Lattice(BaseParser):
     flag_size : bool, optional (default: False)
         Flag text based on font size. Useful to detect
         super/subscripts. Adds <s></s> around flagged text.
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
+    strip_text : List, optional (default: [])
+        Substrings that should be stripped from a string before
         assigning it to a cell.
     line_tol : int, optional (default: 2)
         Tolerance parameter used to merge close vertical and horizontal
@@ -98,7 +98,7 @@ class Lattice(BaseParser):
         shift_text=["l", "t"],
         split_text=False,
         flag_size=False,
-        strip_text="",
+        strip_text=[],
         line_tol=2,
         joint_tol=2,
         threshold_blocksize=15,

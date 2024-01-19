@@ -52,8 +52,8 @@ def read_pdf(
     flag_size : bool, optional (default: False)
         Flag text based on font size. Useful to detect
         super/subscripts. Adds <s></s> around flagged text.
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
+    strip_text : List, optional (default: [])
+        Substrings that should be stripped from a string before
         assigning it to a cell.
     row_tol^ : int, optional (default: 2)
         Tolerance parameter used to combine text vertically,

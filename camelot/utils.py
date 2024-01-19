@@ -484,14 +484,14 @@ def merge_close_lines(ar, line_tol=2):
     return ret
 
 
-def text_strip(text, strip=""):
-    """Strips any characters in `strip` that are present in `text`.
+def text_strip(text, strip=[]):
+    """Strips any substrings in `strip` that are present in `text`.
     Parameters
     ----------
     text : str
         Text to process and strip.
-    strip : str, optional (default: '')
-        Characters that should be stripped from `text`.
+    strip : List, optional (default: [])
+        Substrings that should be stripped from `text`.
     Returns
     -------
     stripped : str
@@ -499,9 +499,9 @@ def text_strip(text, strip=""):
     if not strip:
         return text
 
-    stripped = re.sub(
-        rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
-    )
+    pattern = "|".join(map(re.escape, strip))
+
+    stripped = re.sub(pattern, "", text, flags=re.UNICODE)
     return stripped
 
 
@@ -510,7 +510,7 @@ def text_strip(text, strip=""):
 # (inspired from sklearn.pipeline.Pipeline)
 
 
-def flag_font_size(textline, direction, strip_text=""):
+def flag_font_size(textline, direction, strip_text=[]):
     """Flags super/subscripts in text by enclosing them with <s></s>.
     May give false positives.
 
@@ -520,8 +520,8 @@ def flag_font_size(textline, direction, strip_text=""):
         List of PDFMiner LTChar objects.
     direction : string
         Direction of the PDFMiner LTTextLine object.
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
+    strip_text : List, optional (default: [])
+        Substrings that should be stripped from a string before
         assigning it to a cell.
 
     Returns
@@ -562,7 +562,7 @@ def flag_font_size(textline, direction, strip_text=""):
     return text_strip(fstring, strip_text)
 
 
-def split_textline(table, textline, direction, flag_size=False, strip_text=""):
+def split_textline(table, textline, direction, flag_size=False, strip_text=[]):
     """Splits PDFMiner LTTextLine into substrings if it spans across
     multiple rows/columns.
 
@@ -577,8 +577,8 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
         Whether or not to highlight a substring using <s></s>
         if its size is different from rest of the string. (Useful for
         super and subscripts.)
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
+    strip_text : List, optional (default: [])
+        Substrings that should be stripped from a string before
         assigning it to a cell.
 
     Returns
@@ -681,7 +681,7 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
 
 
 def get_table_index(
-    table, t, direction, split_text=False, flag_size=False, strip_text=""
+    table, t, direction, split_text=False, flag_size=False, strip_text=[]
 ):
     """Gets indices of the table cell where given text object lies by
     comparing their y and x-coordinates.
@@ -700,8 +700,8 @@ def get_table_index(
         Whether or not to highlight a substring using <s></s>
         if its size is different from rest of the string. (Useful for
         super and subscripts)
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
+    strip_text : List, optional (default: [])
+        Substrings that should be stripped from a string before
         assigning it to a cell.
 
     Returns

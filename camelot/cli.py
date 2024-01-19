@@ -63,7 +63,7 @@ pass_config = click.make_pass_decorator(Config)
 @click.option(
     "-strip",
     "--strip_text",
-    help="Characters that should be stripped from a string before"
+    help="Substrings that should be stripped from a string before"
     " assigning it to a cell.",
 )
 @click.option(
