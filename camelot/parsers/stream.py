@@ -42,8 +42,8 @@ class Stream(BaseParser):
     flag_size : bool, optional (default: False)
         Flag text based on font size. Useful to detect
         super/subscripts. Adds <s></s> around flagged text.
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
+    strip_text : List, optional (default: [])
+        Substrings that should be stripped from a string before
         assigning it to a cell.
     edge_tol : int, optional (default: 50)
         Tolerance parameter for extending textedges vertically.
@@ -63,7 +63,7 @@ class Stream(BaseParser):
         columns=None,
         split_text=False,
         flag_size=False,
-        strip_text="",
+        strip_text=[],
         edge_tol=50,
         row_tol=2,
         column_tol=0,
