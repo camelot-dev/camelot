@@ -685,6 +685,10 @@ class TableList:
     def __getitem__(self, idx):
         return self._tables[idx]
 
+    def __iter__(self):
+        for t in self._tables:
+            yield t
+
     @staticmethod
     def _format_func(table, f):
         return getattr(table, f"to_{f}")
