@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - master
 
 jobs:
   release:
@@ -60,15 +59,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.8.10
         with:
           user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-
-      - name: Publish package on TestPyPI
-        if: "! steps.check-version.outputs.tag"
-        uses: pypa/gh-action-pypi-publish@v1.8.10
-        with:
-          user: __token__
-          password: ${{ secrets.TEST_PYPI_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          password: ${{ secrets.FLIT_PASSWORD }}
 
       - name: Publish the release notes
         uses: release-drafter/release-drafter@v5.24.0

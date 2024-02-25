@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "camelot"
-version = "0.20.1"
+name = "pypdf_table_extraction"
+version = "0.0.1"
 description = "PDF Table Extraction for Humans."
 authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
 license = "MIT"
