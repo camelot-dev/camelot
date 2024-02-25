@@ -125,7 +125,7 @@ class TextEdges:
         rows.
         """
         for tl in textlines:
-            if len(tl.get_text().strip()) > 1:  # TODO: hacky
+            if len(tl.get_text().strip()) >= 1:  # TODO: hacky
                 self.update(tl)
 
     def get_relevant(self):
