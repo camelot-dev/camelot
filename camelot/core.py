@@ -384,6 +384,36 @@ class Table:
                 cell.left = cell.right = cell.top = cell.bottom = True
         return self
 
+    def generate_closest_points(self, coord, upper_value, joint_tol):
+        return [
+            i
+            for i, t in enumerate(upper_value)
+            if np.isclose(coord, t[0], atol=joint_tol)
+        ]
+
+    def add_directed_edges(self, l_init, k_init, J, direction):
+        L = l_init
+        K = k_init
+
+        while J < K:
+            match direction:
+                case 'left':
+                    self.cells[J][L].left = True
+                case 'right':
+                    self.cells[J][L].right = True
+                case 'top':
+                    self.cells[L][J].top = True
+                case 'bottom':
+                    self.cells[L][J].bottom = True
+                case 'left and right':
+                    self.cells[J][L].left = True
+                    self.cells[J][L - 1].right = True
+                case _:
+                    self.cells[L][J].top = True
+                    self.cells[L - 1][J].bottom = True
+            J += 1
+        return J
+
     def set_edges(self, vertical, horizontal, joint_tol=2):
         """Sets a cell's edges to True depending on whether the cell's
         coordinates overlap with the line's coordinates within a
@@ -400,122 +430,36 @@ class Table:
         for v in vertical:
             # find closest x coord
             # iterate over y coords and find closest start and end points
-            i = [
-                i
-                for i, t in enumerate(self.cols)
-                if np.isclose(v[0], t[0], atol=joint_tol)
-            ]
-            j = [
-                j
-                for j, t in enumerate(self.rows)
-                if np.isclose(v[3], t[0], atol=joint_tol)
-            ]
-            k = [
-                k
-                for k, t in enumerate(self.rows)
-                if np.isclose(v[1], t[0], atol=joint_tol)
-            ]
+            i = self.generate_closest_points(v[0], self.cols, joint_tol)
+            j = self.generate_closest_points(v[3], self.rows, joint_tol)
+            k = self.generate_closest_points(v[1], self.rows, joint_tol)
+
             if not j:
                 continue
             J = j[0]
             if i == [0]:  # only left edge
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[J][L].left = True
-                        J += 1
-                else:
-                    K = len(self.rows)
-                    while J < K:
-                        self.cells[J][L].left = True
-                        J += 1
+                J = self.add_directed_edges(i[0], k[0] if k else len(self.rows), J, 'left')
             elif i == []:  # only right edge
-                L = len(self.cols) - 1
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[J][L].right = True
-                        J += 1
-                else:
-                    K = len(self.rows)
-                    while J < K:
-                        self.cells[J][L].right = True
-                        J += 1
+                J = self.add_directed_edges(len(self.cols) - 1, k[0] if k else len(self.rows), J, 'right')
             else:  # both left and right edges
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[J][L].left = True
-                        self.cells[J][L - 1].right = True
-                        J += 1
-                else:
-                    K = len(self.rows)
-                    while J < K:
-                        self.cells[J][L].left = True
-                        self.cells[J][L - 1].right = True
-                        J += 1
+                J = self.add_directed_edges(i[0], k[0] if k else len(self.rows), J, 'left and right')
 
         for h in horizontal:
             # find closest y coord
             # iterate over x coords and find closest start and end points
-            i = [
-                i
-                for i, t in enumerate(self.rows)
-                if np.isclose(h[1], t[0], atol=joint_tol)
-            ]
-            j = [
-                j
-                for j, t in enumerate(self.cols)
-                if np.isclose(h[0], t[0], atol=joint_tol)
-            ]
-            k = [
-                k
-                for k, t in enumerate(self.cols)
-                if np.isclose(h[2], t[0], atol=joint_tol)
-            ]
+            i = self.generate_closest_points(h[1], self.rows, joint_tol)
+            j = self.generate_closest_points(h[0], self.cols, joint_tol)
+            k = self.generate_closest_points(h[2], self.cols, joint_tol)
+
             if not j:
                 continue
             J = j[0]
             if i == [0]:  # only top edge
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[L][J].top = True
-                        J += 1
-                else:
-                    K = len(self.cols)
-                    while J < K:
-                        self.cells[L][J].top = True
-                        J += 1
+                J = self.add_directed_edges(i[0], k[0] if k else len(self.rows), J, 'top')
             elif i == []:  # only bottom edge
-                L = len(self.rows) - 1
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[L][J].bottom = True
-                        J += 1
-                else:
-                    K = len(self.cols)
-                    while J < K:
-                        self.cells[L][J].bottom = True
-                        J += 1
+                J = self.add_directed_edges(len(self.rows) - 1, k[0] if k else len(self.cols), J, 'bottom')
             else:  # both top and bottom edges
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[L][J].top = True
-                        self.cells[L - 1][J].bottom = True
-                        J += 1
-                else:
-                    K = len(self.cols)
-                    while J < K:
-                        self.cells[L][J].top = True
-                        self.cells[L - 1][J].bottom = True
-                        J += 1
+                J = self.add_directed_edges(i[0], k[0] if k else len(self.rows), J, 'top and bottom')
 
         return self
 
