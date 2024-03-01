@@ -1,10 +1,12 @@
 """Creates a ghostscript backend class to convert a pdf to a png file."""
 
+from camelot.backends.base import ConversionBackend
 
-class GhostscriptBackend:
+
+class GhostscriptBackend(ConversionBackend):
     """Classmethod to create GhostscriptScriptBackend."""
 
-    def convert(self, pdf_path, png_path, resolution=300):
+    def convert(self, pdf_path: str, png_path: str, resolution: int = 300) -> None:
         """Convert a PDF to a PNG image using Ghostscript .
 
         Parameters
@@ -22,7 +24,7 @@ class GhostscriptBackend:
             [description]
         """
         try:
-            import ghostscript
+            import ghostscript  # type: ignore[import-untyped]
         except RuntimeError:
             raise OSError(
                 "Ghostscript is not installed. You can install it using the instructions"

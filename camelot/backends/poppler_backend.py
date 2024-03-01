@@ -13,14 +13,16 @@ import shutil
 import subprocess
 import sys
 
+from camelot.backends.base import ConversionBackend
+
 
 path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
 
 
-class PopplerBackend:
+class PopplerBackend(ConversionBackend):
     """Classmethod to create a poplerBackendBackend class."""
 
-    def convert(self, pdf_path, png_path):
+    def convert(self, pdf_path: str, png_path: str, resolution: int = 300) -> None:
         """Convert PDF to png.
 
         Parameters
@@ -50,4 +52,4 @@ class PopplerBackend:
                 " ".join(pdftopng_command), stderr=subprocess.STDOUT, shell=False
             )
         except subprocess.CalledProcessError as e:
-            raise ValueError(e.output)
+            raise ValueError(e.output) from e
