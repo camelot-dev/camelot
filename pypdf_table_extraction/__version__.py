@@ -1,0 +1,11 @@
+from camelot.__version__ import PRERELEASE  # noqa: F401
+from camelot.__version__ import REVISION  # noqa F401
+from camelot.__version__ import VERSION  # noqa F401
+from camelot.__version__ import __author__  # noqa F401
+from camelot.__version__ import __author_email__  # noqa F401
+from camelot.__version__ import __description__  # noqa F401
+from camelot.__version__ import __license__  # noqa F401
+from camelot.__version__ import __title__  # noqa F401
+from camelot.__version__ import __url__  # noqa F401
+from camelot.__version__ import __version__  # noqa F401
+from camelot.__version__ import generate_version  # noqa F401
