@@ -24,6 +24,9 @@ from ..utils import segments_in_bbox
 from ..utils import text_in_bbox
 from .base import BaseParser
 
+from parser.utils import scale_coordinates
+from parser.ocr import get_text_from_image
+
 
 logger = logging.getLogger("camelot")
 
@@ -235,7 +238,7 @@ class Lattice(BaseParser):
     
     
     @staticmethod
-    def expand_spanning_cells(t):
+    def expand_spanning_cells(t, image, factors):
         for i in range(len(t.cells)):
             for j in range(len(t.cells[i])):
                 r_idx = i
@@ -258,6 +261,11 @@ class Lattice(BaseParser):
                 t.cells[r_idx][c_idx].y1 = y1
                 t.cells[r_idx][c_idx].y2 = y2
                 t.cells[r_idx][c_idx].is_main = True
+                cell = t.cells[r_idx][c_idx]
+                loc = scale_coordinates([cell.x1, cell.y1, cell.x2, cell.y2], factors)
+                cell_image = image.crop((loc[0], loc[3], loc[2], loc[1]))
+                t.cells[r_idx][c_idx]._text = get_text_from_image(cell_image)
+                
 
         return t
     
@@ -405,7 +413,7 @@ class Lattice(BaseParser):
         if self.copy_text is not None:
             table = Lattice._copy_spanning_text(table, copy_text=self.copy_text)
         
-        table = Lattice.expand_spanning_cells(table)
+        # table = Lattice.expand_spanning_cells(table)
 
         data = table.data
         table.df = pd.DataFrame(data)
