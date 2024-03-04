@@ -232,6 +232,35 @@ class Lattice(BaseParser):
                             if t.cells[i][j].vspan and not t.cells[i][j].top:
                                 t.cells[i][j].text = t.cells[i - 1][j].text
         return t
+    
+    
+    @staticmethod
+    def expand_spanning_cells(t):
+        for i in range(len(t.cells)):
+            for j in range(len(t.cells[i])):
+                r_idx = i
+                c_idx = j
+                prev_cell = t.cells[i][j]
+                if prev_cell.hspan:
+                    while not t.cells[r_idx][c_idx].left:
+                        c_idx -= 1
+                        
+                if prev_cell.vspan:
+                    while not t.cells[r_idx][c_idx].top:
+                        r_idx -= 1
+                
+                y1 = min(t.cells[r_idx][c_idx].y1, prev_cell.y1)
+                y2 = max(t.cells[r_idx][c_idx].y2, prev_cell.y2)
+                x1 = min(t.cells[r_idx][c_idx].x1, prev_cell.x1)
+                x2 = max(t.cells[r_idx][c_idx].x2, prev_cell.x2)
+                t.cells[r_idx][c_idx].x1 = x1
+                t.cells[r_idx][c_idx].x2 = x2
+                t.cells[r_idx][c_idx].y1 = y1
+                t.cells[r_idx][c_idx].y2 = y2
+                t.cells[r_idx][c_idx].is_main = True
+
+        return t
+    
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
@@ -261,6 +290,9 @@ class Lattice(BaseParser):
         pdf_height_scaler = self.pdf_height / float(image_height)
         image_scalers = (image_width_scaler, image_height_scaler, self.pdf_height)
         pdf_scalers = (pdf_width_scaler, pdf_height_scaler, image_height)
+        
+        self.image_scalers = image_scalers
+        self.pdf_scalers = pdf_scalers
 
         if self.table_areas is None:
             regions = None
@@ -372,6 +404,8 @@ class Lattice(BaseParser):
 
         if self.copy_text is not None:
             table = Lattice._copy_spanning_text(table, copy_text=self.copy_text)
+        
+        table = Lattice.expand_spanning_cells(table)
 
         data = table.data
         table.df = pd.DataFrame(data)

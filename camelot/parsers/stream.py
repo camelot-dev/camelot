@@ -419,6 +419,7 @@ class Stream(BaseParser):
                     pos_errors.append(error)
                     for r_idx, c_idx, text in indices:
                         table.cells[r_idx][c_idx].text = text
+                        table.cells[r_idx][c_idx].is_main = True
         accuracy = compute_accuracy([[100, pos_errors]])
 
         data = table.data

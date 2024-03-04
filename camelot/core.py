@@ -283,6 +283,12 @@ class Cell:
         self.hspan = False
         self.vspan = False
         self._text = ""
+        self.is_main = False
+        self.is_header = False
+        self.is_row_header = False
+        self.is_subheader = False
+        self.subheaders = []
+        self.parent_header = []
 
     def __repr__(self):
         x1 = round(self.x1)
@@ -361,6 +367,39 @@ class Table:
         d = []
         for row in self.cells:
             d.append([cell.text.strip() for cell in row])
+        return d
+    
+
+    @property
+    def processed_data(self):
+        d = []
+        for i in range(len(self.cells)):
+            row_d = []
+            is_row_header = any(cell.is_header for cell in self.cells[i])
+            for j in range(len(self.cells[i])):
+                cell = self.cells[i][j]
+                if cell.is_header:
+                    is_row_header = True
+                if not cell.is_main and is_row_header:
+                    continue
+                if cell.is_subheader:
+                    continue
+
+                if cell.is_header:
+                    if not cell.subheaders:
+                        row_d.append(cell.text.strip())
+                    else:
+                        for sub in cell.subheaders:
+                            sub_cell = self.cells[i + 1][sub]
+                            row_d.append(cell.text.strip() + ' ' + sub_cell.text.strip())
+                else:
+                    if cell.text.strip() == "" and not is_row_header and not cell.is_main:
+                        self.cells[i][j]._text = self.cells[i - 1][j]._text
+                    row_d.append(cell.text.strip())
+
+            if any(row_d):
+                d.append(row_d)
+
         return d
 
     @property
