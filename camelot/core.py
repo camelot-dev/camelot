@@ -393,7 +393,7 @@ class Table:
                             sub_cell = self.cells[i + 1][sub]
                             row_d.append(cell.text.strip() + ' ' + sub_cell.text.strip())
                 else:
-                    if cell.text.strip() == "" and not is_row_header and not cell.is_main:
+                    if cell.text.strip() == "" and not is_row_header and not cell.is_main and not self.cells[i - 1][j].is_header:
                         self.cells[i][j]._text = self.cells[i - 1][j]._text
                     row_d.append(cell.text.strip())
 
