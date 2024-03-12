@@ -24,6 +24,9 @@ from ..utils import segments_in_bbox
 from ..utils import text_in_bbox
 from .base import BaseParser
 
+from PIL import Image
+from typing import Tuple, List
+
 
 logger = logging.getLogger("camelot")
 
@@ -93,7 +96,7 @@ class Lattice(BaseParser):
         table_regions=None,
         table_areas=None,
         process_background=False,
-        line_scale=15,
+        line_scale=75,
         copy_text=None,
         shift_text=["l", "t"],
         split_text=False,
@@ -106,8 +109,10 @@ class Lattice(BaseParser):
         iterations=0,
         resolution=300,
         backend="ghostscript",
+        imagename=None,
         **kwargs,
     ):
+        # super().__init__()
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.process_background = process_background
@@ -124,6 +129,8 @@ class Lattice(BaseParser):
         self.iterations = iterations
         self.resolution = resolution
         self.backend = Lattice._get_backend(backend)
+        self.imagename = imagename
+        self.image_convert = not imagename
 
     @staticmethod
     def _get_backend(backend):
@@ -232,6 +239,40 @@ class Lattice(BaseParser):
                             if t.cells[i][j].vspan and not t.cells[i][j].top:
                                 t.cells[i][j].text = t.cells[i - 1][j].text
         return t
+    
+    
+    @staticmethod
+    def expand_spanning_cells(t, image: Image.Image, factors: Tuple) -> Table:
+        for i in range(len(t.cells)):
+            for j in range(len(t.cells[i])):
+                r_idx = i
+                c_idx = j
+                prev_cell = t.cells[i][j]
+                if prev_cell.hspan:
+                    while not t.cells[r_idx][c_idx].left:
+                        c_idx -= 1
+                        
+                if prev_cell.vspan:
+                    while not t.cells[r_idx][c_idx].top:
+                        r_idx -= 1
+                
+                y1 = min(t.cells[r_idx][c_idx].y1, prev_cell.y1)
+                y2 = max(t.cells[r_idx][c_idx].y2, prev_cell.y2)
+                x1 = min(t.cells[r_idx][c_idx].x1, prev_cell.x1)
+                x2 = max(t.cells[r_idx][c_idx].x2, prev_cell.x2)
+                t.cells[r_idx][c_idx].x1 = x1
+                t.cells[r_idx][c_idx].x2 = x2
+                t.cells[r_idx][c_idx].y1 = y1
+                t.cells[r_idx][c_idx].y2 = y2
+                t.cells[r_idx][c_idx].is_main = True
+                # cell = t.cells[r_idx][c_idx]
+                # loc = scale_coordinates([cell.x1, cell.y1, cell.x2, cell.y2], factors)
+                # cell_image = image.crop((loc[0], loc[3], loc[2], loc[1]))
+                # t.cells[r_idx][c_idx]._text = get_text_from_image(cell_image)
+                
+
+        return t
+    
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
@@ -261,6 +302,9 @@ class Lattice(BaseParser):
         pdf_height_scaler = self.pdf_height / float(image_height)
         image_scalers = (image_width_scaler, image_height_scaler, self.pdf_height)
         pdf_scalers = (pdf_width_scaler, pdf_height_scaler, image_height)
+        
+        self.image_scalers = image_scalers
+        self.pdf_scalers = pdf_scalers
 
         if self.table_areas is None:
             regions = None
@@ -372,6 +416,8 @@ class Lattice(BaseParser):
 
         if self.copy_text is not None:
             table = Lattice._copy_spanning_text(table, copy_text=self.copy_text)
+        
+        # table = Lattice.expand_spanning_cells(table)
 
         data = table.data
         table.df = pd.DataFrame(data)
@@ -395,8 +441,8 @@ class Lattice(BaseParser):
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
-        self._generate_layout(filename, layout_kwargs)
+    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}) -> List[Table]:
+        self._generate_layout(filename, layout_kwargs, self.imagename)
         if not suppress_stdout:
             logger.info(f"Processing {os.path.basename(self.rootname)}")
 
@@ -409,8 +455,9 @@ class Lattice(BaseParser):
             else:
                 warnings.warn(f"No tables found on {os.path.basename(self.rootname)}")
             return []
-
-        self.backend.convert(self.filename, self.imagename)
+        print(self.image_convert, self.imagename)
+        if self.image_convert:
+            self.backend.convert(self.filename, self.imagename)
 
         self._generate_table_bbox()
 
@@ -420,8 +467,11 @@ class Lattice(BaseParser):
             sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
         ):
             cols, rows, v_s, h_s = self._generate_columns_and_rows(table_idx, tk)
-            table = self._generate_table(table_idx, cols, rows, v_s=v_s, h_s=h_s)
-            table._bbox = tk
-            _tables.append(table)
+            try:
+                table = self._generate_table(table_idx, cols, rows, v_s=v_s, h_s=h_s)
+                table._bbox = tk
+                _tables.append(table)
+            except:
+                pass
 
         return _tables
