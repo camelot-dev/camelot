@@ -25,7 +25,7 @@ from ..utils import text_in_bbox
 from .base import BaseParser
 
 from PIL import Image
-from typing import Tuple
+from typing import Tuple, List
 
 
 logger = logging.getLogger("camelot")
@@ -96,7 +96,7 @@ class Lattice(BaseParser):
         table_regions=None,
         table_areas=None,
         process_background=False,
-        line_scale=15,
+        line_scale=75,
         copy_text=None,
         shift_text=["l", "t"],
         split_text=False,
@@ -109,8 +109,10 @@ class Lattice(BaseParser):
         iterations=0,
         resolution=300,
         backend="ghostscript",
+        imagename=None,
         **kwargs,
     ):
+        # super().__init__()
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.process_background = process_background
@@ -127,6 +129,8 @@ class Lattice(BaseParser):
         self.iterations = iterations
         self.resolution = resolution
         self.backend = Lattice._get_backend(backend)
+        self.imagename = imagename
+        self.image_convert = not imagename
 
     @staticmethod
     def _get_backend(backend):
@@ -238,7 +242,7 @@ class Lattice(BaseParser):
     
     
     @staticmethod
-    def expand_spanning_cells(t, image: Image.Image, factors: Tuple):
+    def expand_spanning_cells(t, image: Image.Image, factors: Tuple) -> Table:
         for i in range(len(t.cells)):
             for j in range(len(t.cells[i])):
                 r_idx = i
@@ -437,8 +441,8 @@ class Lattice(BaseParser):
 
         return table
 
-    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
-        self._generate_layout(filename, layout_kwargs)
+    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}) -> List[Table]:
+        self._generate_layout(filename, layout_kwargs, self.imagename)
         if not suppress_stdout:
             logger.info(f"Processing {os.path.basename(self.rootname)}")
 
@@ -451,8 +455,9 @@ class Lattice(BaseParser):
             else:
                 warnings.warn(f"No tables found on {os.path.basename(self.rootname)}")
             return []
-
-        self.backend.convert(self.filename, self.imagename)
+        print(self.image_convert, self.imagename)
+        if self.image_convert:
+            self.backend.convert(self.filename, self.imagename)
 
         self._generate_table_bbox()
 
