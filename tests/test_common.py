@@ -188,3 +188,29 @@ def test_handler_with_pathlib(testdir):
     with open(filename, "rb") as f:
         handler = PDFHandler(f)
         assert handler._get_pages("1") == [1]
+
+
+def test_table_list_iter():
+    def _make_table(page, order):
+        t = Table([], [])
+        t.page = page
+        t.order = order
+        return t
+
+    table_list = TableList(
+        [_make_table(2, 1), _make_table(1, 1), _make_table(3, 4), _make_table(1, 2)]
+    )
+    # https://docs.python.org/3.12/library/functions.html#iter
+    # https://docs.python.org/3.12/library/stdtypes.html#typeiter
+    iterator_a = iter(table_list)
+    assert iterator_a is not None
+    item_a = next(iterator_a)
+    assert item_a is not None
+
+    item_b = table_list.__getitem__(0)
+    assert item_b is not None
+
+    iterator_b = table_list.__iter__()
+    assert iterator_b is not None
+    item_c = next(iterator_b)
+    assert item_c is not None
