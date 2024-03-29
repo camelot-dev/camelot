@@ -99,6 +99,26 @@ By default, Camelot only uses the first page of the PDF to extract tables. To sp
 
 The ``pages`` keyword argument accepts pages as comma-separated string of page numbers. You can also specify page ranges — for example, ``pages=1,4-10,20-30`` or ``pages=1,4-10,20-end``.
 
+Extract tables in parallel
+--------------------------
+
+Camelot supports extracting tables in parrallel using all the available CPU cores.
+
+::
+
+    >>> tables = camelot.read_pdf('foo.pdf', page='all', parallel=True)
+    >>> tables
+    <TableList n=1>
+
+.. tip::
+    Here's how you can do the same with the :ref:`command-line interface <cli>`.
+    ::
+    
+        $ camelot --pages all --parallel lattice foo.pdf
+
+.. note:: The reading of the PDF document is parallelized by processing pages by different CPU core.
+    Therefore, a document with a low page count could be slower to process in parallel.  
+
 Reading encrypted PDFs
 ----------------------
 
