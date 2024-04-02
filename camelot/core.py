@@ -361,6 +361,9 @@ class Table:
         self._vision_bbox: Union[List, Tuple] = None
         # is table merged with the table above or not?
         self.is_merged: bool = False
+        # ignore the table or not? in case of any issue with the table, make this true
+        self.ignore: bool = False
+        self.title: str = None
 
     def __repr__(self):
         return f"<{self.__class__.__name__} shape={self.shape}>"
@@ -412,15 +415,24 @@ class Table:
                             sub_cell = self.cells[i + 1][sub]
                             row_d.append(cell.text.strip() + ' ' + sub_cell.text.strip())
                 else:
+                    if i == 2 and j == 25:
+                        print("here", cell.text.strip(), not is_row_header, not cell.is_main)
+                        # exit(0)
                     if i > 0 and cell.text.strip() == "" and not is_row_header and not cell.is_main and not self.cells[i - 1][j].is_header:
+                        print("hey hey ", cell._text, self.cells[i - 1][j]._text, self.cells[i][j].vspan, not self.cells[i][j].top, i, j)
                         if self.cells[i][j].vspan and not self.cells[i][j].top:
-                            self.cells[i][j]._text = self.cells[i - 1][j]._text
+                            self.cells[i][j]._text = self.cells[i - 1][j].text
+                            
+                            print("done", i, j, self.cells[i][j]._text)
                     if j > 0 and self.cells[i][j].hspan and not self.cells[i][j].left and not self.cells[i][j - 1].is_row_header and not self.cells[i][j - 1].is_header:
-                        self.cells[i][j]._text = self.cells[i][j - 1]._text
+                        if self.cells[i][j - 1].text.strip() != "":
+                            self.cells[i][j]._text = self.cells[i][j - 1].text
+                            print("also", i, j, self.cells[i][j]._text)
                     row_d.append(cell.text.strip())
 
             if any(row_d):
                 d.append(row_d)
+            
 
         return d
 
@@ -437,6 +449,25 @@ class Table:
             "page": self.page,
         }
         return report
+    
+
+    def find_footnotes(self):
+        def is_footnote(text):
+            return text in ["1)"] # todo: add regex here
+        for i in range(len(self.cells)):
+            row = self.cells[i]
+            for j in range(len(row)):
+                cell = self.cells[i][j]
+                if not "<s>" in cell.text:
+                    continue
+                splitted = cell.text.split("<s>")
+                print("text:", cell.text)
+                print("splitted:", splitted)
+                for i in range(1, len(splitted), 2):
+                    subscript = splitted[i].split("</s>")[0]
+                    # if is_footnote(subscript):
+                    print(subscript)
+                
 
     def set_all_edges(self):
         """Sets all table edges to True."""
