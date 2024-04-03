@@ -39,6 +39,12 @@ pass_config = click.make_pass_decorator(Config)
     default="1",
     help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
 )
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Read pdf pages in parallel using all CPU cores.",
+)
 @click.option("-pw", "--password", help="Password for decryption.")
 @click.option("-o", "--output", help="Output file path.")
 @click.option(

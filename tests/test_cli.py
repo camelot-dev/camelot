@@ -62,6 +62,30 @@ def test_cli_stream(testdir):
         assert format_error in result.output
 
 
+@skip_on_windows
+def test_cli_parallel(testdir):
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "diesel_engines.pdf")
+        outfile = os.path.join(tempdir, "diesel_engines.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--parallel",
+                "--pages",
+                "1,2,3",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "lattice",
+                infile,
+            ],
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 2 tables\n"
+
+
 def test_cli_password(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health_protected.pdf")
