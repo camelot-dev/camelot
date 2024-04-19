@@ -364,6 +364,7 @@ class Table:
         self.is_merged: bool = False
         # ignore the table or not? in case of any issue with the table, make this true
         self.ignore: bool = False
+        self.parented: bool = False
         self.title: str = None
 
     def __repr__(self):
