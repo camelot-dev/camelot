@@ -349,6 +349,7 @@ class Table:
         self.rows = rows
         self.cells = [[Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows]
         self.df = pd.DataFrame()
+        self.tagged_df = pd.DataFrame()
         self.shape = (0, 0)
         self.accuracy = 0
         self.whitespace = 0
@@ -394,8 +395,7 @@ class Table:
         return d
     
 
-    @property
-    def processed_data(self):
+    def processed_data(self, tag: bool = False):
         d = []
         for i in range(len(self.cells)):
             row_d = []
@@ -409,26 +409,30 @@ class Table:
 
                 if cell.is_header:
                     if not cell.subheaders:
-                        row_d.append(cell.text.strip())
+                        if tag:
+                            row_d.append(f"<bold>{cell.text.strip()}</bold>")
+                        else:
+                            row_d.append(cell.text.strip())
                     else:
                         for sub in cell.subheaders:
                             sub_cell = self.cells[i + 1][sub]
-                            row_d.append(cell.text.strip() + ' ' + sub_cell.text.strip())
+                            if tag:
+                                row_d.append(f"<bold>{cell.text.strip() + ' ' + sub_cell.text.strip()}</bold>")
+                            else:
+                                row_d.append(cell.text.strip() + ' ' + sub_cell.text.strip())
                 else:
-                    if i == 2 and j == 25:
-                        print("here", cell.text.strip(), not is_row_header, not cell.is_main)
-                        # exit(0)
                     if i > 0 and cell.text.strip() == "" and not is_row_header and not cell.is_main and not self.cells[i - 1][j].is_header:
-                        print("hey hey ", cell._text, self.cells[i - 1][j]._text, self.cells[i][j].vspan, not self.cells[i][j].top, i, j)
                         if self.cells[i][j].vspan and not self.cells[i][j].top:
                             self.cells[i][j]._text = self.cells[i - 1][j].text
                             
-                            print("done", i, j, self.cells[i][j]._text)
                     if j > 0 and self.cells[i][j].hspan and not self.cells[i][j].left and not self.cells[i][j - 1].is_row_header and not self.cells[i][j - 1].is_header:
                         if self.cells[i][j - 1].text.strip() != "":
                             self.cells[i][j]._text = self.cells[i][j - 1].text
-                            print("also", i, j, self.cells[i][j]._text)
-                    row_d.append(cell.text.strip())
+                    
+                    if cell.is_bold and tag:
+                        row_d.append(f"<bold>{cell.text.strip()}</bold>")
+                    else:
+                        row_d.append(cell.text.strip())
 
             if any(row_d):
                 d.append(row_d)

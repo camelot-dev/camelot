@@ -243,19 +243,26 @@ class Lattice(BaseParser):
     
     @staticmethod
     def expand_spanning_cells(t, image: Image.Image, factors: Tuple) -> Table:
+        # from parser.utils import scale_coordinates
+        # from parser.ocr import get_text_from_image
+        # import pytesseract
+        # from pytesseract import Output
+        
         for i in range(len(t.cells)):
             for j in range(len(t.cells[i])):
                 r_idx = i
                 c_idx = j
                 prev_cell = t.cells[i][j]
-                if prev_cell.hspan:
+                if t.cells[r_idx][c_idx].hspan:
                     while not t.cells[r_idx][c_idx].left:
                         c_idx -= 1
                         
-                if prev_cell.vspan:
+                if t.cells[r_idx][c_idx].vspan:
                     while not t.cells[r_idx][c_idx].top:
                         r_idx -= 1
                 
+                if i == 2 and j == 25:
+                    print("eyvay", r_idx, c_idx)
                 y1 = min(t.cells[r_idx][c_idx].y1, prev_cell.y1)
                 y2 = max(t.cells[r_idx][c_idx].y2, prev_cell.y2)
                 x1 = min(t.cells[r_idx][c_idx].x1, prev_cell.x1)
@@ -265,10 +272,12 @@ class Lattice(BaseParser):
                 t.cells[r_idx][c_idx].y1 = y1
                 t.cells[r_idx][c_idx].y2 = y2
                 t.cells[r_idx][c_idx].is_main = True
+                
                 # cell = t.cells[r_idx][c_idx]
                 # loc = scale_coordinates([cell.x1, cell.y1, cell.x2, cell.y2], factors)
                 # cell_image = image.crop((loc[0], loc[3], loc[2], loc[1]))
-                # t.cells[r_idx][c_idx]._text = get_text_from_image(cell_image)
+                # results = pytesseract.image_to_osd(cell_image, output_type=Output.DICT)
+                # print(cell._text, results["orientation"], results["rotate"])
                 
 
         return t
