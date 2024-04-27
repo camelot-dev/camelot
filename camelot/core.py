@@ -400,7 +400,7 @@ class Table:
         d = []
         for i in range(len(self.cells)):
             row_d = []
-            is_row_header = all(cell.is_header for cell in self.cells[i])
+            is_row_header = all(cell.is_header for cell in self.cells[i] if cell.is_main)
             for j in range(len(self.cells[i])):
                 cell = self.cells[i][j]
                 if not cell.is_main and is_row_header:
@@ -409,6 +409,9 @@ class Table:
                     continue
 
                 if cell.is_header:
+                    if cell.text.strip() == "":
+                        continue
+                    # print("adding header---", i, j, cell.text)
                     if not cell.subheaders:
                         if tag:
                             row_d.append(f"<bold>{cell.text.strip()}</bold>")
@@ -422,6 +425,7 @@ class Table:
                             else:
                                 row_d.append(cell.text.strip() + ' ' + sub_cell.text.strip())
                 else:
+                    # print("adding non-header-----", i, j, cell.text)
                     if i > 0 and cell.text.strip() == "" and not is_row_header and not cell.is_main and not self.cells[i - 1][j].is_header:
                         if self.cells[i][j].vspan and not self.cells[i][j].top:
                             self.cells[i][j]._text = self.cells[i - 1][j].text
