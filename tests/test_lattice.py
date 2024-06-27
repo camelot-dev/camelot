@@ -105,3 +105,13 @@ def test_lattice_arabic(testdir):
     filename = os.path.join(testdir, "tabula/arabic.pdf")
     tables = camelot.read_pdf(filename)
     assert_frame_equal(df, tables[0].df)
+
+
+@skip_on_windows
+def test_lattice_split_text(testdir):
+    df = pd.DataFrame(data_lattice_split_text)
+
+    filename = os.path.join(testdir, "split_text_lattice.pdf")
+    tables = camelot.read_pdf(filename, line_scale=60, split_text=True)
+
+    assert_frame_equal(df, tables[0].df)
