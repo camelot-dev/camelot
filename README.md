@@ -104,6 +104,10 @@ The documentation is available at [http://camelot-py.readthedocs.io/](http://cam
 
 - [camelot-php](https://github.com/randomstate/camelot-php) provides a [PHP](https://www.php.net/) wrapper on Camelot.
 
+## Related projects
+
+- [camelot-sharp](https://github.com/BobLd/camelot-sharp) provides a C sharp implementation of pypdf_table_extraction (Camelot).
+
 ## Contributing
 
 The [Contributor's Guide](https://camelot-py.readthedocs.io/en/master/dev/contributing.html) has detailed information about contributing issues, documentation, code, and tests.
