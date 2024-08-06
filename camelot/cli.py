@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import logging
 
 import click
+
 
 try:
     import matplotlib.pyplot as plt
@@ -11,14 +10,16 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from . import __version__, read_pdf, plot
+from . import __version__
+from . import plot
+from . import read_pdf
 
 
 logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)
 
 
-class Config(object):
+class Config:
     def __init__(self):
         self.config = {}
 
@@ -37,6 +38,12 @@ pass_config = click.make_pass_decorator(Config)
     "--pages",
     default="1",
     help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+)
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Read pdf pages in parallel using all CPU cores.",
 )
 @click.option("-pw", "--password", help="Password for decryption.")
 @click.option("-o", "--output", help="Output file path.")

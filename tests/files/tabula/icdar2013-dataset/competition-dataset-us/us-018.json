@@ -1,1 +1,6 @@
-{"numExpectedTables":7,"numCorrectlyDetectedTables":6,"numErroneouslyDetectedTables":1,"expectedFailure":true}
+{
+  "numExpectedTables": 7,
+  "numCorrectlyDetectedTables": 6,
+  "numErroneouslyDetectedTables": 1,
+  "expectedFailure": true
+}

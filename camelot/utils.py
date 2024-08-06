@@ -1,35 +1,33 @@
-# -*- coding: utf-8 -*-
-
 import os
-import re
 import random
+import re
 import shutil
 import string
 import tempfile
 import warnings
 from itertools import groupby
 from operator import itemgetter
+from urllib.parse import urlparse as parse_url
+from urllib.parse import uses_netloc
+from urllib.parse import uses_params
+from urllib.parse import uses_relative
+from urllib.request import Request
+from urllib.request import urlopen
 
 import numpy as np
-from pdfminer.pdfparser import PDFParser
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LAParams
+from pdfminer.layout import LTAnno
+from pdfminer.layout import LTChar
+from pdfminer.layout import LTImage
+from pdfminer.layout import LTTextLineHorizontal
+from pdfminer.layout import LTTextLineVertical
 from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFPageInterpreter
+from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import (
-    LAParams,
-    LTAnno,
-    LTChar,
-    LTTextLineHorizontal,
-    LTTextLineVertical,
-    LTImage,
-)
-
-from urllib.request import Request, urlopen
-from urllib.parse import urlparse as parse_url
-from urllib.parse import uses_relative, uses_netloc, uses_params
+from pdfminer.pdfparser import PDFParser
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -138,7 +136,7 @@ def remove_extra(kwargs, flavor="lattice"):
 
 
 # https://stackoverflow.com/a/22726782
-class TemporaryDirectory(object):
+class TemporaryDirectory:
     def __enter__(self):
         self.name = tempfile.mkdtemp()
         return self.name
@@ -375,8 +373,9 @@ def text_in_bbox(bbox, text):
             if ba == bb:
                 continue
             if bbox_intersect(ba, bb):
+                ba_area = bbox_area(ba)
                 # if the intersection is larger than 80% of ba's size, we keep the longest
-                if (bbox_intersection_area(ba, bb) / bbox_area(ba)) > 0.8:
+                if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
                     if bbox_longer(bb, ba):
                         rest.discard(ba)
     unique_boxes = list(rest)
@@ -504,7 +503,7 @@ def text_strip(text, strip=""):
         return text
 
     stripped = re.sub(
-        fr"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
+        rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
     )
     return stripped
 
@@ -892,12 +891,14 @@ def get_page_layout(
         rsrcmgr = PDFResourceManager()
         device = PDFPageAggregator(rsrcmgr, laparams=laparams)
         interpreter = PDFPageInterpreter(rsrcmgr, device)
-        for page in PDFPage.create_pages(document):
-            interpreter.process_page(page)
-            layout = device.get_result()
-            width = layout.bbox[2]
-            height = layout.bbox[3]
-            dim = (width, height)
+        page = next(PDFPage.create_pages(document), None)
+        if page is None:
+            raise PDFTextExtractionNotAllowed
+        interpreter.process_page(page)
+        layout = device.get_result()
+        width = layout.bbox[2]
+        height = layout.bbox[3]
+        dim = (width, height)
         return layout, dim
 
 

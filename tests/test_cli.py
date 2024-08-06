@@ -1,22 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import os
-import sys
 
-import pytest
 from click.testing import CliRunner
 
 from camelot.cli import cli
 from camelot.utils import TemporaryDirectory
-
-
-testdir = os.path.dirname(os.path.abspath(__file__))
-testdir = os.path.join(testdir, "files")
-
-skip_on_windows = pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="Ghostscript not installed in Windows test environment",
-)
+from tests.conftest import skip_on_windows
 
 
 def test_help_output():
@@ -34,7 +22,7 @@ def test_help_output():
 
 
 @skip_on_windows
-def test_cli_lattice():
+def test_cli_lattice(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "foo.pdf")
         outfile = os.path.join(tempdir, "foo.csv")
@@ -54,7 +42,7 @@ def test_cli_lattice():
         assert format_error in result.output
 
 
-def test_cli_stream():
+def test_cli_stream(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "budget.pdf")
         outfile = os.path.join(tempdir, "budget.csv")
@@ -74,7 +62,31 @@ def test_cli_stream():
         assert format_error in result.output
 
 
-def test_cli_password():
+@skip_on_windows
+def test_cli_parallel(testdir):
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "diesel_engines.pdf")
+        outfile = os.path.join(tempdir, "diesel_engines.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--parallel",
+                "--pages",
+                "1,2,3",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "lattice",
+                infile,
+            ],
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 2 tables\n"
+
+
+def test_cli_password(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health_protected.pdf")
         outfile = os.path.join(tempdir, "health_protected.csv")
@@ -95,7 +107,7 @@ def test_cli_password():
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
 
-        output_error = "file has not been decrypted"
+        output_error = "File has not been decrypted"
         # no password
         result = runner.invoke(
             cli, ["--format", "csv", "--output", outfile, "stream", infile]
@@ -119,7 +131,7 @@ def test_cli_password():
         assert output_error in str(result.exception)
 
 
-def test_cli_output_format():
+def test_cli_output_format(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health.pdf")
 
@@ -174,7 +186,7 @@ def test_cli_output_format():
         assert result.exit_code == 0, f"Output: {result.output}"
 
 
-def test_cli_quiet():
+def test_cli_quiet(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "empty.pdf")
         outfile = os.path.join(tempdir, "empty.csv")
@@ -183,7 +195,7 @@ def test_cli_quiet():
         result = runner.invoke(
             cli, ["--format", "csv", "--output", outfile, "stream", infile]
         )
-        assert "No tables found on page-1" in result.output
+        assert "Found 0 tables" in result.output
 
         result = runner.invoke(
             cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document filename="bm_us-025-str.xml"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="competition-entry-structure-model.xsd">
-    
+
      <table id='1'>
       <region page='2' id='1' col-increment='0' row-increment='0'>
          <cell id='1' start-row='0' start-col='0' end-row='1' end-col='0'>
@@ -417,7 +417,7 @@
          </cell>
       </region>
    </table>
-    
+
     <table id="2">
         <region col-increment="0" id="1" page="2" row-increment="0">
             <cell end-row="2" id="1" start-col="0" start-row="0">
@@ -1331,7 +1331,7 @@
             </cell>
         </region>
     </table>
-    
+
     <table id="3">
         <region col-increment="0" id="1" page="3" row-increment="0">
             <cell end-row="2" id="1" start-col="0" start-row="0">
@@ -1843,7 +1843,7 @@ group
             </cell>
         </region>
     </table>
-    
+
     <table id="4">
         <region col-increment="0" id="1" page="3" row-increment="0">
             <cell end-row="2" id="1" start-col="0" start-row="0">
@@ -2759,7 +2759,7 @@ group
             </cell>
         </region>
     </table>
-    
+
      <table id="5">
         <region col-increment="0" id="1" page="3" row-increment="0">
             <cell end-row="2" id="1" start-col="0" end-col="0" start-row="0">
@@ -3271,7 +3271,7 @@ group
             </cell>
         </region>
     </table>
-    
+
         <table id="6">
         <region col-increment="0" id="2" page="4" row-increment="0">
             <cell end-row="1" id="1" start-col="0" start-row="0">

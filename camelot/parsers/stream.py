@@ -1,15 +1,17 @@
-# -*- coding: utf-8 -*-
-
-import os
 import logging
+import os
 import warnings
 
 import numpy as np
 import pandas as pd
 
+from ..core import Table
+from ..core import TextEdges
+from ..utils import compute_accuracy
+from ..utils import compute_whitespace
+from ..utils import get_table_index
+from ..utils import text_in_bbox
 from .base import BaseParser
-from ..core import TextEdges, Table
-from ..utils import text_in_bbox, get_table_index, compute_accuracy, compute_whitespace
 
 
 logger = logging.getLogger("camelot")
@@ -94,10 +96,15 @@ class Stream(BaseParser):
             Tuple (x0, y0, x1, y1) in pdf coordinate space.
 
         """
-        xmin = min([t.x0 for direction in t_bbox for t in t_bbox[direction]])
-        ymin = min([t.y0 for direction in t_bbox for t in t_bbox[direction]])
-        xmax = max([t.x1 for direction in t_bbox for t in t_bbox[direction]])
-        ymax = max([t.y1 for direction in t_bbox for t in t_bbox[direction]])
+        xmin = 0
+        ymin = 0
+        xmax = 0
+        ymax = 0
+        if len([t.x0 for direction in t_bbox for t in t_bbox[direction]]) > 0:
+            xmin = min([t.x0 for direction in t_bbox for t in t_bbox[direction]])
+            ymin = min([t.y0 for direction in t_bbox for t in t_bbox[direction]])
+            xmax = max([t.x1 for direction in t_bbox for t in t_bbox[direction]])
+            ymax = max([t.y1 for direction in t_bbox for t in t_bbox[direction]])
         text_bbox = (xmin, ymin, xmax, ymax)
         return text_bbox
 
