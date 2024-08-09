@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Camelot: PDF Table Extraction for Humans
+pypdf_table_extraction (Camelot): PDF Table Extraction for Humans
 ========================================
 
 Release v\ |version|. (:ref:`Installation <install>`)
@@ -15,30 +15,22 @@ Release v\ |version|. (:ref:`Installation <install>`)
     :target: https://camelot-py.readthedocs.io/en/master/
     :alt: Documentation Status
 
-.. image:: https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github
-    :target: https://codecov.io/github/camelot-dev/camelot?branch=master
+.. image:: https://codecov.io/github/py-pdf/pypdf_table_extraction/badge.svg?branch=main&service=github
+    :target: https://codecov.io/github/py-pdf/pypdf_table_extraction/?branch=main
 
-.. image:: https://img.shields.io/pypi/v/camelot-py.svg
-    :target: https://pypi.org/project/camelot-py/
+.. image:: https://img.shields.io/pypi/v/pypdf-table-extraction.svg
+    :target: https://pypi.org/project/pypdf-table-extraction/
 
-.. image:: https://img.shields.io/pypi/l/camelot-py.svg
-    :target: https://pypi.org/project/camelot-py/
+.. image:: https://img.shields.io/pypi/l/pypdf-table-extraction.svg
+    :target: https://pypi.org/project/pypdf-table-extraction/
 
-.. image:: https://img.shields.io/pypi/pyversions/camelot-py.svg
-    :target: https://pypi.org/project/camelot-py/
+.. image:: https://img.shields.io/pypi/pyversions/pypdf-table-extraction.svg
+    :target: (https://pypi.org/project/pypdf-table-extraction/
 
-.. image:: https://badges.gitter.im/camelot-dev/Lobby.png
-    :target: https://gitter.im/camelot-dev/Lobby
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
+**pypdf_table_extraction** Formerly known as Camelot is a Python library that can help you extract tables from PDFs!
 
-.. image:: https://img.shields.io/badge/continous%20quality-deepsource-lightgrey
-    :target: https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge
-
-**Camelot** is a Python library that can help you extract tables from PDFs!
-
-.. note:: You can also check out `Excalibur`_, the web interface to Camelot!
+.. note:: You can also check out `Excalibur`_, the web interface to pypdf_table_extraction (Camelot)!
 
 .. _Excalibur: https://github.com/camelot-dev/excalibur
 
@@ -48,7 +40,7 @@ Release v\ |version|. (:ref:`Installation <install>`)
 
 .. _here: _static/pdf/foo.pdf
 
-::
+:: pycon
 
     >>> import camelot
     >>> tables = camelot.read_pdf('foo.pdf')
@@ -70,9 +62,9 @@ Release v\ |version|. (:ref:`Installation <install>`)
 .. csv-table::
   :file: _static/csv/foo.csv
 
-Camelot also comes packaged with a :ref:`command-line interface <cli>`!
+pypdf_table_extraction also comes packaged with a :ref:`command-line interface <cli>`!
 
-.. note:: Camelot only works with text-based PDFs and not scanned documents. (As Tabula `explains`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
+.. note:: pypdf_table_extraction only works with text-based PDFs and not scanned documents. (As Tabula `explains`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
 You can check out some frequently asked questions :ref:`here <faq>`.
 
@@ -91,12 +83,6 @@ See `comparison with similar libraries and tools`_.
 
 .. _comparison with similar libraries and tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
 
-Support the development
------------------------
-
-If Camelot has helped you, please consider supporting its development with a one-time or monthly donation `on OpenCollective`_!
-
-.. _on OpenCollective: https://opencollective.com/camelot
 
 The User Guide
 --------------

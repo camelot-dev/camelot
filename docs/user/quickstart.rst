@@ -3,7 +3,7 @@
 Quickstart
 ==========
 
-In a hurry to extract tables from PDFs? This document gives a good introduction to help you get started with Camelot.
+In a hurry to extract tables from PDFs? This document gives a good introduction to help you get started with pypdf_table_extraction.
 
 Read the PDF
 ------------
@@ -80,14 +80,14 @@ This will export all tables as CSV files at the path specified. Alternatively, y
 
 .. note:: The :meth:`export() <camelot.core.TableList.export>` method exports files with a ``page-*-table-*`` suffix. In the example above, the single table in the list will be exported to ``foo-page-1-table-1.csv``. If the list contains multiple tables, multiple CSV files will be created. To avoid filling up your path with multiple files, you can use ``compress=True``, which will create a single ZIP file at your path with all the CSV files.
 
-.. note:: Camelot handles rotated PDF pages automatically. As an exercise, try to extract the table out of `this PDF`_.
+.. note:: pypdf_table_extraction handles rotated PDF pages automatically. As an exercise, try to extract the table out of `this PDF`_.
 
 .. _this PDF: ../_static/pdf/rotated.pdf
 
 Specify page numbers
 --------------------
 
-By default, Camelot only uses the first page of the PDF to extract tables. To specify multiple pages, you can use the ``pages`` keyword argument::
+By default, pypdf_table_extraction only uses the first page of the PDF to extract tables. To specify multiple pages, you can use the ``pages`` keyword argument::
 
     >>> camelot.read_pdf('your.pdf', pages='1,2,3')
 
@@ -102,7 +102,7 @@ The ``pages`` keyword argument accepts pages as comma-separated string of page n
 Extract tables in parallel
 --------------------------
 
-Camelot supports extracting tables in parrallel using all the available CPU cores.
+pypdf_table_extraction supports extracting tables in parrallel using all the available CPU cores.
 
 ::
 
@@ -136,7 +136,7 @@ To extract tables from encrypted PDF files you must provide a password when call
 
         $ camelot --password userpass lattice foo.pdf
 
-Camelot supports PDFs with all encryption types supported by `pypdf`_. This might require installing PyCryptodome. An exception is thrown if the PDF cannot be read. This may be due to no password being provided, an incorrect password, or an unsupported encryption algorithm.
+pypdf_table_extraction supports PDFs with all encryption types supported by `pypdf`_. This might require installing PyCryptodome. An exception is thrown if the PDF cannot be read. This may be due to no password being provided, an incorrect password, or an unsupported encryption algorithm.
 
 Further encryption support may be added in future, however in the meantime if your PDF files are using unsupported encryption algorithms you are advised to remove encryption before calling :meth:`read_pdf() <camelot.read_pdf>`. This can been successfully achieved with third-party tools such as `QPDF`_.
 

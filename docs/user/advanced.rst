@@ -36,7 +36,7 @@ To process background lines, you can pass ``process_background=True``.
 Visual debugging
 ----------------
 
-.. note:: Visual debugging using ``plot()`` requires `matplotlib <https://matplotlib.org/>`_ which is an optional dependency. You can install it using ``$ pip install camelot-py[plot]``.
+.. note:: Visual debugging using ``plot()`` requires `matplotlib <https://matplotlib.org/>`_ which is an optional dependency. You can install it using ``$ pip install pypdf-table-extraction[plot]``.
 
 You can use the :class:`plot() <camelot.plotting.PlotMethods>` method to generate a `matplotlib <https://matplotlib.org/>`_ plot of various elements that were detected on the PDF page while processing it. This can help you select table areas, column separators and debug bad table outputs, by tweaking different configuration parameters.
 
@@ -202,7 +202,7 @@ Specify table areas
 
 In cases such as `these <../_static/pdf/table_areas.pdf>`__, it can be useful to specify exact table boundaries. You can plot the text on this page and note the top left and bottom right coordinates of the table.
 
-Table areas that you want Camelot to analyze can be passed as a list of comma-separated strings to :meth:`read_pdf() <camelot.read_pdf>`, using the ``table_areas`` keyword argument.
+Table areas that you want pypdf_table_extraction to analyze can be passed as a list of comma-separated strings to :meth:`read_pdf() <camelot.read_pdf>`, using the ``table_areas`` keyword argument.
 
 ::
 
@@ -223,7 +223,7 @@ Table areas that you want Camelot to analyze can be passed as a list of comma-se
 Specify table regions
 ---------------------
 
-However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/camelot-dev/camelot/blob/master/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
+However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/py-pdf/pypdf_table_extraction/blob/main/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
 
 You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot.read_pdf>` to solve for such cases. When ``table_regions`` is specified, Camelot will only analyze the specified regions to look for tables.
 
@@ -244,7 +244,7 @@ You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot
 Specify column separators
 -------------------------
 
-In cases like `these <../_static/pdf/column_separators.pdf>`__, where the text is very close to each other, it is possible that Camelot may guess the column separators' coordinates incorrectly. To correct this, you can explicitly specify the *x* coordinate for each column separator by plotting the text on the page.
+In cases like `these <../_static/pdf/column_separators.pdf>`__, where the text is very close to each other, it is possible that pypdf_table_extraction may guess the column separators' coordinates incorrectly. To correct this, you can explicitly specify the *x* coordinate for each column separator by plotting the text on the page.
 
 You can pass the column separators as a list of comma-separated strings to :meth:`read_pdf() <camelot.read_pdf>`, using the ``columns`` keyword argument.
 
@@ -334,7 +334,7 @@ You can solve this by passing ``flag_size=True``, which will enclose the supersc
 Strip characters from text
 --------------------------
 
-You can strip unwanted characters like spaces, dots and newlines from a string using the ``strip_text`` keyword argument. Take a look at `this PDF <https://github.com/camelot-dev/camelot/blob/master/tests/files/tabula/12s0324.pdf>`_ as an example, the text at the start of each row contains a lot of unwanted spaces, dots and newlines.
+You can strip unwanted characters like spaces, dots and newlines from a string using the ``strip_text`` keyword argument. Take a look at `this PDF <https://github.com/py-pdf/pypdf_table_extraction/blob/master/tests/files/tabula/12s0324.pdf>`_ as an example, the text at the start of each row contains a lot of unwanted spaces, dots and newlines.
 
 ::
 
@@ -360,7 +360,7 @@ You can strip unwanted characters like spaces, dots and newlines from a string u
 Improve guessed table areas
 ---------------------------
 
-While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs like `this one <https://github.com/camelot-dev/camelot/blob/master/tests/files/edge_tol.pdf>`_. That's because the text is relatively far apart vertically, which can lead to shorter textedges being calculated.
+While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs like `this one <https://github.com/py-pdf/pypdf_table_extraction/blob/master/tests/files/edge_tol.pdf>`_. That's because the text is relatively far apart vertically, which can lead to shorter textedges being calculated.
 
 .. note:: To know more about how textedges are calculated to guess table areas, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
 
@@ -487,7 +487,7 @@ Clearly, the smaller lines separating the headers, couldn't be detected. Let's t
     :alt: An improved plot of the PDF table with short lines
     :align: left
 
-Voila! Camelot can now see those lines. Let's get our table.
+Voila! pypdf_table_extraction can now see those lines. Let's get our table.
 
 ::
 
@@ -616,7 +616,7 @@ We don't need anything else. Now, let's pass ``copy_text=['v']`` to copy text in
 Tweak layout generation
 -----------------------
 
-Camelot is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences. In some cases (such as `#170 <https://github.com/camelot-dev/camelot/issues/170>`_ and `#215 <https://github.com/camelot-dev/camelot/issues/215>`_), PDFMiner can group characters that should belong to the same sentence into separate sentences.
+pypdf_table_extraction is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences. In some cases (such as `#170 <https://github.com/atlanhq/camelot/issues/170>`_ and `#215 <https://github.com/atlanhq/camelot/issues/215>`_), PDFMiner can group characters that should belong to the same sentence into separate sentences.
 
 To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ to improve layout generation, by passing the keyword arguments as a dict using ``layout_kwargs`` in :meth:`read_pdf() <camelot.read_pdf>`. To know more about the parameters you can tweak, you can check out `PDFMiner docs <https://pdfminersix.rtfd.io/en/latest/reference/composable.html>`_.
 

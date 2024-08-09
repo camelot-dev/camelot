@@ -3,15 +3,15 @@
 Command-Line Interface
 ======================
 
-Camelot comes with a command-line interface.
+pypdf-table-extraction comes with a command-line interface.
 
-You can print the help for the interface by typing ``camelot --help`` in your favorite terminal program, as shown below. Furthermore, you can print the help for each command by typing ``camelot <command> --help``. Try it out!
+You can print the help for the interface by typing ``camelot --help`` in your favorite terminal program, as shown below. Furthermore, you can print the help for each command by typing ``pypdf-table-extraction <command> --help``. Try it out!
 
 ::
 
-  Usage: camelot [OPTIONS] COMMAND [ARGS]...
+  Usage: pypdf-table-extraction [OPTIONS] COMMAND [ARGS]...
 
-    Camelot: PDF Table Extraction for Humans
+    pypdf-table-extraction: PDF Table Extraction for Humans
 
   Options:
     --version                       Show the version and exit.

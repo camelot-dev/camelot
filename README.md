@@ -12,7 +12,7 @@
 
 ---
 
-**Here's how you can extract tables from PDFs.** You can check out the PDF used in this example [here](https://github.com/py-pdf/pypdf_table_extraction/blob/latest/docs/_static/pdf/foo.pdf).
+**Here's how you can extract tables from PDFs.** You can check out the PDF used in this example [here](https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/_static/pdf/foo.pdf).
 
 ```python3
 >>> import camelot

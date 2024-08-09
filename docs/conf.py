@@ -64,8 +64,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "Camelot"
-copyright = "2021, Camelot Developers"
+project = "pypdf-table-extraction"
+copyright = "2024, pypdf-table-extraction Developers"
 author = "Vinayak Mehta"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -139,8 +139,8 @@ html_theme = "alabaster"
 # documentation.
 html_theme_options = {
     "show_powered_by": False,
-    "github_user": "camelot-dev",
-    "github_repo": "camelot",
+    "github_user": "py-pdf",
+    "github_repo": "pypdf-table-extraction",
     "github_banner": True,
     "show_related": False,
     "note_bg": "#FFF59C",
@@ -262,7 +262,7 @@ html_show_copyright = True
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "Camelotdoc"
+htmlhelp_basename = "pypdf-table-extraction-doc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -285,7 +285,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "Camelot.tex", "Camelot Documentation", "Vinayak Mehta", "manual"),
+    (master_doc, "pypdf-table-extraction.tex", "pypdf-table-extraction Documentation", "Vinayak Mehta", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -325,7 +325,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "Camelot", "Camelot Documentation", [author], 1)]
+man_pages = [(master_doc, "pypdf-table-extraction", "pypdf-table-extraction Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 #
@@ -340,11 +340,11 @@ man_pages = [(master_doc, "Camelot", "Camelot Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "Camelot",
-        "Camelot Documentation",
+        "pypdf-table-extraction",
+        "pypdf-table-extraction Documentation",
         author,
-        "Camelot",
-        "One line description of project.",
+        "pypdf-table-extraction",
+        "PDF Table Extraction for Humans.",
         "Miscellaneous",
     ),
 ]

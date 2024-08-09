@@ -3,7 +3,7 @@
 Contributor's Guide
 ===================
 
-If you're reading this, you're probably looking to contributing to Camelot. *Time is the only real currency*, and the fact that you're considering spending some here is *very* generous of you. Thank you very much!
+If you're reading this, you're probably looking to contributing to pypdf-table-extraction. *Time is the only real currency*, and the fact that you're considering spending some here is *very* generous of you. Thank you very much!
 
 This document will help you get started with contributing documentation, code, testing and filing issues. If you have any questions, feel free to reach out to `Vinayak Mehta`_, the author and maintainer.
 
@@ -27,17 +27,17 @@ As the `Requests Code Of Conduct`_ states, **all contributions are welcome**, as
 Your first contribution
 -----------------------
 
-A great way to start contributing to Camelot is to pick an issue tagged with the `help wanted`_ or the `good first issue`_ tags. If you're unable to find a good first issue, feel free to contact the maintainer.
+A great way to start contributing to pypdf-table-extraction is to pick an issue tagged with the `help wanted`_ or the `good first issue`_ tags. If you're unable to find a good first issue, feel free to contact the maintainer.
 
-.. _help wanted: https://github.com/camelot-dev/camelot/labels/help%20wanted
-.. _good first issue: https://github.com/camelot-dev/camelot/labels/good%20first%20issue
+.. _help wanted: https://github.com/py-pdf/pypdf_table_extraction/labels/help%20wanted
+.. _good first issue: https://github.com/py-pdf/pypdf_table_extraction/labels/good%20first%20issue
 
 Setting up a development environment
 ------------------------------------
 
 To install the dependencies needed for development, you can use pip::
 
-    $ pip install "camelot-py[dev]"
+    $ pip install "pypdf-table-extraction[dev]"
 
 Alternatively, you can clone the project repository, and install using pip::
 
@@ -51,13 +51,13 @@ Submit a pull request
 
 The preferred workflow for contributing to Camelot is to fork the `project repository`_ on GitHub, clone, develop on a branch and then finally submit a pull request. Here are the steps:
 
-.. _project repository: https://github.com/camelot-dev/camelot
+.. _project repository: https://github.com/py-pdf/pypdf_table_extraction/
 
 1. Fork the project repository. Click on the ‘Fork’ button near the top of the page. This creates a copy of the code under your account on the GitHub.
 
 2. Clone your fork of Camelot from your GitHub account::
 
-    $ git clone https://www.github.com/[username]/camelot
+    $ git clone https://www.github.com/[username]/pypdf-table-extraction
 
 3. Create a branch to hold your changes::
 
@@ -76,7 +76,7 @@ Always branch out from ``master`` to work on your contribution. It's good practi
 
     $ git push -u origin my-feature
 
-Now it's time to go to the your fork of Camelot and create a pull request! You can `follow these instructions`_ to do the same.
+Now it's time to go to the your fork of pypdf-table-extraction and create a pull request! You can `follow these instructions`_ to do the same.
 
 .. _follow these instructions: https://help.github.com/articles/creating-a-pull-request-from-a-fork/
 
@@ -89,7 +89,7 @@ We recommend that your pull request complies with the following guidelines:
 
 .. _pep8: http://pep8.org
 
-- In case your pull request contains function docstrings, make sure you follow the `numpydoc`_ format. All function docstrings in Camelot follow this format. Following the format will make sure that the API documentation is generated flawlessly.
+- In case your pull request contains function docstrings, make sure you follow the `numpydoc`_ format. All function docstrings in pypdf-table-extraction follow this format. Following the format will make sure that the API documentation is generated flawlessly.
 
 .. _numpydoc: https://numpydoc.readthedocs.io/en/latest/format.html
 
@@ -108,7 +108,7 @@ We recommend that your pull request complies with the following guidelines:
 
 .. _task list: https://blog.github.com/2013-01-09-task-lists-in-gfm-issues-pulls-comments/
 
-- If contributing new functionality, make sure that you add a unit test for it, while making sure that all previous tests pass. Camelot uses `pytest`_ for testing. Tests can be run using:
+- If contributing new functionality, make sure that you add a unit test for it, while making sure that all previous tests pass. pypdf-table-extraction uses `pytest`_ for testing. Tests can be run using:
 
 .. _pytest: https://docs.pytest.org/en/latest/
 
@@ -134,12 +134,12 @@ Filing Issues
 
 We use `GitHub issues`_ to keep track of all issues and pull requests. Before opening an issue (which asks a question or reports a bug), please use GitHub search to look for existing issues (both open and closed) that may be similar.
 
-.. _GitHub issues: https://github.com/camelot-dev/camelot/issues
+.. _GitHub issues: https://github.com/py-pdf/pypdf_table_extraction/issues
 
 Questions
 ^^^^^^^^^
 
-Please don't use GitHub issues for support questions. A better place for them would be `Stack Overflow`_. Make sure you tag them using the ``python-camelot`` tag.
+Please don't use GitHub issues for support questions. A better place for them would be `Stack Overflow`_. Make sure you tag them using the ``pypdf-table-extraction`` tag.
 
 .. _Stack Overflow: http://stackoverflow.com
 

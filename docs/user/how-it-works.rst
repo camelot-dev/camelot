@@ -3,9 +3,9 @@
 How It Works
 ============
 
-This part of the documentation includes a high-level explanation of how Camelot extracts tables from PDF files.
+This part of the documentation includes a high-level explanation of how pypdf_table_extraction extracts tables from PDF files.
 
-You can choose between two table parsing methods, *Stream* and *Lattice*. These names for parsing methods inside Camelot were inspired from `Tabula <https://github.com/tabulapdf/tabula>`_.
+You can choose between two table parsing methods, *Stream* and *Lattice*. These names for parsing methods inside pypdf_table_extraction were inspired from `Tabula <https://github.com/tabulapdf/tabula>`_.
 
 .. _stream:
 
