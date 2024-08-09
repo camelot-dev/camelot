@@ -7,5 +7,10 @@
 /dist/
 /docs/_build/
 /src/*.egg-info/
-__pycache__/
+__pycache__/*
 .idea/
+
+# vscode
+.vscode
+.env
+changelog.txt

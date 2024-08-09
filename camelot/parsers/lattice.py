@@ -156,7 +156,7 @@ class Lattice(BaseParser):
             return backend
 
     @staticmethod
-    def _reduce_index(t, idx, shift_text):
+    def _reduce_index(table, idx, shift_text):
         """Reduces index of a text object if it lies within a spanning
         cell.
 
@@ -181,32 +181,28 @@ class Lattice(BaseParser):
         indices = []
         for r_idx, c_idx, text in idx:
             for d in shift_text:
-                if d == "l":
-                    if t.cells[r_idx][c_idx].hspan:
-                        while not t.cells[r_idx][c_idx].left:
-                            c_idx -= 1
-                if d == "r":
-                    if t.cells[r_idx][c_idx].hspan:
-                        while not t.cells[r_idx][c_idx].right:
-                            c_idx += 1
-                if d == "t":
-                    if t.cells[r_idx][c_idx].vspan:
-                        while not t.cells[r_idx][c_idx].top:
-                            r_idx -= 1
-                if d == "b":
-                    if t.cells[r_idx][c_idx].vspan:
-                        while not t.cells[r_idx][c_idx].bottom:
-                            r_idx += 1
+                if d == "l" and table.cells[r_idx][c_idx].hspan:
+                    while not table.cells[r_idx][c_idx].left:
+                        c_idx -= 1
+                if d == "r" and table.cells[r_idx][c_idx].hspan:
+                    while not table.cells[r_idx][c_idx].right:
+                        c_idx += 1
+                if d == "t" and table.cells[r_idx][c_idx].vspan:
+                    while not table.cells[r_idx][c_idx].top:
+                        r_idx -= 1
+                if d == "b" and table.cells[r_idx][c_idx].vspan:
+                    while not table.cells[r_idx][c_idx].bottom:
+                        r_idx += 1
             indices.append((r_idx, c_idx, text))
         return indices
 
     @staticmethod
-    def _copy_spanning_text(t, copy_text=None):
+    def _copy_spanning_text(table, copy_text=None):
         """Copies over text in empty spanning cells.
 
         Parameters
         ----------
-        t : camelot.core.Table
+        table : camelot.core.Table
         copy_text : list, optional (default: None)
             {'h', 'v'}
             Select one or more strings from above and pass them as a list
@@ -215,23 +211,23 @@ class Lattice(BaseParser):
 
         Returns
         -------
-        t : camelot.core.Table
+        table : camelot.core.Table
 
         """
         for f in copy_text:
             if f == "h":
-                for i in range(len(t.cells)):
-                    for j in range(len(t.cells[i])):
-                        if t.cells[i][j].text.strip() == "":
-                            if t.cells[i][j].hspan and not t.cells[i][j].left:
-                                t.cells[i][j].text = t.cells[i][j - 1].text
+                for i in range(len(table.cells)):
+                    for j in range(len(table.cells[i])):
+                        if table.cells[i][j].text.strip() == "":
+                            if table.cells[i][j].hspan and not table.cells[i][j].left:
+                                table.cells[i][j].text = table.cells[i][j - 1].text
             elif f == "v":
-                for i in range(len(t.cells)):
-                    for j in range(len(t.cells[i])):
-                        if t.cells[i][j].text.strip() == "":
-                            if t.cells[i][j].vspan and not t.cells[i][j].top:
-                                t.cells[i][j].text = t.cells[i - 1][j].text
-        return t
+                for i in range(len(table.cells)):
+                    for j in range(len(table.cells[i])):
+                        if table.cells[i][j].text.strip() == "":
+                            if table.cells[i][j].vspan and not table.cells[i][j].top:
+                                table.cells[i][j].text = table.cells[i - 1][j].text
+        return table
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
