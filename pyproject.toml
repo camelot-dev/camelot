@@ -26,7 +26,10 @@ numpy = "^1.24.2"
 openpyxl = "^3.1.0"
 pandas = "^1.5.3"
 pdfminer-six = "^20240706"
-pypdf = "^3.4.0"
+pypdf = [
+    {version = "^3.17", python = ">=3.8,<3.12"},
+    {version = "^4.0", python = ">=3.12"}
+]
 tabulate = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
