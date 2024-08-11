@@ -23,14 +23,22 @@ Changelog = "https://github.com/py-pdf/pypdf_table_extraction/releases"
 python = "^3.8"
 click = ">=8.0.1"
 chardet = "^5.1.0"
-numpy = "^1.24.2"
+numpy = [
+    {version = "^1.24.4", python = ">=3.8,<3.12"},
+    {version = ">=1.26.1", python = ">=3.12"}
+]
 openpyxl = "^3.1.0"
-pandas = "^1.5.3"
+
 pdfminer-six = "^20240706"
 pypdf = [
     {version = "^3.17", python = ">=3.8,<3.12"},
     {version = "^4.0", python = ">=3.12"}
 ]
+pandas = [
+    {version = "^1.5.3", python = ">=3.8,<3.12"},
+    {version = "^2.0.0", python = ">=3.12"}
+]
+
 tabulate = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
@@ -69,7 +77,11 @@ opencv-python = "^4.7.0.68"
 
 
 [tool.poetry.group.plot.dependencies]
-matplotlib = "^3.6.3"
+matplotlib = [
+    {version = "^3.7.5", python = ">=3.8,<3.12"},
+    {version = "^3.8.0", python = ">=3.12"}
+]
+
 
 [tool.coverage.paths]
 source = ["camelot", "*/site-packages"]
