@@ -739,29 +739,10 @@ class Table:
         """
         for row in self.cells:
             for cell in row:
-                left = cell.left
-                right = cell.right
-                top = cell.top
-                bottom = cell.bottom
-                if cell.bound == 4:
-                    continue
-                elif cell.bound == 3:
-                    if not left and (right and top and bottom):
-                        cell.hspan = True
-                    elif not right and (left and top and bottom):
-                        cell.hspan = True
-                    elif not top and (left and right and bottom):
-                        cell.vspan = True
-                    elif not bottom and (left and right and top):
-                        cell.vspan = True
-                elif cell.bound == 2:
-                    if left and right and (not top and not bottom):
-                        cell.vspan = True
-                    elif top and bottom and (not left and not right):
-                        cell.hspan = True
-                elif cell.bound in [0, 1]:
-                    cell.vspan = True
+                if not cell.left or not cell.right:
                     cell.hspan = True
+                if not cell.top or not cell.bottom:
+                    cell.vspan = True
         return self
 
     def copy_spanning_text(self, copy_text=None):
