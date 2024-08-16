@@ -6,7 +6,7 @@ Frequently Asked Questions
 This part of the documentation answers some common questions. To add questions, please open an issue `here <https://github.com/py-pdf/pypdf_table_extraction/issues/new>`_.
 
 Does pypdf_table_extraction work with image-based PDFs?
-----------------------------------------
+-------------------------------------------------------
 
 **No**, pypdf_table_extraction only works with text-based PDFs and not scanned documents. (As Tabula `explains <https://github.com/tabulapdf/tabula#why-tabula>`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
@@ -19,7 +19,7 @@ A simple workaround is to divide the extraction into chunks, and save extracted 
 
 For more details, check out this code snippet from `@anakin87 <https://github.com/anakin87>`_:
 
-::
+.. code-block:: python
 
     import camelot
 
@@ -58,7 +58,9 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
 How can I supply my own image conversion backend to Lattice?
 ------------------------------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`image conversion backend <image-conversion-backend>` by creating a class with a ``convert`` method as follows::
+When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`image conversion backend <image-conversion-backend>` by creating a class with a ``convert`` method as follows:
+
+.. code-block:: python
 
     >>> class ConversionBackend(object):
     >>>     def convert(pdf_path, png_path):

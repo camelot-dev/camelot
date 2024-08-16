@@ -19,14 +19,15 @@ Source: `PDF <../_static/pdf/background_lines.pdf>`__
 
 To process background lines, you can pass ``process_background=True``.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('background_lines.pdf', process_background=True)
     >>> tables[1].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -back background_lines.pdf
 
@@ -53,7 +54,7 @@ You can specify the type of element you want to plot using the ``kind`` keyword 
 
 Let's generate a plot for each type using this `PDF <../_static/pdf/foo.pdf>`__ as an example. First, let's get all the tables out.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('foo.pdf')
     >>> tables
@@ -64,13 +65,14 @@ text
 
 Let's plot all the text present on the table's PDF page.
 
-::
+.. code-block:: pycon
 
     >>> camelot.plot(tables[0], kind='text').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -plot text foo.pdf
 
@@ -90,13 +92,14 @@ table
 
 Let's plot the table (to see if it was detected correctly or not). This plot type, along with contour, line and joint is useful for debugging and improving the extraction output, in case the table wasn't detected correctly. (More on that later.)
 
-::
+.. code-block:: pycon
 
     >>> camelot.plot(tables[0], kind='grid').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -plot grid foo.pdf
 
@@ -114,13 +117,14 @@ contour
 
 Now, let's plot all table boundaries present on the table's PDF page.
 
-::
+.. code-block:: pycon
 
     >>> camelot.plot(tables[0], kind='contour').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -plot contour foo.pdf
 
@@ -136,13 +140,14 @@ line
 
 Cool, let's plot all line segments present on the table's PDF page.
 
-::
+.. code-block:: pycon
 
     >>> camelot.plot(tables[0], kind='line').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -plot line foo.pdf
 
@@ -158,13 +163,14 @@ joint
 
 Finally, let's plot all line intersections present on the table's PDF page.
 
-::
+.. code-block:: pycon
 
     >>> camelot.plot(tables[0], kind='joint').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -plot joint foo.pdf
 
@@ -178,15 +184,16 @@ Finally, let's plot all line intersections present on the table's PDF page.
 textedge
 ^^^^^^^^
 
-You can also visualize the textedges found on a page by specifying ``kind='textedge'``. To know more about what a "textedge" is, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf>`_.
+You can also visualize the textedges found on a page by specifying ``kind='textedge'``. To know more about what a "textedge" is, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf>`_:
 
-::
+.. code-block:: pycon
 
     >>> camelot.plot(tables[0], kind='textedge').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot stream -plot textedge foo.pdf
 
@@ -204,14 +211,15 @@ In cases such as `these <../_static/pdf/table_areas.pdf>`__, it can be useful to
 
 Table areas that you want pypdf_table_extraction to analyze can be passed as a list of comma-separated strings to :meth:`read_pdf() <camelot.read_pdf>`, using the ``table_areas`` keyword argument.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('table_areas.pdf', flavor='stream', table_areas=['316,499,566,337'])
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot stream -T 316,499,566,337 table_areas.pdf
 
@@ -227,14 +235,15 @@ However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `
 
 You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot.read_pdf>` to solve for such cases. When ``table_regions`` is specified, Camelot will only analyze the specified regions to look for tables.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('table_regions.pdf', table_regions=['170,370,560,270'])
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -R 170,370,560,270 table_regions.pdf
 
@@ -254,14 +263,15 @@ For example, if you have specified two table areas, ``table_areas=['12,54,43,23'
 
 Let's get back to the *x* coordinates we got from plotting the text that exists on this `PDF <../_static/pdf/column_separators.pdf>`__, and get the table out!
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'])
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
 
@@ -279,14 +289,15 @@ Split text along separators
 
 To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `PDFMiner <https://euske.github.io/pdfminer/>`_).
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'], split_text=True)
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot -split stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
 
@@ -312,14 +323,15 @@ You can solve this by passing ``flag_size=True``, which will enclose the supersc
 
 .. _other tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('superscript.pdf', flavor='stream', flag_size=True)
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot -flag stream superscript.pdf
 
@@ -336,14 +348,15 @@ Strip characters from text
 
 You can strip unwanted characters like spaces, dots and newlines from a string using the ``strip_text`` keyword argument. Take a look at `this PDF <https://github.com/py-pdf/pypdf_table_extraction/blob/master/tests/files/tabula/12s0324.pdf>`_ as an example, the text at the start of each row contains a lot of unwanted spaces, dots and newlines.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('12s0324.pdf', flavor='stream', strip_text=' .\n')
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot -strip ' .\n' stream 12s0324.pdf
 
@@ -366,14 +379,15 @@ While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs 
 
 Let's see the table area that is detected by default.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('edge_tol.pdf', flavor='stream')
     >>> camelot.plot(tables[0], kind='contour').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot stream -plot contour edge.pdf
 
@@ -386,14 +400,15 @@ Let's see the table area that is detected by default.
 
 To improve the detected area, you can increase the ``edge_tol`` (default: 50) value to counter the effect of text being placed relatively far apart vertically. Larger ``edge_tol`` will lead to longer textedges being detected, leading to an improved guess of the table area. Let's use a value of 500.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('edge_tol.pdf', flavor='stream', edge_tol=500)
     >>> camelot.plot(tables[0], kind='contour').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot stream -e 500 -plot contour edge.pdf
 
@@ -411,7 +426,7 @@ Improve guessed table rows
 
 You can pass ``row_tol=<+int>`` to group the rows closer together, as shown below.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('group_rows.pdf', flavor='stream')
     >>> tables[0].df
@@ -425,14 +440,15 @@ You can pass ``row_tol=<+int>`` to group the rows closer together, as shown belo
     "01","Aguascalientes","001","Aguascalientes","","0096","Agua Azul"
     "01","Aguascalientes","001","Aguascalientes","","0100","Rancho Alegre"
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('group_rows.pdf', flavor='stream', row_tol=10)
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot stream -r 10 group_rows.pdf
 
@@ -461,7 +477,7 @@ Here's a `PDF <../_static/pdf/short_lines.pdf>`__ where small lines separating t
 
 Let's plot the table for this PDF.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('short_lines.pdf')
     >>> camelot.plot(tables[0], kind='grid').show()
@@ -472,14 +488,15 @@ Let's plot the table for this PDF.
 
 Clearly, the smaller lines separating the headers, couldn't be detected. Let's try with ``line_scale=40``, and plot the table again.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('short_lines.pdf', line_scale=40)
     >>> camelot.plot(tables[0], kind='grid').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -scale 40 -plot grid short_lines.pdf
 
@@ -489,7 +506,7 @@ Clearly, the smaller lines separating the headers, couldn't be detected. Let's t
 
 Voila! pypdf_table_extraction can now see those lines. Let's get our table.
 
-::
+.. code-block:: pycon
 
     >>> tables[0].df
 
@@ -520,7 +537,7 @@ We'll use the `PDF <../_static/pdf/short_lines.pdf>`__ from the previous example
     :alt: A PDF table with short lines
     :align: left
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('short_lines.pdf', line_scale=40, shift_text=[''])
     >>> tables[0].df
@@ -541,14 +558,15 @@ We'll use the `PDF <../_static/pdf/short_lines.pdf>`__ from the previous example
 
 No surprises there — it did remain in place (observe the strings "2400" and "All the available individuals"). Let's pass ``shift_text=['r', 'b']`` to set the *gravity* to right-bottom and move the text in that direction.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('short_lines.pdf', line_scale=40, shift_text=['r', 'b'])
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -scale 40 -shift r -shift b short_lines.pdf
 
@@ -575,7 +593,7 @@ You can copy text in spanning cells when using :ref:`Lattice <lattice>`, in eith
 
 Let's try it out on this `PDF <../_static/pdf/copy_text.pdf>`__. First, let's check out the output table to see if we need to use any other configuration parameters.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('copy_text.pdf')
     >>> tables[0].df
@@ -592,14 +610,15 @@ Let's try it out on this `PDF <../_static/pdf/copy_text.pdf>`__. First, let's ch
 
 We don't need anything else. Now, let's pass ``copy_text=['v']`` to copy text in the vertical direction. This can save you some time by not having to add this step in your cleaning script!
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('copy_text.pdf', copy_text=['v'])
     >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
-    ::
+
+    .. code-block:: console
 
         $ camelot lattice -copy v copy_text.pdf
 
@@ -620,7 +639,7 @@ pypdf_table_extraction is built on top of PDFMiner's functionality of grouping c
 
 To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ to improve layout generation, by passing the keyword arguments as a dict using ``layout_kwargs`` in :meth:`read_pdf() <camelot.read_pdf>`. To know more about the parameters you can tweak, you can check out `PDFMiner docs <https://pdfminersix.rtfd.io/en/latest/reference/composable.html>`_.
 
-::
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf('foo.pdf', layout_kwargs={'detect_vertical': False})
 
@@ -629,14 +648,18 @@ To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://gith
 Use alternate image conversion backends
 ---------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, Camelot uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternate image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with::
+When using the :ref:`Lattice <lattice>` flavor, Camelot uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternate image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with
+
+.. code-block:: pycon
 
     >>> tables = camelot.read_pdf(filename, backend="ghostscript")  # default
     >>> tables = camelot.read_pdf(filename, backend="poppler")
 
 .. note:: ``ghostscript`` will be replaced by ``poppler`` as the default image conversion backend in ``v0.12.0``.
 
-If you face issues with both ``ghostscript`` and ``poppler``, you can supply your own image conversion backend::
+If you face issues with both ``ghostscript`` and ``poppler``, you can supply your own image conversion backend
+
+.. code-block:: pycon
 
     >>> class ConversionBackend(object):
     >>>     def convert(pdf_path, png_path):

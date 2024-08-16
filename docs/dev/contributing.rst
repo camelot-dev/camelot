@@ -35,11 +35,11 @@ A great way to start contributing to pypdf-table-extraction is to pick an issue 
 Setting up a development environment
 ------------------------------------
 
-To install the dependencies needed for development, you can use pip::
+To install the dependencies needed for development, you can use pip:: console
 
     $ pip install "pypdf-table-extraction[dev]"
 
-Alternatively, you can clone the project repository, and install using pip::
+Alternatively, you can clone the project repository, and install using pip:: console
 
     $ pip install ".[dev]"
 
@@ -55,24 +55,27 @@ The preferred workflow for contributing to Camelot is to fork the `project repos
 
 1. Fork the project repository. Click on the ‘Fork’ button near the top of the page. This creates a copy of the code under your account on the GitHub.
 
-2. Clone your fork of Camelot from your GitHub account::
+2. Clone your fork of Camelot from your GitHub account
+.. code-block::bash
 
-    $ git clone https://www.github.com/[username]/pypdf-table-extraction
+  $ git clone https://www.github.com/pypdf/pypdf-table-extraction
 
-3. Create a branch to hold your changes::
 
-    $ git checkout -b my-feature
+3. Create a branch to hold your changes
+.. prompt:: bash
 
-Always branch out from ``master`` to work on your contribution. It's good practice to never work on the ``master`` branch!
+    git checkout -b my-feature
+
+Always branch out from ``main`` to work on your contribution. It's good practice to never work on the ``main`` branch!
 
 .. note:: ``git stash`` is a great way to save the work that you haven't committed yet, to move between branches.
 
-4. Work on your contribution. Add changed files using ``git add`` and then ``git commit`` them::
+4. Work on your contribution. Add changed files using ``git add`` and then ``git commit`` themn:: console
 
     $ git add modified_files
     $ git commit
 
-5. Finally, push them to your GitHub fork::
+5. Finally, push them to your GitHub fork:: console
 
     $ git push -u origin my-feature
 
@@ -112,7 +115,7 @@ We recommend that your pull request complies with the following guidelines:
 
 .. _pytest: https://docs.pytest.org/en/latest/
 
-::
+:: console
 
     $ python setup.py test
 

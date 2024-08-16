@@ -10,15 +10,23 @@ OS-specific instructions
 
 Ubuntu
 ^^^^^^
-::
+.. code-block:: console
 
     $ apt install ghostscript python3-tk
 
 MacOS
 ^^^^^
-::
+
+.. code-block:: console
 
     $ brew install ghostscript tcl-tk
+
+.. note:: 
+  You might encounter the problem that the ghostscript module cannot be found. This can be fixed with the following commands.
+
+  ``mkdir -p ~/lib``
+
+  ``ln -s "$(brew --prefix gs)/lib/libgs.dylib" ~/lib`` 
 
 Windows
 ^^^^^^^
@@ -35,13 +43,17 @@ For Ghostscript
 
 Open the Python REPL and run the following:
 
-For Ubuntu/MacOS::
+For Ubuntu/MacOS
+
+.. code-block:: pycon
 
     >>> from ctypes.util import find_library
     >>> find_library("gs")
     "libgs.so.9"
 
-For Windows::
+For Windows
+
+.. code-block:: pycon
 
     >>> import ctypes
     >>> from ctypes.util import find_library
@@ -55,7 +67,9 @@ If the output is empty, then it's possible that the Ghostscript library is not a
 For Tkinter
 ^^^^^^^^^^^
 
-Launch Python and then import Tkinter::
+Launch Python and then import Tkinter
+
+.. code-block:: pycon
 
     >>> import tkinter
 
