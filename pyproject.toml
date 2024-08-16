@@ -50,9 +50,11 @@ safety = ">=2.2.3"
 sphinx = ">=4.3.2"
 sphinx-autobuild = ">=2021.3.14"
 sphinx-click = ">=3.0.2"
+sphinx-copybutton = ">=0.5.2"
+sphinx-prompt = ">=1.5.0"
 typeguard = ">=2.13.3"
 xdoctest = {extras = ["colors"], version = ">=0.15.10"}
-myst-parser = {version = ">=0.16.1"}
+myst-parser = {version = ">=2.0.0"}
 
 [tool.poetry.scripts]
 camelot = "camelot.__main__:main"

@@ -222,7 +222,7 @@ def docs_build(session: Session) -> None:
 
     session.install(".")
     session.install(
-        "sphinx", "sphinx-click", "furo", "myst-parser", *base_requires, *plot_requires
+        "sphinx", "sphinx-click", "furo", "myst-parser", "sphinx-copybutton", "sphinx-prompt", *base_requires, *plot_requires
     )
 
     build_dir = Path("docs", "_build")
@@ -243,6 +243,8 @@ def docs(session: Session) -> None:
         "sphinx-click",
         "furo",
         "myst-parser",
+        "sphinx-copybutton",
+        "sphinx-prompt",
         *base_requires,
         *plot_requires,
     )

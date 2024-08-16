@@ -1,6 +1,4 @@
 #
-# camelot documentation build configuration file, created by
-# sphinx-quickstart on Tue Jul 19 13:44:18 2016.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -23,8 +21,8 @@ import camelot
 #
 # sys.path.insert(0, os.path.abspath('..'))
 
-# Insert Camelot's path into the system.
-sys.path.insert(0, os.path.abspath(".."))
+# Insert pypdf_table_extraction's path into the system.
+sys.path.insert(0, os.path.abspath("../camelot"))
 sys.path.insert(0, os.path.abspath("_themes"))
 
 
@@ -32,7 +30,6 @@ sys.path.insert(0, os.path.abspath("_themes"))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -40,10 +37,10 @@ sys.path.insert(0, os.path.abspath("_themes"))
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     "sphinx_click",
+    "sphinx_copybutton",
     "myst_parser",
 ]
 
@@ -64,9 +61,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "pypdf-table-extraction"
-copyright = "2024, pypdf-table-extraction Developers"
-author = "Vinayak Mehta"
+project = "pypdf_table_extraction"
+copyright = "2024, pypdf_table_extraction Developers"
+author = "pypdf_table_extraction Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -82,7 +79,7 @@ release = camelot.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -127,23 +124,24 @@ pygments_style = "flask_theme_support.FlaskyStyle"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "alabaster"
+html_theme = "sphinx_book_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "show_powered_by": False,
-    "github_user": "py-pdf",
-    "github_repo": "pypdf-table-extraction",
-    "github_banner": True,
-    "show_related": False,
-    "note_bg": "#FFF59C",
+    "repository_url": "https://github.com/py-pdf/pypdf_table_extraction",
+    "repository_branch": "main",
+    "path_to_docs": "/docs",
+    "use_repository_button": True,
+    # "launch_buttons": "dict to notebooks to launch",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -161,7 +159,7 @@ html_theme_options = {
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-# html_logo = None
+html_logo = "_static/pypdf-table-extraction.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -190,23 +188,7 @@ html_static_path = ["_static"]
 html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {
-    "index": [
-        "sidebarintro.html",
-        "relations.html",
-        "sourcelink.html",
-        "searchbox.html",
-        "hacks.html",
-    ],
-    "**": [
-        "sidebarlogo.html",
-        "localtoc.html",
-        "relations.html",
-        "sourcelink.html",
-        "searchbox.html",
-        "hacks.html",
-    ],
-}
+#html_sidebars = { }
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -262,7 +244,7 @@ html_show_copyright = True
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "pypdf-table-extraction-doc"
+htmlhelp_basename = "pypdf_table_extraction-doc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -325,7 +307,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "pypdf-table-extraction", "pypdf-table-extraction Documentation", [author], 1)]
+man_pages = [(master_doc, "pypdf_table_extraction", "pypdf_table_extraction Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 #
@@ -340,10 +322,10 @@ man_pages = [(master_doc, "pypdf-table-extraction", "pypdf-table-extraction Docu
 texinfo_documents = [
     (
         master_doc,
-        "pypdf-table-extraction",
-        "pypdf-table-extraction Documentation",
+        "pypdf_table_extraction",
+        "pypdf_table_extraction Documentation",
         author,
-        "pypdf-table-extraction",
+        "pypdf_table_extraction",
         "PDF Table Extraction for Humans.",
         "Miscellaneous",
     ),
@@ -365,9 +347,3 @@ texinfo_documents = [
 #
 # texinfo_no_detailmenu = False
 
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {
-    "https://docs.python.org/2": None,
-    "http://pandas.pydata.org/pandas-docs/stable": None,
-}
