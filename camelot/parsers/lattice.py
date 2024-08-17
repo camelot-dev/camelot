@@ -359,8 +359,6 @@ class Lattice(BaseParser):
         table = table.set_edges(v_s, h_s, joint_tol=self.joint_tol)
         # set table border edges to True
         table = table.set_border()
-        # set spanning cells to True
-        table = table.set_span()
 
         self.record_parse_metadata(table)
         return table
