@@ -20,9 +20,7 @@ Kenneth Reitz has also written an `essay`_ on this topic, which you should read.
 
 .. _essay: https://kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way
 
-As the `Requests Code Of Conduct`_ states, **all contributions are welcome**, as long as everyone involved is treated with respect.
-
-.. _Requests Code Of Conduct: http://docs.python-requests.org/en/master/dev/contributing/#be-cordial
+For more info read out full :doc:`code of conduct <codeofconduct>`.
 
 Your first contribution
 -----------------------
