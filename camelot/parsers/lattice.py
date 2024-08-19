@@ -145,19 +145,19 @@ class Lattice(BaseParser):
         tuple
             New row and column indices after the shift.
         """
-        if direction == "l" and table.cells[r_idx][c_idx].hspan:
+        if direction == "l":
             while c_idx > 0 and not table.cells[r_idx][c_idx].left:
                 c_idx -= 1
-        elif direction == "r" and table.cells[r_idx][c_idx].hspan:
+        elif direction == "r":
             while (
                 c_idx < len(table.cells[r_idx]) - 1
                 and not table.cells[r_idx][c_idx].right
             ):
                 c_idx += 1
-        elif direction == "t" and table.cells[r_idx][c_idx].vspan:
+        elif direction == "t":
             while r_idx > 0 and not table.cells[r_idx][c_idx].top:
                 r_idx -= 1
-        elif direction == "b" and table.cells[r_idx][c_idx].vspan:
+        elif direction == "b":
             while r_idx < len(table.cells) - 1 and not table.cells[r_idx][c_idx].bottom:
                 r_idx += 1
 
