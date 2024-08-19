@@ -9,7 +9,19 @@
 [![image](https://img.shields.io/pypi/v/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/l/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/pyversions/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![Gitter chat](https://badges.gitter.im/camelot-dev/Lobby.png)](https://gitter.im/camelot-dev/Lobby)
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-no-red.svg)](https://github.com/camelot-dev/camelot/issues/343)
+
+
 **Camelot** is a Python library that can help you extract tables from PDFs!
+
+
+
+> [!CAUTION]
+> As of https://github.com/camelot-dev/camelot/issues/343 Camelot is no longer maintained.
+> The community based fork is part of the pypdf organization and can be found here:
+> https://github.com/py-pdf/pypdf_table_extraction
+
+
 
 **Note:** You can also check out [Excalibur](https://github.com/camelot-dev/excalibur), the web interface to Camelot!
 
