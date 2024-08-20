@@ -1,5 +1,5 @@
 <p align="center">
-   <img src="https://github.com/py-pdf/pypdf_table_extraction/main/docs/_static/pypdf-table-extraction.png" width="200">
+   <img src="https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/_static/pypdf-table-extraction.png" width="200">
 </p>
 
 # Camelot: PDF Table Extraction for Humans
