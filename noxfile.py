@@ -168,7 +168,7 @@ def tests(session: Session) -> None:
     session.install(".")
 
     session.install(
-        "coverage[toml]", "pytest", "pygments", *base_requires, *plot_requires
+        "coverage[toml]", "pytest", "pytest-mpl", "pygments", *base_requires, *plot_requires
     )
     try:
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
