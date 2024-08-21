@@ -70,7 +70,7 @@ def test_repr_ghostscript(testdir):
 
 @skip_pdftopng
 def test_url_poppler():
-    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    url = "https://pypdf-table-extraction.readthedocs.io/en/latest/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="poppler")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
@@ -79,7 +79,7 @@ def test_url_poppler():
 
 @skip_on_windows
 def test_url_ghostscript(testdir):
-    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    url = "https://pypdf-table-extraction.readthedocs.io/en/latest/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="ghostscript")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
@@ -88,7 +88,7 @@ def test_url_ghostscript(testdir):
 
 @skip_pdftopng
 def test_pages_poppler():
-    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    url = "https://pypdf-table-extraction.readthedocs.io/en/latest/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="poppler")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
@@ -107,7 +107,7 @@ def test_pages_poppler():
 
 @skip_on_windows
 def test_pages_ghostscript():
-    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    url = "https://pypdf-table-extraction.readthedocs.io/en/latest/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="ghostscript")
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"

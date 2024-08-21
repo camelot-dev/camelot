@@ -7,7 +7,8 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/py-pdf/pypdf_table_extraction"
 repository = "https://github.com/py-pdf/pypdf_table_extraction"
-documentation = "https://camelot-py.readthedocs.io"
+documentation = "https://pypdf-table-extraction.readthedocs.io/"
+
 packages = [
     { include = "camelot", from = "." },
 ]
