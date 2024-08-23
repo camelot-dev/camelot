@@ -5,8 +5,8 @@ description = "PDF Table Extraction for Humans."
 authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/camelot-dev/camelot"
-repository = "https://github.com/camelot-dev/camelot"
+homepage = "https://github.com/py-pdf/pypdf_table_extraction"
+repository = "https://github.com/py-pdf/pypdf_table_extraction"
 documentation = "https://camelot-py.readthedocs.io"
 packages = [
     { include = "camelot", from = "." },
@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/camelot-dev/camelot/blob/master/HISTORY.md"
+Changelog = "https://github.com/py-pdf/pypdf_table_extraction/blob/main/HISTORY.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
