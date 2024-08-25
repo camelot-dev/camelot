@@ -237,7 +237,7 @@ Specify table regions
 
 However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/py-pdf/pypdf_table_extraction/blob/main/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
 
-You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot.read_pdf>` to solve for such cases. When ``table_regions`` is specified, Camelot will only analyze the specified regions to look for tables.
+You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot.read_pdf>` to solve for such cases. When ``table_regions`` is specified, pypdf_table_extraction will only analyze the specified regions to look for tables.
 
 .. code-block:: pycon
 
@@ -383,7 +383,7 @@ Improve guessed table areas
 
 While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs like `this one <https://github.com/py-pdf/pypdf_table_extraction/blob/master/tests/files/edge_tol.pdf>`_. That's because the text is relatively far apart vertically, which can lead to shorter textedges being calculated.
 
-.. note:: To know more about how textedges are calculated to guess table areas, you can see pages 20, 35 and 40 of `Anssi Nurminen's master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
+.. note:: To know more about how textedges are calculated to guess table areas, you can see pages 20, 35 and 40 of Anssi Nurminen's `master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
 
 Let's see the table area that is detected by default.
 
@@ -659,7 +659,7 @@ To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://gith
 Use alternate image conversion backends
 ---------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, Camelot uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternate image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with
+When using the :ref:`Lattice <lattice>` flavor, pypdf_table_extraction uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternate image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with
 
 .. code-block:: pycon
 
