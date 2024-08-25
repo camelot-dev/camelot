@@ -13,7 +13,7 @@ To detect line segments, :ref:`Lattice <lattice>` needs the lines that make the 
 .. figure:: ../_static/png/background_lines.png
     :scale: 50%
     :alt: A table with lines in background
-    :align: left
+    :align: center
 
 Source: `PDF <../_static/pdf/background_lines.pdf>`__
 
@@ -33,6 +33,7 @@ To process background lines, you can pass ``process_background=True``.
 
 .. csv-table::
   :file: ../_static/csv/background_lines.csv
+  :class: full-width
 
 Visual debugging
 ----------------
@@ -81,7 +82,7 @@ Let's plot all the text present on the table's PDF page.
     :width: 1366
     :scale: 50%
     :alt: A plot of all text on a PDF page
-    :align: left
+    :align: center
 
 This, as we shall later see, is very helpful with :ref:`Stream <stream>` for noting table areas and column separators, in case Stream does not guess them correctly.
 
@@ -108,7 +109,7 @@ Let's plot the table (to see if it was detected correctly or not). This plot typ
     :width: 1366
     :scale: 50%
     :alt: A plot of all tables on a PDF page
-    :align: left
+    :align: center
 
 The table is perfect!
 
@@ -133,7 +134,7 @@ Now, let's plot all table boundaries present on the table's PDF page.
     :width: 1366
     :scale: 50%
     :alt: A plot of all contours on a PDF page
-    :align: left
+    :align: center
 
 line
 ^^^^
@@ -156,7 +157,7 @@ Cool, let's plot all line segments present on the table's PDF page.
     :width: 1366
     :scale: 50%
     :alt: A plot of all lines on a PDF page
-    :align: left
+    :align: center
 
 joint
 ^^^^^
@@ -179,7 +180,7 @@ Finally, let's plot all line intersections present on the table's PDF page.
     :width: 1366
     :scale: 50%
     :alt: A plot of all line intersections on a PDF page
-    :align: left
+    :align: center
 
 textedge
 ^^^^^^^^
@@ -202,7 +203,7 @@ You can also visualize the textedges found on a page by specifying ``kind='texte
     :width: 1366
     :scale: 50%
     :alt: A plot of relevant textedges on a PDF page
-    :align: left
+    :align: center
 
 Specify table areas
 -------------------
@@ -212,6 +213,7 @@ In cases such as `these <../_static/pdf/table_areas.pdf>`__, it can be useful to
 Table areas that you want pypdf_table_extraction to analyze can be passed as a list of comma-separated strings to :meth:`read_pdf() <camelot.read_pdf>`, using the ``table_areas`` keyword argument.
 
 .. code-block:: pycon
+  :class: full-width
 
     >>> tables = camelot.read_pdf('table_areas.pdf', flavor='stream', table_areas=['316,499,566,337'])
     >>> tables[0].df
@@ -225,6 +227,8 @@ Table areas that you want pypdf_table_extraction to analyze can be passed as a l
 
 .. csv-table::
   :file: ../_static/csv/table_areas.csv
+  :class: full-width
+
 
 .. note:: ``table_areas`` accepts strings of the form x1,y1,x2,y2 where (x1, y1) -> top-left and (x2, y2) -> bottom-right in PDF coordinate space. In PDF coordinate space, the bottom-left corner of the page is the origin, with coordinates (0, 0).
 
@@ -264,6 +268,7 @@ For example, if you have specified two table areas, ``table_areas=['12,54,43,23'
 Let's get back to the *x* coordinates we got from plotting the text that exists on this `PDF <../_static/pdf/column_separators.pdf>`__, and get the table out!
 
 .. code-block:: pycon
+  :class: full-width
 
     >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'])
     >>> tables[0].df
@@ -276,6 +281,7 @@ Let's get back to the *x* coordinates we got from plotting the text that exists 
         $ camelot stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
 
 .. csv-table::
+  :class: full-width
 
     "...","...","...","...","...","...","...","...","...","..."
     "LICENSE","","","","PREMISE","","","","",""
@@ -290,6 +296,7 @@ Split text along separators
 To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `PDFMiner <https://euske.github.io/pdfminer/>`_).
 
 .. code-block:: pycon
+  :class: full-width
 
     >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'], split_text=True)
     >>> tables[0].df
@@ -302,6 +309,7 @@ To deal with cases like the output from the previous section, you can pass ``spl
         $ camelot -split stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
 
 .. csv-table::
+  :class: full-width
 
     "...","...","...","...","...","...","...","...","...","..."
     "LICENSE","","","","PREMISE","","","","",""
@@ -315,7 +323,7 @@ There might be cases where you want to differentiate between the text and supers
 
 .. figure:: ../_static/png/superscript.png
     :alt: A PDF with superscripts
-    :align: left
+    :align: center
 
 In this case, the text that `other tools`_ return, will be ``24.912``. This is relatively harmless when that decimal point is involved. But when it isn't there, you'll be left wondering why the results of your data analysis are 10x bigger!
 
@@ -396,7 +404,7 @@ Let's see the table area that is detected by default.
     :width: 1366
     :scale: 50%
     :alt: Table area with default edge_tol
-    :align: left
+    :align: center
 
 To improve the detected area, you can increase the ``edge_tol`` (default: 50) value to counter the effect of text being placed relatively far apart vertically. Larger ``edge_tol`` will lead to longer textedges being detected, leading to an improved guess of the table area. Let's use a value of 500.
 
@@ -417,7 +425,7 @@ To improve the detected area, you can increase the ``edge_tol`` (default: 50) va
     :width: 1366
     :scale: 50%
     :alt: Table area with default edge_tol
-    :align: left
+    :align: center
 
 As you can see, the guessed table area has improved!
 
@@ -473,7 +481,7 @@ Here's a `PDF <../_static/pdf/short_lines.pdf>`__ where small lines separating t
 
 .. figure:: ../_static/png/short_lines.png
     :alt: A PDF table with short lines
-    :align: left
+    :align: center
 
 Let's plot the table for this PDF.
 
@@ -484,7 +492,7 @@ Let's plot the table for this PDF.
 
 .. figure:: ../_static/png/short_lines_1.png
     :alt: A plot of the PDF table with short lines
-    :align: left
+    :align: center
 
 Clearly, the smaller lines separating the headers, couldn't be detected. Let's try with ``line_scale=40``, and plot the table again.
 
@@ -502,7 +510,7 @@ Clearly, the smaller lines separating the headers, couldn't be detected. Let's t
 
 .. figure:: ../_static/png/short_lines_2.png
     :alt: An improved plot of the PDF table with short lines
-    :align: left
+    :align: center
 
 Voila! pypdf_table_extraction can now see those lines. Let's get our table.
 
@@ -535,7 +543,7 @@ We'll use the `PDF <../_static/pdf/short_lines.pdf>`__ from the previous example
 
 .. figure:: ../_static/png/short_lines.png
     :alt: A PDF table with short lines
-    :align: left
+    :align: center
 
 .. code-block:: pycon
 
@@ -599,6 +607,8 @@ Let's try it out on this `PDF <../_static/pdf/copy_text.pdf>`__. First, let's ch
     >>> tables[0].df
 
 .. csv-table::
+  :class: full-width
+
 
     "Sl. No.","Name of State/UT","Name of District","Disease/ Illness","No. of Cases","No. of Deaths","Date of start of outbreak","Date of reporting","Current Status","..."
     "1","Kerala","Kollam","i.  Food Poisoning","19","0","31/12/13","03/01/14","Under control","..."
@@ -623,6 +633,7 @@ We don't need anything else. Now, let's pass ``copy_text=['v']`` to copy text in
         $ camelot lattice -copy v copy_text.pdf
 
 .. csv-table::
+  :class: full-width
 
     "Sl. No.","Name of State/UT","Name of District","Disease/ Illness","No. of Cases","No. of Deaths","Date of start of outbreak","Date of reporting","Current Status","..."
     "1","Kerala","Kollam","i.  Food Poisoning","19","0","31/12/13","03/01/14","Under control","..."
