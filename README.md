@@ -110,7 +110,7 @@ The [Contributor's Guide](https://pypdf-table-extraction.readthedocs.io/en/lates
 
 ## Versioning
 
-pypdf_table_extraction uses [Semantic Versioning](https://semver.org/). For the available versions, see the tags on this repository. For the changelog, you can check out [HISTORY.md](https://github.com/py-pdf/pypdf_table_extraction/blob/main/HISTORY.md).
+pypdf_table_extraction uses [Semantic Versioning](https://semver.org/). For the available versions, see the tags on this repository. For the changelog, you can check out the [releases](https://github.com/py-pdf/pypdf_table_extraction/releases) page.
 
 ## License
 

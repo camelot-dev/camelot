@@ -97,6 +97,7 @@ This part of the documentation begins with some background information about why
    user/faq
    user/cli
 
+
 The API Documentation/Guide
 ---------------------------
 
@@ -116,3 +117,4 @@ If you want to contribute to the project, this part of the documentation is for 
    :maxdepth: 2
 
    dev/contributing
+   Changelog <https://github.com/py-pdf/pypdf_table_extraction/releases>
