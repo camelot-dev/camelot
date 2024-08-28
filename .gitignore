@@ -7,10 +7,51 @@
 /dist/
 /docs/_build/
 /src/*.egg-info/
-__pycache__/*
+/.pytest_cache
+__pycache__/
+/.ruff_cache
 .idea/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Sphinx documentation
+docs/_build/
+
 
 # vscode
 .vscode
 .env
 changelog.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# OSX Files
+.DS_Store
+
