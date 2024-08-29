@@ -1668,13 +1668,13 @@ files = [
 
 [[package]]
 name = "pdfminer-six"
-version = "20221105"
+version = "20240706"
 description = "PDF parser and analyzer"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "pdfminer.six-20221105-py3-none-any.whl", hash = "sha256:1eaddd712d5b2732f8ac8486824533514f8ba12a0787b3d5fe1e686cd826532d"},
-    {file = "pdfminer.six-20221105.tar.gz", hash = "sha256:8448ab7b939d18b64820478ecac5394f482d7a79f5f7eaa7703c6c959c175e1d"},
+    {file = "pdfminer.six-20240706-py3-none-any.whl", hash = "sha256:f4f70e74174b4b3542fcb8406a210b6e2e27cd0f0b5fd04534a8cc0d8951e38c"},
+    {file = "pdfminer.six-20240706.tar.gz", hash = "sha256:c631a46d5da957a9ffe4460c5dce21e8431dabb615fee5f9f4400603a58d95a6"},
 ]
 
 [package.dependencies]
@@ -1682,7 +1682,7 @@ charset-normalizer = ">=2.0.0"
 cryptography = ">=36.0.0"
 
 [package.extras]
-dev = ["black", "mypy (==0.931)", "nox", "pytest"]
+dev = ["atheris", "black", "mypy (==0.931)", "nox", "pytest"]
 docs = ["sphinx", "sphinx-argparse"]
 image = ["Pillow"]
 
@@ -2114,6 +2114,24 @@ files = [
 
 [package.dependencies]
 typing_extensions = {version = ">=3.7.4.3", markers = "python_version < \"3.10\""}
+
+[package.extras]
+crypto = ["PyCryptodome", "cryptography"]
+dev = ["black", "flit", "pip-tools", "pre-commit (<2.18.0)", "pytest-cov", "pytest-socket", "pytest-timeout", "pytest-xdist", "wheel"]
+docs = ["myst_parser", "sphinx", "sphinx_rtd_theme"]
+full = ["Pillow (>=8.0.0)", "PyCryptodome", "cryptography"]
+image = ["Pillow (>=8.0.0)"]
+
+[[package]]
+name = "pypdf"
+version = "4.3.1"
+description = "A pure-python PDF library capable of splitting, merging, cropping, and transforming PDF files"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pypdf-4.3.1-py3-none-any.whl", hash = "sha256:64b31da97eda0771ef22edb1bfecd5deee4b72c3d1736b7df2689805076d6418"},
+    {file = "pypdf-4.3.1.tar.gz", hash = "sha256:b2f37fe9a3030aa97ca86067a56ba3f9d3565f9a791b305c7355d8392c30d91b"},
+]
 
 [package.extras]
 crypto = ["PyCryptodome", "cryptography"]
@@ -2924,4 +2942,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "0be8560c848acfa22b10ac0a4b84b5418ca2be0697ec6d6a82f7ce64fc821a8b"
+content-hash = "5f573e5153653893637f27a488b394def3fa6b19a58fe4eded39543987494454"
