@@ -2723,17 +2723,17 @@ test = ["pytest"]
 
 [[package]]
 name = "stevedore"
-version = "5.2.0"
+version = "5.3.0"
 description = "Manage dynamic plugins for Python applications"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "stevedore-5.2.0-py3-none-any.whl", hash = "sha256:1c15d95766ca0569cad14cb6272d4d31dae66b011a929d7c18219c176ea1b5c9"},
-    {file = "stevedore-5.2.0.tar.gz", hash = "sha256:46b93ca40e1114cea93d738a6c1e365396981bb6bb78c27045b7587c9473544d"},
+    {file = "stevedore-5.3.0-py3-none-any.whl", hash = "sha256:1efd34ca08f474dad08d9b19e934a22c68bb6fe416926479ba29e5013bcc8f78"},
+    {file = "stevedore-5.3.0.tar.gz", hash = "sha256:9a64265f4060312828151c204efbe9b7a9852a0d9228756344dbc7e4023e375a"},
 ]
 
 [package.dependencies]
-pbr = ">=2.0.0,<2.1.0 || >2.1.0"
+pbr = ">=2.0.0"
 
 [[package]]
 name = "tabulate"
