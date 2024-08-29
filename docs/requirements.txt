@@ -1,6 +1,6 @@
 sphinx==8.0.2
 sphinx-book-theme>=1.0.1
-sphinx-click==5.0.1
+sphinx-click==6.0.0
 myst_parser==4.0.0
 ghostscript==0.7
 opencv-python==4.8.1.78
