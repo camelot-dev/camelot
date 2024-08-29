@@ -1,4 +1,4 @@
-sphinx==7.3.7
+sphinx==8.0.2
 sphinx-book-theme>=1.0.1
 sphinx-click==5.0.1
 myst_parser==4.0.0
