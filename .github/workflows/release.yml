@@ -56,7 +56,7 @@ jobs:
 
       - name: Publish package on PyPI
         if: steps.check-version.outputs.tag
-        uses: pypa/gh-action-pypi-publish@v1.9.0
+        uses: pypa/gh-action-pypi-publish@v1.10.0
         with:
           user: __token__
           password: ${{ secrets.FLIT_PASSWORD }}
