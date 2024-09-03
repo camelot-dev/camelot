@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/py-pdf/pypdf_table_extraction/blob/main/HISTORY.md"
+Changelog = "https://github.com/py-pdf/pypdf_table_extraction/releases"
 
 [tool.poetry.dependencies]
 python = "^3.8"
