@@ -61,6 +61,18 @@ def test_cli_stream(testdir):
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
+        result = runner.invoke(
+            cli, ["--format", "csv", "--output", outfile, "stream", infile, "--margins", "1.5 0.5 0.8"]
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 1 tables\n"
+
+        result = runner.invoke(
+            cli, ["--format", "csv", "--output", outfile, "stream", infile, "--margins", "1.5 0.5"]
+        )
+        output_error = "Error: Invalid value for '-M' / '--margins': '--format' is not a valid float."
+        assert output_error in result.output
+
 
 def test_cli_password(testdir):
     with TemporaryDirectory() as tempdir:
