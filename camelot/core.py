@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import math
 import os
 import sqlite3
 import zipfile
@@ -402,7 +403,7 @@ class Table(object):
 
         def find_close_point(over, coord, joint_tol):
             for i, t in enumerate(over):
-                if np.isclose(coord, t[0], atol=joint_tol):
+                if math.isclose(coord, t[0], abs_tol=joint_tol):
                     return i
             return None
 
