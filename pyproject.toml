@@ -73,7 +73,7 @@ camelot = "camelot.__main__:main"
 
 [tool.poetry.group.base.dependencies]
 ghostscript = "^0.7"
-opencv-python = "^4.7.0.68"
+opencv-python-headless = "^4.7.0.68"
 
 
 [tool.poetry.group.plot.dependencies]
