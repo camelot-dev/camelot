@@ -132,9 +132,7 @@ class PlotMethods:
                 xs.extend([t[0], t[2]])
                 ys.extend([t[1], t[3]])
                 ax.add_patch(
-                    patches.Rectangle(
-                        (t[0], t[1]), t[2] - t[0], t[3] - t[1], color="blue"
-                    )
+                    patches.Rectangle((t[0], t[1]), t[2] - t[0], t[3] - t[1], alpha=0.5)
                 )
 
         for t in table_bbox.keys():
