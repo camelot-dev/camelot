@@ -122,7 +122,7 @@ def test_cli_parallel(testdir):
         assert result.output == "Found 2 tables\n"
 
 
-def test_cli_hybrid():
+def test_cli_hybrid(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "budget.pdf")
         outfile = os.path.join(tempdir, "budget.csv")
