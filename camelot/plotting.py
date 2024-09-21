@@ -65,13 +65,8 @@ class PlotMethods:
             xs.extend([t[0], t[2]])
             ys.extend([t[1], t[3]])
             ax.add_patch(
-                patches.Rectangle(
-                        (t[0], t[1]),
-                        t[2] - t[0],
-                        t[3] - t[1],
-                        alpha=0.5
-                    )
-                )
+                patches.Rectangle((t[0], t[1]), t[2] - t[0], t[3] - t[1], alpha=0.5)
+            )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)
         ax.set_ylim(min(ys) - 10, max(ys) + 10)
         img = table.get_pdf_image()
@@ -180,9 +175,7 @@ class PlotMethods:
             ys.extend([t[1], t[3]])
             ax.add_patch(
                 patches.Rectangle(
-                    (t[0], t[1]), t[2] - t[0], t[3] - t[1],
-                    color="blue",
-                    alpha=0.5
+                    (t[0], t[1]), t[2] - t[0], t[3] - t[1], color="blue", alpha=0.5
                 )
             )
         ax.set_xlim(min(xs) - 10, max(xs) + 10)

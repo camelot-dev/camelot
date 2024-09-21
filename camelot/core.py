@@ -5,16 +5,13 @@ import tempfile
 import zipfile
 from operator import itemgetter
 
+import cv2
 import numpy as np
 import pandas as pd
 
-import cv2
-
-from .utils import (
-    build_file_path_in_temp_dir,
-    compute_whitespace,
-)
 from .backends import ImageConversionBackend
+from .utils import build_file_path_in_temp_dir
+from .utils import compute_whitespace
 
 
 # minimum number of vertical textline intersections for a textedge
@@ -158,10 +155,7 @@ class TextEdges:
         # get vertical textedges that intersect maximum number of
         # times with horizontal textlines
         relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
-        return list(filter(
-            lambda te: te.is_valid,
-            self._textedges[relevant_align])
-        )
+        return list(filter(lambda te: te.is_valid, self._textedges[relevant_align]))
 
     def get_table_areas(self, textlines, relevant_textedges):
         """Returns a dict of interesting table areas on the PDF page
@@ -181,26 +175,26 @@ class TextEdges:
 
         table_areas = {}
         for te in relevant_textedges:
-                if not table_areas:
+            if not table_areas:
+                table_areas[(te.x, te.y0, te.x, te.y1)] = None
+            else:
+                found = None
+                for area in table_areas:
+                    # check for overlap
+                    if te.y1 >= area[1] and te.y0 <= area[3]:
+                        found = area
+                        break
+                if found is None:
                     table_areas[(te.x, te.y0, te.x, te.y1)] = None
                 else:
-                    found = None
-                    for area in table_areas:
-                        # check for overlap
-                        if te.y1 >= area[1] and te.y0 <= area[3]:
-                            found = area
-                            break
-                    if found is None:
-                        table_areas[(te.x, te.y0, te.x, te.y1)] = None
-                    else:
-                        table_areas.pop(found)
-                        updated_area = (
-                            found[0],
-                            min(te.y0, found[1]),
-                            max(found[2], te.x),
-                            max(found[3], te.y1),
-                        )
-                        table_areas[updated_area] = None
+                    table_areas.pop(found)
+                    updated_area = (
+                        found[0],
+                        min(te.y0, found[1]),
+                        max(found[2], te.x),
+                        max(found[3], te.y1),
+                    )
+                    table_areas[updated_area] = None
 
         # extend table areas based on textlines that overlap
         # vertically. it's possible that these textlines were
@@ -226,8 +220,7 @@ class TextEdges:
                     max(found[3], tl.y1),
                 )
                 table_areas[updated_area] = None
-        average_textline_height = sum_textline_height / \
-            float(len(textlines))
+        average_textline_height = sum_textline_height / float(len(textlines))
 
         # add some padding to table areas
         table_areas_padded = {}
@@ -359,8 +352,8 @@ class Table:
         self.filename = None
         self.order = None
         self.page = None
-        self.flavor = None      # Flavor of the parser that generated the table
-        self.pdf_size = None    # Dimensions of the original PDF page
+        self.flavor = None  # Flavor of the parser that generated the table
+        self.pdf_size = None  # Dimensions of the original PDF page
         self.debug_info = None  # Field holding debug data
 
         self._image = None
@@ -399,8 +392,7 @@ class Table:
         return report
 
     def record_metadata(self, parser):
-        """Record data about the origin of the table
-        """
+        """Record data about the origin of the table"""
         self.flavor = parser.id
         self.filename = parser.filename
         self.debug_info = parser.debug_info
@@ -412,13 +404,11 @@ class Table:
         self.pdf_size = (parser.pdf_width, parser.pdf_height)
 
     def get_pdf_image(self):
-        """Compute pdf image and cache it
-        """
+        """Compute pdf image and cache it"""
         if self._image is None:
             if self._image_path is None:
                 self._image_path = build_file_path_in_temp_dir(
-                    os.path.basename(self.filename),
-                    ".png"
+                    os.path.basename(self.filename), ".png"
                 )
                 backend = ImageConversionBackend(use_fallback=True)
                 backend.convert(self.filename, self._image_path)
@@ -500,10 +490,10 @@ class Table:
 
     def set_border(self):
         """Sets table border edges to True."""
-        for index, row in enumerate(self.rows):
+        for index, _row in enumerate(self.rows):
             self.cells[index][0].left = True
             self.cells[index][len(self.cols) - 1].right = True
-        for index, col in enumerate(self.cols):
+        for index, _col in enumerate(self.cols):
             self.cells[0][index].top = True
             self.cells[len(self.rows) - 1][index].bottom = True
         return self

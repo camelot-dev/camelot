@@ -1,5 +1,5 @@
-import os
 import atexit
+import os
 import random
 import re
 import shutil
@@ -139,7 +139,7 @@ def remove_extra(kwargs, flavor="lattice"):
 
 # https://stackoverflow.com/a/22726782
 # and https://stackoverflow.com/questions/10965479
-class TemporaryDirectory(object):
+class TemporaryDirectory:
     def __enter__(self):
         self.name = tempfile.mkdtemp()
         # Only delete the temporary directory upon
@@ -167,10 +167,7 @@ def build_file_path_in_temp_dir(filename, extension=None):
     with TemporaryDirectory() as temp_dir:
         if extension:
             filename = filename + extension
-        path = os.path.join(
-            temp_dir,
-            filename
-        )
+        path = os.path.join(temp_dir, filename)
     return path
 
 

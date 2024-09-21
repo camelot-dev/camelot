@@ -2,6 +2,7 @@ import copy
 import locale
 import logging
 import os
+import subprocess
 import sys
 import warnings
 
@@ -240,8 +241,7 @@ class Lattice(BaseParser):
             return scaled_areas
 
         self.image_path = build_file_path_in_temp_dir(
-            os.path.basename(self.filename),
-            ".png"
+            os.path.basename(self.filename), ".png"
         )
         self.backend.convert(self.filename, self.image_path)
 

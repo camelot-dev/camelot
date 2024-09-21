@@ -1,18 +1,20 @@
 import os
 
-from ..utils import get_text_objects, get_page_layout
 from ..core import Table
+from ..utils import get_page_layout
+from ..utils import get_text_objects
+
 
 class BaseParser:
     """Defines a base parser."""
+
     def __init__(self, parser_id):
         self.id = parser_id
 
         # For plotting details of parsing algorithms
         self.debug_info = {}
 
-    def _generate_layout(self, filename, layout, dimensions,
-                         page_idx, layout_kwargs):
+    def _generate_layout(self, filename, layout, dimensions, page_idx, layout_kwargs):
         self.filename = filename
         self.layout_kwargs = layout_kwargs
         self.layout = layout
@@ -41,6 +43,7 @@ class BaseParser:
     table : camelot.core.Table
 
     """
+
     def _initialize_new_table(self, table_idx, cols, rows):
         table = Table(cols, rows)
         table.page = self.page

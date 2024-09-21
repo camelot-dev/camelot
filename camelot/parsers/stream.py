@@ -210,15 +210,11 @@ class Stream(BaseParser):
 
         """
         row_boundaries = [
-            [
-                max(t.y1 for t in r),
-                min(t.y0 for t in r)
-            ]
-            for r in rows_grouped
+            [max(t.y1 for t in r), min(t.y0 for t in r)] for r in rows_grouped
         ]
-        for i in range(0, len(row_boundaries)-1):
+        for i in range(0, len(row_boundaries) - 1):
             top_row = row_boundaries[i]
-            bottom_row = row_boundaries[i+1]
+            bottom_row = row_boundaries[i + 1]
             top_row[1] = bottom_row[0] = (top_row[1] + bottom_row[0]) / 2
         row_boundaries[0][0] = text_y_max
         row_boundaries[-1][1] = text_y_min

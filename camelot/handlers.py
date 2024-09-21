@@ -11,7 +11,6 @@ from pypdf._utils import StrByteType
 from .core import TableList
 from .parsers import Lattice
 from .parsers import Stream
-from .utils import build_file_path_in_temp_dir
 from .utils import TemporaryDirectory
 from .utils import download_url
 from .utils import get_page_layout
@@ -241,8 +240,9 @@ class PDFHandler:
         self._save_page(self.filepath, page, tempdir)
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
         layout, dimensions = get_page_layout(page_path, **layout_kwargs)
-        parser._generate_layout(page_path, layout, dimensions,
-                            page, layout_kwargs=layout_kwargs)
+        parser._generate_layout(
+            page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
+        )
         tables = parser.extract_tables(
             page_path, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
         )
