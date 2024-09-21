@@ -9,7 +9,9 @@ from pypdf import PdfWriter
 from pypdf._utils import StrByteType
 
 from .core import TableList
+from .parsers import Hybrid
 from .parsers import Lattice
+from .parsers import Network
 from .parsers import Stream
 from .utils import TemporaryDirectory
 from .utils import download_url
@@ -18,6 +20,12 @@ from .utils import get_rotation
 from .utils import get_text_objects
 from .utils import is_url
 
+PARSERS = {
+    "lattice": Lattice,
+    "stream": Stream,
+    "network": Network,
+    "hybrid": Hybrid,
+}
 
 class PDFHandler:
     """Handles all operations like temp directory creation, splitting
@@ -33,10 +41,14 @@ class PDFHandler:
         Example: '1,3,4' or '1,4-end' or 'all'.
     password : str, optional (default: None)
         Password for decryption.
-
+    debug : bool, optional (default: False)
+        Whether the parser should store debug information during parsing.
     """
 
-    def __init__(self, filepath: Union[StrByteType, Path], pages="1", password=None):
+    def __init__(
+        self, filepath: Union[StrByteType, Path], pages="1", password=None, debug=False
+    ):
+        self.debug = debug
         if is_url(filepath):
             filepath = download_url(filepath)
         self.filepath: Union[StrByteType, Path] = filepath
@@ -167,7 +179,7 @@ class PDFHandler:
         Parameters
         ----------
         flavor : str (default: 'lattice')
-            The parsing method to use ('lattice' or 'stream').
+            The parsing method to use.
             Lattice is used by default.
         suppress_stdout : bool (default: False)
             Suppress logs and warnings.
@@ -189,7 +201,10 @@ class PDFHandler:
             layout_kwargs = {}
 
         tables = []
-        parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
+        # parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
+        parser_obj = PARSERS[flavor]
+        parser = parser_obj(debug=self.debug, **kwargs)
+
         with TemporaryDirectory() as tempdir:
             cpu_count = mp.cpu_count()
             # Using multiprocessing only when cpu_count > 1 to prevent a stallness issue
@@ -224,8 +239,8 @@ class PDFHandler:
         ----------
         page : str
             Page number to parse
-        parser : Lattice or Stream
-            The parser to use (Lattice or Stream).
+        parser : Lattice, Stream, Network or Hybrid
+            The parser to use.
         suppress_stdout : bool
             Suppress logs and warnings.
         layout_kwargs : dict, optional (default: {})
@@ -243,7 +258,5 @@ class PDFHandler:
         parser._generate_layout(
             page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
         )
-        tables = parser.extract_tables(
-            page_path, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
-        )
+        tables = parser.extract_tables()
         return tables
