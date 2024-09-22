@@ -115,7 +115,6 @@ class Lattice(BaseParser):
         self.table_areas = table_areas
         self.process_background = process_background
         self.line_scale = line_scale
-        self.copy_text = copy_text
         self.shift_text = shift_text or ["l", "t"]
         self.split_text = split_text
         self.flag_size = flag_size
@@ -193,39 +192,6 @@ class Lattice(BaseParser):
                         r_idx += 1
             indices.append((r_idx, c_idx, text))
         return indices
-
-    @staticmethod
-    def _copy_spanning_text(table, copy_text=None):
-        """Copies over text in empty spanning cells.
-
-        Parameters
-        ----------
-        table : camelot.core.Table
-        copy_text : list, optional (default: None)
-            {'h', 'v'}
-            Select one or more strings from above and pass them as a list
-            to specify the direction in which text should be copied over
-            when a cell spans multiple rows or columns.
-
-        Returns
-        -------
-        table : camelot.core.Table
-
-        """
-        for f in copy_text:
-            if f == "h":
-                for i in range(len(table.cells)):
-                    for j in range(len(table.cells[i])):
-                        if table.cells[i][j].text.strip() == "":
-                            if table.cells[i][j].hspan and not table.cells[i][j].left:
-                                table.cells[i][j].text = table.cells[i][j - 1].text
-            elif f == "v":
-                for i in range(len(table.cells)):
-                    for j in range(len(table.cells[i])):
-                        if table.cells[i][j].text.strip() == "":
-                            if table.cells[i][j].vspan and not table.cells[i][j].top:
-                                table.cells[i][j].text = table.cells[i - 1][j].text
-        return table
 
     def _generate_table_bbox(self):
         def scale_areas(areas):

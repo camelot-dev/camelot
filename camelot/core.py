@@ -476,6 +476,8 @@ class Table:
         self.flavor = parser.id
         self.filename = parser.filename
         self.debug_info = parser.debug_info
+        if parser.copy_text is not None:
+            self.copy_spanning_text(parser.copy_text)
         data = self.data
         self.df = pd.DataFrame(data)
         self.shape = self.df.shape
@@ -607,6 +609,34 @@ class Table:
                 elif cell.bound in [0, 1]:
                     cell.vspan = True
                     cell.hspan = True
+        return self
+
+    def copy_spanning_text(self, copy_text=None):
+        """Copies over text in empty spanning cells.
+        Parameters
+        ----------
+        copy_text : list, optional (default: None)
+            {'h', 'v'}
+            Select one or more strings from above and pass them as a list
+            to specify the direction in which text should be copied over
+            when a cell spans multiple rows or columns.
+        Returns
+        -------
+        t : camelot.core.Table
+        """
+        for f in copy_text:
+            if f == "h":
+                for i in range(len(self.cells)):
+                    for j in range(len(self.cells[i])):
+                        if self.cells[i][j].text.strip() == "":
+                            if self.cells[i][j].hspan and not self.cells[i][j].left:
+                                self.cells[i][j].text = self.cells[i][j - 1].text
+            elif f == "v":
+                for i in range(len(self.cells)):
+                    for j in range(len(self.cells[i])):
+                        if self.cells[i][j].text.strip() == "":
+                            if self.cells[i][j].vspan and not self.cells[i][j].top:
+                                self.cells[i][j].text = self.cells[i - 1][j].text
         return self
 
     def to_csv(self, path, **kwargs):

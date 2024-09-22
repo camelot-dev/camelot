@@ -8,9 +8,9 @@ from ..utils import get_text_objects
 class BaseParser:
     """Defines a base parser."""
 
-    def __init__(self, parser_id):
+    def __init__(self, parser_id, copy_text=None):
         self.id = parser_id
-
+        self.copy_text = copy_text
         # For plotting details of parsing algorithms
         self.debug_info = {}
 
