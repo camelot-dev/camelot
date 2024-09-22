@@ -272,8 +272,7 @@ def scale_image(tables, v_segments, h_segments, factors):
         j_x, j_y = zip(*tables[k])
         j_x = [scale(j, scaling_factor_x) for j in j_x]
         j_y = [scale(abs(translate(-img_y, j)), scaling_factor_y) for j in j_y]
-        joints = zip(j_x, j_y)
-        tables_new[(x1, y1, x2, y2)] = joints
+        tables_new[(x1, y1, x2, y2)] = {"joints": list(zip(j_x, j_y))}
 
     v_segments_new = []
     for v in v_segments:
@@ -362,6 +361,69 @@ def segments_in_bbox(bbox, v_segments, h_segments):
         if h[0] > lb[0] - 2 and h[2] < rt[0] + 2 and lb[1] - 2 <= h[1] <= rt[1] + 2
     ]
     return v_s, h_s
+
+
+def get_textline_coords(textline):
+    """Calculate the coordinates of each alignment for a given textline."""
+    return {
+        "left": textline.x0,
+        "right": textline.x1,
+        "middle": (textline.x0 + textline.x1) / 2.0,
+        "bottom": textline.y0,
+        "top": textline.y1,
+        "center": (textline.y0 + textline.y1) / 2.0,
+    }
+
+
+def bbox_from_str(bbox_str):
+    """Deserialize bbox from string ("x1,y1,x2,y2") to tuple (x1, y1, x2, y2).
+
+    Parameters
+    ----------
+    bbox_str : str
+        Serialized bbox with comma separated coordinates, "x1,y1,x2,y2".
+
+    Returns
+    -------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2).
+
+    """
+    x1, y1, x2, y2 = bbox_str.split(",")
+    x1 = float(x1)
+    y1 = float(y1)
+    x2 = float(x2)
+    y2 = float(y2)
+    return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+
+
+def bboxes_overlap(bbox1, bbox2):
+    (left1, bottom1, right1, top1) = bbox1
+    (left2, bottom2, right2, top2) = bbox2
+    return ((left1 < left2 < right1) or (left1 < right2 < right1)) and (
+        (bottom1 < bottom2 < top1) or (bottom1 < top2 < top1)
+    )
+
+
+def textlines_overlapping_bbox(bbox, textlines):
+    """Returns all text objects which overlap or are within a bounding box.
+
+    Parameters
+    ----------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+    textlines : List of PDFMiner text objects.
+
+    Returns
+    -------
+    t_bbox : list
+        List of PDFMiner text objects.
+
+    """
+    t_bbox = [t for t in textlines if bboxes_overlap(bbox, (t.x0, t.y0, t.x1, t.y1))]
+    return t_bbox
 
 
 def text_in_bbox(bbox, text):
@@ -464,6 +526,94 @@ def bbox_intersect(ba, bb) -> bool:
 
     """
     return ba.x1 >= bb.x0 and bb.x1 >= ba.x0 and ba.y1 >= bb.y0 and bb.y1 >= ba.y0
+
+
+def find_columns_boundaries(tls, min_gap=1.0):
+    """Make a list of disjunct cols boundaries for a list of text objects
+
+    Parameters
+    ----------
+    tls : list of PDFMiner text object.
+
+    min_gap : minimum distance between columns. Any elements closer than
+        this threshold are merged together.  This is to prevent spaces between
+        words to be misinterpreted as boundaries.
+
+    Returns
+    -------
+    boundaries : list
+        List x-coordinates for cols.
+         [(1st col left, 1st col right), (2nd col left, 2nd col right), ...]
+
+
+    """
+    cols_bounds = []
+    tls.sort(key=lambda tl: tl.x0)
+    for tl in tls:
+        if (not cols_bounds) or cols_bounds[-1][1] + min_gap < tl.x0:
+            cols_bounds.append([tl.x0, tl.x1])
+        else:
+            cols_bounds[-1][1] = max(cols_bounds[-1][1], tl.x1)
+    return cols_bounds
+
+
+def find_rows_boundaries(tls, min_gap=1.0):
+    """Make a list of disjunct rows boundaries for a list of text objects
+
+    Parameters
+    ----------
+    tls : list of PDFMiner text object.
+
+    min_gap : minimum distance between rows. Any elements closer than
+        this threshold are merged together.
+
+    Returns
+    -------
+    boundaries : list
+        List y-coordinates for rows.
+         [(1st row bottom, 1st row top), (2nd row bottom, 2nd row top), ...]
+
+    """
+    rows_bounds = []
+    tls.sort(key=lambda tl: tl.y0)
+    for tl in tls:
+        if (not rows_bounds) or rows_bounds[-1][1] + min_gap < tl.y0:
+            rows_bounds.append([tl.y0, tl.y1])
+        else:
+            rows_bounds[-1][1] = max(rows_bounds[-1][1], tl.y1)
+    return rows_bounds
+
+
+def boundaries_to_split_lines(boundaries):
+    """Find split lines given a list of boundaries between rows or cols.
+
+    Boundaries:     [ a ]         [b]     [   c   ]  [d]
+    Splits:         |        |         |            |  |
+
+    Parameters
+    ----------
+    boundaries : list
+        List of tuples of x- (for columns) or y- (for rows) coord boundaries.
+        These are the (left, right most) or (bottom, top most) coordinates.
+
+    Returns
+    -------
+    anchors : list
+        List of coordinates representing the split points, each half way
+        between boundaries
+
+    """
+    # From the row boundaries, identify splits by getting the mid points
+    # between the boundaries.
+    anchors = list(
+        map(
+            lambda idx: (boundaries[idx - 1][1] + boundaries[idx][0]) / 2.0,
+            range(1, len(boundaries)),
+        )
+    )
+    anchors.insert(0, boundaries[0][0])
+    anchors.append(boundaries[-1][1])
+    return anchors
 
 
 def bbox_longer(ba, bb) -> bool:
