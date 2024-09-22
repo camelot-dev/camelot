@@ -367,7 +367,7 @@ class Lattice(BaseParser):
                 warnings.warn(f"No tables found on {os.path.basename(self.rootname)}")
             return []
 
-        self.backend.convert(self.filename, self.imagename)
+        self.backend.convert(self.filename, self.pdf_image)
 
         self._generate_table_bbox()
 
