@@ -6,12 +6,13 @@ import zipfile
 from operator import itemgetter
 
 import cv2
-import numpy as np
 import pandas as pd
 
 from .backends import ImageConversionBackend
 from .utils import build_file_path_in_temp_dir
 from .utils import compute_whitespace
+from .utils import get_index_closest_point
+from .utils import get_textline_coords
 
 
 # minimum number of vertical textline intersections for a textedge
@@ -21,14 +22,70 @@ TEXTEDGE_REQUIRED_ELEMENTS = 4
 TABLE_AREA_PADDING = 10
 
 
-class TextEdge:
-    """Defines a text edge coordinates relative to a left-bottom
-    origin. (PDF coordinate space)
+HORIZONTAL_ALIGNMENTS = ["left", "right", "middle"]
+VERTICAL_ALIGNMENTS = ["top", "bottom", "center"]
+ALL_ALIGNMENTS = HORIZONTAL_ALIGNMENTS + VERTICAL_ALIGNMENTS
+
+
+class TextAlignment:
+    """Represents a list of textlines sharing an alignment on a coordinate.
+    The alignment can be left/right/middle or top/bottom/center.
+    (PDF coordinate space)
 
     Parameters
     ----------
-    x : float
-        x-coordinate of the text edge.
+    coord : float
+        coordinate of the initial text edge. Depending on the alignment
+        it could be a vertical or horizontal coordinate.
+    textline : obj
+        the original textline to start the alignment
+    align : str
+        Name of the alignment (e.g. "left", "top", etc)
+
+    Attributes
+    ----------
+    coord : float
+        The coordinate aligned averaged out across textlines.  It can be along
+        the x or y axis.
+    textlines : array
+        Array of textlines that demonstrate this alignment.
+    align : str
+        Name of the alignment (e.g. "left", "top", etc)
+    """
+
+    def __init__(self, coord, textline, align):
+        self.coord = coord
+        self.textlines = [textline]
+        self.align = align
+
+    def __repr__(self):
+        text_inside = " | ".join(
+            map(lambda x: x.get_text(), self.textlines[:2])
+        ).replace("\n", "")
+        return (
+            f"<TextEdge coord={self.coord} tl={len(self.textlines)} "
+            f"textlines text='{text_inside}...'>"
+        )
+
+    def register_aligned_textline(self, textline, coord):
+        """Update new textline to this alignment, adapting its average."""
+        # Increase the intersections for this segment, expand it up,
+        # and adjust the x based on the new value
+        self.coord = (self.coord * len(self.textlines) + coord) / float(
+            len(self.textlines) + 1
+        )
+        self.textlines.append(textline)
+
+
+class TextEdge(TextAlignment):
+    """Defines a text edge coordinates relative to a left-bottom
+    origin. (PDF coordinate space)
+    An edge is an alignment bounded over a segment.
+
+    Parameters
+    ----------
+    coord : float
+        coordinate of the text edge.  Can be x or y.
     y0 : float
         y-coordinate of bottommost point.
     y1 : float
@@ -38,93 +95,110 @@ class TextEdge:
 
     Attributes
     ----------
-    intersections: int
-        Number of intersections with horizontal text rows.
     is_valid: bool
-        A text edge is valid if it intersections with at least
+        A text edge is valid if it intersects with at least
         TEXTEDGE_REQUIRED_ELEMENTS horizontal text rows.
 
     """
 
-    def __init__(self, x, y0, y1, align="left"):
-        self.x = x
-        self.y0 = y0
-        self.y1 = y1
-        self.align = align
-        self.intersections = 0
+    def __init__(self, coord, textline, align):
+        super().__init__(coord, textline, align)
+        self.y0 = textline.y0
+        self.y1 = textline.y1
         self.is_valid = False
 
     def __repr__(self):
-        x = round(self.x, 2)
+        x = round(self.coord, 2)
         y0 = round(self.y0, 2)
         y1 = round(self.y1, 2)
         return (
             f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} valid={self.is_valid}>"
         )
 
-    def update_coords(self, x, y0, edge_tol=50):
+    def update_coords(self, x, textline, edge_tol=50):
         """Updates the text edge's x and bottom y coordinates and sets
         the is_valid attribute.
         """
-        if math.isclose(self.y0, y0, abs_tol=edge_tol):
-            self.x = (self.intersections * self.x + x) / float(self.intersections + 1)
-            self.y0 = y0
-            self.intersections += 1
+        if math.isclose(self.y0, textline.y0, abs_tol=edge_tol):
+            self.register_aligned_textline(textline, x)
+            self.y0 = textline.y0
             # a textedge is valid only if it extends uninterrupted
             # over a required number of textlines
-            if self.intersections > TEXTEDGE_REQUIRED_ELEMENTS:
+            if len(self.textlines) > TEXTEDGE_REQUIRED_ELEMENTS:
                 self.is_valid = True
 
 
-class TextEdges:
+class TextAlignments:
+    """Defines a dict of text edges across reference alignments."""
+
+    def __init__(self, alignment_names):
+        # For each possible alignment, list of tuples coordinate/textlines
+        self._text_alignments = {}
+        for alignment_name in alignment_names:
+            self._text_alignments[alignment_name] = []
+
+    @staticmethod
+    def _create_new_text_alignment(coord, textline, align):
+        return TextAlignment(coord, textline, align)
+
+    def _update_alignment(self, alignment, coord, textline):
+        return NotImplemented
+
+    def _register_textline(self, textline):
+        """Updates an existing text edge in the current dict."""
+        coords = get_textline_coords(textline)
+        for alignment_id, alignment_array in self._text_alignments.items():
+            coord = coords[alignment_id]
+
+            # Find the index of the closest existing element (or 0 if none)
+            idx_closest = get_index_closest_point(
+                coord, alignment_array, fn=lambda x: x.coord
+            )
+
+            # Check if the edges before/after are close enough
+            # that it can be considered aligned
+            idx_insert = None
+            if idx_closest is None:
+                idx_insert = 0
+            else:
+                coord_closest = alignment_array[idx_closest].coord
+                # Note: np.isclose is slow!
+                if coord - 0.5 < coord_closest < coord + 0.5:
+                    self._update_alignment(
+                        alignment_array[idx_closest], coord, textline
+                    )
+                elif coord_closest < coord:
+                    idx_insert = idx_closest + 1
+                else:
+                    idx_insert = idx_closest
+            if idx_insert is not None:
+                new_alignment = self._create_new_text_alignment(
+                    coord, textline, alignment_id
+                )
+                alignment_array.insert(idx_insert, new_alignment)
+
+
+class TextEdges(TextAlignments):
     """Defines a dict of left, right and middle text edges found on
     the PDF page. The dict has three keys based on the alignments,
     and each key's value is a list of camelot.core.TextEdge objects.
     """
 
     def __init__(self, edge_tol=50):
+        super().__init__(HORIZONTAL_ALIGNMENTS)
         self.edge_tol = edge_tol
-        self._textedges = {"left": [], "right": [], "middle": []}
 
-    @staticmethod
-    def get_x_coord(textline, align):
-        """Returns the x coordinate of a text row based on the
-        specified alignment.
-        """
-        x_left = textline.x0
-        x_right = textline.x1
-        x_middle = x_left + (x_right - x_left) / 2.0
-        x_coord = {"left": x_left, "middle": x_middle, "right": x_right}
-        return x_coord[align]
+    def _create_new_text_alignment(self, coord, textline, align):
+        # In TextEdges, each alignment is a TextEdge
+        return TextEdge(coord, textline, align)
 
-    def find(self, x_coord, align):
-        """Returns the index of an existing text edge using
-        the specified x coordinate and alignment.
-        """
-        for i, te in enumerate(self._textedges[align]):
-            if math.isclose(te.x, x_coord, abs_tol=0.5):
-                return i
-        return None
-
-    def add(self, textline, align):
+    def add(self, coord, textline, align):
         """Adds a new text edge to the current dict."""
-        x = self.get_x_coord(textline, align)
-        y0 = textline.y0
-        y1 = textline.y1
-        te = TextEdge(x, y0, y1, align=align)
-        self._textedges[align].append(te)
+        te = self._create_new_text_alignment(coord, textline, align)
+        self._text_alignments[align].append(te)
 
-    def update(self, textline):
-        """Updates an existing text edge in the current dict."""
-        for align in ["left", "right", "middle"]:
-            x_coord = self.get_x_coord(textline, align)
-            idx = self.find(x_coord, align)
-            if idx is None:
-                self.add(textline, align)
-            else:
-                self._textedges[align][idx].update_coords(
-                    x_coord, textline.y0, edge_tol=self.edge_tol
-                )
+    def _update_alignment(self, alignment, coord, textline):
+        alignment.update_coords(coord, textline, self.edge_tol)
 
     def generate(self, textlines):
         """Generates the text edges dict based on horizontal text
@@ -132,7 +206,7 @@ class TextEdges:
         """
         for tl in textlines:
             if len(tl.get_text().strip()) > 1:  # TODO: hacky
-                self.update(tl)
+                self._register_textline(tl)
 
     def get_relevant(self):
         """Returns the list of relevant text edges (all share the same
@@ -141,13 +215,17 @@ class TextEdges:
         """
         intersections_sum = {
             "left": sum(
-                te.intersections for te in self._textedges["left"] if te.is_valid
+                len(te.textlines) for te in self._text_alignments["left"] if te.is_valid
             ),
             "right": sum(
-                te.intersections for te in self._textedges["right"] if te.is_valid
+                len(te.textlines)
+                for te in self._text_alignments["right"]
+                if te.is_valid
             ),
             "middle": sum(
-                te.intersections for te in self._textedges["middle"] if te.is_valid
+                len(te.textlines)
+                for te in self._text_alignments["middle"]
+                if te.is_valid
             ),
         }
 
@@ -155,7 +233,9 @@ class TextEdges:
         # get vertical textedges that intersect maximum number of
         # times with horizontal textlines
         relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
-        return list(filter(lambda te: te.is_valid, self._textedges[relevant_align]))
+        return list(
+            filter(lambda te: te.is_valid, self._text_alignments[relevant_align])
+        )
 
     def get_table_areas(self, textlines, relevant_textedges):
         """Returns a dict of interesting table areas on the PDF page
@@ -171,12 +251,12 @@ class TextEdges:
             return (x0, y0, x1, y1)
 
         # sort relevant textedges in reading order
-        relevant_textedges.sort(key=lambda te: (-te.y0, te.x))
+        relevant_textedges.sort(key=lambda te: (-te.y0, te.coord))
 
         table_areas = {}
         for te in relevant_textedges:
             if not table_areas:
-                table_areas[(te.x, te.y0, te.x, te.y1)] = None
+                table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
             else:
                 found = None
                 for area in table_areas:
@@ -185,13 +265,13 @@ class TextEdges:
                         found = area
                         break
                 if found is None:
-                    table_areas[(te.x, te.y0, te.x, te.y1)] = None
+                    table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
                 else:
                     table_areas.pop(found)
                     updated_area = (
                         found[0],
                         min(te.y0, found[1]),
-                        max(found[2], te.x),
+                        max(found[2], te.coord),
                         max(found[3], te.y1),
                     )
                     table_areas[updated_area] = None
