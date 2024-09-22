@@ -1,33 +1,22 @@
 import copy
-import locale
-import logging
 import os
-import subprocess
-import sys
 import warnings
 
 import numpy as np
 import pandas as pd
 
 from ..backends.image_conversion import BACKENDS
-from ..core import Table
 from ..image_processing import adaptive_threshold
 from ..image_processing import find_contours
 from ..image_processing import find_joints
 from ..image_processing import find_lines
 from ..utils import build_file_path_in_temp_dir
-from ..utils import compute_accuracy
-from ..utils import compute_whitespace
-from ..utils import get_table_index
 from ..utils import merge_close_lines
 from ..utils import scale_image
 from ..utils import scale_pdf
 from ..utils import segments_in_bbox
-from ..utils import text_in_bbox
+from ..utils import text_in_bbox_per_axis
 from .base import BaseParser
-
-
-logger = logging.getLogger("camelot")
 
 
 class Lattice(BaseParser):
@@ -97,7 +86,7 @@ class Lattice(BaseParser):
         process_background=False,
         line_scale=15,
         copy_text=None,
-        shift_text=["l", "t"],
+        shift_text=None,
         split_text=False,
         flag_size=False,
         strip_text="",
@@ -115,6 +104,7 @@ class Lattice(BaseParser):
         self.table_areas = table_areas
         self.process_background = process_background
         self.line_scale = line_scale
+        self.copy_text = copy_text
         self.shift_text = shift_text or ["l", "t"]
         self.split_text = split_text
         self.flag_size = flag_size
@@ -193,6 +183,13 @@ class Lattice(BaseParser):
             indices.append((r_idx, c_idx, text))
         return indices
 
+    def record_parse_metadata(self, table):
+        """Record data about the origin of the table."""
+        super().record_parse_metadata(table)
+        # for plotting
+        table._image = self.pdf_image  # Reuse the image used for calc
+        table._segments = (self.vertical_segments, self.horizontal_segments)
+
     def _generate_table_bbox(self):
         def scale_areas(areas):
             scaled_areas = []
@@ -266,46 +263,79 @@ class Lattice(BaseParser):
             areas = scale_areas(self.table_areas)
             table_bbox = find_joints(areas, vertical_mask, horizontal_mask)
 
-        self.table_bbox_unscaled = copy.deepcopy(table_bbox)
-
-        self.table_bbox, self.vertical_segments, self.horizontal_segments = scale_image(
-            table_bbox, vertical_segments, horizontal_segments, pdf_scalers
+        [self.table_bbox_parses, self.vertical_segments, self.horizontal_segments] = (
+            scale_image(table_bbox, vertical_segments, horizontal_segments, pdf_scalers)
         )
 
-    def _generate_columns_and_rows(self, table_idx, tk):
+        for bbox, parse in self.table_bbox_parses.items():
+            joints = parse["joints"]
+
+            # Merge x coordinates that are close together
+            line_tol = self.line_tol
+            # Sort the joints, make them a list of lists (instead of sets)
+            joints_normalized = list(
+                map(lambda x: list(x), sorted(joints, key=lambda j: -j[0]))
+            )
+            for idx in range(1, len(joints_normalized)):
+                x_left, x_right = (
+                    joints_normalized[idx - 1][0],
+                    joints_normalized[idx][0],
+                )
+                if x_left - line_tol <= x_right <= x_left + line_tol:
+                    joints_normalized[idx][0] = x_left
+
+            # Merge y coordinates that are close together
+            joints_normalized = sorted(joints_normalized, key=lambda j: -j[1])
+            for idx in range(1, len(joints_normalized)):
+                y_bottom, y_top = (
+                    joints_normalized[idx - 1][1],
+                    joints_normalized[idx][1],
+                )
+                if y_bottom - line_tol <= y_top <= y_bottom + line_tol:
+                    joints_normalized[idx][1] = y_bottom
+
+            # TODO: check this is useful, otherwise get rid of the code
+            # above
+            parse["joints_normalized"] = joints_normalized
+
+            cols = list(map(lambda coords: coords[0], joints))
+            cols.extend([bbox[0], bbox[2]])
+            rows = list(map(lambda coords: coords[1], joints))
+            rows.extend([bbox[1], bbox[3]])
+
+            # sort horizontal and vertical segments
+            cols = merge_close_lines(sorted(cols), line_tol=self.line_tol)
+            rows = merge_close_lines(sorted(rows, reverse=True), line_tol=self.line_tol)
+            parse["col_anchors"] = cols
+            parse["row_anchors"] = rows
+
+    def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
-        t_bbox = {}
         v_s, h_s = segments_in_bbox(
-            tk, self.vertical_segments, self.horizontal_segments
+            bbox, self.vertical_segments, self.horizontal_segments
         )
-        t_bbox["horizontal"] = text_in_bbox(tk, self.horizontal_text)
-        t_bbox["vertical"] = text_in_bbox(tk, self.vertical_text)
+        self.t_bbox = text_in_bbox_per_axis(
+            bbox, self.horizontal_text, self.vertical_text
+        )
+        parse = self.table_bbox_parses[bbox]
 
-        t_bbox["horizontal"].sort(key=lambda x: (-x.y0, x.x0))
-        t_bbox["vertical"].sort(key=lambda x: (x.x0, -x.y0))
-
-        self.t_bbox = t_bbox
-
-        cols, rows = zip(*self.table_bbox[tk])
-        cols, rows = list(cols), list(rows)
-        cols.extend([tk[0], tk[2]])
-        rows.extend([tk[1], tk[3]])
-        # sort horizontal and vertical segments
-        cols = merge_close_lines(sorted(cols), line_tol=self.line_tol)
-        rows = merge_close_lines(sorted(rows, reverse=True), line_tol=self.line_tol)
-        # make grid using x and y coord of shortlisted rows and cols
-        cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
-        rows = [(rows[i], rows[i + 1]) for i in range(0, len(rows) - 1)]
-
+        cols = [
+            (parse["col_anchors"][i], parse["col_anchors"][i + 1])
+            for i in range(0, len(parse["col_anchors"]) - 1)
+        ]
+        rows = [
+            (parse["row_anchors"][i], parse["row_anchors"][i + 1])
+            for i in range(0, len(parse["row_anchors"]) - 1)
+        ]
         return cols, rows, v_s, h_s
 
-    def _generate_table(self, table_idx, cols, rows, **kwargs):
+    def _generate_table(self, table_idx, bbox, cols, rows, **kwargs):
         v_s = kwargs.get("v_s")
         h_s = kwargs.get("h_s")
         if v_s is None or h_s is None:
             raise ValueError(f"No segments found on {self.rootname}")
 
-        table = self._initialize_new_table(table_idx, cols, rows)
+        table = self._initialize_new_table(table_idx, bbox, cols, rows)
         # set table edges to True using ver+hor lines
         table = table.set_edges(v_s, h_s, joint_tol=self.joint_tol)
         # set table border edges to True
@@ -313,72 +343,5 @@ class Lattice(BaseParser):
         # set spanning cells to True
         table = table.set_span()
 
-        pos_errors = []
-        # TODO: have a single list in place of two directional ones?
-        # sorted on x-coordinate based on reading order i.e. LTR or RTL
-        for direction in ["vertical", "horizontal"]:
-            for t in self.t_bbox[direction]:
-                indices, error = get_table_index(
-                    table,
-                    t,
-                    direction,
-                    split_text=self.split_text,
-                    flag_size=self.flag_size,
-                    strip_text=self.strip_text,
-                )
-                if indices[0][:2] != (-1, -1):
-                    pos_errors.append(error)
-                    indices = Lattice._reduce_index(
-                        table, indices, shift_text=self.shift_text
-                    )
-                    for r_idx, c_idx, text in indices:
-                        table.cells[r_idx][c_idx].text = text
-        accuracy = compute_accuracy([[100, pos_errors]])
-
-        if self.copy_text is not None:
-            table = Lattice._copy_spanning_text(table, copy_text=self.copy_text)
-
-        table.record_metadata(self)
-        table.accuracy = accuracy
-
-        # for plotting
-        _text = []
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.horizontal_text])
-        _text.extend([(t.x0, t.y0, t.x1, t.y1) for t in self.vertical_text])
-        table._text = _text
-        table._image = self.pdf_image  # Reuse the image used for calc
-        table._bbox_unscaled = self.table_bbox_unscaled
-        table._segments = (self.vertical_segments, self.horizontal_segments)
-        table._textedges = None
-
+        self.record_parse_metadata(table)
         return table
-
-    def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
-        if not suppress_stdout:
-            logger.info(f"Processing {os.path.basename(self.rootname)}")
-
-        if not self.horizontal_text:
-            if self.images:
-                warnings.warn(
-                    "{} is image-based, camelot only works on"
-                    " text-based pages.".format(os.path.basename(self.rootname))
-                )
-            else:
-                warnings.warn(f"No tables found on {os.path.basename(self.rootname)}")
-            return []
-
-        self.backend.convert(self.filename, self.pdf_image)
-
-        self._generate_table_bbox()
-
-        _tables = []
-        # sort tables based on y-coord
-        for table_idx, tk in enumerate(
-            sorted(self.table_bbox.keys(), key=lambda x: x[1], reverse=True)
-        ):
-            cols, rows, v_s, h_s = self._generate_columns_and_rows(table_idx, tk)
-            table = self._generate_table(table_idx, cols, rows, v_s=v_s, h_s=h_s)
-            table._bbox = tk
-            _tables.append(table)
-
-        return _tables
