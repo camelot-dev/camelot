@@ -616,6 +616,48 @@ def boundaries_to_split_lines(boundaries):
     return anchors
 
 
+def get_index_closest_point(point, sorted_list, fn=lambda x: x):
+    """Return the index of the closest point in the sorted list.
+    Parameters
+    ----------
+    point : the reference sortable element to search.
+    sorted_list : list
+    fn: optional accessor function
+    Returns
+    -------
+    index : int
+    """
+    
+    n = len(sorted_list)
+    if n == 0:
+        return None
+    if n == 1:
+        return 0
+    left = 0
+    right = n - 1
+    mid = 0
+    if point >= fn(sorted_list[n - 1]):
+        return n - 1
+    if point <= fn(sorted_list[0]):
+        return 0
+    while left < right:
+        mid = (left + right) // 2  # find the mid
+        mid_val = fn(sorted_list[mid])
+        if point < mid_val:
+            right = mid
+        elif point > mid_val:
+            left = mid + 1
+        else:
+            return mid
+    if mid_val > point:
+        if mid > 0 and (point - fn(sorted_list[mid - 1]) < mid_val - point):
+            return mid - 1
+    elif mid_val < point:
+        if mid < n - 1 and (fn(sorted_list[mid + 1]) - point < point - mid_val):
+            return mid + 1
+    return mid
+
+
 def bbox_longer(ba, bb) -> bool:
     """Returns True if the bounding box of the first PDFMiner object is longer or equal to the second.
 
