@@ -255,7 +255,7 @@ class PDFHandler:
         self._save_page(self.filepath, page, tempdir)
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
         layout, dimensions = get_page_layout(page_path, **layout_kwargs)
-        parser._generate_layout(
+        parser.prepare_page_parse(
             page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
         )
         tables = parser.extract_tables()
