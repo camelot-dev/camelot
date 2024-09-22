@@ -1,3 +1,5 @@
+"""General helper utilities to parse the pdf tables."""
+
 import atexit
 import os
 import random
@@ -57,6 +59,18 @@ def is_url(url):
 
 
 def random_string(length):
+    """Generate a random string .
+
+    Parameters
+    ----------
+    length : int
+        The length of the string to return.
+
+    Returns
+    -------
+    string
+        returns a random string
+    """
     ret = ""
     while length:
         ret += random.choice(
@@ -112,12 +126,27 @@ lattice_kwargs = [
 
 
 def validate_input(kwargs, flavor="lattice"):
-    def check_intersection(parser_kwargs, input_kwargs):
-        isec = set(parser_kwargs).intersection(set(input_kwargs.keys()))
-        if isec:
-            raise ValueError(
-                f"{','.join(sorted(isec))} cannot be used with flavor='{flavor}'"
-            )
+    """Validates input keyword arguments .
+
+    Parameters
+    ----------
+    kwargs : [type]
+        [description]
+    flavor : str, optional
+        [description], by default "lattice"
+
+    Raises
+    ------
+    ValueError
+        [description]
+    """
+    parser_kwargs = flavor_to_kwargs[flavor]
+    # s.difference(t): new set with elements in s but not in t
+    isec = set(kwargs.keys()).difference(set(parser_kwargs))
+    if isec:
+        raise ValueError(
+            "{} cannot be used with flavor='{}'".format(",".join(sorted(isec)), flavor)
+        )
 
     if flavor == "lattice":
         check_intersection(stream_kwargs, kwargs)
@@ -126,21 +155,42 @@ def validate_input(kwargs, flavor="lattice"):
 
 
 def remove_extra(kwargs, flavor="lattice"):
-    if flavor == "lattice":
-        for key in kwargs.keys():
-            if key in stream_kwargs:
-                kwargs.pop(key)
-    else:
-        for key in kwargs.keys():
-            if key in lattice_kwargs:
-                kwargs.pop(key)
+    """Remove extra key - value pairs from a kwargs dictionary .
+
+    Parameters
+    ----------
+    kwargs : [type]
+        [description]
+    flavor : str, optional
+        [description], by default "lattice"
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    parser_kwargs = flavor_to_kwargs[flavor]
+    # Avoid "dictionary changed size during iteration"
+    kwargs_keys = list(kwargs.keys())
+    for key in kwargs_keys:
+        if key not in parser_kwargs:
+            kwargs.pop(key)
     return kwargs
 
 
 # https://stackoverflow.com/a/22726782
 # and https://stackoverflow.com/questions/10965479
 class TemporaryDirectory:
+    """A class method that will be used to create temporary directories."""
+
     def __enter__(self):
+        """Enter the temporary directory .
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         self.name = tempfile.mkdtemp()
         # Only delete the temporary directory upon
         # program exit.
@@ -148,11 +198,22 @@ class TemporaryDirectory:
         return self.name
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Called when the client exits.
+
+        Parameters
+        ----------
+        exc_type : [type]
+            [description]
+        exc_value : [type]
+            [description]
+        traceback : [type]
+            [description]
+        """
         pass
 
 
 def build_file_path_in_temp_dir(filename, extension=None):
-    """Generates a new path within a temporary directory
+    """Generate a new path within a temporary directory.
 
     Parameters
     ----------
@@ -172,7 +233,7 @@ def build_file_path_in_temp_dir(filename, extension=None):
 
 
 def translate(x1, x2):
-    """Translates x2 by x1.
+    """Translate x2 by x1.
 
     Parameters
     ----------
@@ -206,7 +267,7 @@ def scale(x, s):
 
 
 def scale_pdf(k, factors):
-    """Translates and scales pdf coordinate space to image coordinate space.
+    """Translate and scale pdf coordinate space to image coordinate space.
 
     Parameters
     ----------
@@ -238,7 +299,7 @@ def scale_pdf(k, factors):
 
 
 def scale_image(tables, v_segments, h_segments, factors):
-    """Translates and scales image coordinate space to pdf coordinate space.
+    """Translate and scale image coordinate space to pdf coordinate space.
 
     Parameters
     ----------
@@ -296,7 +357,9 @@ def scale_image(tables, v_segments, h_segments, factors):
 
 
 def get_rotation(chars, horizontal_text, vertical_text):
-    """Detects if text in table is rotated or not using the current
+    """Get text rotation.
+
+    Detects if text in table is rotated or not using the current
     transformation matrix (CTM) and returns its orientation.
 
     Parameters
@@ -327,7 +390,7 @@ def get_rotation(chars, horizontal_text, vertical_text):
 
 
 def segments_in_bbox(bbox, v_segments, h_segments):
-    """Returns all line segments present inside a bounding box.
+    """Return all line segments present inside a bounding box.
 
     Parameters
     ----------
@@ -398,6 +461,24 @@ def bbox_from_str(bbox_str):
 
 
 def bboxes_overlap(bbox1, bbox2):
+    """Check if boundingboxes overlap.
+
+    Parameters
+    ----------
+    bbox1 : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+    bbox2 : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+
+    Returns
+    -------
+    bool
+        Returns True if two bounding boxes overlap
+    """
     (left1, bottom1, right1, top1) = bbox1
     (left2, bottom2, right2, top2) = bbox2
     return ((left1 < left2 < right1) or (left1 < right2 < right1)) and (
@@ -406,7 +487,7 @@ def bboxes_overlap(bbox1, bbox2):
 
 
 def textlines_overlapping_bbox(bbox, textlines):
-    """Returns all text objects which overlap or are within a bounding box.
+    """Return all text objects which overlap or are within a bounding box.
 
     Parameters
     ----------
@@ -427,7 +508,10 @@ def textlines_overlapping_bbox(bbox, textlines):
 
 
 def text_in_bbox(bbox, text):
-    """Returns all text objects present inside a bounding box.
+    """Return all text objects in a bounding box.
+
+    Return the text objects which lie at least 80% inside a bounding box
+    across both dimensions.
 
     Parameters
     ----------
@@ -469,8 +553,75 @@ def text_in_bbox(bbox, text):
     return unique_boxes
 
 
+def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
+    """Return all text objects present inside a bounding box.
+
+    split between horizontal and vertical text.
+
+    Parameters
+    ----------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+    horizontal_text : List of PDFMiner text objects.
+    vertical_text : List of PDFMiner text objects.
+
+    Returns
+    -------
+    t_bbox : dict
+        Dict of lists of PDFMiner text objects that lie inside table, with one
+        key each for "horizontal" and "vertical"
+    """
+    t_bbox = {}
+    t_bbox["horizontal"] = text_in_bbox(bbox, horizontal_text)
+    t_bbox["vertical"] = text_in_bbox(bbox, vertical_text)
+    t_bbox["horizontal"].sort(key=lambda x: (-x.y0, x.x0))
+    t_bbox["vertical"].sort(key=lambda x: (x.x0, -x.y0))
+    return t_bbox
+
+
+def expand_bbox_with_textline(bbox, textline):
+    """Expand (if needed) a bbox so that it fits the parameter textline.
+    """
+    return (
+        min(bbox[0], textline.x0),
+        min(bbox[1], textline.y0),
+        max(bbox[2], textline.x1),
+        max(bbox[3], textline.y1)
+    )
+
+
+def bbox_from_textlines(textlines):
+    """Return the smallest bbox containing all the text objects passed as a parameters.
+
+    Parameters
+    ----------
+    textlines : List of PDFMiner text objects.
+
+    Returns
+    -------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) representing a bounding box where
+        (x1, y1) -> lb and (x2, y2) -> rt in the PDF coordinate
+        space.
+    """
+    if len(textlines) == 0:
+        return None
+    bbox = (
+        textlines[0].x0,
+        textlines[0].y0,
+        textlines[0].x1,
+        textlines[0].y1
+    )
+
+    for tl in textlines[1:]:
+        bbox = expand_bbox_with_textline(bbox, tl)
+    return bbox
+
+
 def bbox_intersection_area(ba, bb) -> float:
-    """Returns area of the intersection of the bounding boxes of two PDFMiner objects.
+    """Return area of the intersection of the bounding boxes of two PDFMiner objects.
 
     Parameters
     ----------
@@ -496,7 +647,7 @@ def bbox_intersection_area(ba, bb) -> float:
 
 
 def bbox_area(bb) -> float:
-    """Returns area of the bounding box of a PDFMiner object.
+    """Return area of the bounding box of a PDFMiner object.
 
     Parameters
     ----------
@@ -512,7 +663,7 @@ def bbox_area(bb) -> float:
 
 
 def bbox_intersect(ba, bb) -> bool:
-    """Returns True if the bounding boxes of two PDFMiner objects intersect.
+    """Return True if the bounding boxes of two PDFMiner objects intersect.
 
     Parameters
     ----------
@@ -529,7 +680,7 @@ def bbox_intersect(ba, bb) -> bool:
 
 
 def find_columns_boundaries(tls, min_gap=1.0):
-    """Make a list of disjunct cols boundaries for a list of text objects
+    """Make a list of disjunct cols boundaries for a list of text objects.
 
     Parameters
     ----------
@@ -543,7 +694,7 @@ def find_columns_boundaries(tls, min_gap=1.0):
     -------
     boundaries : list
         List x-coordinates for cols.
-         [(1st col left, 1st col right), (2nd col left, 2nd col right), ...]
+        [(1st col left, 1st col right), (2nd col left, 2nd col right), ...]
 
 
     """
@@ -558,7 +709,7 @@ def find_columns_boundaries(tls, min_gap=1.0):
 
 
 def find_rows_boundaries(tls, min_gap=1.0):
-    """Make a list of disjunct rows boundaries for a list of text objects
+    """Make a list of disjunct rows boundaries for a list of text objects.
 
     Parameters
     ----------
@@ -571,8 +722,7 @@ def find_rows_boundaries(tls, min_gap=1.0):
     -------
     boundaries : list
         List y-coordinates for rows.
-         [(1st row bottom, 1st row top), (2nd row bottom, 2nd row top), ...]
-
+            [(1st row bottom, 1st row top), (2nd row bottom, 2nd row top), ...]
     """
     rows_bounds = []
     tls.sort(key=lambda tl: tl.y0)
@@ -601,7 +751,6 @@ def boundaries_to_split_lines(boundaries):
     anchors : list
         List of coordinates representing the split points, each half way
         between boundaries
-
     """
     # From the row boundaries, identify splits by getting the mid points
     # between the boundaries.
@@ -617,15 +766,21 @@ def boundaries_to_split_lines(boundaries):
 
 
 def get_index_closest_point(point, sorted_list, fn=lambda x: x):
-    """Return the index of the closest point in the sorted list.
+    """Find the index of the closest point in sorted_list .
+
     Parameters
     ----------
-    point : the reference sortable element to search.
+    point : [type]
+        the reference sortable element to search.
     sorted_list : list
-    fn: optional accessor function
+        [description]
+    fn : [type], optional
+        optional accessor function, by default lambdax:x
+
     Returns
     -------
-    index : int
+    [type]
+        [description]
     """
     
     n = len(sorted_list)
@@ -659,7 +814,7 @@ def get_index_closest_point(point, sorted_list, fn=lambda x: x):
 
 
 def bbox_longer(ba, bb) -> bool:
-    """Returns True if the bounding box of the first PDFMiner object is longer or equal to the second.
+    """Return True if the bounding box of the first PDFMiner object is longer or equal to the second.
 
     Parameters
     ----------
@@ -676,8 +831,9 @@ def bbox_longer(ba, bb) -> bool:
 
 
 def merge_close_lines(ar, line_tol=2):
-    """Merges lines which are within a tolerance by calculating a
-    moving mean, based on their x or y axis projections.
+    """Merge lines which are within a tolerance.
+
+    By calculating a moving mean, based on their x or y axis projections.
 
     Parameters
     ----------
@@ -704,13 +860,15 @@ def merge_close_lines(ar, line_tol=2):
 
 
 def text_strip(text, strip=""):
-    """Strips any characters in `strip` that are present in `text`.
+    """Strip any characters in `strip` that are present in `text`.
+
     Parameters
     ----------
     text : str
         Text to process and strip.
     strip : str, optional (default: '')
         Characters that should be stripped from `text`.
+
     Returns
     -------
     stripped : str
@@ -730,7 +888,9 @@ def text_strip(text, strip=""):
 
 
 def flag_font_size(textline, direction, strip_text=""):
-    """Flags super/subscripts in text by enclosing them with <s></s>.
+    """Flag super/subscripts.
+
+    Flag super/subscripts in text by enclosing them with <s></s>.
     May give false positives.
 
     Parameters
@@ -782,8 +942,7 @@ def flag_font_size(textline, direction, strip_text=""):
 
 
 def split_textline(table, textline, direction, flag_size=False, strip_text=""):
-    """Splits PDFMiner LTTextLine into substrings if it spans across
-    multiple rows/columns.
+    """Split textline into substrings if it spans across multiple rows/columns.
 
     Parameters
     ----------
@@ -906,7 +1065,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
 def get_table_index(
     table, t, direction, split_text=False, flag_size=False, strip_text=""
 ):
-    """Gets indices of the table cell where given text object lies by
+    """Get indices of the table cell.
+
+    Get the index of a table cell where given text object lies by
     comparing their y and x-coordinates.
 
     Parameters
@@ -1005,7 +1166,9 @@ def get_table_index(
 
 
 def compute_accuracy(error_weights):
-    """Calculates a score based on weights assigned to various
+    """Compute Accuracy.
+
+    Calculates a score based on weights assigned to various
     parameters and their error percentages.
 
     Parameters
@@ -1035,8 +1198,7 @@ def compute_accuracy(error_weights):
 
 
 def compute_whitespace(d):
-    """Calculates the percentage of empty strings in a
-    two-dimensional list.
+    """Calculates the percentage of empty strings in a two-dimensional list.
 
     Parameters
     ----------
@@ -1067,8 +1229,9 @@ def get_page_layout(
     detect_vertical=True,
     all_texts=True,
 ):
-    """Returns a PDFMiner LTPage object and page dimension of a single
-    page pdf. To get the definitions of kwargs, see
+    """Return a PDFMiner LTPage object and page dimension of a single page pdf.
+
+    To get the definitions of kwargs, see
     https://pdfminersix.rtfd.io/en/latest/reference/composable.html.
 
     Parameters
@@ -1122,8 +1285,7 @@ def get_page_layout(
 
 
 def get_text_objects(layout, ltype="char", t=None):
-    """Recursively parses pdf layout to get a list of
-    PDFMiner text objects.
+    """Recursively parses pdf layout to get a list of PDFMiner text objects.
 
     Parameters
     ----------
