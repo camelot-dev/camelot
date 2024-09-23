@@ -123,3 +123,14 @@ def test_stream_duplicated_text(testdir):
     filename = os.path.join(testdir, "birdisland.pdf")
     tables = camelot.read_pdf(filename, flavor="stream")
     assert_frame_equal(df, tables[0].df)
+
+
+def test_stream_inner_outer_columns(testdir):
+    df = pd.DataFrame(data_stream_inner_outer_columns)
+
+    filename = os.path.join(testdir, "stream_inner_outer_columns.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="stream",
+    )
+    assert_frame_equal(df, tables[0].df)

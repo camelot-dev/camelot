@@ -2845,6 +2845,49 @@ data_stream_duplicated_text = [
     ["", "", "", "", "", "LSD (0.10)  =", "5.7", "0.3", "ns", "37.8", "566.4"],
 ]
 
+data_stream_inner_outer_columns = [
+    [
+        "Outer 1",
+        "Outer 2",
+        "Long 1",
+        "Long 2",
+        "Inner",
+        "Long 3",
+    ],
+    [
+        "A1",
+        "B1",
+        "C1",
+        "D1",
+        "E1",
+        "F1",
+    ],
+    [
+        "",
+        "",
+        "C2",
+        "D2",
+        "",
+        "F2",
+    ],
+    [
+        "",
+        "",
+        "C3",
+        "D3",
+        "",
+        "F3",
+    ],
+    [
+        "",
+        "",
+        "C4",
+        "D4",
+        "",
+        "F4",
+    ],
+]
+
 data_lattice = [
     [
         "Cycle \nName",
