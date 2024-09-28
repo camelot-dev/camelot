@@ -605,7 +605,8 @@ class Network(TextBaseParser):
                 text_network.remove_unconnected_edges()
                 gaps_hv = text_network.compute_plausible_gaps()
                 if gaps_hv is None:
-                    return None
+                    break
+                    # return None
                 # edge_tol instructions override the calculated vertical gap
                 edge_tol_hv = (
                     gaps_hv[0],
