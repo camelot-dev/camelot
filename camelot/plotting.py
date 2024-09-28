@@ -476,8 +476,8 @@ class PlotMethods:
                 ax.plot(
                     [col_anchor, col_anchor],
                     [
-                        col_search["bbox_body"][1] - 10,
-                        col_search["bbox_body"][3] + 10,
+                        col_search["bbox_body"][1],
+                        col_search["bbox_body"][3],
                     ],
                     color="green",
                 )
