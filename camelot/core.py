@@ -434,7 +434,9 @@ class Table:
         self.page = None
         self.flavor = None  # Flavor of the parser that generated the table
         self.pdf_size = None  # Dimensions of the original PDF page
-        self.debug_info = None  # Field holding debug data
+        self._bbox = None          # Bounding box in original document
+        self.parse = None          # Parse information
+        self.parse_details = None  # Field holding debug data
 
         self._image = None
         self._image_path = None  # Temporary file to hold an image of the pdf
