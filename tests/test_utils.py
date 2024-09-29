@@ -1,4 +1,4 @@
-"Test to check intersection logic when no intersection area returned"
+"""Test to check intersection logic when no intersection area returned."""
 import os
 
 from pdfminer.converter import PDFPageAggregator
@@ -12,7 +12,7 @@ from camelot.utils import bbox_intersection_area
 
 
 def get_text_from_pdf(filename):
-    "Method to extract text object from pdf"
+    """Method to extract text object from pdf."""
     # https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
     # https://pdfminer-docs.readthedocs.io/programming.html#performing-layout-analysis
     document = open(filename, "rb")
@@ -34,7 +34,7 @@ def get_text_from_pdf(filename):
 
 def test_bbox_intersection_text(testdir):
     """
-    Test to check area of intersection between both boxes when no intersection area returned
+    Test to check area of intersection between both boxes when no intersection area returned.
     """
     filename1 = os.path.join(testdir, "foo.pdf")
     pdftextelement1 = get_text_from_pdf(filename1)

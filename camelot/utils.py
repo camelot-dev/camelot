@@ -180,8 +180,7 @@ def scale(x, s):
 
 
 def scale_pdf(k, factors):
-    """Translates and scales pdf coordinate space to image
-    coordinate space.
+    """Translates and scales pdf coordinate space to image coordinate space.
 
     Parameters
     ----------
@@ -213,8 +212,7 @@ def scale_pdf(k, factors):
 
 
 def scale_image(tables, v_segments, h_segments, factors):
-    """Translates and scales image coordinate space to pdf
-    coordinate space.
+    """Translates and scales image coordinate space to pdf coordinate space.
 
     Parameters
     ----------
@@ -588,10 +586,9 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
     -------
     grouped_chars : list
         List of tuples of the form (idx, text) where idx is the index
-        of row/column and text is the an lttextline substring.
+        of row/column and text is the an LTTextLine substring.
 
     """
-    idx = 0
     cut_text = []
     bbox = textline.bbox
     try:
@@ -834,7 +831,6 @@ def compute_whitespace(d):
 
     """
     whitespace = 0
-    r_nempty_cells, c_nempty_cells = [], []
     for i in d:
         for j in i:
             if j.strip() == "":
