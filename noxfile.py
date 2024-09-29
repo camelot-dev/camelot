@@ -1,4 +1,5 @@
 """Nox sessions."""
+
 import os
 import shlex
 import shutil
@@ -168,7 +169,12 @@ def tests(session: Session) -> None:
     session.install(".")
 
     session.install(
-        "coverage[toml]", "pytest", "pytest-mpl", "pygments", *base_requires, *plot_requires
+        "coverage[toml]",
+        "pytest",
+        "pytest-mpl",
+        "pygments",
+        *base_requires,
+        *plot_requires,
     )
     try:
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
@@ -222,7 +228,14 @@ def docs_build(session: Session) -> None:
 
     session.install(".")
     session.install(
-        "sphinx", "sphinx-click", "sphinx-book-theme", "myst-parser", "sphinx-copybutton", "sphinx-prompt", *base_requires, *plot_requires
+        "sphinx",
+        "sphinx-click",
+        "sphinx-book-theme",
+        "myst-parser",
+        "sphinx-copybutton",
+        "sphinx-prompt",
+        *base_requires,
+        *plot_requires,
     )
 
     build_dir = Path("docs", "_build")

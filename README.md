@@ -64,7 +64,6 @@ See [comparison with similar libraries and tools](https://github.com/py-pdf/pypd
 
 The easiest way to install pypdf_table_extraction is with [conda](https://conda.io/docs/), which is a package manager and environment management system for the [Anaconda](http://docs.continuum.io/anaconda/) distribution.
 
-
 ```bash
 conda install -c conda-forge pypdf-table-extraction
 ```

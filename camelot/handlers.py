@@ -149,7 +149,7 @@ class PDFHandler:
         suppress_stdout=False,
         parallel=False,
         layout_kwargs=None,
-        **kwargs
+        **kwargs,
     ):
         """Extracts tables by calling parser.get_tables on all single
         page PDFs.
@@ -189,7 +189,8 @@ class PDFHandler:
                     jobs = []
                     for p in self.pages:
                         j = pool.apply_async(
-                            self._parse_page,(p, tempdir, parser, suppress_stdout, layout_kwargs)
+                            self._parse_page,
+                            (p, tempdir, parser, suppress_stdout, layout_kwargs),
                         )
                         jobs.append(j)
 
@@ -198,14 +199,14 @@ class PDFHandler:
                         tables.extend(t)
             else:
                 for p in self.pages:
-                    t = self._parse_page(p, tempdir, parser, suppress_stdout, layout_kwargs)
+                    t = self._parse_page(
+                        p, tempdir, parser, suppress_stdout, layout_kwargs
+                    )
                     tables.extend(t)
 
         return TableList(sorted(tables))
 
-    def _parse_page(
-        self, page, tempdir, parser, suppress_stdout, layout_kwargs
-    ):
+    def _parse_page(self, page, tempdir, parser, suppress_stdout, layout_kwargs):
         """Extracts tables by calling parser.get_tables on a single
         page PDF.
 
@@ -224,7 +225,7 @@ class PDFHandler:
         -------
         tables : camelot.core.TableList
             List of tables found in PDF.
-        
+
         """
         self._save_page(self.filepath, page, tempdir)
         page_path = os.path.join(tempdir, f"page-{page}.pdf")

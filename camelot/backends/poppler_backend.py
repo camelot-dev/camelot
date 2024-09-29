@@ -1,9 +1,11 @@
 import os
-import sys
 import shutil
 import subprocess
+import sys
 
-path = os.path.dirname(sys.executable) + os.pathsep + os.environ['PATH']
+
+path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
+
 
 class PopplerBackend:
     def convert(self, pdf_path, png_path):

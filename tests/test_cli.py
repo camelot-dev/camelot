@@ -62,13 +62,36 @@ def test_cli_stream(testdir):
         assert format_error in result.output
 
         result = runner.invoke(
-            cli, [ "--margins", "1.5", "0.5", "0.8", "--format", "csv", "--output", outfile, "stream", infile]
+            cli,
+            [
+                "--margins",
+                "1.5",
+                "0.5",
+                "0.8",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "stream",
+                infile,
+            ],
         )
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
 
         result = runner.invoke(
-            cli, ["--margins", "1.5", "0.5", "--format", "csv", "--output", outfile, "stream", infile]
+            cli,
+            [
+                "--margins",
+                "1.5",
+                "0.5",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "stream",
+                infile,
+            ],
         )
         output_error = "Error: Invalid value for '-M' / '--margins': '--format' is not a valid float."
         assert output_error in result.output
@@ -213,6 +236,7 @@ def test_cli_quiet(testdir):
             cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
         )
         assert "No tables found on page-1" not in result.output
+
 
 def test_cli_lattice_plot_type():
     with TemporaryDirectory() as tempdir:

@@ -81,7 +81,7 @@ def download_url(url):
     with tempfile.NamedTemporaryFile("wb", delete=False) as f:
         headers = {
             "User-Agent": "Mozilla/5.0",
-            "Accept-Encoding": "gzip;q=1.0, deflate;q=0.9, br;q=0.8, compress;q=0.7, *;q=0.1"
+            "Accept-Encoding": "gzip;q=1.0, deflate;q=0.9, br;q=0.8, compress;q=0.7, *;q=0.1",
         }
         request = Request(url, None, headers)
         obj = urlopen(request)

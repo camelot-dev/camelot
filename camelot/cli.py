@@ -290,13 +290,17 @@ def stream(c, *args, **kwargs):
     columns = list(kwargs["columns"])
     kwargs["columns"] = None if not columns else columns
 
-    margins = conf.pop('margins')
+    margins = conf.pop("margins")
 
     if margins is None:
         layout_kwargs = {}
     else:
-        layout_kwargs = {"char_margin": margins[0], "line_margin": margins[1], "word_margin": margins[2]}
-        
+        layout_kwargs = {
+            "char_margin": margins[0],
+            "line_margin": margins[1],
+            "word_margin": margins[2],
+        }
+
     if plot_type is not None:
         if not _HAS_MPL:
             raise ImportError("matplotlib is required for plotting.")
@@ -307,7 +311,12 @@ def stream(c, *args, **kwargs):
             raise click.UsageError("Please specify output file format using --format")
 
     tables = read_pdf(
-        filepath, pages=pages, flavor="stream", suppress_stdout=quiet, layout_kwargs=layout_kwargs, **kwargs
+        filepath,
+        pages=pages,
+        flavor="stream",
+        suppress_stdout=quiet,
+        layout_kwargs=layout_kwargs,
+        **kwargs,
     )
     click.echo(f"Found {tables.n} tables")
     if plot_type is not None:
