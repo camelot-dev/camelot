@@ -283,6 +283,18 @@ def test_cli_quiet(testdir):
 
 def test_cli_lattice_plot_type():
     with TemporaryDirectory() as tempdir:
+        outfile = os.path.join(tempdir, "lattice_contour.png")
         runner = CliRunner()
-        result = runner.invoke(cli, ["--plot_type", ""])
+        result = runner.invoke(
+            cli,
+            [
+                "--plot_type",
+                "contour",
+                "--output",
+                outfile,
+                "--format",
+                "--format",
+                "png",
+            ],
+        )
         assert result.exit_code != 0, f"Output: {result.output}"
