@@ -118,11 +118,11 @@ pypdf_table_extraction supports extracting tables in parrallel using all the ava
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
 
     .. code-block:: console
-    
+
         $ camelot --pages all --parallel lattice foo.pdf
 
 .. note:: The reading of the PDF document is parallelized by processing pages by different CPU core.
-    Therefore, a document with a low page count could be slower to process in parallel.  
+    Therefore, a document with a low page count could be slower to process in parallel.
 
 Reading encrypted PDFs
 ----------------------

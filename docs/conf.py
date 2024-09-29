@@ -188,7 +188,7 @@ html_static_path = ["_static"]
 html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = { }
+# html_sidebars = { }
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -267,7 +267,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "pypdf-table-extraction.tex", "pypdf-table-extraction Documentation", "Vinayak Mehta", "manual"),
+    (
+        master_doc,
+        "pypdf-table-extraction.tex",
+        "pypdf-table-extraction Documentation",
+        "Vinayak Mehta",
+        "manual",
+    ),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -307,7 +313,15 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "pypdf_table_extraction", "pypdf_table_extraction Documentation", [author], 1)]
+man_pages = [
+    (
+        master_doc,
+        "pypdf_table_extraction",
+        "pypdf_table_extraction Documentation",
+        [author],
+        1,
+    )
+]
 
 # If true, show URL addresses after external links.
 #
@@ -346,4 +360,3 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
-
