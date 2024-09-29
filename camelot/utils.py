@@ -110,8 +110,22 @@ def download_url(url):
     return filepath
 
 
-stream_kwargs = ["columns", "edge_tol", "row_tol", "column_tol"]
-lattice_kwargs = [
+common_kwargs = [
+    "flag_size",
+    "margins",
+    "split_text",
+    "strip_text",
+    "table_areas",
+    "table_regions",
+    "backend"
+]
+text_kwargs = common_kwargs + [
+    "columns",
+    "edge_tol",
+    "row_tol",
+    "column_tol"
+]
+lattice_kwargs = common_kwargs + [
     "process_background",
     "line_scale",
     "copy_text",
@@ -123,10 +137,16 @@ lattice_kwargs = [
     "iterations",
     "resolution",
 ]
+flavor_to_kwargs = {
+    "stream": text_kwargs,
+    "network": text_kwargs,
+    "lattice": lattice_kwargs,
+    "hybrid": text_kwargs + lattice_kwargs,
+}
 
 
 def validate_input(kwargs, flavor="lattice"):
-    """Validates input keyword arguments .
+    """Validates input keyword arguments.
 
     Parameters
     ----------
@@ -145,38 +165,25 @@ def validate_input(kwargs, flavor="lattice"):
     isec = set(kwargs.keys()).difference(set(parser_kwargs))
     if isec:
         raise ValueError(
-            "{} cannot be used with flavor='{}'".format(",".join(sorted(isec)), flavor)
+            "{} cannot be used with flavor='{}'".format(
+                ",".join(sorted(isec)), flavor
+            )
         )
-
-    if flavor == "lattice":
-        check_intersection(stream_kwargs, kwargs)
-    else:
-        check_intersection(lattice_kwargs, kwargs)
 
 
 def remove_extra(kwargs, flavor="lattice"):
-    """Remove extra key - value pairs from a kwargs dictionary .
-
-    Parameters
-    ----------
-    kwargs : [type]
-        [description]
-    flavor : str, optional
-        [description], by default "lattice"
-
-    Returns
-    -------
-    [type]
-        [description]
-    """
     parser_kwargs = flavor_to_kwargs[flavor]
-    # Avoid "dictionary changed size during iteration"
-    kwargs_keys = list(kwargs.keys())
-    for key in kwargs_keys:
-        if key not in parser_kwargs:
-            kwargs.pop(key)
+    # s.difference(t): new set with elements in s but not in t
+    isec = set(kwargs.keys()).difference(set(parser_kwargs))
+    if flavor == "lattice":
+        for key in kwargs.keys():
+            if key in stream_kwargs:
+                kwargs.pop(key)
+    else:
+        for key in kwargs.keys():
+            if key in lattice_kwargs:
+                kwargs.pop(key)
     return kwargs
-
 
 # https://stackoverflow.com/a/22726782
 # and https://stackoverflow.com/questions/10965479
