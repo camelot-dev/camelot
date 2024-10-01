@@ -5,11 +5,9 @@ from pandas.testing import assert_frame_equal
 
 import camelot
 
-from .conftest import skip_on_windows
 from .data import *
 
 
-@skip_on_windows
 def test_lattice(testdir):
     df = pd.DataFrame(data_lattice)
 
@@ -20,7 +18,6 @@ def test_lattice(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_table_rotated(testdir):
     df = pd.DataFrame(data_lattice_table_rotated)
 
@@ -33,7 +30,6 @@ def test_lattice_table_rotated(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_two_tables(testdir):
     df1 = pd.DataFrame(data_lattice_two_tables_1)
     df2 = pd.DataFrame(data_lattice_two_tables_2)
@@ -45,7 +41,6 @@ def test_lattice_two_tables(testdir):
     assert df2.equals(tables[1].df)
 
 
-@skip_on_windows
 def test_lattice_table_regions(testdir):
     df = pd.DataFrame(data_lattice_table_regions)
 
@@ -54,7 +49,6 @@ def test_lattice_table_regions(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_table_areas(testdir):
     df = pd.DataFrame(data_lattice_table_areas)
 
@@ -63,7 +57,6 @@ def test_lattice_table_areas(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_process_background(testdir):
     df = pd.DataFrame(data_lattice_process_background)
 
@@ -72,7 +65,6 @@ def test_lattice_process_background(testdir):
     assert_frame_equal(df, tables[1].df)
 
 
-@skip_on_windows
 def test_lattice_copy_text(testdir):
     df = pd.DataFrame(data_lattice_copy_text)
 
@@ -81,7 +73,6 @@ def test_lattice_copy_text(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_shift_text(testdir):
     df_lt = pd.DataFrame(data_lattice_shift_text_left_top)
     df_disable = pd.DataFrame(data_lattice_shift_text_disable)
@@ -98,7 +89,6 @@ def test_lattice_shift_text(testdir):
     assert df_rb.equals(tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_arabic(testdir):
     df = pd.DataFrame(data_arabic)
 
@@ -107,7 +97,6 @@ def test_lattice_arabic(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-@skip_on_windows
 def test_lattice_split_text(testdir):
     df = pd.DataFrame(data_lattice_split_text)
 
