@@ -83,6 +83,11 @@ jobs:
           mkdir -p ~/lib
           ln -s "$(brew --prefix gs)/lib/libgs.dylib" ~/lib
 
+      - name: Install ghostscript (windows-latest)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install --yes --no-progress --ignore-checksums ghostscript --version 9.56.1
+
       - name: Compute pre-commit cache key
         if: matrix.session == 'pre-commit'
         id: pre-commit-cache
