@@ -36,7 +36,7 @@ def read_pdf(
     flavor : str (default: 'lattice')
         The parsing method to use ('lattice' or 'stream').
         Lattice is used by default.
-    suppress_stdout : bool, optional (default: True)
+    suppress_stdout : bool, optional (default: False)
         Print all logs and warnings.
     parallel : bool, optional (default: False)
         Process pages in parallel using all available cpu cores.
