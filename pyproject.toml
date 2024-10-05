@@ -82,6 +82,7 @@ matplotlib = [
     {version = "^3.8.0", python = ">=3.12"}
 ]
 
+[tool.poetry_bumpversion.file."camelot/__version__.py"]
 
 [tool.coverage.paths]
 source = ["camelot", "*\\camelot", "*/site-packages"]

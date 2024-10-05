@@ -5,7 +5,6 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 import camelot
-from camelot.__version__ import generate_version
 from camelot.core import Table
 from camelot.core import TableList
 from camelot.io import PDFHandler
@@ -13,21 +12,6 @@ from camelot.io import PDFHandler
 from .conftest import skip_on_windows
 from .conftest import skip_pdftopng
 from .data import *
-
-
-def test_version_generation():
-    version = (0, 7, 3)
-    assert generate_version(version, prerelease=None, revision=None) == "0.7.3"
-
-
-def test_version_generation_with_prerelease_revision():
-    version = (0, 7, 3)
-    prerelease = "alpha"
-    revision = 2
-    assert (
-        generate_version(version, prerelease=prerelease, revision=revision)
-        == "0.7.3-alpha.2"
-    )
 
 
 @skip_on_windows
