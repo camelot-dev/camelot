@@ -139,13 +139,6 @@ class Lattice(BaseParser):
                     f"Unknown backend '{backend}' specified. Please use either 'poppler' or 'ghostscript'."
                 )
 
-            if backend == "ghostscript":
-                warnings.warn(
-                    "'ghostscript' will be replaced by 'poppler' as the default image conversion"
-                    " backend in v0.12.0. You can try out 'poppler' with backend='poppler'.",
-                    DeprecationWarning,
-                )
-
             return BACKENDS[backend]()
         else:
             if not implements_convert():

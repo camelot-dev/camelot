@@ -131,19 +131,6 @@ def test_lattice_no_convert_method(foo_pdf):
         camelot.read_pdf(foo_pdf, backend=ConversionBackend())
 
 
-def test_lattice_ghostscript_deprecation_warning(foo_pdf):
-    ghostscript_deprecation_warning = (
-        "'ghostscript' will be replaced by 'poppler' as the default image conversion"
-        " backend in v0.12.0. You can try out 'poppler' with backend='poppler'."
-    )
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        with pytest.raises(DeprecationWarning) as e:
-            camelot.read_pdf(foo_pdf)
-            assert str(e.value) == ghostscript_deprecation_warning
-
-
 def test_invalid_url():
     url = "fttp://google.com/pdf"
     message = "File format not supported"
