@@ -686,8 +686,7 @@ class TableList:
         return self._tables[idx]
 
     def __iter__(self):
-        for t in self._tables:
-            yield t
+        yield from self._tables
 
     @staticmethod
     def _format_func(table, f):

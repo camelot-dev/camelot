@@ -1,4 +1,5 @@
 """Test to check intersection logic when no intersection area returned."""
+
 import os
 
 from pdfminer.converter import PDFPageAggregator

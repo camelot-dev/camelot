@@ -21,12 +21,12 @@ MacOS
 
     $ brew install ghostscript tcl-tk
 
-.. note:: 
+.. note::
   You might encounter the problem that the ghostscript module cannot be found. This can be fixed with the following commands.
 
   ``mkdir -p ~/lib``
 
-  ``ln -s "$(brew --prefix gs)/lib/libgs.dylib" ~/lib`` 
+  ``ln -s "$(brew --prefix gs)/lib/libgs.dylib" ~/lib``
 
 Windows
 ^^^^^^^
