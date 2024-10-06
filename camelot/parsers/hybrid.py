@@ -1,11 +1,12 @@
 """Implementation of hybrid table parser."""
 
 import numpy as np
-from .base import BaseParser
-from .network import Network
-from .lattice import Lattice
+
 from ..utils import bboxes_overlap
 from ..utils import boundaries_to_split_lines
+from .base import BaseParser
+from .lattice import Lattice
+from .network import Network
 
 
 class Hybrid(BaseParser):
@@ -120,7 +121,7 @@ class Hybrid(BaseParser):
 
     @staticmethod
     def _augment_boundaries_with_splits(boundaries, splits, tolerance=0):
-        """ Augment existing boundaries using provided hard splits.
+        """Augment existing boundaries using provided hard splits.
 
         Boundaries:   |---|    |-| |---------|
         Splits:     |       |     |       |
@@ -141,10 +142,8 @@ class Hybrid(BaseParser):
                 boundaries.insert(0, new_boundary)
                 idx_splits = idx_splits - 1
             else:
-                boundary = \
-                    boundaries[idx_boundaries]
-                if boundary[1] < \
-                        split + tolerance:
+                boundary = boundaries[idx_boundaries]
+                if boundary[1] < split + tolerance:
                     # The lattice column is further to the right of our
                     # col boundary.  We move our left boundary to match.
                     boundary[1] = split
@@ -153,8 +152,7 @@ class Hybrid(BaseParser):
                     if previous_boundary is not None:
                         previous_boundary[0] = split
                     idx_splits = idx_splits - 1
-                elif boundary[0] > \
-                        split - tolerance:
+                elif boundary[0] > split - tolerance:
                     # Our boundary is fully after the split, move on
                     idx_boundaries = idx_boundaries - 1
                     previous_boundary = boundary
@@ -173,8 +171,7 @@ class Hybrid(BaseParser):
         return boundaries
 
     def _merge_bbox_analysis(self, lattice_bbox, network_bbox):
-        """ Identify splits that were only detected by lattice or by network
-        """
+        """Identify splits that were only detected by lattice or by network"""
         lattice_parse = self.lattice_parser.table_bbox_parses[lattice_bbox]
         lattice_cols = lattice_parse["col_anchors"]
 
@@ -195,8 +192,9 @@ class Hybrid(BaseParser):
                 network_cols_boundaries[-1][1],
                 max(lattice_bbox[3], network_bbox[3]),
             )
-            network_bbox_data["cols_anchors"] = \
-                boundaries_to_split_lines(network_cols_boundaries)
+            network_bbox_data["cols_anchors"] = boundaries_to_split_lines(
+                network_cols_boundaries
+            )
 
             del self.network_parser.table_bbox_parses[network_bbox]
             self.network_parser.table_bbox_parses[augmented_bbox] = network_bbox_data

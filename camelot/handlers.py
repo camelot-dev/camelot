@@ -20,12 +20,14 @@ from .utils import get_rotation
 from .utils import get_text_objects
 from .utils import is_url
 
+
 PARSERS = {
     "lattice": Lattice,
     "stream": Stream,
     "network": Network,
     "hybrid": Hybrid,
 }
+
 
 class PDFHandler:
     """Handles all operations like temp directory creation, splitting

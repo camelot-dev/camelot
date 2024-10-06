@@ -33,6 +33,7 @@ def test_password(testdir):
     tables = camelot.read_pdf(filename, password="userpass", flavor="stream")
     assert_frame_equal(df, tables[0].df)
 
+
 @skip_pdftopng
 def test_repr_poppler(testdir):
     filename = os.path.join(testdir, "foo.pdf")

@@ -55,8 +55,7 @@ def test_network_two_tables_b(testdir):
 
 
 def test_network_vertical_header(testdir):
-    """Tests a complex table with a vertically text header.
-    """
+    """Tests a complex table with a vertically text header."""
     df = pd.DataFrame(data_network_vertical_headers)
     filename = os.path.join(testdir, "vertical_header.pdf")
     tables = camelot.read_pdf(filename, flavor="network")

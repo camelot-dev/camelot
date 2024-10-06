@@ -117,14 +117,9 @@ common_kwargs = [
     "strip_text",
     "table_areas",
     "table_regions",
-    "backend"
+    "backend",
 ]
-text_kwargs = common_kwargs + [
-    "columns",
-    "edge_tol",
-    "row_tol",
-    "column_tol"
-]
+text_kwargs = common_kwargs + ["columns", "edge_tol", "row_tol", "column_tol"]
 lattice_kwargs = common_kwargs + [
     "process_background",
     "line_scale",
@@ -165,9 +160,7 @@ def validate_input(kwargs, flavor="lattice"):
     isec = set(kwargs.keys()).difference(set(parser_kwargs))
     if isec:
         raise ValueError(
-            "{} cannot be used with flavor='{}'".format(
-                ",".join(sorted(isec)), flavor
-            )
+            "{} cannot be used with flavor='{}'".format(",".join(sorted(isec)), flavor)
         )
 
 
@@ -184,6 +177,7 @@ def remove_extra(kwargs, flavor="lattice"):
             if key in lattice_kwargs:
                 kwargs.pop(key)
     return kwargs
+
 
 # https://stackoverflow.com/a/22726782
 # and https://stackoverflow.com/questions/10965479
@@ -589,13 +583,12 @@ def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
 
 
 def expand_bbox_with_textline(bbox, textline):
-    """Expand (if needed) a bbox so that it fits the parameter textline.
-    """
+    """Expand (if needed) a bbox so that it fits the parameter textline."""
     return (
         min(bbox[0], textline.x0),
         min(bbox[1], textline.y0),
         max(bbox[2], textline.x1),
-        max(bbox[3], textline.y1)
+        max(bbox[3], textline.y1),
     )
 
 
@@ -615,12 +608,7 @@ def bbox_from_textlines(textlines):
     """
     if len(textlines) == 0:
         return None
-    bbox = (
-        textlines[0].x0,
-        textlines[0].y0,
-        textlines[0].x1,
-        textlines[0].y1
-    )
+    bbox = (textlines[0].x0, textlines[0].y0, textlines[0].x1, textlines[0].y1)
 
     for tl in textlines[1:]:
         bbox = expand_bbox_with_textline(bbox, tl)
@@ -788,8 +776,8 @@ def get_index_closest_point(point, sorted_list, fn=lambda x: x):
     -------
     [type]
         [description]
+
     """
-    
     n = len(sorted_list)
     if n == 0:
         return None

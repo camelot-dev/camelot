@@ -1,6 +1,5 @@
 """Implementation of network table parser."""
 
-
 import copy
 import math
 
