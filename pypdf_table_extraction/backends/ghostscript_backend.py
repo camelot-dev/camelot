@@ -1,1 +1,1 @@
-from camelot.backends.ghostscript import Ghostscript  # noqa: F401
+from camelot.backends.ghostscript_backend import GhostscriptBackend  # noqa: F401
