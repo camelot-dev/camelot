@@ -29,7 +29,7 @@ To process background lines, you can pass ``process_background=True``.
 
     .. code-block:: console
 
-        $ camelot lattice -back background_lines.pdf
+        $ pypdf_table_extraction lattice -back background_lines.pdf
 
 .. csv-table::
   :file: ../_static/csv/background_lines.csv
@@ -75,7 +75,7 @@ Let's plot all the text present on the table's PDF page.
 
     .. code-block:: console
 
-        $ camelot lattice -plot text foo.pdf
+        $ pypdf_table_extraction lattice -plot text foo.pdf
 
 .. figure:: ../_static/png/plot_text.png
     :height: 674
@@ -102,7 +102,7 @@ Let's plot the table (to see if it was detected correctly or not). This plot typ
 
     .. code-block:: console
 
-        $ camelot lattice -plot grid foo.pdf
+        $ pypdf_table_extraction lattice -plot grid foo.pdf
 
 .. figure:: ../_static/png/plot_table.png
     :height: 674
@@ -127,7 +127,7 @@ Now, let's plot all table boundaries present on the table's PDF page.
 
     .. code-block:: console
 
-        $ camelot lattice -plot contour foo.pdf
+        $ pypdf_table_extraction lattice -plot contour foo.pdf
 
 .. figure:: ../_static/png/plot_contour.png
     :height: 674
@@ -150,7 +150,7 @@ Cool, let's plot all line segments present on the table's PDF page.
 
     .. code-block:: console
 
-        $ camelot lattice -plot line foo.pdf
+        $ pypdf_table_extraction lattice -plot line foo.pdf
 
 .. figure:: ../_static/png/plot_line.png
     :height: 674
@@ -173,7 +173,7 @@ Finally, let's plot all line intersections present on the table's PDF page.
 
     .. code-block:: console
 
-        $ camelot lattice -plot joint foo.pdf
+        $ pypdf_table_extraction lattice -plot joint foo.pdf
 
 .. figure:: ../_static/png/plot_joint.png
     :height: 674
@@ -196,7 +196,7 @@ You can also visualize the textedges found on a page by specifying ``kind='texte
 
     .. code-block:: console
 
-        $ camelot stream -plot textedge foo.pdf
+        $ pypdf_table_extraction stream -plot textedge foo.pdf
 
 .. figure:: ../_static/png/plot_textedge.png
     :height: 674
@@ -223,7 +223,7 @@ Table areas that you want pypdf_table_extraction to analyze can be passed as a l
 
     .. code-block:: console
 
-        $ camelot stream -T 316,499,566,337 table_areas.pdf
+        $ pypdf_table_extraction stream -T 316,499,566,337 table_areas.pdf
 
 .. csv-table::
   :file: ../_static/csv/table_areas.csv
@@ -249,7 +249,7 @@ You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot
 
     .. code-block:: console
 
-        $ camelot lattice -R 170,370,560,270 table_regions.pdf
+        $ pypdf_table_extraction lattice -R 170,370,560,270 table_regions.pdf
 
 .. csv-table::
   :file: ../_static/csv/table_regions.csv
@@ -278,7 +278,7 @@ Let's get back to the *x* coordinates we got from plotting the text that exists 
 
     .. code-block:: console
 
-        $ camelot stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
+        $ pypdf_table_extraction stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
 
 .. csv-table::
   :class: full-width
@@ -306,7 +306,7 @@ To deal with cases like the output from the previous section, you can pass ``spl
 
     .. code-block:: console
 
-        $ camelot -split stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
+        $ pypdf_table_extraction -split stream -C 72,95,209,327,442,529,566,606,683 column_separators.pdf
 
 .. csv-table::
   :class: full-width
@@ -341,7 +341,7 @@ You can solve this by passing ``flag_size=True``, which will enclose the supersc
 
     .. code-block:: console
 
-        $ camelot -flag stream superscript.pdf
+        $ pypdf_table_extraction -flag stream superscript.pdf
 
 .. csv-table::
 
@@ -366,7 +366,7 @@ You can strip unwanted characters like spaces, dots and newlines from a string u
 
     .. code-block:: console
 
-        $ camelot -strip ' .\n' stream 12s0324.pdf
+        $ pypdf_table_extraction -strip ' .\n' stream 12s0324.pdf
 
 .. csv-table::
 
@@ -397,7 +397,7 @@ Let's see the table area that is detected by default.
 
     .. code-block:: console
 
-        $ camelot stream -plot contour edge.pdf
+        $ pypdf_table_extraction stream -plot contour edge.pdf
 
 .. figure:: ../_static/png/edge_tol_1.png
     :height: 674
@@ -418,7 +418,7 @@ To improve the detected area, you can increase the ``edge_tol`` (default: 50) va
 
     .. code-block:: console
 
-        $ camelot stream -e 500 -plot contour edge.pdf
+        $ pypdf_table_extraction stream -e 500 -plot contour edge.pdf
 
 .. figure:: ../_static/png/edge_tol_2.png
     :height: 674
@@ -458,7 +458,7 @@ You can pass ``row_tol=<+int>`` to group the rows closer together, as shown belo
 
     .. code-block:: console
 
-        $ camelot stream -r 10 group_rows.pdf
+        $ pypdf_table_extraction stream -r 10 group_rows.pdf
 
 .. csv-table::
 
@@ -506,7 +506,7 @@ Clearly, the smaller lines separating the headers, couldn't be detected. Let's t
 
     .. code-block:: console
 
-        $ camelot lattice -scale 40 -plot grid short_lines.pdf
+        $ pypdf_table_extraction lattice -scale 40 -plot grid short_lines.pdf
 
 .. figure:: ../_static/png/short_lines_2.png
     :alt: An improved plot of the PDF table with short lines
@@ -576,7 +576,7 @@ No surprises there — it did remain in place (observe the strings "2400" and "A
 
     .. code-block:: console
 
-        $ camelot lattice -scale 40 -shift r -shift b short_lines.pdf
+        $ pypdf_table_extraction lattice -scale 40 -shift r -shift b short_lines.pdf
 
 .. csv-table::
 
@@ -630,7 +630,7 @@ We don't need anything else. Now, let's pass ``copy_text=['v']`` to copy text in
 
     .. code-block:: console
 
-        $ camelot lattice -copy v copy_text.pdf
+        $ pypdf_table_extraction lattice -copy v copy_text.pdf
 
 .. csv-table::
   :class: full-width

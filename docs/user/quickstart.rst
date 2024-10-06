@@ -77,7 +77,7 @@ You can also export all tables at once, using the :class:`tables <camelot.core.T
 
     .. code-block:: console
 
-        $ camelot --format csv --output foo.csv lattice foo.pdf
+        $ pypdf_table_extraction --format csv --output foo.csv lattice foo.pdf
 
 This will export all tables as CSV files at the path specified. Alternatively, you can use ``f='json'``, ``f='excel'``, ``f='html'``, ``f='markdown'`` or ``f='sqlite'``.
 
@@ -99,7 +99,7 @@ By default, pypdf_table_extraction only uses the first page of the PDF to extrac
 
     .. code-block:: console
 
-        $ camelot --pages 1,2,3 lattice your.pdf
+        $ pypdf_table_extraction --pages 1,2,3 lattice your.pdf
 
 The ``pages`` keyword argument accepts pages as comma-separated string of page numbers. You can also specify page ranges — for example, ``pages=1,4-10,20-30`` or ``pages=1,4-10,20-end``.
 
@@ -119,7 +119,7 @@ pypdf_table_extraction supports extracting tables in parrallel using all the ava
 
     .. code-block:: console
 
-        $ camelot --pages all --parallel lattice foo.pdf
+        $ pypdf_table_extraction --pages all --parallel lattice foo.pdf
 
 .. note:: The reading of the PDF document is parallelized by processing pages by different CPU core.
     Therefore, a document with a low page count could be slower to process in parallel.
@@ -140,7 +140,7 @@ To extract tables from encrypted PDF files you must provide a password when call
 
     .. code-block:: console
 
-        $ camelot --password userpass lattice foo.pdf
+        $ pypdf_table_extraction --password userpass lattice foo.pdf
 
 pypdf_table_extraction supports PDFs with all encryption types supported by `pypdf`_. This might require installing PyCryptodome. An exception is thrown if the PDF cannot be read. This may be due to no password being provided, an incorrect password, or an unsupported encryption algorithm.
 

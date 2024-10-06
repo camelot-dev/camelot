@@ -81,7 +81,7 @@ pass_config = click.make_pass_decorator(Config)
 )
 @click.pass_context
 def cli(ctx, *args, **kwargs):
-    """Camelot: PDF Table Extraction for Humans"""
+    """pypdf_table_extraction: PDF Table Extraction for Humans"""
     ctx.obj = Config()
     for key, value in kwargs.items():
         ctx.obj.set_config(key, value)
