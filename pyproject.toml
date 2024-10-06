@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypdf_table_extraction"
-version = "0.0.1"
+version = "0.0.2"
 description = "PDF Table Extraction for Humans."
 authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
 license = "MIT"
