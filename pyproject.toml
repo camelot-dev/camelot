@@ -71,7 +71,7 @@ myst-parser = {version = ">=2.0.0"}
 
 [tool.poetry.scripts]
 camelot = "camelot.__main__:main"
-table_extraction = "pypdf_table_extraction.__main__:main"
+pypdf_table_extraction = "pypdf_table_extraction.__main__:main"
 
 [tool.poetry.group.base.dependencies]
 ghostscript = "^0.7"
