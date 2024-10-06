@@ -93,6 +93,21 @@ class Hybrid(BaseParser):
         )
 
     def prepare_page_parse(self, filename, layout, dimensions, page_idx, layout_kwargs):
+        """Call this method to prepare the page parsing .
+
+        Parameters
+        ----------
+        filename : [type]
+            [description]
+        layout : [type]
+            [description]
+        dimensions : [type]
+            [description]
+        page_idx : [type]
+            [description]
+        layout_kwargs : [type]
+            [description]
+        """
         super().prepare_page_parse(
             filename, layout, dimensions, page_idx, layout_kwargs
         )
@@ -123,9 +138,9 @@ class Hybrid(BaseParser):
     def _augment_boundaries_with_splits(boundaries, splits, tolerance=0):
         """Augment existing boundaries using provided hard splits.
 
-        Boundaries:   |---|    |-| |---------|
-        Splits:     |       |     |       |
-        Augmented:  |-------|-----|-------|--|
+        Boundaries:   |---|    |-| |---------|  #noqa RST305
+        Splits:     |       |     |       |  #noqa RST305
+        Augmented:  |-------|-----|-------|--|  #noqa RST305
         """
         idx_boundaries = len(boundaries) - 1
         idx_splits = len(splits) - 1
@@ -171,7 +186,7 @@ class Hybrid(BaseParser):
         return boundaries
 
     def _merge_bbox_analysis(self, lattice_bbox, network_bbox):
-        """Identify splits that were only detected by lattice or by network"""
+        """Identify splits that were only detected by lattice or by network."""
         lattice_parse = self.lattice_parser.table_bbox_parses[lattice_bbox]
         lattice_cols = lattice_parse["col_anchors"]
 
