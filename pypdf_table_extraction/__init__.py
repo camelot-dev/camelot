@@ -4,3 +4,4 @@ from camelot import formatter  # noqa F401
 from camelot import handler  # noqa F401
 from camelot import logger  # noqa F401
 from camelot import plot  # noqa F401
+from camelot.io import read_pdf
