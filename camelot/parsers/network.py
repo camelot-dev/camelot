@@ -39,7 +39,7 @@ def column_spread(left, right, col_anchors):
 
 
 def find_closest_tls(bbox, tls):
-    """Search for tls that are the closest but outside in all 4 directions"""
+    """Search for tls that are the closest but outside in all 4 directions."""
     left, right, top, bottom = None, None, None, None
     (bbox_left, bbox_bottom, bbox_right, bbox_top) = bbox
     for textline in tls:
@@ -194,9 +194,11 @@ class AlignmentCounter:
             self.alignment_to_occurrences[alignment] = []
 
     def __getitem__(self, key):
+        """Get the value of a property to the given value."""
         return self.alignment_to_occurrences[key]
 
     def __setitem__(self, key, value):
+        """Set the value of a property to the given value."""
         self.alignment_to_occurrences[key] = value
         return value
 
@@ -224,21 +226,27 @@ class AlignmentCounter:
         return self.max_alignments(VERTICAL_ALIGNMENTS)
 
     def max_v_count(self):
-        """Returns the maximum number of alignments along
+        """Maximum vertical count.
+
+        Return the maximum number of alignments along
         one of the vertical axis (left/right/middle).
         """
         return len(self.max_v()[1])
 
     def max_h_count(self):
-        """Returns the maximum number of alignments along
+        """Maximum horizontal count.
+
+        Return the maximum number of alignments along
         one of the horizontal axis (bottom/top/center).
         """
         return len(self.max_h()[1])
 
     def alignment_score(self):
-        """We define the alignment score of a textline as the product of the
+        """Return the alignment score.
+
+        We define the alignment score of a textline as the product of the
         number of aligned elements - 1. The -1 is to avoid favoring
-         singletons on a long line.
+        singletons on a long line.
         """
         return (self.max_v_count() - 1) * (self.max_h_count() - 1)
 
@@ -260,9 +268,7 @@ class TextNetworks(TextAlignments):
         alignment.register_aligned_textline(textline, coord)
 
     def _register_all_text_lines(self, textlines):
-        """Add all textlines to our network repository to
-        identify alignments.
-        """
+        """Add all textlines to our network repository to identify alignments."""
         # Identify all the alignments
         for textline in textlines:
             if len(textline.get_text().strip()) > 0:
@@ -280,9 +286,10 @@ class TextNetworks(TextAlignments):
                     alignments[align_id] = textedge.textlines
 
     def remove_unconnected_edges(self):
-        """Weed out elements which are only connected to others vertically
-        or horizontally. There needs to be connections across both
-        dimensions.
+        """Remove elements which are only connected on one dimension.
+
+        Elements should be connected to others both vertically
+        and horizontally.
         """
         removed_singletons = True
         while removed_singletons:
@@ -304,10 +311,7 @@ class TextNetworks(TextAlignments):
             self._compute_alignment_counts()
 
     def most_connected_textline(self):
-        """Retrieve the textline that is most connected across vertical and
-        horizontal axis.
-
-        """
+        """Retrieve the textline that is most connected."""
         # Find the textline with the highest alignment score, with a tie break
         # to prefer textlines further down in the table.  Starting the search
         # from the table's bottom allows the algo to collect data on more cells
@@ -323,7 +327,9 @@ class TextNetworks(TextAlignments):
         )
 
     def compute_plausible_gaps(self):
-        """Evaluate plausible gaps between cells horizontally and vertically
+        """Evaluate plausible gaps between cells.
+
+        Both horizontally and vertically
         based on the textlines aligned with the most connected textline.
 
         Returns
@@ -371,7 +377,7 @@ class TextNetworks(TextAlignments):
         return gaps_hv
 
     def search_table_body(self, gaps_hv, parse_details=None):
-        """Build a candidate bbox for the body of a table using network algo
+        """Build a candidate bbox for the body of a table using network algo.
 
         Seed the process with the textline with the highest alignment
         score, then expand the bbox with textlines within threshold.
@@ -486,16 +492,13 @@ class TextNetworks(TextAlignments):
         return None
 
     def generate(self, textlines):
-        """Generate the text edge dictionaries based on the
-        input textlines.
-        """
+        """Generate the text edge dictionaries based on the input textlines."""
         self._register_all_text_lines(textlines)
         self._compute_alignment_counts()
 
 
 class Network(TextBaseParser):
-    """Network method of parsing looks for spaces between text
-    to parse the table.
+    """Network method looks for spaces between text to parse the table.
 
     If you want to specify columns when specifying multiple table
     areas, make sure that the length of both lists are equal.
