@@ -1,5 +1,3 @@
-
-
 class GhostscriptBackend:
 
     def convert(self, pdf_path, png_path, resolution=300):

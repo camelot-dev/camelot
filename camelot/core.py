@@ -8,6 +8,7 @@ from operator import itemgetter
 import numpy as np
 import pandas as pd
 
+
 # minimum number of vertical textline intersections for a textedge
 # to be considered valid
 TEXTEDGE_REQUIRED_ELEMENTS = 4
