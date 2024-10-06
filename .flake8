@@ -4,6 +4,6 @@ ignore = E203,E501,RST201,RST203,RST301,W503
 max-line-length = 120
 max-complexity = 10
 docstring-convention = numpy
-per-file-ignores = tests/*:S101,S106,F403,F405,F841
+per-file-ignores = tests/*:S101,S106,F403,F405,F841 pypdf_table_extraction/*:D100,D103,D104,F401,W0611,C0114
 rst-roles = class,const,func,meth,mod,ref
 rst-directives = deprecated
