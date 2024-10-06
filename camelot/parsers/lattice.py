@@ -1,3 +1,5 @@
+"""Implementation of the Lattice table parser."""
+
 import copy
 import os
 import warnings
@@ -20,8 +22,7 @@ from .base import BaseParser
 
 
 class Lattice(BaseParser):
-    """Lattice method of parsing looks for lines between text
-    to parse the table.
+    """Lattice method looks for lines between text to parse the table.
 
     Parameters
     ----------
@@ -144,8 +145,7 @@ class Lattice(BaseParser):
 
     @staticmethod
     def _reduce_index(table, idx, shift_text):
-        """Reduces index of a text object if it lies within a spanning
-        cell.
+        """Reduces index of a text object if it lies within a spanning cell.
 
         Parameters
         ----------
