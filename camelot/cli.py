@@ -1,3 +1,5 @@
+"""Implementation of the command line interface."""
+
 import logging
 
 import click
@@ -21,9 +23,11 @@ logger.setLevel(logging.INFO)
 
 class Config:
     def __init__(self):
+        """Initialize the configuration."""
         self.config = {}
 
     def set_config(self, key, value):
+        """Set a configuration value for a given key."""
         self.config[key] = value
 
 
@@ -81,7 +85,7 @@ pass_config = click.make_pass_decorator(Config)
 )
 @click.pass_context
 def cli(ctx, *args, **kwargs):
-    """pypdf_table_extraction: PDF Table Extraction for Humans"""
+    """pypdf_table_extraction: PDF Table Extraction for Humans."""
     ctx.obj = Config()
     for key, value in kwargs.items():
         ctx.obj.set_config(key, value)
