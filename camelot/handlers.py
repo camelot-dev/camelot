@@ -1,3 +1,5 @@
+"""Functions to handle all operations on the PDF's."""
+
 import multiprocessing as mp
 import os
 import sys
@@ -30,7 +32,9 @@ PARSERS = {
 
 
 class PDFHandler:
-    """Handles all operations like temp directory creation, splitting
+    """Handles all operations on the PDF's.
+
+    Handles all operations like temp directory creation, splitting
     file into single page PDFs, parsing each PDF and then removing the
     temp directory.
 
@@ -67,7 +71,7 @@ class PDFHandler:
         self.pages = self._get_pages(pages)
 
     def _get_pages(self, pages):
-        """Converts pages string to list of ints.
+        """Convert pages string to list of integers.
 
         Parameters
         ----------
@@ -175,8 +179,7 @@ class PDFHandler:
         layout_kwargs=None,
         **kwargs,
     ):
-        """Extracts tables by calling parser.get_tables on all single
-        page PDFs.
+        """Extract tables by calling parser.get_tables on all single page PDFs.
 
         Parameters
         ----------
@@ -234,8 +237,7 @@ class PDFHandler:
         return TableList(sorted(tables))
 
     def _parse_page(self, page, tempdir, parser, suppress_stdout, layout_kwargs):
-        """Extracts tables by calling parser.get_tables on a single
-        page PDF.
+        """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters
         ----------
