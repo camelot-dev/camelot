@@ -1,20 +1,56 @@
-fontconfig/
+.mypy_cache/
+/.coverage
+/.coverage.*
+/.nox/
+/.python-version
+/.pytype/
+/dist/
+/docs/_build/
+/src/*.egg-info/
+/.pytest_cache
 __pycache__/
+/.ruff_cache
+.idea/
 *.py[cod]
-*.so
+*$py.class
 
+# Distribution / packaging
+.Python
 build/
+develop-eggs/
 dist/
-*.egg-info/
+downloads/
+eggs/
 .eggs/
-.coverage
-coverage.xml
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-.pytest_cache/
-_build/
+# Sphinx documentation
+docs/_build/
 
-.venv/
-htmlcov/
 
 # vscode
 .vscode
+.env
+changelog.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# OSX Files
+.DS_Store

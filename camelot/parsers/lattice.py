@@ -1,34 +1,28 @@
-# -*- coding: utf-8 -*-
-
-import os
-import sys
 import copy
 import locale
 import logging
+import os
+import sys
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from .base import BaseParser
-from ..core import Table
-from ..utils import (
-    scale_image,
-    scale_pdf,
-    segments_in_bbox,
-    text_in_bbox,
-    merge_close_lines,
-    get_table_index,
-    compute_accuracy,
-    compute_whitespace,
-)
-from ..image_processing import (
-    adaptive_threshold,
-    find_lines,
-    find_contours,
-    find_joints,
-)
 from ..backends.image_conversion import BACKENDS
+from ..core import Table
+from ..image_processing import adaptive_threshold
+from ..image_processing import find_contours
+from ..image_processing import find_joints
+from ..image_processing import find_lines
+from ..utils import compute_accuracy
+from ..utils import compute_whitespace
+from ..utils import get_table_index
+from ..utils import merge_close_lines
+from ..utils import scale_image
+from ..utils import scale_pdf
+from ..utils import segments_in_bbox
+from ..utils import text_in_bbox
+from .base import BaseParser
 
 
 logger = logging.getLogger("camelot")
@@ -145,13 +139,6 @@ class Lattice(BaseParser):
                     f"Unknown backend '{backend}' specified. Please use either 'poppler' or 'ghostscript'."
                 )
 
-            if backend == "ghostscript":
-                warnings.warn(
-                    "'ghostscript' will be replaced by 'poppler' as the default image conversion"
-                    " backend in v0.12.0. You can try out 'poppler' with backend='poppler'.",
-                    DeprecationWarning,
-                )
-
             return BACKENDS[backend]()
         else:
             if not implements_convert():
@@ -162,7 +149,7 @@ class Lattice(BaseParser):
             return backend
 
     @staticmethod
-    def _reduce_index(t, idx, shift_text):
+    def _reduce_index(table, idx, shift_text):
         """Reduces index of a text object if it lies within a spanning
         cell.
 
@@ -187,32 +174,28 @@ class Lattice(BaseParser):
         indices = []
         for r_idx, c_idx, text in idx:
             for d in shift_text:
-                if d == "l":
-                    if t.cells[r_idx][c_idx].hspan:
-                        while not t.cells[r_idx][c_idx].left:
-                            c_idx -= 1
-                if d == "r":
-                    if t.cells[r_idx][c_idx].hspan:
-                        while not t.cells[r_idx][c_idx].right:
-                            c_idx += 1
-                if d == "t":
-                    if t.cells[r_idx][c_idx].vspan:
-                        while not t.cells[r_idx][c_idx].top:
-                            r_idx -= 1
-                if d == "b":
-                    if t.cells[r_idx][c_idx].vspan:
-                        while not t.cells[r_idx][c_idx].bottom:
-                            r_idx += 1
+                if d == "l" and table.cells[r_idx][c_idx].hspan:
+                    while not table.cells[r_idx][c_idx].left:
+                        c_idx -= 1
+                if d == "r" and table.cells[r_idx][c_idx].hspan:
+                    while not table.cells[r_idx][c_idx].right:
+                        c_idx += 1
+                if d == "t" and table.cells[r_idx][c_idx].vspan:
+                    while not table.cells[r_idx][c_idx].top:
+                        r_idx -= 1
+                if d == "b" and table.cells[r_idx][c_idx].vspan:
+                    while not table.cells[r_idx][c_idx].bottom:
+                        r_idx += 1
             indices.append((r_idx, c_idx, text))
         return indices
 
     @staticmethod
-    def _copy_spanning_text(t, copy_text=None):
+    def _copy_spanning_text(table, copy_text=None):
         """Copies over text in empty spanning cells.
 
         Parameters
         ----------
-        t : camelot.core.Table
+        table : camelot.core.Table
         copy_text : list, optional (default: None)
             {'h', 'v'}
             Select one or more strings from above and pass them as a list
@@ -221,23 +204,23 @@ class Lattice(BaseParser):
 
         Returns
         -------
-        t : camelot.core.Table
+        table : camelot.core.Table
 
         """
         for f in copy_text:
             if f == "h":
-                for i in range(len(t.cells)):
-                    for j in range(len(t.cells[i])):
-                        if t.cells[i][j].text.strip() == "":
-                            if t.cells[i][j].hspan and not t.cells[i][j].left:
-                                t.cells[i][j].text = t.cells[i][j - 1].text
+                for i in range(len(table.cells)):
+                    for j in range(len(table.cells[i])):
+                        if table.cells[i][j].text.strip() == "":
+                            if table.cells[i][j].hspan and not table.cells[i][j].left:
+                                table.cells[i][j].text = table.cells[i][j - 1].text
             elif f == "v":
-                for i in range(len(t.cells)):
-                    for j in range(len(t.cells[i])):
-                        if t.cells[i][j].text.strip() == "":
-                            if t.cells[i][j].vspan and not t.cells[i][j].top:
-                                t.cells[i][j].text = t.cells[i - 1][j].text
-        return t
+                for i in range(len(table.cells)):
+                    for j in range(len(table.cells[i])):
+                        if table.cells[i][j].text.strip() == "":
+                            if table.cells[i][j].vspan and not table.cells[i][j].top:
+                                table.cells[i][j].text = table.cells[i - 1][j].text
+        return table
 
     def _generate_table_bbox(self):
         def scale_areas(areas):
@@ -344,7 +327,7 @@ class Lattice(BaseParser):
         v_s = kwargs.get("v_s")
         h_s = kwargs.get("h_s")
         if v_s is None or h_s is None:
-            raise ValueError("No segments found on {}".format(self.rootname))
+            raise ValueError(f"No segments found on {self.rootname}")
 
         table = Table(cols, rows)
         # set table edges to True using ver+hor lines
@@ -367,7 +350,7 @@ class Lattice(BaseParser):
                     flag_size=self.flag_size,
                     strip_text=self.strip_text,
                 )
-                if indices[:2] != (-1, -1):
+                if indices[0][:2] != (-1, -1):
                     pos_errors.append(error)
                     indices = Lattice._reduce_index(
                         table, indices, shift_text=self.shift_text
@@ -404,7 +387,7 @@ class Lattice(BaseParser):
     def extract_tables(self, filename, suppress_stdout=False, layout_kwargs={}):
         self._generate_layout(filename, layout_kwargs)
         if not suppress_stdout:
-            logger.info("Processing {}".format(os.path.basename(self.rootname)))
+            logger.info(f"Processing {os.path.basename(self.rootname)}")
 
         if not self.horizontal_text:
             if self.images:
@@ -413,9 +396,7 @@ class Lattice(BaseParser):
                     " text-based pages.".format(os.path.basename(self.rootname))
                 )
             else:
-                warnings.warn(
-                    "No tables found on {}".format(os.path.basename(self.rootname))
-                )
+                warnings.warn(f"No tables found on {os.path.basename(self.rootname)}")
             return []
 
         self.backend.convert(self.filename, self.imagename)

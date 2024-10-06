@@ -1,22 +1,11 @@
-# -*- coding: utf-8 -*-
-
 import os
-import sys
 
 import pytest
 from click.testing import CliRunner
 
 from camelot.cli import cli
 from camelot.utils import TemporaryDirectory
-
-
-testdir = os.path.dirname(os.path.abspath(__file__))
-testdir = os.path.join(testdir, "files")
-
-skip_on_windows = pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="Ghostscript not installed in Windows test environment",
-)
+from tests.conftest import skip_on_windows
 
 
 def test_help_output():
@@ -34,7 +23,7 @@ def test_help_output():
 
 
 @skip_on_windows
-def test_cli_lattice():
+def test_cli_lattice(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "foo.pdf")
         outfile = os.path.join(tempdir, "foo.csv")
@@ -54,7 +43,7 @@ def test_cli_lattice():
         assert format_error in result.output
 
 
-def test_cli_stream():
+def test_cli_stream(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "budget.pdf")
         outfile = os.path.join(tempdir, "budget.csv")
@@ -73,8 +62,67 @@ def test_cli_stream():
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
+        result = runner.invoke(
+            cli,
+            [
+                "--margins",
+                "1.5",
+                "0.5",
+                "0.8",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "stream",
+                infile,
+            ],
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 1 tables\n"
 
-def test_cli_password():
+        result = runner.invoke(
+            cli,
+            [
+                "--margins",
+                "1.5",
+                "0.5",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "stream",
+                infile,
+            ],
+        )
+        output_error = "Error: Invalid value for '-M' / '--margins': '--format' is not a valid float."
+        assert output_error in result.output
+
+
+@skip_on_windows
+def test_cli_parallel(testdir):
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "diesel_engines.pdf")
+        outfile = os.path.join(tempdir, "diesel_engines.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--parallel",
+                "--pages",
+                "1,2,3",
+                "--format",
+                "csv",
+                "--output",
+                outfile,
+                "lattice",
+                infile,
+            ],
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 2 tables\n"
+
+
+def test_cli_password(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health_protected.pdf")
         outfile = os.path.join(tempdir, "health_protected.csv")
@@ -119,7 +167,7 @@ def test_cli_password():
         assert output_error in str(result.exception)
 
 
-def test_cli_output_format():
+def test_cli_output_format(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health.pdf")
 
@@ -174,7 +222,7 @@ def test_cli_output_format():
         assert result.exit_code == 0, f"Output: {result.output}"
 
 
-def test_cli_quiet():
+def test_cli_quiet(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "empty.pdf")
         outfile = os.path.join(tempdir, "empty.csv")
@@ -185,7 +233,18 @@ def test_cli_quiet():
         )
         assert "Found 0 tables" in result.output
 
-        result = runner.invoke(
-            cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
-        )
-        assert "No tables found on page-1" not in result.output
+        try:
+            result = runner.invoke(
+                cli,
+                ["--quiet", "--format", "csv", "--output", outfile, "stream", infile],
+            )
+        except Warning as e:
+            warning_text = str(e)
+            pytest.fail(f"Unexpected warning: {warning_text}")
+
+
+def test_cli_lattice_plot_type():
+    with TemporaryDirectory() as tempdir:
+        runner = CliRunner()
+        result = runner.invoke(cli, ["--plot_type", ""])
+        assert result.exit_code != 0, f"Output: {result.output}"

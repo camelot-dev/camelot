@@ -1,35 +1,33 @@
-# -*- coding: utf-8 -*-
-
 import os
-import re
 import random
+import re
 import shutil
 import string
 import tempfile
 import warnings
 from itertools import groupby
 from operator import itemgetter
+from urllib.parse import urlparse as parse_url
+from urllib.parse import uses_netloc
+from urllib.parse import uses_params
+from urllib.parse import uses_relative
+from urllib.request import Request
+from urllib.request import urlopen
 
 import numpy as np
-from pdfminer.pdfparser import PDFParser
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LAParams
+from pdfminer.layout import LTAnno
+from pdfminer.layout import LTChar
+from pdfminer.layout import LTImage
+from pdfminer.layout import LTTextLineHorizontal
+from pdfminer.layout import LTTextLineVertical
 from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFPageInterpreter
+from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import (
-    LAParams,
-    LTAnno,
-    LTChar,
-    LTTextLineHorizontal,
-    LTTextLineVertical,
-    LTImage,
-)
-
-from urllib.request import Request, urlopen
-from urllib.parse import urlparse as parse_url
-from urllib.parse import uses_relative, uses_netloc, uses_params
+from pdfminer.pdfparser import PDFParser
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -81,7 +79,10 @@ def download_url(url):
     """
     filename = f"{random_string(6)}.pdf"
     with tempfile.NamedTemporaryFile("wb", delete=False) as f:
-        headers = {"User-Agent": "Mozilla/5.0"}
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept-Encoding": "gzip;q=1.0, deflate;q=0.9, br;q=0.8, compress;q=0.7, *;q=0.1",
+        }
         request = Request(url, None, headers)
         obj = urlopen(request)
         content_type = obj.info().get_content_type()
@@ -135,7 +136,7 @@ def remove_extra(kwargs, flavor="lattice"):
 
 
 # https://stackoverflow.com/a/22726782
-class TemporaryDirectory(object):
+class TemporaryDirectory:
     def __enter__(self):
         self.name = tempfile.mkdtemp()
         return self.name
@@ -179,8 +180,7 @@ def scale(x, s):
 
 
 def scale_pdf(k, factors):
-    """Translates and scales pdf coordinate space to image
-    coordinate space.
+    """Translates and scales pdf coordinate space to image coordinate space.
 
     Parameters
     ----------
@@ -212,8 +212,7 @@ def scale_pdf(k, factors):
 
 
 def scale_image(tables, v_segments, h_segments, factors):
-    """Translates and scales image coordinate space to pdf
-    coordinate space.
+    """Translates and scales image coordinate space to pdf coordinate space.
 
     Parameters
     ----------
@@ -372,8 +371,9 @@ def text_in_bbox(bbox, text):
             if ba == bb:
                 continue
             if bbox_intersect(ba, bb):
+                ba_area = bbox_area(ba)
                 # if the intersection is larger than 80% of ba's size, we keep the longest
-                if (bbox_intersection_area(ba, bb) / bbox_area(ba)) > 0.8:
+                if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
                     if bbox_longer(bb, ba):
                         rest.discard(ba)
     unique_boxes = list(rest)
@@ -501,7 +501,7 @@ def text_strip(text, strip=""):
         return text
 
     stripped = re.sub(
-        fr"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
+        rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
     )
     return stripped
 
@@ -586,13 +586,15 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
     -------
     grouped_chars : list
         List of tuples of the form (idx, text) where idx is the index
-        of row/column and text is the an lttextline substring.
+        of row/column and text is the an LTTextLine substring.
 
     """
-    idx = 0
     cut_text = []
     bbox = textline.bbox
     try:
+        if textline.is_empty():
+            return [(-1, -1, textline.get_text())]
+
         if direction == "horizontal" and not textline.is_empty():
             x_overlap = [
                 i
@@ -623,7 +625,8 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                         else:
                             # TODO: add test
                             if cut == x_cuts[-1]:
-                                cut_text.append((r, cut[0] + 1, obj))
+                                new_idx = min(cut[0] + 1, len(table.cols) - 1)
+                                cut_text.append((r, new_idx, obj))
                     elif isinstance(obj, LTAnno):
                         cut_text.append((r, cut[0], obj))
         elif direction == "vertical" and not textline.is_empty():
@@ -656,7 +659,8 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                         else:
                             # TODO: add test
                             if cut == y_cuts[-1]:
-                                cut_text.append((cut[0] - 1, c, obj))
+                                new_idx = max(cut[0] - 1, 0)
+                                cut_text.append((new_idx, c, obj))
                     elif isinstance(obj, LTAnno):
                         cut_text.append((cut[0], c, obj))
     except IndexError:
@@ -827,7 +831,6 @@ def compute_whitespace(d):
 
     """
     whitespace = 0
-    r_nempty_cells, c_nempty_cells = [], []
     for i in d:
         for j in i:
             if j.strip() == "":
@@ -889,12 +892,14 @@ def get_page_layout(
         rsrcmgr = PDFResourceManager()
         device = PDFPageAggregator(rsrcmgr, laparams=laparams)
         interpreter = PDFPageInterpreter(rsrcmgr, device)
-        for page in PDFPage.create_pages(document):
-            interpreter.process_page(page)
-            layout = device.get_result()
-            width = layout.bbox[2]
-            height = layout.bbox[3]
-            dim = (width, height)
+        page = next(PDFPage.create_pages(document), None)
+        if page is None:
+            raise PDFTextExtractionNotAllowed
+        interpreter.process_page(page)
+        layout = device.get_result()
+        width = layout.bbox[2]
+        height = layout.bbox[3]
+        dim = (width, height)
         return layout, dim
 
 

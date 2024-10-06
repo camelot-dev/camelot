@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import math
 import os
 import sqlite3
-import zipfile
 import tempfile
-from itertools import chain
+import zipfile
 from operator import itemgetter
 
 import numpy as np
@@ -18,7 +15,7 @@ TEXTEDGE_REQUIRED_ELEMENTS = 4
 TABLE_AREA_PADDING = 10
 
 
-class TextEdge(object):
+class TextEdge:
     """Defines a text edge coordinates relative to a left-bottom
     origin. (PDF coordinate space)
 
@@ -63,7 +60,7 @@ class TextEdge(object):
         """Updates the text edge's x and bottom y coordinates and sets
         the is_valid attribute.
         """
-        if np.isclose(self.y0, y0, atol=edge_tol):
+        if math.isclose(self.y0, y0, abs_tol=edge_tol):
             self.x = (self.intersections * self.x + x) / float(self.intersections + 1)
             self.y0 = y0
             self.intersections += 1
@@ -73,7 +70,7 @@ class TextEdge(object):
                 self.is_valid = True
 
 
-class TextEdges(object):
+class TextEdges:
     """Defines a dict of left, right and middle text edges found on
     the PDF page. The dict has three keys based on the alignments,
     and each key's value is a list of camelot.core.TextEdge objects.
@@ -99,7 +96,7 @@ class TextEdges(object):
         the specified x coordinate and alignment.
         """
         for i, te in enumerate(self._textedges[align]):
-            if np.isclose(te.x, x_coord, atol=0.5):
+            if math.isclose(te.x, x_coord, abs_tol=0.5):
                 return i
         return None
 
@@ -228,7 +225,7 @@ class TextEdges(object):
         return table_areas_padded
 
 
-class Cell(object):
+class Cell:
     """Defines a cell in a table with coordinates relative to a
     left-bottom origin. (PDF coordinate space)
 
@@ -308,7 +305,7 @@ class Cell(object):
         return self.top + self.bottom + self.left + self.right
 
 
-class Table(object):
+class Table:
     """Defines a table with coordinates relative to a left-bottom
     origin. (PDF coordinate space)
 
@@ -341,7 +338,7 @@ class Table(object):
         self.cols = cols
         self.rows = rows
         self.cells = [[Cell(c[0], r[1], c[1], r[0]) for c in cols] for r in rows]
-        self.df = None
+        self.df = pd.DataFrame()
         self.shape = (0, 0)
         self.accuracy = 0
         self.whitespace = 0
@@ -455,12 +452,12 @@ class Table(object):
 
     def set_border(self):
         """Sets table border edges to True."""
-        for r in range(len(self.rows)):
-            self.cells[r][0].left = True
-            self.cells[r][len(self.cols) - 1].right = True
-        for c in range(len(self.cols)):
-            self.cells[0][c].top = True
-            self.cells[len(self.rows) - 1][c].bottom = True
+        for index, row in enumerate(self.rows):
+            self.cells[index][0].left = True
+            self.cells[index][len(self.cols) - 1].right = True
+        for index, col in enumerate(self.cols):
+            self.cells[0][index].top = True
+            self.cells[len(self.rows) - 1][index].bottom = True
         return self
 
     def set_span(self):
@@ -596,7 +593,7 @@ class Table(object):
         conn.close()
 
 
-class TableList(object):
+class TableList:
     """Defines a list of camelot.core.Table objects. Each table can
     be accessed using its index.
 
@@ -618,6 +615,9 @@ class TableList(object):
 
     def __getitem__(self, idx):
         return self._tables[idx]
+
+    def __iter__(self):
+        yield from self._tables
 
     @staticmethod
     def _format_func(table, f):
@@ -679,8 +679,8 @@ class TableList(object):
             writer = pd.ExcelWriter(filepath)
             for table in self._tables:
                 sheet_name = f"page-{table.page}-table-{table.order}"
-                table.df.to_excel(writer, sheet_name=sheet_name, encoding="utf-8")
-            writer.save()
+                table.df.to_excel(writer, sheet_name=sheet_name)
+            writer.close()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"
                 with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:

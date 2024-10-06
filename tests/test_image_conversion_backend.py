@@ -1,34 +1,36 @@
-# -*- coding: utf-8 -*-
-
 import pytest
 
-import camelot.backends.image_conversion
 from camelot.backends import ImageConversionBackend
 
 
-class PopplerBackendError(object):
+@pytest.fixture
+def patch_backends(monkeypatch):
+    monkeypatch.setattr(
+        "camelot.backends.image_conversion.BACKENDS",
+        {
+            "poppler": PopplerBackendError,
+            "ghostscript": GhostscriptBackendNoError,
+        },
+        raising=True,
+    )
+
+
+class PopplerBackendError:
     def convert(self, pdf_path, png_path):
         raise ValueError("Image conversion failed")
 
 
-class GhostscriptBackendError(object):
+class GhostscriptBackendError:
     def convert(self, pdf_path, png_path):
         raise ValueError("Image conversion failed")
 
 
-class GhostscriptBackendNoError(object):
+class GhostscriptBackendNoError:
     def convert(self, pdf_path, png_path):
         pass
 
 
-def test_poppler_backend_error_when_no_use_fallback(monkeypatch):
-    BACKENDS = {
-        "poppler": PopplerBackendError,
-        "ghostscript": GhostscriptBackendNoError,
-    }
-    monkeypatch.setattr(
-        "camelot.backends.image_conversion.BACKENDS", BACKENDS, raising=True
-    )
+def test_poppler_backend_error_when_no_use_fallback(patch_backends):
     backend = ImageConversionBackend(use_fallback=False)
 
     message = "Image conversion failed with image conversion backend 'poppler'"
@@ -36,22 +38,16 @@ def test_poppler_backend_error_when_no_use_fallback(monkeypatch):
         backend.convert("foo", "bar")
 
 
-def test_ghostscript_backend_when_use_fallback(monkeypatch):
-    BACKENDS = {
-        "poppler": PopplerBackendError,
-        "ghostscript": GhostscriptBackendNoError,
-    }
-    monkeypatch.setattr(
-        "camelot.backends.image_conversion.BACKENDS", BACKENDS, raising=True
-    )
+def test_ghostscript_backend_when_use_fallback(patch_backends):
     backend = ImageConversionBackend()
     backend.convert("foo", "bar")
 
 
 def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
-    BACKENDS = {"poppler": PopplerBackendError, "ghostscript": GhostscriptBackendError}
+    backends = {"poppler": PopplerBackendError, "ghostscript": GhostscriptBackendError}
+
     monkeypatch.setattr(
-        "camelot.backends.image_conversion.BACKENDS", BACKENDS, raising=True
+        "camelot.backends.image_conversion.BACKENDS", backends, raising=True
     )
     backend = ImageConversionBackend()
 

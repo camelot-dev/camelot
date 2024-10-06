@@ -1,0 +1,116 @@
+[tool.poetry]
+name = "pypdf_table_extraction"
+version = "0.0.1"
+description = "PDF Table Extraction for Humans."
+authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/py-pdf/pypdf_table_extraction"
+repository = "https://github.com/py-pdf/pypdf_table_extraction"
+documentation = "https://pypdf-table-extraction.readthedocs.io/"
+
+packages = [
+    { include = "camelot", from = "." },
+    { include = "pypdf_table_extraction", from = "." },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+]
+
+[tool.poetry.urls]
+Changelog = "https://github.com/py-pdf/pypdf_table_extraction/releases"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = ">=8.0.1"
+chardet = "^5.1.0"
+numpy = [
+    {version = "^1.24.4", python = ">=3.8,<3.12"},
+    {version = ">=1.26.1", python = ">=3.12"}
+]
+openpyxl = "^3.1.0"
+
+pdfminer-six = "^20240706"
+pypdf = [
+    {version = "^3.17", python = ">=3.8,<3.12"},
+    {version = "^4.0", python = ">=3.12"}
+]
+pandas = [
+    {version = "^1.5.3", python = ">=3.8,<3.12"},
+    {version = "^2.0.0", python = ">=3.12"}
+]
+
+tabulate = "^0.9.0"
+
+[tool.poetry.dev-dependencies]
+Pygments = ">=2.10.0"
+black = ">=23.1.0"
+coverage = {extras = ["toml"], version = ">=6.2"}
+flake8 = ">=4.0.1"
+flake8-bandit = ">=2.1.2"
+flake8-bugbear = ">=21.9.2"
+flake8-rst-docstrings = ">=0.2.5"
+sphinx-book-theme = ">=1.0.1"
+isort = ">=5.10.1"
+mypy = ">=0.930"
+pep8-naming = ">=0.12.1"
+pre-commit = ">=2.16.0"
+pre-commit-hooks = ">=4.1.0"
+pytest = ">=6.2.5"
+pytest-mpl = ">=0.17.0"
+pyupgrade = ">=2.29.1"
+safety = ">=2.2.3"
+sphinx = ">=4.3.2"
+sphinx-autobuild = ">=2021.3.14"
+sphinx-click = ">=3.0.2"
+sphinx-copybutton = ">=0.5.2"
+sphinx-prompt = ">=1.5.0"
+typeguard = ">=2.13.3"
+xdoctest = {extras = ["colors"], version = ">=0.15.10"}
+myst-parser = {version = ">=2.0.0"}
+
+[tool.poetry.scripts]
+camelot = "camelot.__main__:main"
+pypdf_table_extraction = "pypdf_table_extraction.__main__:main"
+
+[tool.poetry.group.base.dependencies]
+ghostscript = "^0.7"
+opencv-python-headless = "^4.7.0.68"
+
+
+[tool.poetry.group.plot.dependencies]
+matplotlib = [
+    {version = "^3.7.5", python = ">=3.8,<3.12"},
+    {version = "^3.8.0", python = ">=3.12"}
+]
+
+[tool.poetry_bumpversion.file."camelot/__version__.py"]
+
+[tool.coverage.paths]
+source = ["camelot", "*\\camelot", "*/site-packages"]
+tests = ["tests", "*/tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["camelot", "tests"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+
+[tool.isort]
+profile = "black"
+force_single_line = true
+lines_after_imports = 2
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

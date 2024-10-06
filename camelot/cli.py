@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import logging
 
 import click
+
 
 try:
     import matplotlib.pyplot as plt
@@ -11,14 +10,16 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from . import __version__, read_pdf, plot
+from . import __version__
+from . import plot
+from . import read_pdf
 
 
 logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)
 
 
-class Config(object):
+class Config:
     def __init__(self):
         self.config = {}
 
@@ -37,6 +38,12 @@ pass_config = click.make_pass_decorator(Config)
     "--pages",
     default="1",
     help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+)
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Read pdf pages in parallel using all CPU cores.",
 )
 @click.option("-pw", "--password", help="Password for decryption.")
 @click.option("-o", "--output", help="Output file path.")
@@ -74,7 +81,7 @@ pass_config = click.make_pass_decorator(Config)
 )
 @click.pass_context
 def cli(ctx, *args, **kwargs):
-    """Camelot: PDF Table Extraction for Humans"""
+    """pypdf_table_extraction: PDF Table Extraction for Humans"""
     ctx.obj = Config()
     for key, value in kwargs.items():
         ctx.obj.set_config(key, value)
@@ -283,6 +290,17 @@ def stream(c, *args, **kwargs):
     columns = list(kwargs["columns"])
     kwargs["columns"] = None if not columns else columns
 
+    margins = conf.pop("margins")
+
+    if margins is None:
+        layout_kwargs = {}
+    else:
+        layout_kwargs = {
+            "char_margin": margins[0],
+            "line_margin": margins[1],
+            "word_margin": margins[2],
+        }
+
     if plot_type is not None:
         if not _HAS_MPL:
             raise ImportError("matplotlib is required for plotting.")
@@ -293,7 +311,12 @@ def stream(c, *args, **kwargs):
             raise click.UsageError("Please specify output file format using --format")
 
     tables = read_pdf(
-        filepath, pages=pages, flavor="stream", suppress_stdout=quiet, **kwargs
+        filepath,
+        pages=pages,
+        flavor="stream",
+        suppress_stdout=quiet,
+        layout_kwargs=layout_kwargs,
+        **kwargs,
     )
     click.echo(f"Found {tables.n} tables")
     if plot_type is not None:

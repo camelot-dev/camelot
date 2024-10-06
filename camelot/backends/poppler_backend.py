@@ -1,12 +1,15 @@
-# -*- coding: utf-8 -*-
-
+import os
 import shutil
 import subprocess
+import sys
 
 
-class PopplerBackend(object):
+path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
+
+
+class PopplerBackend:
     def convert(self, pdf_path, png_path):
-        pdftopng_executable = shutil.which("pdftopng")
+        pdftopng_executable = shutil.which("pdftopng", path=path)
         if pdftopng_executable is None:
             raise OSError(
                 "pdftopng is not installed. You can install it using the 'pip install pdftopng' command."
@@ -16,7 +19,7 @@ class PopplerBackend(object):
 
         try:
             subprocess.check_output(
-                " ".join(pdftopng_command), stderr=subprocess.STDOUT, shell=True
+                " ".join(pdftopng_command), stderr=subprocess.STDOUT, shell=False
             )
         except subprocess.CalledProcessError as e:
             raise ValueError(e.output)
