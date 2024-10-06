@@ -310,6 +310,7 @@ class TextBaseParser(BaseParser):
         row_y = None
         rows = []
         temp = []
+        text.sort(key=lambda x: (-x.y0, x.x0))
         non_empty_text = [t for t in text if t.get_text().strip()]
         for t in non_empty_text:
             # is checking for upright necessary?
