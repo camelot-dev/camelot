@@ -397,7 +397,7 @@ Let's see the table area that is detected by default.
 
     .. code-block:: console
 
-        $ pypdf_table_extraction stream -plot contour edge.pdf
+        $ pypdf_table_extraction stream -plot contour edge_tol.pdf
 
 .. figure:: ../_static/png/edge_tol_1.png
     :height: 674
@@ -418,13 +418,13 @@ To improve the detected area, you can increase the ``edge_tol`` (default: 50) va
 
     .. code-block:: console
 
-        $ pypdf_table_extraction stream -e 500 -plot contour edge.pdf
+        $ pypdf_table_extraction stream -e 500 -plot contour edge_tol.pdf
 
 .. figure:: ../_static/png/edge_tol_2.png
     :height: 674
     :width: 1366
     :scale: 50%
-    :alt: Table area with default edge_tol
+    :alt: Table area with custom edge_tol
     :align: center
 
 As you can see, the guessed table area has improved!
