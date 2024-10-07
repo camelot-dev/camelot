@@ -37,13 +37,14 @@ nox.options.sessions = (
 
 
 def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
-    """Activate virtualenv in hooks installed by pre-commit.
+    """Activate virtualenv in hooks installed by pre-commit.  # noqa
 
     This function patches git hooks installed by pre-commit to activate the
     session's virtual environment. This allows pre-commit to locate hooks in
     that environment when invoked from git.
 
     Args:
+    -----
         session: The Session object.
     """
     assert session.bin is not None  # noqa: S101
@@ -156,7 +157,7 @@ def mypy(session: Session) -> None:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
-base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17"]
+base_requires = ["ghostscript>=0.7", "opencv-python-headless>=3.4.2.17"]
 
 plot_requires = [
     "matplotlib>=2.2.3",

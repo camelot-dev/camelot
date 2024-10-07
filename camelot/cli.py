@@ -1,3 +1,5 @@
+"""Implementation of the command line interface."""
+
 import logging
 
 import click
@@ -20,10 +22,14 @@ logger.setLevel(logging.INFO)
 
 
 class Config:
+    """Class method for creating a new class."""
+
     def __init__(self):
+        """Initialize the configuration."""
         self.config = {}
 
     def set_config(self, key, value):
+        """Set a configuration value for a given key."""
         self.config[key] = value
 
 
@@ -81,7 +87,7 @@ pass_config = click.make_pass_decorator(Config)
 )
 @click.pass_context
 def cli(ctx, *args, **kwargs):
-    """Camelot: PDF Table Extraction for Humans"""
+    """pypdf_table_extraction: PDF Table Extraction for Humans."""
     ctx.obj = Config()
     for key, value in kwargs.items():
         ctx.obj.set_config(key, value)
@@ -110,7 +116,7 @@ def cli(ctx, *args, **kwargs):
 @click.option(
     "-scale",
     "--line_scale",
-    default=15,
+    default=40,
     help="Line size scaling factor. The larger the value,"
     " the smaller the detected lines.",
 )
@@ -317,6 +323,188 @@ def stream(c, *args, **kwargs):
         suppress_stdout=quiet,
         layout_kwargs=layout_kwargs,
         **kwargs,
+    )
+    click.echo(f"Found {tables.n} tables")
+    if plot_type is not None:
+        for table in tables:
+            plot(table, kind=plot_type)
+            plt.show()
+    else:
+        tables.export(output, f=f, compress=compress)
+
+
+@cli.command("hybrid")
+@click.option(
+    "-R",
+    "--table_regions",
+    default=[],
+    multiple=True,
+    help="Page regions to analyze. Example: x1,y1,x2,y2"
+    " where x1, y1 -> left-top and x2, y2 -> right-bottom.",
+)
+@click.option(
+    "-T",
+    "--table_areas",
+    default=[],
+    multiple=True,
+    help="Table areas to process. Example: x1,y1,x2,y2"
+    " where x1, y1 -> left-top and x2, y2 -> right-bottom.",
+)
+@click.option(
+    "-C",
+    "--columns",
+    default=[],
+    multiple=True,
+    help="X coordinates of column separators.",
+)
+@click.option(
+    "-e",
+    "--edge_tol",
+    default=50,
+    help="Tolerance parameter" " for extending textedges vertically.",
+)
+@click.option(
+    "-r",
+    "--row_tol",
+    default=2,
+    help="Tolerance parameter" " used to combine text vertically, to generate rows.",
+)
+@click.option(
+    "-c",
+    "--column_tol",
+    default=0,
+    help="Tolerance parameter"
+    " used to combine text horizontally, to generate columns.",
+)
+@click.option(
+    "-plot",
+    "--plot_type",
+    type=click.Choice(["text", "grid", "contour", "textedge"]),
+    help="Plot elements found on PDF page for visual debugging.",
+)
+@click.argument("filepath", type=click.Path(exists=True))
+@pass_config
+def hybrid(c, *args, **kwargs):
+    """Use spaces between text to parse the table."""
+    conf = c.config
+    pages = conf.pop("pages")
+    output = conf.pop("output")
+    f = conf.pop("format")
+    compress = conf.pop("zip")
+    quiet = conf.pop("quiet")
+    plot_type = kwargs.pop("plot_type")
+    filepath = kwargs.pop("filepath")
+    kwargs.update(conf)
+
+    table_regions = list(kwargs["table_regions"])
+    kwargs["table_regions"] = None if not table_regions else table_regions
+    table_areas = list(kwargs["table_areas"])
+    kwargs["table_areas"] = None if not table_areas else table_areas
+    columns = list(kwargs["columns"])
+    kwargs["columns"] = None if not columns else columns
+
+    if plot_type is not None:
+        if not _HAS_MPL:
+            raise ImportError("matplotlib is required for plotting.")
+    else:
+        if output is None:
+            raise click.UsageError("Please specify output file path using --output")
+        if f is None:
+            raise click.UsageError("Please specify output file format using --format")
+
+    tables = read_pdf(
+        filepath, pages=pages, flavor="hybrid", suppress_stdout=quiet, **kwargs
+    )
+    click.echo(f"Found {tables.n} tables")
+    if plot_type is not None:
+        for table in tables:
+            plot(table, kind=plot_type)
+            plt.show()
+    else:
+        tables.export(output, f=f, compress=compress)
+
+
+@cli.command("network")
+@click.option(
+    "-R",
+    "--table_regions",
+    default=[],
+    multiple=True,
+    help="Page regions to analyze. Example: x1,y1,x2,y2"
+    " where x1, y1 -> left-top and x2, y2 -> right-bottom.",
+)
+@click.option(
+    "-T",
+    "--table_areas",
+    default=[],
+    multiple=True,
+    help="Table areas to process. Example: x1,y1,x2,y2"
+    " where x1, y1 -> left-top and x2, y2 -> right-bottom.",
+)
+@click.option(
+    "-C",
+    "--columns",
+    default=[],
+    multiple=True,
+    help="X coordinates of column separators.",
+)
+@click.option(
+    "-e",
+    "--edge_tol",
+    default=50,
+    help="Tolerance parameter" " for extending textedges vertically.",
+)
+@click.option(
+    "-r",
+    "--row_tol",
+    default=2,
+    help="Tolerance parameter" " used to combine text vertically, to generate rows.",
+)
+@click.option(
+    "-c",
+    "--column_tol",
+    default=0,
+    help="Tolerance parameter"
+    " used to combine text horizontally, to generate columns.",
+)
+@click.option(
+    "-plot",
+    "--plot_type",
+    type=click.Choice(["text", "grid", "contour", "textedge"]),
+    help="Plot elements found on PDF page for visual debugging.",
+)
+@click.argument("filepath", type=click.Path(exists=True))
+@pass_config
+def network(c, *args, **kwargs):
+    """Use spaces between text to parse the table."""
+    conf = c.config
+    pages = conf.pop("pages")
+    output = conf.pop("output")
+    f = conf.pop("format")
+    compress = conf.pop("zip")
+    quiet = conf.pop("quiet")
+    plot_type = kwargs.pop("plot_type")
+    filepath = kwargs.pop("filepath")
+    kwargs.update(conf)
+
+    table_regions = list(kwargs["table_regions"])
+    kwargs["table_regions"] = None if not table_regions else table_regions
+    table_areas = list(kwargs["table_areas"])
+    kwargs["table_areas"] = None if not table_areas else table_areas
+    columns = list(kwargs["columns"])
+    kwargs["columns"] = None if not columns else columns
+
+    if plot_type is not None:
+        if not _HAS_MPL:
+            raise ImportError("matplotlib is required for plotting.")
+    else:
+        if output is None:
+            raise click.UsageError("Please specify output file path using --output")
+        if f is None:
+            raise click.UsageError("Please specify output file format using --format")
+
+    tables = read_pdf(
+        filepath, pages=pages, flavor="network", suppress_stdout=quiet, **kwargs
     )
     click.echo(f"Found {tables.n} tables")
     if plot_type is not None:

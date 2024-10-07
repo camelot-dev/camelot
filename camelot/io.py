@@ -1,3 +1,5 @@
+"""IO related functions to Read the PDF and returns extracted tables."""
+
 import warnings
 from pathlib import Path
 from typing import Union
@@ -17,12 +19,14 @@ def read_pdf(
     suppress_stdout=False,
     parallel=False,
     layout_kwargs=None,
+    debug=False,
     **kwargs
 ):
     """Read PDF and return extracted tables.
 
-    Note: kwargs annotated with ^ can only be used with flavor='stream'
+    Note: kwargs annotated with ^ can only be used with flavor='stream' or flavor='network'
     and kwargs annotated with * can only be used with flavor='lattice'.
+    The hybrid parser accepts kwargs with both annotations.
 
     Parameters
     ----------
@@ -34,9 +38,9 @@ def read_pdf(
     password : str, optional (default: None)
         Password for decryption.
     flavor : str (default: 'lattice')
-        The parsing method to use ('lattice' or 'stream').
+        The parsing method to use ('lattice', 'stream', 'network' or 'hybrid').
         Lattice is used by default.
-    suppress_stdout : bool, optional (default: True)
+    suppress_stdout : bool, optional (default: False)
         Print all logs and warnings.
     parallel : bool, optional (default: False)
         Process pages in parallel using all available cpu cores.
@@ -66,7 +70,7 @@ def read_pdf(
         to generate columns.
     process_background* : bool, optional (default: False)
         Process background lines.
-    line_scale* : int, optional (default: 15)
+    line_scale* : int, optional (default: 40)
         Line size scaling factor. The larger the value the smaller
         the detected lines. Making it very large will lead to text
         being detected as lines.
@@ -110,9 +114,10 @@ def read_pdf(
     """
     if layout_kwargs is None:
         layout_kwargs = {}
-    if flavor not in ["lattice", "stream"]:
+    if flavor not in ["lattice", "stream", "network", "hybrid"]:
         raise NotImplementedError(
-            "Unknown flavor specified." " Use either 'lattice' or 'stream'"
+            "Unknown flavor specified."
+            " Use either 'lattice', 'stream', 'network' or 'hybrid'"
         )
 
     with warnings.catch_warnings():
@@ -120,7 +125,7 @@ def read_pdf(
             warnings.simplefilter("ignore")
 
         validate_input(kwargs, flavor=flavor)
-        p = PDFHandler(filepath, pages=pages, password=password)
+        p = PDFHandler(filepath, pages=pages, password=password, debug=debug)
         kwargs = remove_extra(kwargs, flavor=flavor)
         tables = p.parse(
             flavor=flavor,

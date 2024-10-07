@@ -1,3 +1,5 @@
+"""Functions to handle all operations on the PDF's."""
+
 import multiprocessing as mp
 import os
 import sys
@@ -9,7 +11,9 @@ from pypdf import PdfWriter
 from pypdf._utils import StrByteType
 
 from .core import TableList
+from .parsers import Hybrid
 from .parsers import Lattice
+from .parsers import Network
 from .parsers import Stream
 from .utils import TemporaryDirectory
 from .utils import download_url
@@ -19,8 +23,18 @@ from .utils import get_text_objects
 from .utils import is_url
 
 
+PARSERS = {
+    "lattice": Lattice,
+    "stream": Stream,
+    "network": Network,
+    "hybrid": Hybrid,
+}
+
+
 class PDFHandler:
-    """Handles all operations like temp directory creation, splitting
+    """Handles all operations on the PDF's.
+
+    Handles all operations like temp directory creation, splitting
     file into single page PDFs, parsing each PDF and then removing the
     temp directory.
 
@@ -33,10 +47,14 @@ class PDFHandler:
         Example: '1,3,4' or '1,4-end' or 'all'.
     password : str, optional (default: None)
         Password for decryption.
-
+    debug : bool, optional (default: False)
+        Whether the parser should store debug information during parsing.
     """
 
-    def __init__(self, filepath: Union[StrByteType, Path], pages="1", password=None):
+    def __init__(
+        self, filepath: Union[StrByteType, Path], pages="1", password=None, debug=False
+    ):
+        self.debug = debug
         if is_url(filepath):
             filepath = download_url(filepath)
         self.filepath: Union[StrByteType, Path] = filepath
@@ -53,7 +71,7 @@ class PDFHandler:
         self.pages = self._get_pages(pages)
 
     def _get_pages(self, pages):
-        """Converts pages string to list of ints.
+        """Convert pages string to list of integers.
 
         Parameters
         ----------
@@ -101,12 +119,22 @@ class PDFHandler:
 
         Parameters
         ----------
-        filepath : str
-            Filepath or URL of the PDF file.
         page : int
             Page number.
-        temp : str
-            Tmp directory.
+        layout_kwargs : dict, optional (default: {})
+            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.  # noqa
+
+
+        Returns
+        -------
+        layout : object
+
+        dimensions : tuple
+            The dimensions of the pdf page
+
+        filepath : str
+            The path of the single page PDF - either the original, or a
+            normalized version.
 
         """
         infile = PdfReader(filepath, strict=False)
@@ -151,13 +179,12 @@ class PDFHandler:
         layout_kwargs=None,
         **kwargs,
     ):
-        """Extracts tables by calling parser.get_tables on all single
-        page PDFs.
+        """Extract tables by calling parser.get_tables on all single page PDFs.
 
         Parameters
         ----------
         flavor : str (default: 'lattice')
-            The parsing method to use ('lattice' or 'stream').
+            The parsing method to use.
             Lattice is used by default.
         suppress_stdout : bool (default: False)
             Suppress logs and warnings.
@@ -179,7 +206,10 @@ class PDFHandler:
             layout_kwargs = {}
 
         tables = []
-        parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
+        # parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
+        parser_obj = PARSERS[flavor]
+        parser = parser_obj(debug=self.debug, **kwargs)
+
         with TemporaryDirectory() as tempdir:
             cpu_count = mp.cpu_count()
             # Using multiprocessing only when cpu_count > 1 to prevent a stallness issue
@@ -207,15 +237,14 @@ class PDFHandler:
         return TableList(sorted(tables))
 
     def _parse_page(self, page, tempdir, parser, suppress_stdout, layout_kwargs):
-        """Extracts tables by calling parser.get_tables on a single
-        page PDF.
+        """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters
         ----------
         page : str
             Page number to parse
-        parser : Lattice or Stream
-            The parser to use (Lattice or Stream).
+        parser : Lattice, Stream, Network or Hybrid
+            The parser to use.
         suppress_stdout : bool
             Suppress logs and warnings.
         layout_kwargs : dict, optional (default: {})
@@ -229,7 +258,9 @@ class PDFHandler:
         """
         self._save_page(self.filepath, page, tempdir)
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
-        tables = parser.extract_tables(
-            page_path, suppress_stdout=suppress_stdout, layout_kwargs=layout_kwargs
+        layout, dimensions = get_page_layout(page_path, **layout_kwargs)
+        parser.prepare_page_parse(
+            page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
         )
+        tables = parser.extract_tables()
         return tables

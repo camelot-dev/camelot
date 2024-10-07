@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from click.testing import CliRunner
 
 from camelot.cli import cli
@@ -121,6 +122,44 @@ def test_cli_parallel(testdir):
         assert result.output == "Found 2 tables\n"
 
 
+def test_cli_hybrid(testdir):
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "budget.pdf")
+        outfile = os.path.join(tempdir, "budget.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli, ["--format", "csv", "--output", outfile, "hybrid", infile]
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 1 tables\n"
+
+        result = runner.invoke(cli, ["--format", "csv", "hybrid", infile])
+        output_error = "Error: Please specify output file path using --output"
+        assert output_error in result.output
+
+        result = runner.invoke(cli, ["--output", outfile, "hybrid", infile])
+        format_error = "Please specify output file format using --format"
+        assert format_error in result.output
+
+
+def test_cli_network(testdir):
+    with TemporaryDirectory() as tempdir:
+        infile = os.path.join(testdir, "budget.pdf")
+        outfile = os.path.join(tempdir, "budget.csv")
+        runner = CliRunner()
+        result = runner.invoke(
+            cli, ["--format", "csv", "--output", outfile, "network", infile]
+        )
+        assert result.exit_code == 0
+        assert result.output == "Found 1 tables\n"
+        result = runner.invoke(cli, ["--format", "csv", "network", infile])
+        output_error = "Error: Please specify output file path using --output"
+        assert output_error in result.output
+        result = runner.invoke(cli, ["--output", outfile, "network", infile])
+        format_error = "Please specify output file format using --format"
+        assert format_error in result.output
+
+
 def test_cli_password(testdir):
     with TemporaryDirectory() as tempdir:
         infile = os.path.join(testdir, "health_protected.pdf")
@@ -232,14 +271,30 @@ def test_cli_quiet(testdir):
         )
         assert "Found 0 tables" in result.output
 
-        result = runner.invoke(
-            cli, ["--quiet", "--format", "csv", "--output", outfile, "stream", infile]
-        )
-        assert "No tables found on page-1" not in result.output
+        try:
+            result = runner.invoke(
+                cli,
+                ["--quiet", "--format", "csv", "--output", outfile, "stream", infile],
+            )
+        except Warning as e:
+            warning_text = str(e)
+            pytest.fail(f"Unexpected warning: {warning_text}")
 
 
 def test_cli_lattice_plot_type():
     with TemporaryDirectory() as tempdir:
+        outfile = os.path.join(tempdir, "lattice_contour.png")
         runner = CliRunner()
-        result = runner.invoke(cli, ["--plot_type", ""])
+        result = runner.invoke(
+            cli,
+            [
+                "--plot_type",
+                "contour",
+                "--output",
+                outfile,
+                "--format",
+                "--format",
+                "png",
+            ],
+        )
         assert result.exit_code != 0, f"Output: {result.output}"

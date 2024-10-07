@@ -1,15 +1,23 @@
-from __future__ import annotations
+"""Contains the core functions to parse tables from PDFs."""
 
+import math
 import os
 import sqlite3
 import tempfile
 import zipfile
+from __future__ import annotations
 from operator import itemgetter
 from typing import Iterable
 from typing import Iterator
 
-import numpy as np
+import cv2
 import pandas as pd
+
+from .backends import ImageConversionBackend
+from .utils import build_file_path_in_temp_dir
+from .utils import compute_whitespace
+from .utils import get_index_closest_point
+from .utils import get_textline_coords
 
 
 # minimum number of vertical textline intersections for a textedge
@@ -19,14 +27,72 @@ TEXTEDGE_REQUIRED_ELEMENTS = 4
 TABLE_AREA_PADDING = 10
 
 
-class TextEdge:
-    """Defines a text edge coordinates relative to a left-bottom
-    origin. (PDF coordinate space)
+HORIZONTAL_ALIGNMENTS = ["left", "right", "middle"]
+VERTICAL_ALIGNMENTS = ["top", "bottom", "center"]
+ALL_ALIGNMENTS = HORIZONTAL_ALIGNMENTS + VERTICAL_ALIGNMENTS
+
+
+class TextAlignment:
+    """Represents a list of textlines sharing an alignment on a coordinate.
+
+    The alignment can be left/right/middle or top/bottom/center.
+    (PDF coordinate space)
 
     Parameters
     ----------
-    x : float
-        x-coordinate of the text edge.
+    coord : float
+        coordinate of the initial text edge. Depending on the alignment
+        it could be a vertical or horizontal coordinate.
+    textline : obj
+        the original textline to start the alignment
+    align : str
+        Name of the alignment (e.g. "left", "top", etc)
+
+    Attributes
+    ----------
+    coord : float
+        The coordinate aligned averaged out across textlines.  It can be along
+        the x or y axis.
+    textlines : array
+        Array of textlines that demonstrate this alignment.
+    align : str
+        Name of the alignment (e.g. "left", "top", etc)
+    """
+
+    def __init__(self, coord, textline, align):
+        self.coord = coord
+        self.textlines = [textline]
+        self.align = align
+
+    def __repr__(self):  # noqa D105
+        text_inside = " | ".join(
+            map(lambda x: x.get_text(), self.textlines[:2])
+        ).replace("\n", "")
+        return (
+            f"<TextEdge coord={self.coord} tl={len(self.textlines)} "
+            f"textlines text='{text_inside}...'>"
+        )
+
+    def register_aligned_textline(self, textline, coord):
+        """Update new textline to this alignment, adapting its average."""
+        # Increase the intersections for this segment, expand it up,
+        # and adjust the x based on the new value
+        self.coord = (self.coord * len(self.textlines) + coord) / float(
+            len(self.textlines) + 1
+        )
+        self.textlines.append(textline)
+
+
+class TextEdge(TextAlignment):
+    """Defines a text edge coordinates relative to a left-bottom origin.
+
+    (PDF coordinate space)
+    An edge is an alignment bounded over a segment.
+
+    Parameters
+    ----------
+    coord : float
+        coordinate of the text edge.  Can be x or y.
     y0 : float
         y-coordinate of bottommost point.
     y1 : float
@@ -36,116 +102,140 @@ class TextEdge:
 
     Attributes
     ----------
-    intersections: int
-        Number of intersections with horizontal text rows.
     is_valid: bool
-        A text edge is valid if it intersections with at least
+        A text edge is valid if it intersects with at least
         TEXTEDGE_REQUIRED_ELEMENTS horizontal text rows.
 
     """
 
-    def __init__(self, x, y0, y1, align="left"):
-        self.x = x
-        self.y0 = y0
-        self.y1 = y1
-        self.align = align
-        self.intersections = 0
+    def __init__(self, coord, textline, align):
+        super().__init__(coord, textline, align)
+        self.y0 = textline.y0
+        self.y1 = textline.y1
         self.is_valid = False
 
-    def __repr__(self):
-        x = round(self.x, 2)
+    def __repr__(self):  # noqa D105
+        x = round(self.coord, 2)
         y0 = round(self.y0, 2)
         y1 = round(self.y1, 2)
         return (
             f"<TextEdge x={x} y0={y0} y1={y1} align={self.align} valid={self.is_valid}>"
         )
 
-    def update_coords(self, x, y0, edge_tol=50):
-        """Updates the text edge's x and bottom y coordinates and sets
+    def update_coords(self, x, textline, edge_tol=50):
+        """Update text edge coordinates.
+
+        Update the text edge's x and bottom y coordinates and sets
         the is_valid attribute.
         """
-        if np.isclose(self.y0, y0, atol=edge_tol):
-            self.x = (self.intersections * self.x + x) / float(self.intersections + 1)
-            self.y0 = y0
-            self.intersections += 1
+        if math.isclose(self.y0, textline.y0, abs_tol=edge_tol):
+            self.register_aligned_textline(textline, x)
+            self.y0 = textline.y0
             # a textedge is valid only if it extends uninterrupted
             # over a required number of textlines
-            if self.intersections > TEXTEDGE_REQUIRED_ELEMENTS:
+            if len(self.textlines) > TEXTEDGE_REQUIRED_ELEMENTS:
                 self.is_valid = True
 
 
-class TextEdges:
-    """Defines a dict of left, right and middle text edges found on
+class TextAlignments:
+    """Defines a dict of text edges across reference alignments."""
+
+    def __init__(self, alignment_names):
+        # For each possible alignment, list of tuples coordinate/textlines
+        self._text_alignments = {}
+        for alignment_name in alignment_names:
+            self._text_alignments[alignment_name] = []
+
+    @staticmethod
+    def _create_new_text_alignment(coord, textline, align):
+        return TextAlignment(coord, textline, align)
+
+    def _update_alignment(self, alignment, coord, textline):
+        return NotImplemented
+
+    def _register_textline(self, textline):
+        """Update an existing text edge in the current dict."""
+        coords = get_textline_coords(textline)
+        for alignment_id, alignment_array in self._text_alignments.items():
+            coord = coords[alignment_id]
+
+            # Find the index of the closest existing element (or 0 if none)
+            idx_closest = get_index_closest_point(
+                coord, alignment_array, fn=lambda x: x.coord
+            )
+
+            # Check if the edges before/after are close enough
+            # that it can be considered aligned
+            idx_insert = None
+            if idx_closest is None:
+                idx_insert = 0
+            else:
+                coord_closest = alignment_array[idx_closest].coord
+                # Note: np.isclose is slow!
+                if coord - 0.5 < coord_closest < coord + 0.5:
+                    self._update_alignment(
+                        alignment_array[idx_closest], coord, textline
+                    )
+                elif coord_closest < coord:
+                    idx_insert = idx_closest + 1
+                else:
+                    idx_insert = idx_closest
+            if idx_insert is not None:
+                new_alignment = self._create_new_text_alignment(
+                    coord, textline, alignment_id
+                )
+                alignment_array.insert(idx_insert, new_alignment)
+
+
+class TextEdges(TextAlignments):
+    """Defines a dict text edges on the PDF page.
+
+    The dict contains the left, right and middle text edges found on
     the PDF page. The dict has three keys based on the alignments,
     and each key's value is a list of camelot.core.TextEdge objects.
     """
 
     def __init__(self, edge_tol=50):
+        super().__init__(HORIZONTAL_ALIGNMENTS)
         self.edge_tol = edge_tol
-        self._textedges = {"left": [], "right": [], "middle": []}
 
-    @staticmethod
-    def get_x_coord(textline, align):
-        """Returns the x coordinate of a text row based on the
-        specified alignment.
-        """
-        x_left = textline.x0
-        x_right = textline.x1
-        x_middle = x_left + (x_right - x_left) / 2.0
-        x_coord = {"left": x_left, "middle": x_middle, "right": x_right}
-        return x_coord[align]
+    def _create_new_text_alignment(self, coord, textline, align):
+        # In TextEdges, each alignment is a TextEdge
+        return TextEdge(coord, textline, align)
 
-    def find(self, x_coord, align):
-        """Returns the index of an existing text edge using
-        the specified x coordinate and alignment.
-        """
-        for i, te in enumerate(self._textedges[align]):
-            if np.isclose(te.x, x_coord, atol=0.5):
-                return i
-        return None
+    def add(self, coord, textline, align):
+        """Add a new text edge to the current dict."""
+        te = self._create_new_text_alignment(coord, textline, align)
+        self._text_alignments[align].append(te)
 
-    def add(self, textline, align):
-        """Adds a new text edge to the current dict."""
-        x = self.get_x_coord(textline, align)
-        y0 = textline.y0
-        y1 = textline.y1
-        te = TextEdge(x, y0, y1, align=align)
-        self._textedges[align].append(te)
-
-    def update(self, textline):
-        """Updates an existing text edge in the current dict."""
-        for align in ["left", "right", "middle"]:
-            x_coord = self.get_x_coord(textline, align)
-            idx = self.find(x_coord, align)
-            if idx is None:
-                self.add(textline, align)
-            else:
-                self._textedges[align][idx].update_coords(
-                    x_coord, textline.y0, edge_tol=self.edge_tol
-                )
+    def _update_alignment(self, alignment, coord, textline):
+        alignment.update_coords(coord, textline, self.edge_tol)
 
     def generate(self, textlines):
-        """Generates the text edges dict based on horizontal text
-        rows.
-        """
+        """Generates the text edges dict based on horizontal text rows."""
         for tl in textlines:
             if len(tl.get_text().strip()) > 1:  # TODO: hacky
-                self.update(tl)
+                self._register_textline(tl)
 
     def get_relevant(self):
-        """Returns the list of relevant text edges (all share the same
-        alignment) based on which list intersects horizontal text rows
-        the most.
+        """Return the list of relevant text edges.
+
+        (all share the same alignment)
+        based on which list intersects horizontal text rows the most.
         """
         intersections_sum = {
             "left": sum(
-                te.intersections for te in self._textedges["left"] if te.is_valid
+                len(te.textlines) for te in self._text_alignments["left"] if te.is_valid
             ),
             "right": sum(
-                te.intersections for te in self._textedges["right"] if te.is_valid
+                len(te.textlines)
+                for te in self._text_alignments["right"]
+                if te.is_valid
             ),
             "middle": sum(
-                te.intersections for te in self._textedges["middle"] if te.is_valid
+                len(te.textlines)
+                for te in self._text_alignments["middle"]
+                if te.is_valid
             ),
         }
 
@@ -153,11 +243,14 @@ class TextEdges:
         # get vertical textedges that intersect maximum number of
         # times with horizontal textlines
         relevant_align = max(intersections_sum.items(), key=itemgetter(1))[0]
-        return self._textedges[relevant_align]
+        return list(
+            filter(lambda te: te.is_valid, self._text_alignments[relevant_align])
+        )
 
     def get_table_areas(self, textlines, relevant_textedges):
-        """Returns a dict of interesting table areas on the PDF page
-        calculated using relevant text edges.
+        """Return a dict of interesting table areas on the PDF page.
+
+        The table areas are calculated using relevant text edges.
         """
 
         def pad(area, average_row_height):
@@ -169,31 +262,30 @@ class TextEdges:
             return (x0, y0, x1, y1)
 
         # sort relevant textedges in reading order
-        relevant_textedges.sort(key=lambda te: (-te.y0, te.x))
+        relevant_textedges.sort(key=lambda te: (-te.y0, te.coord))
 
         table_areas = {}
         for te in relevant_textedges:
-            if te.is_valid:
-                if not table_areas:
-                    table_areas[(te.x, te.y0, te.x, te.y1)] = None
+            if not table_areas:
+                table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
+            else:
+                found = None
+                for area in table_areas:
+                    # check for overlap
+                    if te.y1 >= area[1] and te.y0 <= area[3]:
+                        found = area
+                        break
+                if found is None:
+                    table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
                 else:
-                    found = None
-                    for area in table_areas:
-                        # check for overlap
-                        if te.y1 >= area[1] and te.y0 <= area[3]:
-                            found = area
-                            break
-                    if found is None:
-                        table_areas[(te.x, te.y0, te.x, te.y1)] = None
-                    else:
-                        table_areas.pop(found)
-                        updated_area = (
-                            found[0],
-                            min(te.y0, found[1]),
-                            max(found[2], te.x),
-                            max(found[3], te.y1),
-                        )
-                        table_areas[updated_area] = None
+                    table_areas.pop(found)
+                    updated_area = (
+                        found[0],
+                        min(te.y0, found[1]),
+                        max(found[2], te.coord),
+                        max(found[3], te.y1),
+                    )
+                    table_areas[updated_area] = None
 
         # extend table areas based on textlines that overlap
         # vertically. it's possible that these textlines were
@@ -230,7 +322,9 @@ class TextEdges:
 
 
 class Cell:
-    """Defines a cell in a table with coordinates relative to a
+    """Defines a cell in a table.
+
+    With coordinates relative to a
     left-bottom origin. (PDF coordinate space)
 
     Parameters
@@ -288,7 +382,7 @@ class Cell:
         self.vspan = False
         self._text = ""
 
-    def __repr__(self):
+    def __repr__(self):  # noqa D105
         x1 = round(self.x1)
         y1 = round(self.y1)
         x2 = round(self.x2)
@@ -296,11 +390,11 @@ class Cell:
         return f"<Cell x1={x1} y1={y1} x2={x2} y2={y2}>"
 
     @property
-    def text(self):
+    def text(self):  # noqa D102
         return self._text
 
     @text.setter
-    def text(self, t):
+    def text(self, t):  # noqa D105
         self._text = "".join([self._text, t])
 
     @property
@@ -310,8 +404,9 @@ class Cell:
 
 
 class Table:
-    """Defines a table with coordinates relative to a left-bottom
-    origin. (PDF coordinate space)
+    """Defines a table with coordinates relative to a left-bottom origin.
+
+    (PDF coordinate space)
 
     Parameters
     ----------
@@ -331,6 +426,8 @@ class Table:
         Accuracy with which text was assigned to the cell.
     whitespace : float
         Percentage of whitespace in the table.
+    filename : str
+        Path of the original PDF
     order : int
         Table number on PDF page.
     page : int
@@ -346,13 +443,41 @@ class Table:
         self.shape = (0, 0)
         self.accuracy = 0
         self.whitespace = 0
+        self.filename = None
         self.order = None
         self.page = None
+        self.flavor = None  # Flavor of the parser that generated the table
+        self.pdf_size = None  # Dimensions of the original PDF page
+        self._bbox = None  # Bounding box in original document
+        self.parse = None  # Parse information
+        self.parse_details = None  # Field holding debug data
+
+        self._image = None
+        self._image_path = None  # Temporary file to hold an image of the pdf
 
     def __repr__(self):
+        """Return a string representation of the class .
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return f"<{self.__class__.__name__} shape={self.shape}>"
 
     def __lt__(self, other):
+        """Return True if the two pages are less than the current page .
+
+        Parameters
+        ----------
+        other : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if self.page == other.page:
             if self.order < other.order:
                 return True
@@ -369,7 +494,9 @@ class Table:
 
     @property
     def parsing_report(self):
-        """Returns a parsing report with %accuracy, %whitespace,
+        """Returns a parsing report.
+
+        with % accuracy, % whitespace,
         table number on page and page number.
         """
         # pretty?
@@ -381,15 +508,43 @@ class Table:
         }
         return report
 
+    def record_metadata(self, parser):
+        """Record data about the origin of the table."""
+        self.flavor = parser.id
+        self.filename = parser.filename
+        self.debug_info = parser.debug_info
+        if parser.copy_text is not None:
+            self.copy_spanning_text(parser.copy_text)
+        data = self.data
+        self.df = pd.DataFrame(data)
+        self.shape = self.df.shape
+
+        self.whitespace = compute_whitespace(data)
+        self.pdf_size = (parser.pdf_width, parser.pdf_height)
+
+    def get_pdf_image(self):
+        """Compute pdf image and cache it."""
+        if self._image is None:
+            if self._image_path is None:
+                self._image_path = build_file_path_in_temp_dir(
+                    os.path.basename(self.filename), ".png"
+                )
+                backend = ImageConversionBackend(use_fallback=True)
+                backend.convert(self.filename, self._image_path)
+            self._image = cv2.imread(self._image_path)
+        return self._image
+
     def set_all_edges(self):
-        """Sets all table edges to True."""
+        """Set all table edges to True."""
         for row in self.cells:
             for cell in row:
                 cell.left = cell.right = cell.top = cell.bottom = True
         return self
 
     def set_edges(self, vertical, horizontal, joint_tol=2):
-        """Sets a cell's edges to True depending on whether the cell's
+        """Set the edges of the joint.
+
+        Set a cell's edges to True depending on whether the cell's
         coordinates overlap with the line's coordinates within a
         tolerance.
 
@@ -399,142 +554,76 @@ class Table:
             List of detected vertical lines.
         horizontal : list
             List of detected horizontal lines.
-
+        joint_tol : int, optional
+            [description], by default 2
         """
+
+        def find_close_point(over, coord, joint_tol):
+            for i, t in enumerate(over):
+                if math.isclose(coord, t[0], abs_tol=joint_tol):
+                    return i
+            return None
+
         for v in vertical:
             # find closest x coord
             # iterate over y coords and find closest start and end points
-            i = [
-                i
-                for i, t in enumerate(self.cols)
-                if np.isclose(v[0], t[0], atol=joint_tol)
-            ]
-            j = [
-                j
-                for j, t in enumerate(self.rows)
-                if np.isclose(v[3], t[0], atol=joint_tol)
-            ]
-            k = [
-                k
-                for k, t in enumerate(self.rows)
-                if np.isclose(v[1], t[0], atol=joint_tol)
-            ]
-            if not j:
+            start = find_close_point(self.rows, v[3], joint_tol)
+            if start is None:
                 continue
-            J = j[0]
-            if i == [0]:  # only left edge
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[J][L].left = True
-                        J += 1
-                else:
-                    K = len(self.rows)
-                    while J < K:
-                        self.cells[J][L].left = True
-                        J += 1
-            elif i == []:  # only right edge
-                L = len(self.cols) - 1
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[J][L].right = True
-                        J += 1
-                else:
-                    K = len(self.rows)
-                    while J < K:
-                        self.cells[J][L].right = True
-                        J += 1
+            end = find_close_point(self.rows, v[1], joint_tol)
+            if end is None:
+                end = len(self.rows)
+            i = find_close_point(self.cols, v[0], joint_tol)
+            if i is None:  # only right edge
+                i = len(self.cols) - 1
+                for j in range(start, end):
+                    self.cells[j][i].right = True
+            elif i == 0:  # only left edge
+                for j in range(start, end):
+                    self.cells[j][0].left = True
             else:  # both left and right edges
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[J][L].left = True
-                        self.cells[J][L - 1].right = True
-                        J += 1
-                else:
-                    K = len(self.rows)
-                    while J < K:
-                        self.cells[J][L].left = True
-                        self.cells[J][L - 1].right = True
-                        J += 1
+                for j in range(start, end):
+                    self.cells[j][i].left = True
+                    self.cells[j][i - 1].right = True
 
         for h in horizontal:
             # find closest y coord
             # iterate over x coords and find closest start and end points
-            i = [
-                i
-                for i, t in enumerate(self.rows)
-                if np.isclose(h[1], t[0], atol=joint_tol)
-            ]
-            j = [
-                j
-                for j, t in enumerate(self.cols)
-                if np.isclose(h[0], t[0], atol=joint_tol)
-            ]
-            k = [
-                k
-                for k, t in enumerate(self.cols)
-                if np.isclose(h[2], t[0], atol=joint_tol)
-            ]
-            if not j:
+            start = find_close_point(self.cols, h[0], joint_tol)
+            if start is None:
                 continue
-            J = j[0]
-            if i == [0]:  # only top edge
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[L][J].top = True
-                        J += 1
-                else:
-                    K = len(self.cols)
-                    while J < K:
-                        self.cells[L][J].top = True
-                        J += 1
-            elif i == []:  # only bottom edge
-                L = len(self.rows) - 1
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[L][J].bottom = True
-                        J += 1
-                else:
-                    K = len(self.cols)
-                    while J < K:
-                        self.cells[L][J].bottom = True
-                        J += 1
+            end = find_close_point(self.cols, h[2], joint_tol)
+            if end is None:
+                end = len(self.cols)
+            i = find_close_point(self.rows, h[1], joint_tol)
+            if i is None:  # only bottom edge
+                i = len(self.rows) - 1
+                for j in range(start, end):
+                    self.cells[i][j].bottom = True
+            elif i == 0:  # only top edge
+                for j in range(start, end):
+                    self.cells[0][j].top = True
             else:  # both top and bottom edges
-                L = i[0]
-                if k:
-                    K = k[0]
-                    while J < K:
-                        self.cells[L][J].top = True
-                        self.cells[L - 1][J].bottom = True
-                        J += 1
-                else:
-                    K = len(self.cols)
-                    while J < K:
-                        self.cells[L][J].top = True
-                        self.cells[L - 1][J].bottom = True
-                        J += 1
+                for j in range(start, end):
+                    self.cells[i][j].top = True
+                    self.cells[i - 1][j].bottom = True
 
         return self
 
     def set_border(self):
         """Sets table border edges to True."""
-        for index, row in enumerate(self.rows):
+        for index, _row in enumerate(self.rows):
             self.cells[index][0].left = True
             self.cells[index][len(self.cols) - 1].right = True
-        for index, col in enumerate(self.cols):
+        for index, _col in enumerate(self.cols):
             self.cells[0][index].top = True
             self.cells[len(self.rows) - 1][index].bottom = True
         return self
 
     def set_span(self):
-        """Sets a cell's hspan or vspan attribute to True depending
+        """Set a cell's hspan or vspan attribute.
+
+        Set the cell's hspan or vspan attribute to True depending
         on whether the cell spans horizontally or vertically.
         """
         for row in self.cells:
@@ -564,8 +653,38 @@ class Table:
                     cell.hspan = True
         return self
 
+    def copy_spanning_text(self, copy_text=None):
+        """Copies over text in empty spanning cells.
+
+        Parameters
+        ----------
+        copy_text : list, optional (default: None)
+            {'h', 'v'}
+            Select one or more strings from above and pass them as a list
+            to specify the direction in which text should be copied over
+            when a cell spans multiple rows or columns.
+
+        Returns
+        -------
+        t : camelot.core.Table
+        """
+        for f in copy_text:
+            if f == "h":
+                for i in range(len(self.cells)):
+                    for j in range(len(self.cells[i])):
+                        if self.cells[i][j].text.strip() == "":
+                            if self.cells[i][j].hspan and not self.cells[i][j].left:
+                                self.cells[i][j].text = self.cells[i][j - 1].text
+            elif f == "v":
+                for i in range(len(self.cells)):
+                    for j in range(len(self.cells[i])):
+                        if self.cells[i][j].text.strip() == "":
+                            if self.cells[i][j].vspan and not self.cells[i][j].top:
+                                self.cells[i][j].text = self.cells[i - 1][j].text
+        return self
+
     def to_csv(self, path, **kwargs):
-        """Writes Table to a comma-separated values (csv) file.
+        """Write Table(s) to a comma-separated values (csv) file.
 
         For kwargs, check :meth:`pandas.DataFrame.to_csv`.
 
@@ -580,7 +699,7 @@ class Table:
         self.df.to_csv(path, **kw)
 
     def to_json(self, path, **kwargs):
-        """Writes Table to a JSON file.
+        """Write Table(s) to a JSON file.
 
         For kwargs, check :meth:`pandas.DataFrame.to_json`.
 
@@ -597,7 +716,7 @@ class Table:
             f.write(json_string)
 
     def to_excel(self, path, **kwargs):
-        """Writes Table to an Excel file.
+        """Write Table(s) to an Excel file.
 
         For kwargs, check :meth:`pandas.DataFrame.to_excel`.
 
@@ -614,7 +733,7 @@ class Table:
         self.df.to_excel(writer, sheet_name=sheet_name, **kw)
 
     def to_html(self, path, **kwargs):
-        """Writes Table to an HTML file.
+        """Write Table(s) to an HTML file.
 
         For kwargs, check :meth:`pandas.DataFrame.to_html`.
 
@@ -629,7 +748,7 @@ class Table:
             f.write(html_string)
 
     def to_markdown(self, path, **kwargs):
-        """Writes Table to a Markdown file.
+        """Write Table(s) to a Markdown file.
 
         For kwargs, check :meth:`pandas.DataFrame.to_markdown`.
 
@@ -644,7 +763,7 @@ class Table:
             f.write(md_string)
 
     def to_sqlite(self, path, **kwargs):
-        """Writes Table to sqlite database.
+        """Write Table(s) to sqlite database.
 
         For kwargs, check :meth:`pandas.DataFrame.to_sql`.
 
@@ -664,8 +783,9 @@ class Table:
 
 
 class TableList:
-    """Defines a list of camelot.core.Table objects. Each table can
-    be accessed using its index.
+    """Defines a list of camelot.core.Table objects.
+
+    Each table can be accessed using its index.
 
     Attributes
     ----------
@@ -674,23 +794,23 @@ class TableList:
 
     """
 
-    def __init__(self, tables) -> None:
+    def __init__(self, tables):  # noqa D105
         self._tables: list[Table] = tables
 
-    def __repr__(self) -> str:
+    def __repr__(self):  # noqa D105
         return f"<{self.__class__.__name__} n={self.n}>"
 
-    def __len__(self) -> int:
+    def __len__(self):  # noqa D105
         return len(self._tables)
 
-    def __getitem__(self, idx) -> Table:
+    def __getitem__(self, idx) -> Table:  # noqa D105
         return self._tables[idx]
 
-    def __iter__(self) -> Iterator[Table]:
+    def __iter__(self) -> Iterator[Table]:  # noqa D105
         return iter(self._tables)
 
     def __next__(self) -> Table:
-        return next(self)
+        return next(self)      
 
     @staticmethod
     def _format_func(table, f):
@@ -698,6 +818,7 @@ class TableList:
 
     @property
     def n(self) -> int:
+        """The number of tables in the list."""
         return len(self)
 
     def _write_file(self, f=None, **kwargs) -> None:
@@ -723,7 +844,7 @@ class TableList:
                 z.write(filepath, os.path.basename(filepath))
 
     def export(self, path, f="csv", compress=False):
-        """Exports the list of tables to specified file format.
+        """Export the list of tables to specified file format.
 
         Parameters
         ----------
