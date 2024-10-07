@@ -1,11 +1,15 @@
 """Contains the core functions to parse tables from PDFs."""
 
+from __future__ import annotations
+
 import math
 import os
 import sqlite3
 import tempfile
 import zipfile
 from operator import itemgetter
+from typing import Iterable
+from typing import Iterator
 
 import cv2
 import pandas as pd
@@ -723,14 +727,11 @@ class Table:
             Output filepath.
 
         """
-        kw = {
-            "sheet_name": f"page-{self.page}-table-{self.order}",
-            "encoding": "utf-8",
-        }
+        kw = {"encoding": "utf-8"}
+        sheet_name = f"page-{self.page}-table-{self.order}"
         kw.update(kwargs)
         writer = pd.ExcelWriter(path)
-        self.df.to_excel(writer, **kw)
-        writer.save()
+        self.df.to_excel(writer, sheet_name=sheet_name, **kw)
 
     def to_html(self, path, **kwargs):
         """Write Table(s) to an HTML file.
@@ -794,8 +795,8 @@ class TableList:
 
     """
 
-    def __init__(self, tables):  # noqa D105
-        self._tables = tables
+    def __init__(self, tables: Iterable[Table]) -> None:  # noqa D105
+        self._tables: Iterable[Table] = tables
 
     def __repr__(self):  # noqa D105
         return f"<{self.__class__.__name__} n={self.n}>"
@@ -803,22 +804,25 @@ class TableList:
     def __len__(self):  # noqa D105
         return len(self._tables)
 
-    def __getitem__(self, idx):  # noqa D105
+    def __getitem__(self, idx) -> Table:  # noqa D105
         return self._tables[idx]
 
-    def __iter__(self):  # noqa D105
-        yield from self._tables
+    def __iter__(self) -> Iterator[Table]:  # noqa D105
+        return iter(self._tables)
+
+    def __next__(self) -> Table:  # noqa D105
+        return next(self)
 
     @staticmethod
     def _format_func(table, f):
         return getattr(table, f"to_{f}")
 
     @property
-    def n(self):
+    def n(self) -> int:
         """The number of tables in the list."""
         return len(self)
 
-    def _write_file(self, f=None, **kwargs):
+    def _write_file(self, f=None, **kwargs) -> None:
         dirname = kwargs.get("dirname")
         root = kwargs.get("root")
         ext = kwargs.get("ext")
@@ -828,7 +832,7 @@ class TableList:
             to_format = self._format_func(table, f)
             to_format(filepath)
 
-    def _compress_dir(self, **kwargs):
+    def _compress_dir(self, **kwargs) -> None:
         path = kwargs.get("path")
         dirname = kwargs.get("dirname")
         root = kwargs.get("root")
