@@ -18,7 +18,6 @@ from urllib.request import Request
 from urllib.request import urlopen
 
 import numpy as np
-import pandas as pd
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams
 from pdfminer.layout import LTAnno
@@ -165,17 +164,27 @@ def validate_input(kwargs, flavor="lattice"):
 
 
 def remove_extra(kwargs, flavor="lattice"):
+    """Remove extra key - value pairs from a kwargs dictionary.
+
+    Parameters
+    ----------
+    kwargs : [type]
+        [description]
+    flavor : str, optional
+        [description], by default "lattice"
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    """
     parser_kwargs = flavor_to_kwargs[flavor]
-    # s.difference(t): new set with elements in s but not in t
-    isec = set(kwargs.keys()).difference(set(parser_kwargs))
-    if flavor == "lattice":
-        for key in kwargs.keys():
-            if key in stream_kwargs:
-                kwargs.pop(key)
-    else:
-        for key in kwargs.keys():
-            if key in lattice_kwargs:
-                kwargs.pop(key)
+    # Avoid "dictionary changed size during iteration"
+    kwargs_keys = list(kwargs.keys())
+    for key in kwargs_keys:
+        if key not in parser_kwargs:
+            kwargs.pop(key)
     return kwargs
 
 
