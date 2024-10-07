@@ -24,8 +24,9 @@ def read_pdf(
 ):
     """Read PDF and return extracted tables.
 
-    Note: kwargs annotated with ^ can only be used with flavor='stream'
+    Note: kwargs annotated with ^ can only be used with flavor='stream' or flavor='network'
     and kwargs annotated with * can only be used with flavor='lattice'.
+    The hybrid parser accepts kwargs with both annotations.
 
     Parameters
     ----------
@@ -37,7 +38,7 @@ def read_pdf(
     password : str, optional (default: None)
         Password for decryption.
     flavor : str (default: 'lattice')
-        The parsing method to use ('lattice' or 'stream').
+        The parsing method to use ('lattice', 'stream', 'network' or 'hybrid').
         Lattice is used by default.
     suppress_stdout : bool, optional (default: False)
         Print all logs and warnings.

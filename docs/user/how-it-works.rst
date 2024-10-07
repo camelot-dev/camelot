@@ -5,7 +5,8 @@ How It Works
 
 This part of the documentation includes a high-level explanation of how pypdf_table_extraction extracts tables from PDF files.
 
-You can choose between two table parsing methods, *Stream* and *Lattice*. These names for parsing methods inside pypdf_table_extraction were inspired from `Tabula <https://github.com/tabulapdf/tabula>`_.
+You can choose between the following table parsing methods, *Stream*, *Lattice*, *Network* and *Hybrid*.
+Where *Hybrid* is a combination of the *Network* and *Lattice* parser.
 
 .. _stream:
 
@@ -82,3 +83,42 @@ Let's see how Lattice processes the second page of `this PDF`_, step-by-step.
     :align: center
 
 6. Finally, the words found on the page are assigned to the table's cells based on their *x* and *y* coordinates.
+
+.. _network:
+
+Network
+------
+
+The network parser is text-based: it relies on the bounding boxes of the text elements encoded in the .pdf document to identify patterns indicative of a table.
+
+The plot belows shows the bounding boxes of all the text elements on the parsed document, in light blue for horizontal elements, light red for vertical elements (rare in most documents).
+
+1. The network parser starts by identifying common horizontal or vertical coordinate alignments across these text elements. In other words it looks for bounding box rectangles which either share the same top, center, or bottom coordinates (horizontal axis), or the same left, right, or middle coordinates (vertical axis). See the generate method.
+
+Once the parser found these alignments, it performs some pruning to only keep text elements that are part of a network - they have connections along both axis The idea is that it's not enough for two elements to be aligned to belong to a table, for instance the lines of text in this paragraph are all left-aligned, but they do not form a network. The pruning is done iteratively, see "remove_unconnected_edges" method.
+
+Once the network is pruned, the parser keeps track of how many alignments each text element belongs to: that's the number on top (vertical alignments) or to the left of each alignment in the plot below. The text element with the most connections (in red on the plot) is the starting point -the seed- of the next step. Finally, the parser measures how far the alignments are from one another, to determine a plausible search zone around each cell for the next stage of growing the table. See "compute_plausible_gaps" method.
+
+2. n the next step, the parser iteratively "grows" a table, starting from the seed identified in the previous step. The bounding box is initialized with the bounding box of the seed, then it iteratively searches for text elements that are close to the bounding box, then grows the table to ingest them, until there are no more text elements to ingest. The two steps are:
+
+Search: create a search bounding box by expanding the current table bounding box in all directions, based on the plausible gap numbers determined above.
+Grow: if a networked text element is found in this search area, expand the table bounding box so that it includes this new element.
+
+The search area and the table bounding box grow starting from the seed. See method "search_table_body".
+
+3. Headers are often aligned differently from the rest of the table. To account for this, the network parser searches for text elements that are good candidates for a header section: these text elements are just above the bounding box of the body of the table, and they fit within the rows identified in the table body. See the method "search_header_from_body_bbox".
+
+4. Words that lie inside/outside the current column *x* ranges are then used to extend the current list of columns.
+
+5. There are sometimes multiple tables on one page. So once a first table is identified, all the text edges it contains are removed, and the algorithm is repeated until no new network is identified.
+
+.. _hybrid:
+
+Hybrid
+------
+
+The hybrid parser  aims to combine the strengths of the Network parser (identifying cells based on text alignments) and of the Lattice parser (relying on solid lines to determine tables rows and columns boundaries).
+
+1. Hybrid calls both parsers, to get a) the standard table parse, b) the coordinates of the rows and columns boundaries, and c) the table boundaries (or contour).
+
+2. If there are areas in the document where both lattice and network found a table, the hybrid parser uses the results from network, but enhances them based on the rows/columns boundaries identified by lattice in the area. Because lattice uses the solid lines detected on the document, the coordinates for b) and c) detected by Lattice are generally more precise. See the "_merge_bbox_analysis" method.
