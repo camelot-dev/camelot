@@ -1,3 +1,5 @@
+"""Plotting functions usefull for visual debugging."""
+
 from pdfminer.layout import LTTextLineVertical
 
 
@@ -15,7 +17,7 @@ from .utils import get_textline_coords
 
 
 def extend_axe_lim(ax, bbox, margin=10):
-    """Ensure the ax limits include the input bbox"""
+    """Ensure the ax limits include the input bbox."""
     x0, x1 = ax.get_xlim()
     y0, y1 = ax.get_ylim()
     ax.set_xlim(min(x0, bbox[0] - margin), max(x1, bbox[2] + margin))
@@ -32,7 +34,27 @@ def draw_labeled_bbox(
     label_pos="top,left",
     fontsize=12,
 ):
-    """Utility drawing function to draw a box with an associated text label"""
+    """Utility drawing function to draw a box with an associated text label.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        matplotlib.axes.Axes (optional)
+    bbox : [type]
+        boundingbox
+    text : string
+        The text to be placed inside the box.
+    color : str, optional
+        The color of the box, by default "black"
+    linewidth : int, optional
+        The linewidth of the box, by default 3
+    linestyle : str, optional
+        The matplotlib linestyle, by default "solid"
+    label_pos : str, optional
+        The label postiion, by default "top,left"
+    fontsize : int, optional
+        The fontsize of the text in the box, by default 12
+    """
     ax.add_patch(
         patches.Rectangle(
             (bbox[0], bbox[1]),
@@ -75,7 +97,8 @@ def draw_labeled_bbox(
 
 
 def draw_pdf(table, ax):
-    """Draw the content of the table's source pdf into the passed subplot
+    """Draw the content of the table's source pdf into the passed subplot.
+
     Parameters
     ----------
     table : camelot.core.Table
@@ -86,7 +109,8 @@ def draw_pdf(table, ax):
 
 
 def draw_parse_constraints(table, ax):
-    """Draw any user provided constraints (area, region, columns, etc)
+    """Draw any user provided constraints (area, region, columns, etc).
+
     Parameters
     ----------
     table : camelot.core.Table
@@ -114,7 +138,8 @@ def draw_parse_constraints(table, ax):
 
 
 def draw_text(table, ax):
-    """Draw text, horizontal in blue, vertical in red
+    """Draw text, horizontal in blue, vertical in red.
+
     Parameters
     ----------
     table : camelot.core.Table
@@ -132,7 +157,8 @@ def draw_text(table, ax):
 
 
 def prepare_plot(table, ax=None):
-    """Initialize plot and draw common components
+    """Initialize plot and draw common components.
+
     Parameters
     ----------
     table : camelot.core.Table
@@ -151,9 +177,12 @@ def prepare_plot(table, ax=None):
 
 
 class PlotMethods:
+    """Classmethod for plotting methods."""
+
     def __call__(self, table, kind="text", filename=None, ax=None):
-        """Plot elements found on PDF page based on kind
-        specified, useful for debugging and playing with different
+        """Plot elements found on PDF page based on kind specified.
+
+        Useful for debugging and playing with different
         parameters to get the best output.
 
         Parameters
@@ -164,8 +193,9 @@ class PlotMethods:
             {'text', 'grid', 'contour', 'joint', 'line',
                 'network_table_search'}
             The element type for which a plot should be generated.
-        filepath: str, optional (default: None)
+        filename: str, optional (default: None)
             Absolute path for saving the generated plot.
+        ax : matplotlib.axes.Axes (optional)
 
         Returns
         -------
@@ -191,8 +221,7 @@ class PlotMethods:
         return plot_method(table, ax)
 
     def text(self, table, ax=None):
-        """Generates a plot for all text elements present
-        on the PDF page.
+        """Generate a plot for all text elements present on the PDF page.
 
         Parameters
         ----------
@@ -210,8 +239,7 @@ class PlotMethods:
 
     @staticmethod
     def grid(table, ax=None):
-        """Generates a plot for the detected table grids
-        on the PDF page.
+        """Generate a plot for the detected table grids on the PDF page.
 
         Parameters
         ----------
@@ -238,8 +266,7 @@ class PlotMethods:
 
     @staticmethod
     def contour(table, ax=None):
-        """Generates a plot for all table boundaries present
-        on the PDF page.
+        """Generate a plot for all table boundaries present on the PDF page.
 
         Parameters
         ----------
@@ -251,7 +278,6 @@ class PlotMethods:
         fig : matplotlib.fig.Figure
 
         """
-
         _for_lattice = table.flavor == "lattice"
         ax = prepare_plot(table, ax)
 
@@ -274,7 +300,7 @@ class PlotMethods:
 
     @staticmethod
     def textedge(table, ax=None):
-        """Generates a plot for relevant textedges.
+        """Generate a plot for relevant textedges.
 
         Parameters
         ----------
@@ -364,8 +390,7 @@ class PlotMethods:
 
     @staticmethod
     def joint(table, ax=None):
-        """Generates a plot for all line intersections present
-        on the PDF page.
+        """Generate a plot for all line intersections present on the PDF page.
 
         Parameters
         ----------
@@ -388,8 +413,7 @@ class PlotMethods:
 
     @staticmethod
     def line(table, ax=None):
-        """Generates a plot for all line segments present
-        on the PDF page.
+        """Generate a plot for all line segments present on the PDF page.
 
         Parameters
         ----------
@@ -411,11 +435,13 @@ class PlotMethods:
 
     @staticmethod
     def network_table_search(table, ax=None):
-        """Generates a plot illustrating the steps of the network table search.
+        """Generate a plot illustrating the steps of the network table search.
+
         Parameters
         ----------
         table : camelot.core.Table
         ax : matplotlib.axes.Axes (optional)
+
         Returns
         -------
         fig : matplotlib.fig.Figure
