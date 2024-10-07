@@ -924,10 +924,10 @@ def flag_font_size(textline, direction, strip_text=""):
             for t in textline
             if not isinstance(t, LTAnno)
         ]
-    l = [np.round(size, decimals=6) for text, size in d]
-    if len(set(l)) > 1:
+    le = [np.round(size, decimals=6) for text, size in d]
+    if len(set(le)) > 1:
         flist = []
-        min_size = min(l)
+        min_size = min(le)
         for key, chars in groupby(d, itemgetter(1)):
             if key == min_size:
                 fchars = [t[0] for t in chars]
@@ -1141,10 +1141,10 @@ def get_table_index(
         x0_offset = abs(t.x0 - table.cols[c_idx][0])
     if t.x1 > table.cols[c_idx][1]:
         x1_offset = abs(t.x1 - table.cols[c_idx][1])
-    X = 1.0 if abs(t.x0 - t.x1) == 0.0 else abs(t.x0 - t.x1)
-    Y = 1.0 if abs(t.y0 - t.y1) == 0.0 else abs(t.y0 - t.y1)
-    charea = X * Y
-    error = ((X * (y0_offset + y1_offset)) + (Y * (x0_offset + x1_offset))) / charea
+    x = 1.0 if abs(t.x0 - t.x1) == 0.0 else abs(t.x0 - t.x1)
+    y = 1.0 if abs(t.y0 - t.y1) == 0.0 else abs(t.y0 - t.y1)
+    charea = x * y
+    error = ((x * (y0_offset + y1_offset)) + (y * (x0_offset + x1_offset))) / charea
 
     if split_text:
         return (
@@ -1307,18 +1307,18 @@ def get_text_objects(layout, ltype="char", t=None):
 
     """
     if ltype == "char":
-        LTObject = LTChar
+        LTObject = LTChar  # noqa
     elif ltype == "image":
-        LTObject = LTImage
+        LTObject = LTImage  # noqa
     elif ltype == "horizontal_text":
-        LTObject = LTTextLineHorizontal
+        LTObject = LTTextLineHorizontal  # noqa
     elif ltype == "vertical_text":
-        LTObject = LTTextLineVertical
+        LTObject = LTTextLineVertical  # noqa
     if t is None:
         t = []
     try:
         for obj in layout._objs:
-            if isinstance(obj, LTObject):
+            if isinstance(obj, LTObject):  # noqa
                 t.append(obj)
             else:
                 t += get_text_objects(obj, ltype=ltype)
