@@ -1,3 +1,5 @@
+"""IO related functions to Read the PDF and returns extracted tables."""
+
 import warnings
 from pathlib import Path
 from typing import Union
