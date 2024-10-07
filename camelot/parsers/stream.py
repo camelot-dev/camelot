@@ -2,13 +2,9 @@
 
 import warnings
 
-from ..core import Table
 from ..core import TextEdges
 from ..utils import bbox_from_str
 from ..utils import bbox_from_textlines
-from ..utils import compute_accuracy
-from ..utils import compute_whitespace
-from ..utils import get_table_index
 from ..utils import text_in_bbox
 from ..utils import text_in_bbox_per_axis
 from .base import TextBaseParser
