@@ -1,11 +1,12 @@
 """Contains the core functions to parse tables from PDFs."""
 
+from __future__ import annotations
+
 import math
 import os
 import sqlite3
 import tempfile
 import zipfile
-from __future__ import annotations
 from operator import itemgetter
 from typing import Iterable
 from typing import Iterator
@@ -794,8 +795,8 @@ class TableList:
 
     """
 
-    def __init__(self, tables):  # noqa D105
-        self._tables: list[Table] = tables
+    def __init__(self, tables: Iterable[Table]) -> None:  # noqa D105
+        self._tables: Iterable[Table] = tables
 
     def __repr__(self):  # noqa D105
         return f"<{self.__class__.__name__} n={self.n}>"
@@ -809,8 +810,8 @@ class TableList:
     def __iter__(self) -> Iterator[Table]:  # noqa D105
         return iter(self._tables)
 
-    def __next__(self) -> Table:
-        return next(self)      
+    def __next__(self) -> Table:  # noqa D105
+        return next(self)
 
     @staticmethod
     def _format_func(table, f):
