@@ -22,6 +22,8 @@ logger.setLevel(logging.INFO)
 
 
 class Config:
+    """Class method for creating a new class."""
+
     def __init__(self):
         """Initialize the configuration."""
         self.config = {}

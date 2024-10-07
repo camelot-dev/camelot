@@ -1,3 +1,5 @@
+"""Functions useful for detecting graphical elements from the image to using OpenCV to reconstruct / detect tables."""
+
 import cv2
 import numpy as np
 
@@ -15,12 +17,14 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
         Size of a pixel neighborhood that is used to calculate a
         threshold value for the pixel: 3, 5, 7, and so on.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold
+        <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
     c : int, optional (default: -2)
         Constant subtracted from the mean or weighted mean.
         Normally, it is positive but may be zero or negative as well.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold
+        <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
 
     Returns
     -------
@@ -52,8 +56,7 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
 def find_lines(
     threshold, regions=None, direction="horizontal", line_scale=15, iterations=0
 ):
-    """Finds horizontal and vertical lines by applying morphological
-    transformations on an image.
+    """Finds horizontal and vertical lines by applying morphological transformations on an image.
 
     Parameters
     ----------
@@ -132,7 +135,7 @@ def find_lines(
 
 
 def find_contours(vertical, horizontal):
-    """Finds table boundaries using OpenCV's findContours.
+    """Find table boundaries using OpenCV's findContours.
 
     Parameters
     ----------
@@ -172,7 +175,7 @@ def find_contours(vertical, horizontal):
 
 
 def find_joints(contours, vertical, horizontal):
-    """Finds joints/intersections present inside each table boundary.
+    """Find joints/intersections present inside each table boundary.
 
     Parameters
     ----------
