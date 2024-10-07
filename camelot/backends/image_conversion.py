@@ -1,3 +1,5 @@
+"""Classes tand functions for the ImageConversionBackend backends."""
+
 from .ghostscript_backend import GhostscriptBackend
 from .poppler_backend import PopplerBackend
 
@@ -6,7 +8,23 @@ BACKENDS = {"poppler": PopplerBackend, "ghostscript": GhostscriptBackend}
 
 
 class ImageConversionBackend:
+    """Classes the ImageConversionBackend backend."""
+
     def __init__(self, backend="poppler", use_fallback=True):
+        """Initialize the conversion backend .
+
+        Parameters
+        ----------
+        backend : str, optional
+            [description], by default "poppler"
+        use_fallback : bool, optional
+            [description], by default True
+
+        Raises
+        ------
+        ValueError
+            [description]
+        """
         if backend not in BACKENDS.keys():
             raise ValueError(f"Image conversion backend '{backend}' not supported")
 
@@ -15,6 +33,22 @@ class ImageConversionBackend:
         self.fallbacks = list(filter(lambda x: x != backend, BACKENDS.keys()))
 
     def convert(self, pdf_path, png_path):
+        """Convert PDF to png_path.
+
+        Parameters
+        ----------
+        pdf_path : str
+            Path where to read the pdf file.
+        png_path : str
+            Path where to save png file.
+
+        Raises
+        ------
+        type
+            [description]
+        type
+            [description]
+        """
         try:
             converter = BACKENDS[self.backend]()
             converter.convert(pdf_path, png_path)

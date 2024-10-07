@@ -1,3 +1,13 @@
+"""Creates a poppler backend class to convert a pdf to a png file.
+
+Raises
+------
+OSError
+    [description]
+ValueError
+    [description]
+"""
+
 import os
 import shutil
 import subprocess
@@ -8,7 +18,25 @@ path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
 
 
 class PopplerBackend:
+    """Classmethod to create a poplerBackendBackend class."""
+
     def convert(self, pdf_path, png_path):
+        """Convert PDF to png.
+
+        Parameters
+        ----------
+        pdf_path : str
+            Path where to read the pdf file.
+        png_path : str
+            Path where to save png file.
+
+        Raises
+        ------
+        OSError
+            [description]
+        ValueError
+            [description]
+        """
         pdftopng_executable = shutil.which("pdftopng", path=path)
         if pdftopng_executable is None:
             raise OSError(
