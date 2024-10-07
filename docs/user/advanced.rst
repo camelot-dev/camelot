@@ -471,13 +471,13 @@ You can pass ``row_tol=<+int>`` to group the rows closer together, as shown belo
 Detect short lines
 ------------------
 
-There might be cases while using :ref:`Lattice <lattice>` when smaller lines don't get detected. The size of the smallest line that gets detected is calculated by dividing the PDF page's dimensions with a scaling factor called ``line_scale``. By default, its value is 15.
+There might be cases while using :ref:`Lattice <lattice>` when smaller lines don't get detected. The size of the smallest line that gets detected is calculated by dividing the PDF page's dimensions with a scaling factor called ``line_scale``. By default, its value is 40.
 
 As you can guess, the larger the ``line_scale``, the smaller the size of lines getting detected.
 
 .. warning:: Making ``line_scale`` very large (>150) will lead to text getting detected as lines.
 
-Here's a `PDF <../_static/pdf/short_lines.pdf>`__ where small lines separating the the headers don't get detected with the default value of 15.
+Here's a `PDF <../_static/pdf/short_lines.pdf>`__ where small lines separating the the headers don't get detected with the value of 15.
 
 .. figure:: ../_static/png/short_lines.png
     :alt: A PDF table with short lines

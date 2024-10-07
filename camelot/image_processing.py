@@ -54,7 +54,7 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
 
 
 def find_lines(
-    threshold, regions=None, direction="horizontal", line_scale=15, iterations=0
+    threshold, regions=None, direction="horizontal", line_scale=40, iterations=0
 ):
     """Finds horizontal and vertical lines by applying morphological transformations on an image.
 
@@ -68,7 +68,7 @@ def find_lines(
         in image coordinate space.
     direction : string, optional (default: 'horizontal')
         Specifies whether to find vertical or horizontal lines.
-    line_scale : int, optional (default: 15)
+    line_scale : int, optional (default: 40)
         Factor by which the page dimensions will be divided to get
         smallest length of lines that should be detected.
 
