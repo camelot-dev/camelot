@@ -1,11 +1,6 @@
 """Implementation of the Lattice table parser."""
 
-import copy
 import os
-import warnings
-
-import numpy as np
-import pandas as pd
 
 from ..backends.image_conversion import BACKENDS
 from ..image_processing import adaptive_threshold
@@ -65,12 +60,14 @@ class Lattice(BaseParser):
         Size of a pixel neighborhood that is used to calculate a
         threshold value for the pixel: 3, 5, 7, and so on.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold
+        <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
     threshold_constant : int, optional (default: -2)
         Constant subtracted from the mean or weighted mean.
         Normally, it is positive but may be zero or negative as well.
 
-        For more information, refer `OpenCV's adaptiveThreshold <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+        For more information, refer `OpenCV's adaptiveThreshold
+        <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
     iterations : int, optional (default: 0)
         Number of times for erosion/dilation is applied.
 
@@ -131,14 +128,14 @@ class Lattice(BaseParser):
         if isinstance(backend, str):
             if backend not in BACKENDS.keys():
                 raise NotImplementedError(
-                    f"Unknown backend '{backend}' specified. Please use either 'poppler' or 'ghostscript'."
+                    f"Unknown backend {backend!r} specified. Please use either 'poppler' or 'ghostscript'."
                 )
 
             return BACKENDS[backend]()
         else:
             if not implements_convert():
                 raise NotImplementedError(
-                    f"'{backend}' must implement a 'convert' method"
+                    f"{backend!r} must implement a 'convert' method"
                 )
 
             return backend
