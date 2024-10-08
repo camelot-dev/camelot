@@ -1,9 +1,9 @@
 """Defines a base parser. As well as generic methods for other parsers."""
 
+import math
 import os
 import warnings
 
-import numpy as np
 import pandas as pd
 
 from ..core import Table
@@ -321,7 +321,7 @@ class TextBaseParser(BaseParser):
             # if type(obj) is LTChar]):
             if row_y is None:
                 row_y = t.y0
-            elif not np.isclose(row_y, t.y0, atol=row_tol):
+            elif not math.isclose(row_y, t.y0, abs_tol=row_tol):
                 rows.append(sorted(temp, key=lambda t: t.x0))
                 temp = []
                 # We update the row's bottom as we go, to be forgiving if there
@@ -354,8 +354,8 @@ class TextBaseParser(BaseParser):
             else:
                 lower = merged[-1]
                 if column_tol >= 0:
-                    if higher[0] <= lower[1] or np.isclose(
-                        higher[0], lower[1], atol=column_tol
+                    if higher[0] <= lower[1] or math.isclose(
+                        higher[0], lower[1], abs_tol=column_tol
                     ):
                         upper_bound = max(lower[1], higher[1])
                         lower_bound = min(lower[0], higher[0])
@@ -364,7 +364,7 @@ class TextBaseParser(BaseParser):
                         merged.append(higher)
                 elif column_tol < 0:
                     if higher[0] <= lower[1]:
-                        if np.isclose(higher[0], lower[1], atol=abs(column_tol)):
+                        if math.isclose(higher[0], lower[1], abs_tol=abs(column_tol)):
                             merged.append(higher)
                         else:
                             upper_bound = max(lower[1], higher[1])

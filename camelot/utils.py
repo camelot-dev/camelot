@@ -1,6 +1,7 @@
 """General helper utilities to parse the pdf tables."""
 
 import atexit
+import math
 import os
 import random
 import re
@@ -856,7 +857,7 @@ def merge_close_lines(ar, line_tol=2):
             ret.append(a)
         else:
             temp = ret[-1]
-            if np.isclose(temp, a, atol=line_tol):
+            if math.isclose(temp, a, abs_tol=line_tol):
                 temp = (temp + a) / 2.0
                 ret[-1] = temp
             else:
