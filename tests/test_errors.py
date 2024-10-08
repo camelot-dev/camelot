@@ -91,7 +91,7 @@ def test_image_warning(testdir):
             camelot.read_pdf(filename)
             assert (
                 str(e.value)
-                == "page-1 is image-based, camelot only works on text-based pages."
+                == "page-1 is image-based, pypdf_table_extraction only works on text-based pages."
             )
 
 

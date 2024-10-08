@@ -114,7 +114,9 @@ class BaseParser:
             if self.images:
                 warnings.warn(
                     "{rootname} is image-based, "
-                    "camelot only works on text-based pages.".format(rootname=rootname)
+                    "pypdf_table_extraction only works on text-based pages.".format(
+                        rootname=rootname
+                    )
                 )
             else:
                 warnings.warn(f"No tables found on {rootname}")
