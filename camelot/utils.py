@@ -1189,10 +1189,10 @@ def compute_accuracy(error_weights):
     score : float
 
     """
-    SCORE_VAL = 100
+    score_val = 100
     try:
         score = 0
-        if sum([ew[0] for ew in error_weights]) != SCORE_VAL:
+        if sum([ew[0] for ew in error_weights]) != score_val:
             raise ValueError("Sum of weights should be equal to 100.")
         for ew in error_weights:
             weight = ew[0] / len(ew[1])
