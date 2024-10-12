@@ -1,5 +1,7 @@
 """General helper utilities to parse the pdf tables."""
 
+from __future__ import annotations
+
 import atexit
 import math
 import os
@@ -12,6 +14,9 @@ import warnings
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
+from typing import Any
+from typing import List
+from typing import Tuple
 from typing import Union
 from urllib.parse import urlparse as parse_url
 from urllib.parse import uses_netloc
@@ -26,6 +31,7 @@ from pdfminer.layout import LAParams
 from pdfminer.layout import LTAnno
 from pdfminer.layout import LTChar
 from pdfminer.layout import LTImage
+from pdfminer.layout import LTTextLine
 from pdfminer.layout import LTTextLineHorizontal
 from pdfminer.layout import LTTextLineVertical
 from pdfminer.pdfdocument import PDFDocument
@@ -83,7 +89,7 @@ def random_string(length):
     return ret
 
 
-def download_url(url: str) -> Union[StrByteType, Path]:
+def download_url(url: str) -> StrByteType | Path:
     """Download file from specified URL.
 
     Parameters
@@ -951,108 +957,127 @@ def flag_font_size(textline, direction, strip_text=""):
     return text_strip(fstring, strip_text)
 
 
-def split_textline(table, textline, direction, flag_size=False, strip_text=""):
+def split_textline(
+    table: Any,
+    textline: LTTextLine,
+    direction: str,
+    flag_size: bool = False,
+    strip_text: str = "",
+) -> list[tuple[int, int, str]]:
     """Split textline into substrings if it spans across multiple rows/columns.
 
     Parameters
     ----------
     table : camelot.core.Table
-    textline : object
+        The table structure containing rows and columns.
+    textline : LTTextLine
         PDFMiner LTTextLine object.
-    direction : string
-        Direction of the PDFMiner LTTextLine object.
-    flag_size : bool, optional (default: False)
-        Whether or not to highlight a substring using <s></s>
-        if its size is different from rest of the string. (Useful for
-        super and subscripts.)
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
-        assigning it to a cell.
+    direction : str
+        Direction of the PDFMiner LTTextLine object, either "horizontal" or "vertical".
+    flag_size : bool, optional
+        Whether to highlight a substring using <s></s> if its size differs from the rest of the string.
+    strip_text : str, optional
+        Characters to strip from a string before assigning it to a cell.
 
     Returns
     -------
-    grouped_chars : list
-        List of tuples of the form (idx, text) where idx is the index
-        of row/column and text is the an LTTextLine substring.
-
+    List[tuple[int, int, str]]
+        A list of tuples of the form (idx, text) where idx is the index of row/column
+        and text is an LTTextLine substring.
     """
-    cut_text = []
+    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]] = []
     bbox = textline.bbox
-    try:
-        if textline.is_empty():
-            return [(-1, -1, textline.get_text())]
 
-        if direction == "horizontal" and not textline.is_empty():
-            x_overlap = [
-                i
-                for i, x in enumerate(table.cols)
-                if x[0] <= bbox[2] and bbox[0] <= x[1]
-            ]
-            r_idx = [
-                j
-                for j, r in enumerate(table.rows)
-                if r[1] <= (bbox[1] + bbox[3]) / 2 <= r[0]
-            ]
-            r = r_idx[0]
-            x_cuts = [
-                (c, table.cells[r][c].x2) for c in x_overlap if table.cells[r][c].right
-            ]
-            if not x_cuts:
-                x_cuts = [(x_overlap[0], table.cells[r][-1].x2)]
-            for obj in textline._objs:
-                row = table.rows[r]
-                for cut in x_cuts:
-                    if isinstance(obj, LTChar):
-                        if (
-                            row[1] <= (obj.y0 + obj.y1) / 2 <= row[0]
-                            and (obj.x0 + obj.x1) / 2 <= cut[1]
-                        ):
-                            cut_text.append((r, cut[0], obj))
-                            break
-                        else:
-                            # TODO: add test
-                            if cut == x_cuts[-1]:
-                                new_idx = min(cut[0] + 1, len(table.cols) - 1)
-                                cut_text.append((r, new_idx, obj))
-                    elif isinstance(obj, LTAnno):
-                        cut_text.append((r, cut[0], obj))
-        elif direction == "vertical" and not textline.is_empty():
-            y_overlap = [
-                j
-                for j, y in enumerate(table.rows)
-                if y[1] <= bbox[3] and bbox[1] <= y[0]
-            ]
-            c_idx = [
-                i
-                for i, c in enumerate(table.cols)
-                if c[0] <= (bbox[0] + bbox[2]) / 2 <= c[1]
-            ]
-            c = c_idx[0]
-            y_cuts = [
-                (r, table.cells[r][c].y1) for r in y_overlap if table.cells[r][c].bottom
-            ]
-            if not y_cuts:
-                y_cuts = [(y_overlap[0], table.cells[-1][c].y1)]
-            for obj in textline._objs:
-                col = table.cols[c]
-                for cut in y_cuts:
-                    if isinstance(obj, LTChar):
-                        if (
-                            col[0] <= (obj.x0 + obj.x1) / 2 <= col[1]
-                            and (obj.y0 + obj.y1) / 2 >= cut[1]
-                        ):
-                            cut_text.append((cut[0], c, obj))
-                            break
-                        else:
-                            # TODO: add test
-                            if cut == y_cuts[-1]:
-                                new_idx = max(cut[0] - 1, 0)
-                                cut_text.append((new_idx, c, obj))
-                    elif isinstance(obj, LTAnno):
-                        cut_text.append((cut[0], c, obj))
-    except IndexError:
+    if textline.is_empty():
         return [(-1, -1, textline.get_text())]
-    grouped_chars = []
+
+    if direction == "horizontal":
+        cut_text = _process_horizontal_cut(table, textline, bbox)
+    elif direction == "vertical":
+        cut_text = _process_vertical_cut(table, textline, bbox)
+
+    grouped_chars = _group_and_process_chars(cut_text, flag_size, direction, strip_text)
+    return grouped_chars
+
+
+def _process_horizontal_cut(
+    table, textline, bbox
+) -> list[tuple[int, int, LTChar | LTAnno | list[Any]]]:
+    """Process horizontal cuts of the textline."""
+    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]] = []
+    x_overlap = [
+        i for i, x in enumerate(table.cols) if x[0] <= bbox[2] and bbox[0] <= x[1]
+    ]
+    r_idx = [
+        j for j, r in enumerate(table.rows) if r[1] <= (bbox[1] + bbox[3]) / 2 <= r[0]
+    ]
+
+    if not r_idx:
+        return cut_text
+
+    r = r_idx[0]
+    x_cuts = [
+        (c, table.cells[r][c].x2) for c in x_overlap if table.cells[r][c].right
+    ] or [(x_overlap[0], table.cells[r][-1].x2)]
+
+    for obj in textline._objs:
+        row = table.rows[r]
+        for cut in x_cuts:
+            if (
+                isinstance(obj, LTChar)
+                and row[1] <= (obj.y0 + obj.y1) / 2 <= row[0]
+                and (obj.x0 + obj.x1) / 2 <= cut[1]
+            ):
+                cut_text.append((r, cut[0], obj))
+                break
+            elif isinstance(obj, LTAnno):
+                cut_text.append((r, cut[0], obj))
+    return cut_text
+
+
+def _process_vertical_cut(
+    table, textline, bbox
+) -> list[tuple[int, int, LTChar | LTAnno | list[Any]]]:
+    """Process vertical cuts of the textline."""
+    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]] = []
+    y_overlap = [
+        j for j, y in enumerate(table.rows) if y[1] <= bbox[3] and bbox[1] <= y[0]
+    ]
+    c_idx = [
+        i for i, c in enumerate(table.cols) if c[0] <= (bbox[0] + bbox[2]) / 2 <= c[1]
+    ]
+
+    if not c_idx:
+        return cut_text
+
+    c = c_idx[0]
+    y_cuts = [
+        (r, table.cells[r][c].y1) for r in y_overlap if table.cells[r][c].bottom
+    ] or [(y_overlap[0], table.cells[-1][c].y1)]
+
+    for obj in textline._objs:
+        col = table.cols[c]
+        for cut in y_cuts:
+            if (
+                isinstance(obj, LTChar)
+                and col[0] <= (obj.x0 + obj.x1) / 2 <= col[1]
+                and (obj.y0 + obj.y1) / 2 >= cut[1]
+            ):
+                cut_text.append((cut[0], c, obj))
+                break
+            elif isinstance(obj, LTAnno):
+                cut_text.append((cut[0], c, obj))
+    return cut_text
+
+
+def _group_and_process_chars(
+    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]],
+    flag_size: bool,
+    direction: str,
+    strip_text: str,
+):  #  -> List[Tuple[int, int, str]]
+    """Group characters and process them based on size flag."""
+    grouped_chars: list[tuple[int, int, str]] = []  # LTChar
     for key, chars in groupby(cut_text, itemgetter(0, 1)):
         if flag_size:
             grouped_chars.append(
@@ -1065,7 +1090,7 @@ def split_textline(table, textline, direction, flag_size=False, strip_text=""):
                 )
             )
         else:
-            gchars = [t[2].get_text() for t in chars]
+            gchars = [t[2].get_text() for t in chars]  # .get_text()
             grouped_chars.append(
                 (key[0], key[1], text_strip("".join(gchars), strip_text))
             )
