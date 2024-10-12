@@ -72,7 +72,7 @@ def random_string(length):
     """
     ret = ""
     while length:
-        ret += random.choice(
+        ret += random.choice(  # noqa S311
             string.digits + string.ascii_lowercase + string.ascii_uppercase
         )
         length -= 1
