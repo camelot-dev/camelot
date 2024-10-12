@@ -80,12 +80,12 @@ def random_string(length):
     return ret
 
 
-def download_url(url):
+def download_url(url: str) -> str:
     """Download file from specified URL.
 
     Parameters
     ----------
-    url : str or unicode
+    url : str
 
     Returns
     -------
@@ -94,7 +94,8 @@ def download_url(url):
 
     """
     filename = f"{random_string(6)}.pdf"
-    with tempfile.NamedTemporaryFile("wb", delete=False) as f:
+    with tempfile.NamedTemporaryFile("wb", delete=False) as f:  # noqa S310
+        # Valid url checking has been done in function is_url
         headers = {
             "User-Agent": "Mozilla/5.0",
             "Accept-Encoding": "gzip;q=1.0, deflate;q=0.9, br;q=0.8, compress;q=0.7, *;q=0.1",
