@@ -15,7 +15,9 @@ from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
+from typing import Callable
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 from urllib.parse import urlparse as parse_url
@@ -781,52 +783,61 @@ def boundaries_to_split_lines(boundaries):
     return anchors
 
 
-def get_index_closest_point(point, sorted_list, fn=lambda x: x):
-    """Find the index of the closest point in sorted_list .
+def get_index_closest_point(
+    point: Any, sorted_list: list[Any], fn: Callable[[Any], Any] = lambda x: x
+) -> int | None:
+    """Find the index of the closest point in sorted_list.
 
     Parameters
     ----------
-    point : [type]
-        the reference sortable element to search.
-    sorted_list : list
-        [description]
-    fn : [type], optional
-        optional accessor function, by default lambdax:x
+    point : Any
+        The reference sortable element to search.
+    sorted_list : List[Any]
+        A sorted list of elements.
+    fn : Callable[[Any], Any], optional
+        Optional accessor function, by default lambda x: x
 
     Returns
     -------
-    [type]
-        [description]
-
+    Optional[int]
+        The index of the closest point, or None if the list is empty.
     """
     n = len(sorted_list)
+
+    # If the list is empty, return None
     if n == 0:
         return None
-    if n == 1:
-        return 0
-    left = 0
-    right = n - 1
-    mid = 0
-    if point >= fn(sorted_list[n - 1]):
-        return n - 1
+
+    # Edge cases for points outside the range of the sorted list
     if point <= fn(sorted_list[0]):
         return 0
+    if point >= fn(sorted_list[-1]):
+        return n - 1
+
+    # Binary search
+    left, right = 0, n - 1
+
     while left < right:
-        mid = (left + right) // 2  # find the mid
+        mid = (left + right) // 2
         mid_val = fn(sorted_list[mid])
-        if point < mid_val:
-            right = mid
-        elif point > mid_val:
+
+        if mid_val < point:
             left = mid + 1
         else:
-            return mid
-    if mid_val > point:
-        if mid > 0 and (point - fn(sorted_list[mid - 1]) < mid_val - point):
-            return mid - 1
-    elif mid_val < point:
-        if mid < n - 1 and (fn(sorted_list[mid + 1]) - point < point - mid_val):
-            return mid + 1
-    return mid
+            right = mid
+
+    # After the loop, left is the first index greater than or equal to the point
+    # We need to check which of the closest points is closer to the reference point
+    if left == 0:
+        return 0
+    if left == n:
+        return n - 1
+
+    # Compare the closest two points
+    if abs(fn(sorted_list[left]) - point) < abs(fn(sorted_list[left - 1]) - point):
+        return left
+    else:
+        return left - 1
 
 
 def bbox_longer(ba, bb) -> bool:
