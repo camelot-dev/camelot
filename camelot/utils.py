@@ -130,6 +130,7 @@ lattice_kwargs = common_kwargs + [
     "threshold_constant",
     "iterations",
     "resolution",
+    "use_fallback",
 ]
 flavor_to_kwargs = {
     "stream": text_kwargs,
