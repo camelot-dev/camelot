@@ -102,7 +102,7 @@ class Lattice(BaseParser):
         iterations=0,
         resolution=300,
         use_fallback=True,
-        backend="ghostscript",
+        backend="pdfium",
         **kwargs,
     ):
         super().__init__("lattice")

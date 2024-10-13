@@ -92,7 +92,7 @@ class ImageConversionBackend:
         if isinstance(backend, str):
             if backend not in BACKENDS.keys():
                 raise NotImplementedError(
-                    f"Unknown backend {backend!r} specified. Please use either 'poppler' or 'ghostscript'."
+                    f"Unknown backend {backend!r} specified. Please use 'pdfium', 'poppler' or 'ghostscript'."
                 )
 
             return BACKENDS[backend]()
