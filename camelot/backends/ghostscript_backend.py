@@ -25,7 +25,7 @@ class GhostscriptBackend(ConversionBackend):
         """
         try:
             import ghostscript  # type: ignore[import-untyped]
-        except RuntimeError:
+        except ModuleNotFoundError as ex:
             raise OSError(
                 "Ghostscript is not installed. You can install it using the instructions"
                 " here: https://pypdf-table-extraction.readthedocs.io/en/latest/user/install-deps.html"

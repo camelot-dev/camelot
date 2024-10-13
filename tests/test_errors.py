@@ -1,9 +1,12 @@
 import os
+import sys
 import warnings
+from unittest import mock
 
 import pytest
 
 import camelot
+from camelot.backends.image_conversion import ImageConversionError
 from camelot.utils import is_url
 from tests.conftest import skip_on_windows
 
@@ -122,7 +125,9 @@ def test_lattice_no_tables_on_page(testdir):
 def test_lattice_unknown_backend(foo_pdf):
     message = "Unknown backend 'mupdf' specified. Please use either 'poppler' or 'ghostscript'."
     with pytest.raises(NotImplementedError, match=message):
-        tables = camelot.read_pdf(foo_pdf, backend="mupdf")
+        tables = camelot.read_pdf(
+            foo_pdf, flavor="lattice", backend="mupdf", use_fallback=False
+        )
 
 
 def test_lattice_no_convert_method(foo_pdf):
@@ -131,7 +136,9 @@ def test_lattice_no_convert_method(foo_pdf):
 
     message = "must implement a 'convert' method"
     with pytest.raises(NotImplementedError, match=message):
-        camelot.read_pdf(foo_pdf, backend=ConversionBackend())
+        camelot.read_pdf(
+            foo_pdf, flavor="lattice", backend=ConversionBackend(), use_fallback=False
+        )
 
 
 def test_invalid_url():
@@ -140,3 +147,17 @@ def test_invalid_url():
     with pytest.raises(Exception, match=message):
         url = camelot.read_pdf(url)
     assert is_url(url) == False
+
+
+def test_ghostscript_backend_import_error(testdir):
+    filename = os.path.join(testdir, "table_region.pdf")
+    with mock.patch.dict(sys.modules, {"ghostscript": None}):
+        message = "Ghostscript is not installed"
+        with pytest.raises(ImageConversionError) as e:
+            tables = camelot.read_pdf(
+                filename,
+                flavor="lattice",
+                backend="ghostscript",
+                use_fallback=False,
+            )
+        assert message in str(e.value)

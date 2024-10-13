@@ -73,10 +73,10 @@ class ImageConversionBackend:
                         converter = BACKENDS[fallback]()
                         converter.convert(pdf_path, png_path)
                     except Exception as e:
-                        msg = f"Image conversion failed with image conversion backend {fallback!r}"
+                        msg = f"Image conversion failed with image conversion backend {fallback!r}\n error: {e}"
                         raise ImageConversionError(msg) from e
                     else:
                         break
             else:
-                msg = f"Image conversion failed with image conversion backend {self.backend!r}"
+                msg = f"Image conversion failed with image conversion backend {self.backend!r}\n error: {f}"
                 raise ImageConversionError(msg) from f

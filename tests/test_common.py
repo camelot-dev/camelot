@@ -73,17 +73,17 @@ def test_url_ghostscript(testdir):
 @skip_pdftopng
 def test_pages_poppler():
     url = "https://pypdf-table-extraction.readthedocs.io/en/latest/_static/pdf/foo.pdf"
-    tables = camelot.read_pdf(url, backend="poppler")
+    tables = camelot.read_pdf(url, backend="poppler", use_fallback=False)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="1-end", backend="poppler")
+    tables = camelot.read_pdf(url, pages="1-end", backend="poppler", use_fallback=False)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="all", backend="poppler")
+    tables = camelot.read_pdf(url, pages="all", backend="poppler", use_fallback=False)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=219 x2=165 y2=234>"
@@ -92,17 +92,21 @@ def test_pages_poppler():
 @skip_on_windows
 def test_pages_ghostscript():
     url = "https://pypdf-table-extraction.readthedocs.io/en/latest/_static/pdf/foo.pdf"
-    tables = camelot.read_pdf(url, backend="ghostscript")
+    tables = camelot.read_pdf(url, backend="ghostscript", use_fallback=False)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="1-end", backend="ghostscript")
+    tables = camelot.read_pdf(
+        url, pages="1-end", backend="ghostscript", use_fallback=False
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
 
-    tables = camelot.read_pdf(url, pages="all", backend="ghostscript")
+    tables = camelot.read_pdf(
+        url, pages="all", backend="ghostscript", use_fallback=False
+    )
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"

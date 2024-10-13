@@ -54,6 +54,6 @@ def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
     )
     backend = ImageConversionBackend(backend="ghostscript")
 
-    message = "Image conversion failed with image conversion backend 'ghostscript'"
+    message = "Image conversion failed with image conversion backend 'poppler'\n error: Image conversion failed"
     with pytest.raises(ValueError, match=message):
         backend.convert("foo", "bar")
