@@ -123,7 +123,7 @@ def test_lattice_no_tables_on_page(testdir):
 
 
 def test_lattice_unknown_backend(foo_pdf):
-    message = "Unknown backend 'mupdf' specified. Please use either 'poppler' or 'ghostscript'."
+    message = "Unknown backend 'mupdf' specified. Please use 'pdfium', 'poppler' or 'ghostscript'."
     with pytest.raises(NotImplementedError, match=message):
         tables = camelot.read_pdf(
             foo_pdf, flavor="lattice", backend="mupdf", use_fallback=False
@@ -147,6 +147,35 @@ def test_invalid_url():
     with pytest.raises(Exception, match=message):
         url = camelot.read_pdf(url)
     assert is_url(url) is False
+
+
+def test_pdfium_backend_import_error(testdir):
+    filename = os.path.join(testdir, "table_region.pdf")
+    with mock.patch.dict(sys.modules, {"pypdfium2": None}):
+        message = "pypdfium2 is not available: "
+        try:
+            tables = camelot.read_pdf(
+                filename,
+                flavor="lattice",
+                backend="pdfium",
+                use_fallback=False,
+            )
+        except Exception as em:
+            print(em)
+            assert message in str(em)
+
+
+def test_pdfium_backend_import_error_alternative(testdir):
+    filename = os.path.join(testdir, "table_region.pdf")
+    with mock.patch.dict(sys.modules, {"pypdfium2": None}):
+        message = "pypdfium2 is not available: "
+        tables = camelot.read_pdf(
+            filename,
+            flavor="lattice",
+            backend="pdfium",
+            use_fallback=False,
+        )
+    assert tables is not None
 
 
 def test_ghostscript_backend_import_error(testdir):
