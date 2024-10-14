@@ -146,7 +146,7 @@ def test_invalid_url():
     message = "File format not supported"
     with pytest.raises(Exception, match=message):
         url = camelot.read_pdf(url)
-    assert is_url(url) == False
+    assert is_url(url) is False
 
 
 def test_ghostscript_backend_import_error(testdir):
