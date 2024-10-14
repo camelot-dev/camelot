@@ -385,7 +385,7 @@ def stream(c, *args, **kwargs):
 @click.argument("filepath", type=click.Path(exists=True))
 @pass_config
 def hybrid(c, *args, **kwargs):
-    """Use spaces between text to parse the table."""
+    """Combines the strengths of both the Network and the Lattice parser."""
     conf = c.config
     pages = conf.pop("pages")
     output = conf.pop("output")
@@ -476,7 +476,7 @@ def hybrid(c, *args, **kwargs):
 @click.argument("filepath", type=click.Path(exists=True))
 @pass_config
 def network(c, *args, **kwargs):
-    """Use spaces between text to parse the table."""
+    """Use text alignments to parse the table."""
     conf = c.config
     pages = conf.pop("pages")
     output = conf.pop("output")
