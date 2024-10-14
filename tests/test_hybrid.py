@@ -45,7 +45,9 @@ def test_hybrid_vertical_header(testdir):
     df = pd.DataFrame(data_hybrid_vertical_headers)
 
     filename = os.path.join(testdir, "vertical_header.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid")
+    tables = camelot.read_pdf(
+        filename, flavor="hybrid", backend="pdfium", use_fallback=False
+    )
     assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
 
