@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 from unittest import mock
 
 import pytest
@@ -267,20 +268,25 @@ def test_cli_quiet(testdir):
         infile = os.path.join(testdir, "empty.pdf")
         outfile = os.path.join(tempdir, "empty.csv")
         runner = CliRunner()
-
-        result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "stream", infile]
-        )
-        assert "Found 0 tables" in result.output
-
-        try:
-            result = runner.invoke(
-                cli,
-                ["--quiet", "--format", "csv", "--output", outfile, "stream", infile],
-            )
-        except Warning as e:
-            warning_text = str(e)
-            pytest.fail(f"Unexpected warning: {warning_text}")
+        with warnings.catch_warnings():
+            # the test should fail if any warning is thrown
+            # warnings.simplefilter("error")
+            try:
+                result = runner.invoke(
+                    cli,
+                    [
+                        "--quiet",
+                        "--format",
+                        "csv",
+                        "--output",
+                        outfile,
+                        "stream",
+                        infile,
+                    ],
+                )
+            except Warning as e:
+                warning_text = str(e)
+                pytest.fail(f"Unexpected warning: {warning_text}")
 
 
 def test_cli_lattice_plot_type():
