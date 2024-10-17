@@ -104,12 +104,46 @@ force_single_line = true
 lines_after_imports = 2
 
 [tool.mypy]
-strict = true
 warn_unreachable = true
 pretty = true
 show_column_numbers = true
 show_error_codes = true
 show_error_context = true
+ignore_missing_imports = true
+
+# strict = true
+# Strict is too agressive for now and not passing.
+# should uncomment the settings below one by one and make them pass.
+# Then strict can be enabled. (Values taken from mypy docs. section existing_code)
+
+# Start off with these
+warn_unused_configs = true
+warn_redundant_casts = true
+# warn_unused_ignores = true
+
+# Getting these passing should be easy
+strict_equality = true
+# extra_checks = true
+
+# Strongly recommend enabling this one as soon as you can
+# check_untyped_defs = true
+
+# These shouldn't be too much additional work, but may be tricky to
+# get passing if you use a lot of untyped libraries
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+
+# These next few are various gradations of forcing use of type annotations
+# disallow_untyped_calls = true
+# disallow_incomplete_defs = true
+# disallow_untyped_defs = true
+
+# This one isn't too hard to get passing, but return on investment is lower
+# no_implicit_reexport = true
+
+# This one can be tricky to get passing if you use a lot of untyped libraries
+# warn_return_any = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

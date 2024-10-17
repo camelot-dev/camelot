@@ -15,7 +15,13 @@ jobs:
         include:
           #          - { python: "3.10", os: "ubuntu-latest", session: "pre-commit" }
           - { python: "3.10", os: "ubuntu-latest", session: "safety" }
-          #          - { python: "3.11", os: "ubuntu-latest", session: "mypy" }
+          - {
+              python: "3.11",
+              os: "ubuntu-latest",
+              session: "mypy",
+              posargs:
+                ["camelot", "tests", "docs/conf.py", "--allow-untyped-globals"],
+            }
           #          - { python: "3.10", os: "ubuntu-latest", session: "mypy" }
           #          - { python: "3.9", os: "ubuntu-latest", session: "mypy" }
           #          - { python: "3.8", os: "ubuntu-latest", session: "mypy" }
