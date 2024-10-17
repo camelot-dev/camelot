@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          #          - { python: "3.10", os: "ubuntu-latest", session: "pre-commit" }
+          - { python: "3.10", os: "ubuntu-latest", session: "pre-commit" }
           - { python: "3.10", os: "ubuntu-latest", session: "safety" }
           - {
               python: "3.11",
