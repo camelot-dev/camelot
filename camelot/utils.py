@@ -11,6 +11,8 @@ import tempfile
 import warnings
 from itertools import groupby
 from operator import itemgetter
+from pathlib import Path
+from typing import Union
 from urllib.parse import urlparse as parse_url
 from urllib.parse import uses_netloc
 from urllib.parse import uses_params
@@ -32,6 +34,7 @@ from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 from pdfminer.pdfparser import PDFParser
+from pypdf._utils import StrByteType
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -80,7 +83,7 @@ def random_string(length):
     return ret
 
 
-def download_url(url: str) -> str:
+def download_url(url: str) -> Union[StrByteType, Path]:
     """Download file from specified URL.
 
     Parameters
@@ -89,7 +92,7 @@ def download_url(url: str) -> str:
 
     Returns
     -------
-    filepath : str or unicode
+    filepath : Union[StrByteType, Path]
         Temporary filepath.
 
     """
