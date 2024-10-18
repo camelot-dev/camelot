@@ -1,5 +1,7 @@
 """Functions to handle all operations on the PDF's."""
 
+from __future__ import annotations
+
 import multiprocessing as mp
 import os
 import sys
@@ -52,12 +54,16 @@ class PDFHandler:
     """
 
     def __init__(
-        self, filepath: Union[StrByteType, Path], pages="1", password=None, debug=False
+        self,
+        filepath: StrByteType | Path | str,
+        pages="1",
+        password=None,
+        debug=False,
     ):
         self.debug = debug
         if is_url(filepath):
-            filepath = download_url(filepath)
-        self.filepath: Union[StrByteType, Path] = filepath
+            filepath = download_url(str(filepath))
+        self.filepath: StrByteType | Path | str = filepath
 
         if isinstance(filepath, str) and not filepath.lower().endswith(".pdf"):
             raise NotImplementedError("File format not supported")
@@ -114,7 +120,7 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _save_page(self, filepath: Union[StrByteType, Path], page, temp):
+    def _save_page(self, filepath: StrByteType | Path, page, temp):
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
