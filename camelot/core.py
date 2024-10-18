@@ -5,14 +5,23 @@ from __future__ import annotations
 import math
 import os
 import sqlite3
+import sys
 import tempfile
 import zipfile
 from operator import itemgetter
+from typing import Any
 from typing import Iterable
 from typing import Iterator
 
 import cv2
 import pandas as pd
+
+
+if sys.version_info >= (3, 11):
+    from typing import TypedDict  # pylint: disable=no-name-in-module
+    from typing import Unpack
+else:
+    from typing_extensions import TypedDict, Unpack
 
 from .backends import ImageConversionBackend
 from .utils import build_file_path_in_temp_dir
@@ -783,6 +792,13 @@ class Table:
         conn.close()
 
 
+class Kw(TypedDict):
+    path: os.PathLike[Any] | str
+    dirname: str
+    root: str
+    ext: str
+
+
 class TableList:
     """Defines a list of camelot.core.Table objects.
 
@@ -804,7 +820,7 @@ class TableList:
     def __len__(self):  # noqa D105
         return len(self._tables)
 
-    def __getitem__(self, idx) -> Table:  # noqa D105
+    def __getitem__(self, idx):  # noqa D105
         return self._tables[idx]
 
     def __iter__(self) -> Iterator[Table]:  # noqa D105
@@ -822,21 +838,21 @@ class TableList:
         """The number of tables in the list."""
         return len(self)
 
-    def _write_file(self, f=None, **kwargs) -> None:
-        dirname = kwargs.get("dirname")
-        root = kwargs.get("root")
-        ext = kwargs.get("ext")
+    def _write_file(self, f=None, **kwargs: Unpack[Kw]) -> None:
+        dirname = kwargs["dirname"]
+        root = kwargs["root"]
+        ext = kwargs["ext"]
         for table in self._tables:
             filename = f"{root}-page-{table.page}-table-{table.order}{ext}"
             filepath = os.path.join(dirname, filename)
             to_format = self._format_func(table, f)
             to_format(filepath)
 
-    def _compress_dir(self, **kwargs) -> None:
-        path = kwargs.get("path")
-        dirname = kwargs.get("dirname")
-        root = kwargs.get("root")
-        ext = kwargs.get("ext")
+    def _compress_dir(self, **kwargs: Unpack[Kw]) -> None:
+        path = kwargs["path"]
+        dirname = kwargs["dirname"]
+        root = kwargs["root"]
+        ext = kwargs["ext"]
         zipname = os.path.join(os.path.dirname(path), root) + ".zip"
         with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:
             for table in self._tables:
@@ -844,7 +860,7 @@ class TableList:
                 filepath = os.path.join(dirname, filename)
                 z.write(filepath, os.path.basename(filepath))
 
-    def export(self, path, f="csv", compress=False):
+    def export(self, path: str, f="csv", compress=False):
         """Export the list of tables to specified file format.
 
         Parameters
@@ -863,7 +879,7 @@ class TableList:
         if compress:
             dirname = tempfile.mkdtemp()
 
-        kwargs = {"path": path, "dirname": dirname, "root": root, "ext": ext}
+        kwargs: Kw = {"path": path, "dirname": dirname, "root": root, "ext": ext}
 
         if f in ["csv", "html", "json", "markdown"]:
             self._write_file(f=f, **kwargs)
