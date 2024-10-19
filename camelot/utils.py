@@ -935,7 +935,9 @@ def text_strip(text, strip=""):
 # (inspired from sklearn.pipeline.Pipeline)
 
 
-def flag_font_size(textline, direction, strip_text=""):
+def flag_font_size(
+    textline: list[LTChar | LTAnno], direction: str, strip_text: str = ""
+) -> str:
     """Flag super/subscripts.
 
     Flag super/subscripts in text by enclosing them with <s></s>.
@@ -943,9 +945,9 @@ def flag_font_size(textline, direction, strip_text=""):
 
     Parameters
     ----------
-    textline : list
-        List of PDFMiner LTChar objects.
-    direction : string
+    textline : List[LTChar | LTAnno]
+        List of objects implementing the LTCharProtocol.
+    direction : str
         Direction of the PDFMiner LTTextLine object.
     strip_text : str, optional (default: '')
         Characters that should be stripped from a string before
@@ -953,9 +955,12 @@ def flag_font_size(textline, direction, strip_text=""):
 
     Returns
     -------
-    fstring : string
-
+    str
+        The processed string with flagged super/subscripts.
     """
+
+    # Determine size based on direction and collect text and size
+    d: list[tuple[str, float]] = []
     if direction == "horizontal":
         d = [
             (t.get_text(), np.round(t.height, decimals=6))
@@ -968,24 +973,31 @@ def flag_font_size(textline, direction, strip_text=""):
             for t in textline
             if not isinstance(t, LTAnno)
         ]
-    le = [np.round(size, decimals=6) for text, size in d]
-    if len(set(le)) > 1:
-        flist = []
-        min_size = min(le)
-        for key, chars in groupby(d, itemgetter(1)):
-            if key == min_size:
-                fchars = [t[0] for t in chars]
-                if "".join(fchars).strip():
-                    fchars.insert(0, "<s>")
-                    fchars.append("</s>")
-                    flist.append("".join(fchars))
-            else:
-                fchars = [t[0] for t in chars]
-                if "".join(fchars).strip():
-                    flist.append("".join(fchars))
+    else:
+        raise ValueError("Invalid direction provided. Use 'horizontal' or 'vertical'.")
+
+    # Group characters by size
+    size_groups: dict[float, list[str]] = {}
+    for text, size in d:
+        size_groups.setdefault(size, []).append(text)
+
+    # Check if we have multiple font sizes
+    if len(size_groups) > 1:
+        min_size = min(size_groups.keys())
+        flist: list[str] = []
+
+        for size, chars in size_groups.items():
+            combined_chars = "".join(chars).strip()
+            if combined_chars:
+                if size == min_size:
+                    flist.append(f"<s>{combined_chars}</s>")
+                else:
+                    flist.append(combined_chars)
+
         fstring = "".join(flist)
     else:
-        fstring = "".join([t.get_text() for t in textline])
+        fstring = "".join(text for text, _ in d)
+
     return text_strip(fstring, strip_text)
 
 
@@ -1006,9 +1018,9 @@ def split_textline(
         PDFMiner LTTextLine object.
     direction : str
         Direction of the PDFMiner LTTextLine object, either "horizontal" or "vertical".
-    flag_size : bool, optional
+    flag_size : bool
         Whether to highlight a substring using <s></s> if its size differs from the rest of the string.
-    strip_text : str, optional
+    strip_text : str
         Characters to strip from a string before assigning it to a cell.
 
     Returns
@@ -1017,7 +1029,7 @@ def split_textline(
         A list of tuples of the form (idx, text) where idx is the index of row/column
         and text is an LTTextLine substring.
     """
-    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]] = []
+    cut_text: list[tuple[int, int, LTChar | LTAnno]] = []
     bbox = textline.bbox
 
     if textline.is_empty():
@@ -1034,9 +1046,9 @@ def split_textline(
 
 def _process_horizontal_cut(
     table, textline, bbox
-) -> list[tuple[int, int, LTChar | LTAnno | list[Any]]]:
+) -> list[tuple[int, int, LTChar | LTAnno]]:
     """Process horizontal cuts of the textline."""
-    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]] = []
+    cut_text: list[tuple[int, int, LTChar | LTAnno]] = []
     x_overlap = [
         i for i, x in enumerate(table.cols) if x[0] <= bbox[2] and bbox[0] <= x[1]
     ]
@@ -1069,9 +1081,9 @@ def _process_horizontal_cut(
 
 def _process_vertical_cut(
     table, textline, bbox
-) -> list[tuple[int, int, LTChar | LTAnno | list[Any]]]:
+) -> list[tuple[int, int, LTChar | LTAnno]]:
     """Process vertical cuts of the textline."""
-    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]] = []
+    cut_text: list[tuple[int, int, LTChar | LTAnno]] = []
     y_overlap = [
         j for j, y in enumerate(table.rows) if y[1] <= bbox[3] and bbox[1] <= y[0]
     ]
@@ -1103,7 +1115,7 @@ def _process_vertical_cut(
 
 
 def _group_and_process_chars(
-    cut_text: list[tuple[int, int, LTChar | LTAnno | list[Any]]],
+    cut_text: list[tuple[int, int, LTChar | LTAnno]],
     flag_size: bool,
     direction: str,
     strip_text: str,
@@ -1115,8 +1127,7 @@ def _group_and_process_chars(
     ----------
     cut_text : list of tuples
         Each tuple consists of (x0, y0, character), where x0 and y0 are
-        coordinates and character can be an instance of LTChar, LTAnno,
-        or a list of any type.
+        coordinates and character can be an instance of LTChar or LTAnno.
 
     flag_size : bool
         A flag indicating whether to group by font size.
@@ -1149,18 +1160,9 @@ def _group_and_process_chars(
                 )
             )
         else:
-            # Check types before calling get_text
             gchars = []
             for t in chars_list:
-                if isinstance(
-                    t[2], (LTChar, LTAnno)
-                ):  # Ensure it's one of the expected types
-                    gchars.append(t[2].get_text())  # Call get_text() safely
-                else:
-                    # Handle the case where t[2] is a list or other type
-                    gchars.extend(
-                        t[2]
-                    )  # Assuming it's iterable and we want to extend the list
+                gchars.append(t[2].get_text())
 
             grouped_chars.append(
                 (key[0], key[1], text_strip("".join(gchars), strip_text))
