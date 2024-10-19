@@ -112,7 +112,7 @@ def download_url(url: str) -> StrByteType | Path:
             "Accept-Encoding": "gzip;q=1.0, deflate;q=0.9, br;q=0.8, compress;q=0.7, *;q=0.1",
         }
         request = Request(url, None, headers)
-        obj = urlopen(request)
+        obj = urlopen(request)  # noqa S310
         content_type = obj.info().get_content_type()
         if content_type != "application/pdf":
             raise NotImplementedError("File format not supported")
