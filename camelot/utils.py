@@ -1075,25 +1075,65 @@ def _group_and_process_chars(
     flag_size: bool,
     direction: str,
     strip_text: str,
-):  #  -> List[Tuple[int, int, str]]
-    """Group characters and process them based on size flag."""
-    grouped_chars: list[tuple[int, int, str]] = []  # LTChar
+) -> list[tuple[int, int, str]]:
+    """
+    Group characters and process them based on size flag.
+
+    Parameters
+    ----------
+    cut_text : list of tuples
+        Each tuple consists of (x0, y0, character), where x0 and y0 are
+        coordinates and character can be an instance of LTChar, LTAnno,
+        or a list of any type.
+
+    flag_size : bool
+        A flag indicating whether to group by font size.
+
+    direction : str
+        Direction for processing the text (e.g., 'horizontal' or 'vertical').
+
+    strip_text : str
+        Characters to strip from the text.
+
+    Returns
+    -------
+    list of tuples
+        Each tuple consists of (x0, y0, processed_text), where processed_text
+        is the grouped and processed text based on the specified conditions.
+    """
+    grouped_chars: list[tuple[int, int, str]] = []
+
     for key, chars in groupby(cut_text, itemgetter(0, 1)):
+        chars_list = list(chars)  # Convert the iterator to a list to reuse it
+
         if flag_size:
             grouped_chars.append(
                 (
                     key[0],
                     key[1],
                     flag_font_size(
-                        [t[2] for t in chars], direction, strip_text=strip_text
+                        [t[2] for t in chars_list], direction, strip_text=strip_text
                     ),
                 )
             )
         else:
-            gchars = [t[2].get_text() for t in chars]  # .get_text()
+            # Check types before calling get_text
+            gchars = []
+            for t in chars_list:
+                if isinstance(
+                    t[2], (LTChar, LTAnno)
+                ):  # Ensure it's one of the expected types
+                    gchars.append(t[2].get_text())  # Call get_text() safely
+                else:
+                    # Handle the case where t[2] is a list or other type
+                    gchars.extend(
+                        t[2]
+                    )  # Assuming it's iterable and we want to extend the list
+
             grouped_chars.append(
                 (key[0], key[1], text_strip("".join(gchars), strip_text))
             )
+
     return grouped_chars
 
 
