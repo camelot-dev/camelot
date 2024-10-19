@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import math
+from typing import Any
 
 import numpy as np
 from pdfminer.layout import LTTextLineHorizontal
@@ -425,43 +426,39 @@ class TextNetworks(TextAlignments):
         )
         return gaps_hv
 
-    def search_table_body(self, gaps_hv, parse_details=None):
-        """Build a candidate bbox for the body of a table using network algo.
-
-        Seed the process with the textline with the highest alignment
-        score, then expand the bbox with textlines within threshold.
+    def search_table_body(
+        self,
+        gaps_hv: tuple[float, float],
+        parse_details: list[Any] | None,
+    ) -> list[float] | None:
+        """Build a candidate bounding box for the body of a table using network algorithm.
 
         Parameters
         ----------
-        gaps_hv : tuple
+        gaps_hv : tuple of float
             The maximum distance allowed to consider surrounding lines/columns
             as part of the same table.
-        parse_details : array (optional)
-            Optional parameter array, in which to store extra information
+        parse_details : list
+            Optional parameter list, in which to store extra information
             to help later visualization of the table creation.
+
+        Returns
+        -------
+        list of float or None
+            The bounding box of the table body as a list of four floats
+            [x0, y0, x1, y1] or None if not enough textlines are found.
         """
-        # First, determine the textline that has the most combined
-        # alignments across horizontal and vertical axis.
-        # It will serve both as a starting point for the table boundary
-        # search, and as a way to estimate the average spacing between
-        # rows/cols.
         most_aligned_tl = self.most_connected_textline()
+        max_h_gap, max_v_gap = gaps_hv
 
-        # Calculate the 75th percentile of the horizontal/vertical
-        # gaps between textlines.  Use this as a reference for a threshold
-        # to not exceed while looking for table boundaries.
-        max_h_gap, max_v_gap = gaps_hv[0], gaps_hv[1]
-
+        parse_details_search: dict[str, Any] | None = None
         if parse_details is not None:
-            # Store debug info
             parse_details_search = {
                 "max_h_gap": max_h_gap,
                 "max_v_gap": max_v_gap,
                 "iterations": [],
             }
             parse_details.append(parse_details_search)
-        else:
-            parse_details_search = None
 
         bbox = [
             most_aligned_tl.x0,
@@ -470,78 +467,202 @@ class TextNetworks(TextAlignments):
             most_aligned_tl.y1,
         ]
 
-        # For the body of the table, we only consider cells that have
-        # alignments on both axis.
         tls_search_space = list(self._textline_to_alignments.keys())
-        # tls_search_space = []
         tls_search_space.remove(most_aligned_tl)
         tls_in_bbox = [most_aligned_tl]
         last_bbox = None
         last_cols_bounds = [(most_aligned_tl.x0, most_aligned_tl.x1)]
+
         while last_bbox != bbox:
-            if parse_details_search is not None:
-                # Store debug info
+            if parse_details_search is not None:  # is not None
                 parse_details_search["iterations"].append(bbox)
 
-            # Check that the closest tls are within the gaps allowed
             last_bbox = bbox
-            cand_bbox = last_bbox.copy()
             closest_tls = find_closest_tls(bbox, tls_search_space)
-            for direction, textline in closest_tls.items():
-                if textline is None:
-                    continue
-                expanded_cand_bbox = cand_bbox.copy()
-
-                if direction == "left":
-                    if expanded_cand_bbox[0] - textline.x1 > gaps_hv[0]:
-                        continue
-                    expanded_cand_bbox[0] = textline.x0
-                elif direction == "right":
-                    if textline.x0 - expanded_cand_bbox[2] > gaps_hv[0]:
-                        continue
-                    expanded_cand_bbox[2] = textline.x1
-                elif direction == "bottom":
-                    if expanded_cand_bbox[1] - textline.y1 > gaps_hv[1]:
-                        continue
-                    expanded_cand_bbox[1] = textline.y0
-                elif direction == "top":
-                    if textline.y0 - expanded_cand_bbox[3] > gaps_hv[1]:
-                        continue
-                    expanded_cand_bbox[3] = textline.y1
-
-                # If they are, see what an expanded bbox in that direction
-                # would contain
-                new_tls = text_in_bbox(expanded_cand_bbox, tls_search_space)
-                tls_in_new_box = new_tls + tls_in_bbox
-
-                # And if we're expanding up or down, check that the addition
-                # of the new row won't reduce the number of columns.
-                # This happens when text covers multiple rows - that's only
-                # allowed in the header, treated separately.
-                cols_bounds = find_columns_boundaries(tls_in_new_box)
-                if direction in ["bottom", "top"] and len(cols_bounds) < len(
-                    last_cols_bounds
-                ):
-                    continue
-
-                # We have an expansion candidate: register it, update the
-                # search space and repeat
-                # We use bbox_from_textlines instead of cand_bbox in case some
-                # overlapping textlines require a large bbox for strict fit.
-                bbox = cand_bbox = list(bbox_from_textlines(tls_in_new_box))
-                last_cols_bounds = cols_bounds
-                tls_in_bbox.extend(new_tls)
-                for i in range(len(tls_search_space) - 1, -1, -1):
-                    textline = tls_search_space[i]
-                    if textline in new_tls:
-                        del tls_search_space[i]
+            bbox, last_cols_bounds, tls_in_bbox, tls_search_space = self.expand_bbox(
+                bbox,
+                closest_tls,
+                tls_search_space,
+                gaps_hv,
+                last_cols_bounds,
+                tls_in_bbox,
+            )
 
         if len(tls_in_bbox) >= MINIMUM_TEXTLINES_IN_TABLE:
             return bbox
         return None
 
-    def generate(self, textlines):
-        """Generate the text edge dictionaries based on the input textlines."""
+    def expand_bbox(
+        self,
+        bbox: list[float],
+        closest_tls: dict[str, Any],
+        tls_search_space: list[Any],
+        gaps_hv: tuple[float, float],
+        last_cols_bounds: list[Any],
+        tls_in_bbox: list[Any],
+    ) -> tuple[list[float], list[Any], list[Any], list[Any]]:
+        """Expand the bounding box based on closest textlines.
+
+        Parameters
+        ----------
+        bbox : list of float
+            The current bounding box.
+        closest_tls : dict
+            The closest textlines found.
+        tls_search_space : list
+            The list of textlines available for searching.
+        gaps_hv : tuple of float
+            The maximum allowed horizontal and vertical gaps.
+        last_cols_bounds : list of tuple
+            The boundaries of the last found columns.
+        tls_in_bbox : list
+            The textlines currently in the bounding box.
+
+        Returns
+        -------
+        tuple
+            The updated bounding box, column boundaries, textlines in bbox, and search space.
+        """
+        cand_bbox = bbox.copy()
+
+        for direction, textline in closest_tls.items():
+            if textline is None or not self.can_expand_bbox(
+                cand_bbox, textline, gaps_hv, direction
+            ):
+                continue
+
+            expanded_cand_bbox = self.get_expanded_bbox(cand_bbox, textline, direction)
+            new_tls = text_in_bbox(expanded_cand_bbox, tls_search_space)
+            tls_in_new_box = new_tls + tls_in_bbox
+
+            if not self.is_valid_expansion(direction, tls_in_new_box, last_cols_bounds):
+                continue
+
+            bbox = cand_bbox = list(bbox_from_textlines(tls_in_new_box))
+            last_cols_bounds = find_columns_boundaries(tls_in_new_box)
+            tls_in_bbox.extend(new_tls)
+            self.update_search_space(tls_search_space, new_tls)
+
+        return bbox, last_cols_bounds, tls_in_bbox, tls_search_space
+
+    def can_expand_bbox(
+        self,
+        cand_bbox: list[float],
+        textline: Any,
+        gaps_hv: tuple[float, float],
+        direction: str,
+    ):  #  -> bool TODO
+        #  typeguard.TypeCheckError: the return value (numpy.bool_) is not an instance of bool
+        """Check if the bounding box can be expanded in the given direction.
+
+        Parameters
+        ----------
+        cand_bbox : list of float
+            The candidate bounding box.
+        textline : Any
+            The textline to check against.
+        gaps_hv : tuple of float
+            The maximum allowed horizontal and vertical gaps.
+        direction : str
+            The direction to check for expansion.
+
+        Returns
+        -------
+        bool
+            True if the bounding box can be expanded, otherwise False.
+        """
+        if direction == "left":
+            return cand_bbox[0] - textline.x1 <= gaps_hv[0]
+        elif direction == "right":
+            return textline.x0 - cand_bbox[2] <= gaps_hv[0]
+        elif direction == "bottom":
+            return cand_bbox[1] - textline.y1 <= gaps_hv[1]
+        elif direction == "top":
+            return textline.y0 - cand_bbox[3] <= gaps_hv[1]
+        return False
+
+    def get_expanded_bbox(
+        self, cand_bbox: list[float], textline: Any, direction: str
+    ) -> list[float]:
+        """Get the expanded bounding box based on the textline in the specified direction.
+
+        Parameters
+        ----------
+        cand_bbox : list of float
+            The candidate bounding box.
+        textline : Any
+            The textline to expand the bounding box with.
+        direction : str
+            The direction to expand.
+
+        Returns
+        -------
+        list of float
+            The expanded bounding box.
+        """
+        expanded_cand_bbox = cand_bbox.copy()
+        if direction == "left":
+            expanded_cand_bbox[0] = textline.x0
+        elif direction == "right":
+            expanded_cand_bbox[2] = textline.x1
+        elif direction == "bottom":
+            expanded_cand_bbox[1] = textline.y0
+        elif direction == "top":
+            expanded_cand_bbox[3] = textline.y1
+        return expanded_cand_bbox
+
+    def is_valid_expansion(
+        self,
+        direction: str,
+        tls_in_new_box: list[Any],
+        last_cols_bounds: list[Any],
+    ) -> bool:
+        """Check if the new expansion is valid.
+
+        Parameters
+        ----------
+        direction : str
+            The direction of expansion.
+        tls_in_new_box : list
+            The textlines in the new bounding box.
+        last_cols_bounds : list of tuple
+            The boundaries of the last found columns.
+
+        Returns
+        -------
+        bool
+            True if the expansion is valid, otherwise False.
+        """
+        cols_bounds = find_columns_boundaries(tls_in_new_box)
+        return not (
+            direction in ["bottom", "top"] and len(cols_bounds) < len(last_cols_bounds)
+        )
+
+    def update_search_space(
+        self, tls_search_space: list[Any], new_tls: list[Any]
+    ) -> None:
+        """Update the search space by removing textlines in the new bounding box.
+
+        Parameters
+        ----------
+        tls_search_space : list
+            The current search space of textlines.
+        new_tls : list
+            The new textlines added to the bounding box.
+        """
+        for i in range(len(tls_search_space) - 1, -1, -1):
+            textline = tls_search_space[i]
+            if textline in new_tls:
+                del tls_search_space[i]
+
+    def generate(self, textlines: list[Any]) -> None:
+        """Generate the text edge dictionaries based on the input textlines.
+
+        Parameters
+        ----------
+        textlines : list
+            List of textline objects to be processed.
+        """
         self._register_all_text_lines(textlines)
         self._compute_alignment_counts()
 
