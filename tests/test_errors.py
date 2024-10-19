@@ -89,10 +89,10 @@ def test_image_warning(testdir):
         warnings.simplefilter("error", category=UserWarning)
         with pytest.raises(UserWarning) as e:
             camelot.read_pdf(filename)
-            assert (
-                str(e.value)
-                == "page-1 is image-based, pypdf_table_extraction only works on text-based pages."
-            )
+        assert (
+            str(e.value)
+            == "page-1 is image-based, pypdf_table_extraction only works on text-based pages."
+        )
 
 
 def test_stream_no_tables_on_page(testdir):
