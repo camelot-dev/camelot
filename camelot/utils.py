@@ -16,10 +16,6 @@ from operator import itemgetter
 from pathlib import Path
 from typing import Any
 from typing import Callable
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
 from urllib.parse import urlparse as parse_url
 from urllib.parse import uses_netloc
 from urllib.parse import uses_params
@@ -256,38 +252,41 @@ def build_file_path_in_temp_dir(filename, extension=None):
     return path
 
 
-def translate(x1, x2):
+def translate(x1: float, x2: float) -> float:
     """Translate x2 by x1.
 
     Parameters
     ----------
     x1 : float
+        The offset to apply.
     x2 : float
+        The original y-coordinate.
 
     Returns
     -------
-    x2 : float
+    float
+        The translated y-coordinate.
 
     """
-    x2 += x1
-    return x2
+    return x2 + x1
 
 
-def scale(x, s):
-    """Scales x by scaling factor s.
+def scale(value: float, factor: float) -> float:
+    """Scale a given value by a factor.
 
     Parameters
     ----------
-    x : float
-    s : float
+    value : float
+        The value to scale.
+    factor : float
+        The scaling factor.
 
     Returns
     -------
-    x : float
-
+    float
+        The scaled value.
     """
-    x *= s
-    return x
+    return value * factor
 
 
 def scale_pdf(k, factors):
@@ -322,43 +321,64 @@ def scale_pdf(k, factors):
     return knew
 
 
-def scale_image(tables, v_segments, h_segments, factors):
-    """Translate and scale image coordinate space to pdf coordinate space.
+def scale_image(
+    tables: dict[tuple[float, float, float, float], list[tuple[float, float]]],
+    v_segments: list[tuple[float, float, float, float]],
+    h_segments: list[tuple[float, float, float, float]],
+    factors: tuple[float, float, float],
+) -> tuple[
+    dict[tuple[float, float, float, float], dict[str, list[tuple[float, float]]]],
+    list[tuple[float, float, float, float]],
+    list[tuple[float, float, float, float]],
+]:
+    """Translate and scale image coordinate space to PDF coordinate space.
 
     Parameters
     ----------
     tables : dict
-        Dict with table boundaries as keys and list of intersections
-        in that boundary as value.
+        A dictionary with table boundaries as keys (tuples of four floats)
+        and a list of intersections (list of tuples of two floats) as values.
     v_segments : list
-        List of vertical line segments.
+        A list of vertical line segments, where each segment is a tuple
+        of four floats (x1, y1, x2, y2).
     h_segments : list
-        List of horizontal line segments.
+        A list of horizontal line segments, where each segment is a tuple
+        of four floats (x1, y1, x2, y2).
     factors : tuple
-        Tuple (scaling_factor_x, scaling_factor_y, img_y) where the
-        first two elements are scaling factors and img_y is height of
-        image.
+        A tuple (scaling_factor_x, scaling_factor_y, img_y) where the
+        first two elements are scaling factors and img_y is the height of
+        the image.
 
     Returns
     -------
-    tables_new : dict
-    v_segments_new : dict
-    h_segments_new : dict
-
+    Tuple[Dict[Tuple[float, float, float, float], Dict[str, List[Tuple[float, float]]]],
+          List[Tuple[float, float, float, float]],
+          List[Tuple[float, float, float, float]]]
+        A tuple containing:
+        - tables_new: A new dictionary with scaled table boundaries and joints.
+        - v_segments_new: A new list of scaled vertical segments.
+        - h_segments_new: A new list of scaled horizontal segments.
     """
     scaling_factor_x, scaling_factor_y, img_y = factors
     tables_new = {}
+
     for k in tables.keys():
         x1, y1, x2, y2 = k
         x1 = scale(x1, scaling_factor_x)
         y1 = scale(abs(translate(-img_y, y1)), scaling_factor_y)
         x2 = scale(x2, scaling_factor_x)
         y2 = scale(abs(translate(-img_y, y2)), scaling_factor_y)
-        j_x, j_y = zip(*tables[k])
-        j_x = [scale(j, scaling_factor_x) for j in j_x]
-        j_y = [scale(abs(translate(-img_y, j)), scaling_factor_y) for j in j_y]
-        tables_new[(x1, y1, x2, y2)] = {"joints": list(zip(j_x, j_y))}
 
+        # j_x and j_y are tuples of floats
+        j_x, j_y = zip(*tables[k])  # noqa B905
+        j_x_scaled = [scale(j, scaling_factor_x) for j in j_x]
+        j_y_scaled = [scale(abs(translate(-img_y, j)), scaling_factor_y) for j in j_y]
+
+        tables_new[(x1, y1, x2, y2)] = {
+            "joints": list(zip(j_x_scaled, j_y_scaled))  # noqa B905
+        }
+
+    # Scale vertical segments
     v_segments_new = []
     for v in v_segments:
         x1, x2 = scale(v[0], scaling_factor_x), scale(v[2], scaling_factor_x)
@@ -368,6 +388,7 @@ def scale_image(tables, v_segments, h_segments, factors):
         )
         v_segments_new.append((x1, y1, x2, y2))
 
+    # Scale horizontal segments
     h_segments_new = []
     for h in h_segments:
         x1, x2 = scale(h[0], scaling_factor_x), scale(h[2], scaling_factor_x)
