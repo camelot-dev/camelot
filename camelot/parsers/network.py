@@ -551,7 +551,8 @@ class TextNetworks(TextAlignments):
         textline: Any,
         gaps_hv: tuple[float, float],
         direction: str,
-    ):  #  -> bool TODO
+    ):
+        #  -> bool TODO
         #  typeguard.TypeCheckError: the return value (numpy.bool_) is not an instance of bool
         """Check if the bounding box can be expanded in the given direction.
 
