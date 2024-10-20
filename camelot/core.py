@@ -258,60 +258,118 @@ class TextEdges(TextAlignments):
         )
 
     def get_table_areas(self, textlines, relevant_textedges):
-        """Return a dict of interesting table areas on the PDF page.
+        """
+        Return a dict of interesting table areas on the PDF page.
 
         The table areas are calculated using relevant text edges.
+
+        Parameters
+        ----------
+        textlines : list
+            List of text line objects that are relevant for determining table areas.
+        relevant_textedges : list
+            List of relevant text edge objects used to identify table areas.
+
+        Returns
+        -------
+        dict
+            A dictionary with padded table areas as keys and None as values.
         """
 
-        def pad(area, average_row_height):
-            x0 = area[0] - TABLE_AREA_PADDING
-            y0 = area[1] - TABLE_AREA_PADDING
-            x1 = area[2] + TABLE_AREA_PADDING
-            # add a constant since table headers can be relatively up
-            y1 = area[3] + average_row_height * 5
-            return (x0, y0, x1, y1)
-
-        # sort relevant textedges in reading order
+        # Sort relevant text edges in reading order
         relevant_textedges.sort(key=lambda te: (-te.y0, te.coord))
 
+        table_areas = self._initialize_table_areas(relevant_textedges)
+        self._extend_table_areas_with_textlines(table_areas, textlines)
+
+        # Add padding to table areas
+        average_textline_height = self._calculate_average_textline_height(textlines)
+        padded_table_areas = {
+            self._pad(area, average_textline_height): None for area in table_areas
+        }
+
+        return padded_table_areas
+
+    def _initialize_table_areas(self, relevant_textedges):
+        """
+        Initialize table areas based on relevant text edges.
+
+        Parameters
+        ----------
+        relevant_textedges : list
+            List of relevant text edge objects used to initialize table areas.
+
+        Returns
+        -------
+        dict
+            A dictionary of table areas initialized from relevant text edges.
+        """
         table_areas = {}
         for te in relevant_textedges:
             if not table_areas:
                 table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
             else:
-                found = None
-                for area in table_areas:
-                    # check for overlap
-                    if te.y1 >= area[1] and te.y0 <= area[3]:
-                        found = area
-                        break
-                if found is None:
-                    table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
-                else:
-                    table_areas.pop(found)
-                    updated_area = (
-                        found[0],
-                        min(te.y0, found[1]),
-                        max(found[2], te.coord),
-                        max(found[3], te.y1),
-                    )
-                    table_areas[updated_area] = None
+                self._update_table_areas(table_areas, te)
 
-        # extend table areas based on textlines that overlap
-        # vertically. it's possible that these textlines were
-        # eliminated during textedges generation since numbers and
-        # chars/words/sentences are often aligned differently.
-        # drawback: table areas that have paragraphs on their sides
-        # will include the paragraphs too.
-        sum_textline_height = 0
+        return table_areas
+
+    def _update_table_areas(self, table_areas, te):
+        """
+        Update table areas by checking for overlaps with new text edges.
+
+        Parameters
+        ----------
+        table_areas : dict
+            Current table areas to be updated.
+        te : object
+            The new text edge object to check for overlaps.
+
+        Returns
+        -------
+        None
+        """
+        found = None
+        for area in table_areas:
+            # Check for overlap
+            if te.y1 >= area[1] and te.y0 <= area[3]:
+                found = area
+                break
+
+        if found is None:
+            table_areas[(te.coord, te.y0, te.coord, te.y1)] = None
+        else:
+            table_areas.pop(found)
+            updated_area = (
+                found[0],
+                min(te.y0, found[1]),
+                max(found[2], te.coord),
+                max(found[3], te.y1),
+            )
+            table_areas[updated_area] = None
+
+    def _extend_table_areas_with_textlines(self, table_areas, textlines):
+        """
+        Extend table areas based on text lines that overlap vertically.
+
+        Parameters
+        ----------
+        table_areas : dict
+            Current table areas to be extended.
+        textlines : list
+            List of text line objects relevant for extending table areas.
+
+        Returns
+        -------
+        None
+        """
         for tl in textlines:
-            sum_textline_height += tl.y1 - tl.y0
             found = None
             for area in table_areas:
-                # check for overlap
+                # Check for overlap
                 if tl.y0 >= area[1] and tl.y1 <= area[3]:
                     found = area
                     break
+
             if found is not None:
                 table_areas.pop(found)
                 updated_area = (
@@ -321,14 +379,46 @@ class TextEdges(TextAlignments):
                     max(found[3], tl.y1),
                 )
                 table_areas[updated_area] = None
-        average_textline_height = sum_textline_height / float(len(textlines))
 
-        # add some padding to table areas
-        table_areas_padded = {}
-        for area in table_areas:
-            table_areas_padded[pad(area, average_textline_height)] = None
+    def _calculate_average_textline_height(self, textlines):
+        """
+        Calculate the average height of text lines.
 
-        return table_areas_padded
+        Parameters
+        ----------
+        textlines : list
+            List of text line objects.
+
+        Returns
+        -------
+        float
+            The average height of the text lines.
+        """
+        sum_textline_height = sum(tl.y1 - tl.y0 for tl in textlines)
+        return sum_textline_height / float(len(textlines)) if textlines else 0
+
+    def _pad(self, area, average_row_height):
+        """
+        Pad a given area by a constant value.
+
+        Parameters
+        ----------
+        area : tuple
+            The area to be padded defined as (x0, y0, x1, y1).
+        average_row_height : float
+            The average height of rows to use for padding.
+
+        Returns
+        -------
+        tuple
+            The padded area.
+        """
+        x0 = area[0] - TABLE_AREA_PADDING
+        y0 = area[1] - TABLE_AREA_PADDING
+        x1 = area[2] + TABLE_AREA_PADDING
+        # Add a constant since table headers can be relatively up
+        y1 = area[3] + average_row_height * 5
+        return (x0, y0, x1, y1)
 
 
 class Cell:
