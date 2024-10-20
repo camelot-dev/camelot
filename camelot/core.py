@@ -664,34 +664,71 @@ class Table:
         return self
 
     def copy_spanning_text(self, copy_text=None):
-        """Copies over text in empty spanning cells.
+        """
+        Copies over text in empty spanning cells.
 
         Parameters
         ----------
-        copy_text : list, optional (default: None)
-            {'h', 'v'}
-            Select one or more strings from above and pass them as a list
-            to specify the direction in which text should be copied over
-            when a cell spans multiple rows or columns.
+        copy_text : list of str, optional (default: None)
+            Select one or more of the following strings: {'h', 'v'} to specify
+            the direction in which text should be copied over when a cell spans
+            multiple rows or columns.
 
         Returns
         -------
-        t : camelot.core.Table
+        camelot.core.Table
+            The updated table with copied text in spanning cells.
         """
-        for f in copy_text:
-            if f == "h":
-                for i in range(len(self.cells)):
-                    for j in range(len(self.cells[i])):
-                        if self.cells[i][j].text.strip() == "":
-                            if self.cells[i][j].hspan and not self.cells[i][j].left:
-                                self.cells[i][j].text = self.cells[i][j - 1].text
-            elif f == "v":
-                for i in range(len(self.cells)):
-                    for j in range(len(self.cells[i])):
-                        if self.cells[i][j].text.strip() == "":
-                            if self.cells[i][j].vspan and not self.cells[i][j].top:
-                                self.cells[i][j].text = self.cells[i - 1][j].text
+        if copy_text is None:
+            return self
+
+        for direction in copy_text:
+            if direction == "h":
+                self._copy_horizontal_text()
+            elif direction == "v":
+                self._copy_vertical_text()
+
         return self
+
+    def _copy_horizontal_text(self):
+        """
+        Copies text horizontally in empty spanning cells.
+
+        This method iterates through the cells and fills empty cells that span
+        horizontally with the text from the left adjacent cell.
+
+        Returns
+        -------
+        None
+        """
+        for i in range(len(self.cells)):
+            for j in range(len(self.cells[i])):
+                if (
+                    self.cells[i][j].text.strip() == ""
+                    and self.cells[i][j].hspan
+                    and not self.cells[i][j].left
+                ):
+                    self.cells[i][j].text = self.cells[i][j - 1].text
+
+    def _copy_vertical_text(self):
+        """
+        Copies text vertically in empty spanning cells.
+
+        This method iterates through the cells and fills empty cells that span
+        vertically with the text from the top adjacent cell.
+
+        Returns
+        -------
+        None
+        """
+        for i in range(len(self.cells)):
+            for j in range(len(self.cells[i])):
+                if (
+                    self.cells[i][j].text.strip() == ""
+                    and self.cells[i][j].vspan
+                    and not self.cells[i][j].top
+                ):
+                    self.cells[i][j].text = self.cells[i - 1][j].text
 
     def to_csv(self, path, **kwargs):
         """Write Table(s) to a comma-separated values (csv) file.
