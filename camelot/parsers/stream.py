@@ -161,7 +161,9 @@ class Stream(TextBaseParser):
                     if elements:
                         ncols = max(set(elements), key=elements.count)
                     else:
-                        warnings.warn(f"No tables found in table area {bbox}")
+                        warnings.warn(
+                            f"No tables found in table area {bbox}", stacklevel=2
+                        )
                 cols = [
                     (t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r
                 ]
