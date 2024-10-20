@@ -46,7 +46,8 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
 def find_lines(
     threshold, regions=None, direction="horizontal", line_scale=40, iterations=0
 ):
-    """Finds horizontal and vertical lines by applying morphological transformations on an image.
+    """
+    Finds horizontal and vertical lines by applying morphological transformations on an image.
 
     Parameters
     ----------
@@ -61,13 +62,8 @@ def find_lines(
     line_scale : int, optional (default: 40)
         Factor by which the page dimensions will be divided to get
         smallest length of lines that should be detected.
-
-        The larger this value, smaller the detected lines. Making it
-        too large will lead to text being detected as lines.
     iterations : int, optional (default: 0)
         Number of times for erosion/dilation is applied.
-
-        For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
 
     Returns
     -------
@@ -78,40 +74,119 @@ def find_lines(
         List of tuples representing vertical/horizontal lines with
         coordinates relative to a left-top origin in
         image coordinate space.
-
     """
-    lines = []
+    if direction not in ["vertical", "horizontal"]:
+        raise ValueError("Specify direction as either 'vertical' or 'horizontal'")
 
+    el, size = create_structuring_element(threshold, direction, line_scale)
+    threshold = apply_region_mask(threshold, regions)
+
+    processed_threshold = process_image(threshold, el, iterations)
+    contours, _ = cv2.findContours(
+        processed_threshold.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    lines = extract_lines_from_contours(contours, direction)
+
+    return processed_threshold, lines
+
+
+def create_structuring_element(threshold, direction, line_scale):
+    """
+    Create a structuring element based on the specified direction.
+
+    Parameters
+    ----------
+    threshold : object
+        numpy.ndarray representing the thresholded image.
+    direction : string
+        Direction to create the structuring element.
+    line_scale : int
+        Factor for scaling the size of the structuring element.
+
+    Returns
+    -------
+    tuple
+        The structuring element and its size.
+    """
     if direction == "vertical":
         size = threshold.shape[0] // line_scale
         el = cv2.getStructuringElement(cv2.MORPH_RECT, (1, size))
-    elif direction == "horizontal":
+    else:  # direction == "horizontal"
         size = threshold.shape[1] // line_scale
         el = cv2.getStructuringElement(cv2.MORPH_RECT, (size, 1))
-    elif direction is None:
-        raise ValueError("Specify direction as either 'vertical' or 'horizontal'")
 
+    return el, size
+
+
+def apply_region_mask(threshold, regions):
+    """
+    Apply a mask to the threshold image based on specified regions.
+
+    Parameters
+    ----------
+    threshold : object
+        numpy.ndarray representing the thresholded image.
+    regions : list
+        List of regions to apply the mask.
+
+    Returns
+    -------
+    numpy.ndarray
+        The masked threshold image.
+    """
     if regions is not None:
-        region_mask = np.zeros(threshold.shape)
+        region_mask = np.zeros(threshold.shape, dtype=np.uint8)
         for region in regions:
             x, y, w, h = region
             region_mask[y : y + h, x : x + w] = 1
         threshold = np.multiply(threshold, region_mask)
 
+    return threshold
+
+
+def process_image(threshold, el, iterations):
+    """
+    Apply morphological operations to the threshold image.
+
+    Parameters
+    ----------
+    threshold : object
+        numpy.ndarray representing the thresholded image.
+    el : object
+        Structuring element for morphological operations.
+    iterations : int
+        Number of iterations for dilation.
+
+    Returns
+    -------
+    numpy.ndarray
+        The processed threshold image.
+    """
     threshold = cv2.erode(threshold, el)
     threshold = cv2.dilate(threshold, el)
     dmask = cv2.dilate(threshold, el, iterations=iterations)
 
-    try:
-        _, contours, _ = cv2.findContours(
-            threshold.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-    except ValueError:
-        # for opencv backward compatibility
-        contours, _ = cv2.findContours(
-            threshold.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
+    return dmask
 
+
+def extract_lines_from_contours(contours, direction):
+    """
+    Extract lines from contours based on the specified direction.
+
+    Parameters
+    ----------
+    contours : list
+        List of contours found in the image.
+    direction : string
+        Specifies whether to extract vertical or horizontal lines.
+
+    Returns
+    -------
+    list
+        List of tuples representing the coordinates of the lines.
+    """
+    lines = []
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
         x1, x2 = x, x + w
@@ -121,7 +196,7 @@ def find_lines(
         elif direction == "horizontal":
             lines.append((x1, (y1 + y2) // 2, x2, (y1 + y2) // 2))
 
-    return dmask, lines
+    return lines
 
 
 def find_contours(vertical, horizontal):
