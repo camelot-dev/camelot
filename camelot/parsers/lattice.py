@@ -1,6 +1,9 @@
 """Implementation of the Lattice table parser."""
 
+from __future__ import annotations
+
 import os
+from typing import Any
 
 from ..backends import ImageConversionBackend
 from ..backends.image_conversion import BACKENDS
@@ -145,43 +148,83 @@ class Lattice(BaseParser):
             return backend
 
     @staticmethod
-    def _reduce_index(table, idx, shift_text):
-        """Reduces index of a text object if it lies within a spanning cell.
+    def _shift_index(
+        table: Any, r_idx: int, c_idx: int, direction: str
+    ) -> tuple[int, int]:
+        """
+        Shift the index based on the specified direction.
 
         Parameters
         ----------
         table : camelot.core.Table
-        idx : list
-            List of tuples of the form (r_idx, c_idx, text).
-        shift_text : list
-            {'l', 'r', 't', 'b'}
-            Select one or more strings from above and pass them as a
-            list to specify where the text in a spanning cell should
-            flow.
+            The table structure containing rows and columns.
+        r_idx : int
+            Row index of the cell.
+        c_idx : int
+            Column index of the cell.
+        direction : str
+            Direction in which to shift the index ('l', 'r', 't', 'b').
 
         Returns
         -------
-        indices : list
-            List of tuples of the form (r_idx, c_idx, text) where
-            r_idx and c_idx are new row and column indices for text.
+        tuple
+            New row and column indices after the shift.
+        """
+        if direction == "l" and table.cells[r_idx][c_idx].hspan:
+            while c_idx > 0 and not table.cells[r_idx][c_idx].left:
+                c_idx -= 1
+        elif direction == "r" and table.cells[r_idx][c_idx].hspan:
+            while (
+                c_idx < len(table.cells[r_idx]) - 1
+                and not table.cells[r_idx][c_idx].right
+            ):
+                c_idx += 1
+        elif direction == "t" and table.cells[r_idx][c_idx].vspan:
+            while r_idx > 0 and not table.cells[r_idx][c_idx].top:
+                r_idx -= 1
+        elif direction == "b" and table.cells[r_idx][c_idx].vspan:
+            while r_idx < len(table.cells) - 1 and not table.cells[r_idx][c_idx].bottom:
+                r_idx += 1
 
+        return r_idx, c_idx
+
+    @staticmethod
+    def _reduce_index(
+        table: Any, idx: list[tuple[int, int, str]], shift_text: list[str]
+    ) -> list[tuple[int, int, str]]:
+        """
+        Reduces the index of a text object if it lies within a spanning cell.
+
+        Parameters
+        ----------
+        table : camelot.core.Table
+            The table structure containing rows and columns.
+        idx : list of tuples
+            List of tuples of the form (r_idx, c_idx, text) where r_idx
+            is the row index, c_idx is the column index, and text is the
+            associated text for that index.
+        shift_text : list of str
+            A list containing one or more of the following strings:
+            {'l', 'r', 't', 'b'} to specify the direction in which the
+            text in a spanning cell should flow. 'l' for left, 'r' for right,
+            't' for top, 'b' for bottom.
+
+        Returns
+        -------
+        list of tuples
+            List of tuples of the form (r_idx, c_idx, text) where r_idx
+            and c_idx are the new row and column indices for the text after
+            adjustment.
         """
         indices = []
+
         for r_idx, c_idx, text in idx:
-            for d in shift_text:
-                if d == "l" and table.cells[r_idx][c_idx].hspan:
-                    while not table.cells[r_idx][c_idx].left:
-                        c_idx -= 1
-                if d == "r" and table.cells[r_idx][c_idx].hspan:
-                    while not table.cells[r_idx][c_idx].right:
-                        c_idx += 1
-                if d == "t" and table.cells[r_idx][c_idx].vspan:
-                    while not table.cells[r_idx][c_idx].top:
-                        r_idx -= 1
-                if d == "b" and table.cells[r_idx][c_idx].vspan:
-                    while not table.cells[r_idx][c_idx].bottom:
-                        r_idx += 1
+            # Adjust the index based on specified shift directions
+            for direction in shift_text:
+                r_idx, c_idx = Lattice._shift_index(table, r_idx, c_idx, direction)
+
             indices.append((r_idx, c_idx, text))
+
         return indices
 
     def record_parse_metadata(self, table):
