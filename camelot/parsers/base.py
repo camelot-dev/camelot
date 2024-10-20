@@ -113,13 +113,12 @@ class BaseParser:
             rootname = os.path.basename(self.rootname)
             if self.images:
                 warnings.warn(
-                    "{rootname} is image-based, "
-                    "pypdf_table_extraction only works on text-based pages.".format(
-                        rootname=rootname
-                    )
+                    f"{rootname} is image-based, "
+                    "pypdf_table_extraction only works on text-based pages.",
+                    stacklevel=1,
                 )
             else:
-                warnings.warn(f"No tables found on {rootname}")
+                warnings.warn(f"No tables found on {rootname}", stacklevel=2)
             return True
         return False
 
