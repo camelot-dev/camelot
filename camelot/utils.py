@@ -958,7 +958,6 @@ def flag_font_size(
     str
         The processed string with flagged super/subscripts.
     """
-
     # Determine size based on direction and collect text and size
     d: list[tuple[str, float]] = []
     if direction == "horizontal":
@@ -1174,46 +1173,43 @@ def _group_and_process_chars(
 def get_table_index(
     table, t, direction, split_text=False, flag_size=False, strip_text=""
 ):
-    """Get indices of the table cell.
+    """
+    Get indices of the table cell.
 
-    Get the index of a table cell where given text object lies by
+    Get the index of a table cell where a given text object lies by
     comparing their y and x-coordinates.
 
     Parameters
     ----------
     table : camelot.core.Table
+        The table structure containing rows and columns.
     t : object
         PDFMiner LTTextLine object.
     direction : string
         Direction of the PDFMiner LTTextLine object.
     split_text : bool, optional (default: False)
-        Whether or not to split a text line if it spans across
-        multiple cells.
+        Whether or not to split a text line if it spans across multiple cells.
     flag_size : bool, optional (default: False)
-        Whether or not to highlight a substring using <s></s>
-        if its size is different from rest of the string. (Useful for
-        super and subscripts)
+        Whether to highlight a substring using <s></s> if its size is different
+        from the rest of the string.
     strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
-        assigning it to a cell.
+        Characters that should be stripped from a string before assigning it to a cell.
 
     Returns
     -------
-    indices : list
-        List of tuples of the form (r_idx, c_idx, text) where r_idx
-        and c_idx are row and column indices.
-    error : float
-        Assignment error, percentage of text area that lies outside
-        a cell.
+    list
+        List of tuples of the form (r_idx, c_idx, text) where r_idx and c_idx
+        are row and column indices, respectively.
+    float
+        Assignment error, percentage of text area that lies outside a cell.
         +-------+
         |       |
         |   [Text bounding box]
         |       |
         +-------+
-
     """
     r_idx, c_idx = [-1] * 2
-    for r in range(len(table.rows)):
+    for r in range(len(table.rows)):  # noqa
         if (t.y0 + t.y1) / 2.0 < table.rows[r][0] and (t.y0 + t.y1) / 2.0 > table.rows[
             r
         ][1]:
@@ -1230,13 +1226,53 @@ def get_table_index(
                 text_range = (t.x0, t.x1)
                 col_range = (table.cols[0][0], table.cols[-1][1])
                 warnings.warn(
-                    f"{text} {text_range} does not lie in column range {col_range}"
+                    f"{text} {text_range} does not lie in column range {col_range}",
+                    stacklevel=1,
                 )
             r_idx = r
             c_idx = lt_col_overlap.index(max(lt_col_overlap))
             break
+    if r_idx == -1:
+        return [], 1.0  # Return early if no valid row is found
 
-    # error calculation
+    error = calculate_assignment_error(t, table, r_idx, c_idx)
+
+    if split_text:
+        return (
+            split_textline(
+                table, t, direction, flag_size=flag_size, strip_text=strip_text
+            ),
+            error,
+        )
+        text = t.get_text().strip("\n")
+    if flag_size:
+        return [
+            (r_idx, c_idx, flag_font_size(t._objs, direction, strip_text=strip_text))
+        ], error
+    else:
+        return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], error
+
+
+def calculate_assignment_error(t, table, r_idx, c_idx):
+    """
+    Calculate the assignment error for the given text object.
+
+    Parameters
+    ----------
+    t : object
+        PDFMiner LTTextLine object.
+    table : camelot.core.Table
+        The table structure containing rows and columns.
+    r_idx : int
+        Row index where the text object is located.
+    c_idx : int
+        Column index where the text object is located.
+
+    Returns
+    -------
+    float
+        The calculated assignment error.
+    """
     y0_offset, y1_offset, x0_offset, x1_offset = [0] * 4
     if t.y0 > table.rows[r_idx][0]:
         y0_offset = abs(t.y0 - table.rows[r_idx][0])
@@ -1246,32 +1282,13 @@ def get_table_index(
         x0_offset = abs(t.x0 - table.cols[c_idx][0])
     if t.x1 > table.cols[c_idx][1]:
         x1_offset = abs(t.x1 - table.cols[c_idx][1])
+
     x = 1.0 if abs(t.x0 - t.x1) == 0.0 else abs(t.x0 - t.x1)
     y = 1.0 if abs(t.y0 - t.y1) == 0.0 else abs(t.y0 - t.y1)
+
     charea = x * y
     error = ((x * (y0_offset + y1_offset)) + (y * (x0_offset + x1_offset))) / charea
-
-    if split_text:
-        return (
-            split_textline(
-                table, t, direction, flag_size=flag_size, strip_text=strip_text
-            ),
-            error,
-        )
-    else:
-        if flag_size:
-            return (
-                [
-                    (
-                        r_idx,
-                        c_idx,
-                        flag_font_size(t._objs, direction, strip_text=strip_text),
-                    )
-                ],
-                error,
-            )
-        else:
-            return [(r_idx, c_idx, text_strip(t.get_text(), strip_text))], error
+    return error
 
 
 def compute_accuracy(error_weights):
