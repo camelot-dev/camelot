@@ -1,9 +1,13 @@
 """Implementation of network table parser."""
 
+from __future__ import annotations
+
 import copy
 import math
 
 import numpy as np
+from pdfminer.layout import LTTextLineHorizontal
+from pdfminer.layout import LTTextLineVertical
 
 from ..core import ALL_ALIGNMENTS
 from ..core import HORIZONTAL_ALIGNMENTS
@@ -26,6 +30,28 @@ MAX_COL_SPREAD_IN_HEADER = 3
 MINIMUM_TEXTLINES_IN_TABLE = 6
 
 
+class TextLine:
+    """A placeholder class to represent a text line with bounding box attributes.
+
+    Attributes
+    ----------
+    x0 : float
+        The x-coordinate of the left edge of the text line.
+    x1 : float
+        The x-coordinate of the right edge of the text line.
+    y0 : float
+        The y-coordinate of the bottom edge of the text line.
+    y1 : float
+        The y-coordinate of the top edge of the text line.
+    """
+
+    def __init__(self, x0: float, y0: float, x1: float, y1: float):
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
+
+
 def column_spread(left, right, col_anchors):
     """Get the number of columns crossed by a segment [left, right]."""
     index_left = 0
@@ -38,19 +64,41 @@ def column_spread(left, right, col_anchors):
     return index_right - index_left
 
 
-def find_closest_tls(bbox, tls):
-    """Search for tls that are the closest but outside in all 4 directions."""
-    left, right, top, bottom = None, None, None, None
+def find_closest_tls(  # noqa: C901
+    bbox: list[float], tls: list[LTTextLineHorizontal | LTTextLineVertical]
+) -> dict[str, LTTextLineHorizontal | LTTextLineVertical | None]:
+    """Search for textlines that are closest to the bounding box but outside in all four directions.
+
+    Parameters
+    ----------
+    bbox : list of float
+        A list containing the coordinates of the bounding box in the order
+        [left, bottom, right, top].
+    tls : list of TextLine
+        A list of textline objects to search for the closest lines.
+
+    Returns
+    -------
+    dict
+        A dictionary with keys "left", "right", "top", and "bottom",
+        each mapping to the closest textline object in that direction or None if not found.
+    """
+    left: LTTextLineHorizontal | LTTextLineVertical | None = None
+    right: LTTextLineHorizontal | LTTextLineVertical | None = None
+    top: LTTextLineHorizontal | LTTextLineVertical | None = None
+    bottom: LTTextLineHorizontal | LTTextLineVertical | None = None
+
     (bbox_left, bbox_bottom, bbox_right, bbox_top) = bbox
+
     for textline in tls:
         if textline.x1 < bbox_left:
-            # Left: check it overlaps horizontally
+            # Left: check if it overlaps horizontally
             if textline.y0 > bbox_top or textline.y1 < bbox_bottom:
                 continue
             if left is None or left.x1 < textline.x1:
                 left = textline
         elif bbox_right < textline.x0:
-            # Right: check it overlaps horizontally
+            # Right: check if it overlaps horizontally
             if textline.y0 > bbox_top or textline.y1 < bbox_bottom:
                 continue
             if right is None or right.x0 > textline.x0:
@@ -67,6 +115,7 @@ def find_closest_tls(bbox, tls):
                 # Top
                 if top is None or top.y0 > textline.y0:
                     top = textline
+
     return {
         "left": left,
         "right": right,
@@ -547,7 +596,7 @@ class Network(TextBaseParser):
         row_tol=2,
         column_tol=0,
         debug=False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             "network",
