@@ -47,10 +47,10 @@ class Stream(BaseParser):
         assigning it to a cell.
     edge_tol : int, optional (default: 50)
         Tolerance parameter for extending textedges vertically.
-    row_tol : int, optional (default: 2)
+    row_tol : list, optional (default: 2)
         Tolerance parameter used to combine text vertically,
         to generate rows.
-    column_tol : int, optional (default: 0)
+    column_tol : list, optional (default: 0)
         Tolerance parameter used to combine text horizontally,
         to generate columns.
 
@@ -65,20 +65,20 @@ class Stream(BaseParser):
         flag_size=False,
         strip_text="",
         edge_tol=50,
-        row_tol=2,
-        column_tol=0,
+        row_tol=None,
+        column_tol=None,
         **kwargs,
     ):
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.columns = columns
-        self._validate_columns()
         self.split_text = split_text
         self.flag_size = flag_size
         self.strip_text = strip_text
         self.edge_tol = edge_tol
         self.row_tol = row_tol
         self.column_tol = column_tol
+        self._validate_columns_and_row_column_tol()
 
     @staticmethod
     def _text_bbox(t_bbox):
@@ -268,10 +268,14 @@ class Stream(BaseParser):
         cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
         return cols
 
-    def _validate_columns(self):
-        if self.table_areas is not None and self.columns is not None:
-            if len(self.table_areas) != len(self.columns):
-                raise ValueError("Length of table_areas and columns" " should be equal")
+    def _validate_columns_and_row_column_tol(self):
+        if self.table_areas is not None:
+            if self.columns is not None and len(self.table_areas) != len(self.columns):
+                raise ValueError("Length of table_areas and columns should be equal")
+            if self.row_tol is not None and len(self.table_areas) != len(self.row_tol):
+                raise ValueError("Length of table_areas and row_tol should be equal")
+            if self.column_tol is not None and len(self.table_areas) != len(self.column_tol):
+                raise ValueError("Length of table_areas and column_tol should be equal")
 
     def _nurminen_table_detection(self, textlines):
         """A general implementation of the table detection algorithm
@@ -338,7 +342,10 @@ class Stream(BaseParser):
         self.t_bbox = t_bbox
 
         text_x_min, text_y_min, text_x_max, text_y_max = self._text_bbox(self.t_bbox)
-        rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=self.row_tol)
+        if self.row_tol is not None and self.row_tol[table_idx] != "":
+            rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=int(self.row_tol[table_idx]))
+        else:
+            rows_grouped = self._group_rows(self.t_bbox["horizontal"], row_tol=2)
         rows = self._join_rows(rows_grouped, text_y_max, text_y_min)
         elements = [len(r) for r in rows_grouped]
 
@@ -373,7 +380,10 @@ class Stream(BaseParser):
                 cols = [
                     (t.x0, t.x1) for r in rows_grouped if len(r) == ncols for t in r
                 ]
-                cols = self._merge_columns(sorted(cols), column_tol=self.column_tol)
+                if self.column_tol is not None and self.column_tol[table_idx] != "":
+                    cols = self._merge_columns(sorted(cols), column_tol=int(self.column_tol[table_idx]))
+                else:
+                    cols = self._merge_columns(sorted(cols), column_tol=0)
                 inner_text = []
                 for i in range(1, len(cols)):
                     left = cols[i - 1][1]
