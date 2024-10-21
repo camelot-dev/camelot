@@ -219,15 +219,9 @@ def find_contours(vertical, horizontal):
     """
     mask = vertical + horizontal
 
-    try:
-        __, contours, __ = cv2.findContours(
-            mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-    except ValueError:
-        # for opencv backward compatibility
-        contours, __ = cv2.findContours(
-            mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
+    contours, __ = cv2.findContours(
+        mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     # sort in reverse based on contour area and use first 10 contours
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
 
@@ -267,15 +261,9 @@ def find_joints(contours, vertical, horizontal):
     for c in contours:
         x, y, w, h = c
         roi = joints[y : y + h, x : x + w]
-        try:
-            __, jc, __ = cv2.findContours(
-                roi.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
-            )
-        except ValueError:
-            # for opencv backward compatibility
-            jc, __ = cv2.findContours(
-                roi.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
-            )
+        jc, __ = cv2.findContours(
+            roi.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
+        )
         if len(jc) <= 4:  # remove contours with less than 4 joints
             continue
         joint_coords = []
