@@ -780,21 +780,10 @@ class Network(TextBaseParser):
         )
 
     def _generate_table_bbox(self):
-        user_provided_bboxes = None
-        if self.table_areas is not None:
-            # User gave us table areas already.  We will use their coordinates
-            # to find column anchors.
-            user_provided_bboxes = []
-            for area_str in self.table_areas:
-                user_provided_bboxes.append(bbox_from_str(area_str))
+        user_provided_bboxes = self._get_user_provided_bboxes()
 
         # Take all the textlines that are not just spaces
-        all_textlines = [
-            t
-            for t in self.horizontal_text + self.vertical_text
-            if len(t.get_text().strip()) > 0
-        ]
-        textlines = self._apply_regions_filter(all_textlines)
+        textlines = self._get_filtered_textlines()
 
         textlines_processed = {}
         self.table_bbox_parses = {}
@@ -873,11 +862,34 @@ class Network(TextBaseParser):
                 self.parse_details["col_searches"].append(table_parse)
 
             # Remember what textlines we processed, and repeat
-            for textline in tls_in_bbox:
-                textlines_processed[textline] = None
             textlines = list(
                 filter(lambda textline: textline not in textlines_processed, textlines)
             )
+            self._mark_processed_textlines(tls_in_bbox, textlines_processed, textlines)
+
+    def _get_filtered_textlines(self):
+        all_textlines = [
+            t
+            for t in self.horizontal_text + self.vertical_text
+            if len(t.get_text().strip()) > 0
+        ]
+        return self._apply_regions_filter(all_textlines)
+
+    def _mark_processed_textlines(
+        self, tls_in_bbox, textlines_processed, all_textlines
+    ):
+        for textline in tls_in_bbox:
+            textlines_processed[textline] = None
+        all_textlines[:] = [
+            textline
+            for textline in all_textlines
+            if textline not in textlines_processed
+        ]
+
+    def _get_user_provided_bboxes(self):
+        if self.table_areas is not None:
+            return [bbox_from_str(area_str) for area_str in self.table_areas]
+        return None
 
     def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
