@@ -151,8 +151,7 @@ def search_header_from_body_bbox(body_bbox, textlines, col_anchors, max_v_gap):
             textline_center = 0.5 * (textline.x0 + textline.x1)
             if textline.y0 > top and left < textline_center < right:
                 all_above.append(textline)
-                if closest_above is None or closest_above.y0 > textline.y0:
-                    closest_above = textline
+                closest_above = min(all_above, key=lambda tl: tl.y0, default=None)
 
         if closest_above and closest_above.y0 < top + max_v_gap:
             # b/ We have a candidate cell that is within the correct
