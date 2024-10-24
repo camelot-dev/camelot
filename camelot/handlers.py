@@ -6,7 +6,6 @@ import multiprocessing as mp
 import os
 import sys
 from pathlib import Path
-from typing import Union
 
 from pypdf import PdfReader
 from pypdf import PdfWriter
