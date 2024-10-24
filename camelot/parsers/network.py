@@ -46,6 +46,8 @@ class TextLine:
         The y-coordinate of the top edge of the text line.
     """
 
+    __slots__ = ("x0", "y0", "x1", "y1")
+
     def __init__(self, x0: float, y0: float, x1: float, y1: float):
         self.x0 = x0
         self.y0 = y0
