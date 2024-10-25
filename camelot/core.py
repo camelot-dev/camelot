@@ -900,7 +900,9 @@ class Table:
         conn.close()
 
 
-class Kw(TypedDict):
+class _Kw(TypedDict):
+    """Helper class to define file related arguments."""
+
     path: os.PathLike[Any] | str
     dirname: str
     root: str
@@ -946,7 +948,7 @@ class TableList:
         """The number of tables in the list."""
         return len(self)
 
-    def _write_file(self, f=None, **kwargs: Unpack[Kw]) -> None:
+    def _write_file(self, f=None, **kwargs: Unpack[_Kw]) -> None:
         dirname = kwargs["dirname"]
         root = kwargs["root"]
         ext = kwargs["ext"]
@@ -956,7 +958,7 @@ class TableList:
             to_format = self._format_func(table, f)
             to_format(filepath)
 
-    def _compress_dir(self, **kwargs: Unpack[Kw]) -> None:
+    def _compress_dir(self, **kwargs: Unpack[_Kw]) -> None:
         path = kwargs["path"]
         dirname = kwargs["dirname"]
         root = kwargs["root"]
@@ -987,7 +989,7 @@ class TableList:
         if compress:
             dirname = tempfile.mkdtemp()
 
-        kwargs: Kw = {"path": path, "dirname": dirname, "root": root, "ext": ext}
+        kwargs: _Kw = {"path": path, "dirname": dirname, "root": root, "ext": ext}
 
         if f in ["csv", "html", "json", "markdown"]:
             self._write_file(f=f, **kwargs)
