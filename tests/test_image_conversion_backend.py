@@ -33,7 +33,7 @@ class GhostscriptBackendNoError:
 def test_poppler_backend_error_when_no_use_fallback(patch_backends):
     backend = ImageConversionBackend(backend="poppler", use_fallback=False)
 
-    message = "Image conversion failed with image conversion backend 'poppler'"
+    message = r"Image conversion failed with image conversion backend.+Poppler"
     with pytest.raises(ValueError, match=message):
         backend.convert("foo", "bar")
 
@@ -57,3 +57,8 @@ def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
     message = "Image conversion failed with image conversion backend 'poppler'\n error: Image conversion failed"
     with pytest.raises(ValueError, match=message):
         backend.convert("foo", "bar")
+
+
+@pytest.mark.xfail
+def test_invalid_backend():
+    ImageConversionBackend(backend="invalid_backend")

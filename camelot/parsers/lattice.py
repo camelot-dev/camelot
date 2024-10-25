@@ -119,33 +119,9 @@ class Lattice(BaseParser):
         self.iterations = iterations
         self.resolution = resolution
         self.use_fallback = use_fallback
-        self.backend = Lattice._get_backend(backend)
         self.icb = ImageConversionBackend(use_fallback=use_fallback, backend=backend)
         self.image_path = None
         self.pdf_image = None
-
-    @staticmethod
-    def _get_backend(backend):
-        def implements_convert():
-            methods = [
-                method for method in dir(backend) if method.startswith("__") is False
-            ]
-            return "convert" in methods
-
-        if isinstance(backend, str):
-            if backend not in BACKENDS.keys():
-                raise NotImplementedError(
-                    f"Unknown backend {backend!r} specified. Please use either 'poppler' or 'ghostscript'."
-                )
-
-            return BACKENDS[backend]()
-        else:
-            if not implements_convert():
-                raise NotImplementedError(
-                    f"{backend!r} must implement a 'convert' method"
-                )
-
-            return backend
 
     @staticmethod
     def _shift_index(

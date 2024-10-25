@@ -37,14 +37,33 @@ class ImageConversionBackend:
         ValueError
             Raise an error if the backend is not supported.
         """
-        if backend not in BACKENDS.keys():
-            raise ValueError(f"Image conversion backend {backend!r} not supported")
-
-        self.backend: str = backend
+        self.backend: ConversionBackend = self.get_backend(backend)
         self.use_fallback: bool = use_fallback
         self.fallbacks: List[str] = list(
-            filter(lambda x: x != backend, BACKENDS.keys())
+            filter(lambda x: isinstance(backend, str) and x != backend, BACKENDS.keys())
         )
+
+    def get_backend(self, backend):
+        def implements_convert():
+            methods = [
+                method for method in dir(backend) if method.startswith("__") is False
+            ]
+            return "convert" in methods
+
+        if isinstance(backend, str):
+            if backend not in BACKENDS.keys():
+                raise NotImplementedError(
+                    f"Unknown backend {backend!r} specified. Please use either 'poppler' or 'ghostscript'."
+                )
+
+            return BACKENDS[backend]()
+        else:
+            if not implements_convert():
+                raise NotImplementedError(
+                    f"{backend!r} must implement a 'convert' method"
+                )
+
+            return backend
 
     def convert(self, pdf_path: str, png_path: str) -> None:
         """Convert PDF to png_path.
@@ -64,8 +83,7 @@ class ImageConversionBackend:
             [description]
         """
         try:
-            converter = BACKENDS[self.backend]()
-            converter.convert(pdf_path, png_path)
+            self.backend.convert(pdf_path, png_path)
         except Exception as f:
             if self.use_fallback:
                 for fallback in self.fallbacks:
