@@ -2,7 +2,7 @@
 
 from typing import Dict
 from typing import List
-from typing import Type
+from typing import Type, Any
 
 from .base import ConversionBackend
 from .ghostscript_backend import GhostscriptBackend
@@ -22,7 +22,7 @@ class ImageConversionError(ValueError):  # noqa D101
 class ImageConversionBackend:
     """Classes the ImageConversionBackend backend."""
 
-    def __init__(self, backend: str = "poppler", use_fallback: bool = True) -> None:
+    def __init__(self, backend: Any = "poppler", use_fallback: bool = True) -> None:
         """Initialize the conversion backend .
 
         Parameters
