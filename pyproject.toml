@@ -33,7 +33,7 @@ openpyxl = "^3.1.0"
 pdfminer-six = "^20240706"
 pypdf = [
     {version = "^3.17", python = ">=3.8,<3.12"},
-    {version = "^4.0", python = ">=3.12"}
+    {version = ">=4.0,<6.0", python = ">=3.12"}
 ]
 pandas = [
     {version = "^1.5.3", python = ">=3.8,<3.12"},
