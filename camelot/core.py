@@ -275,7 +275,6 @@ class TextEdges(TextAlignments):
         dict
             A dictionary with padded table areas as keys and None as values.
         """
-
         # Sort relevant text edges in reading order
         relevant_textedges.sort(key=lambda te: (-te.y0, te.coord))
 
