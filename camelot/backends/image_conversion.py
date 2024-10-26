@@ -1,8 +1,9 @@
 """Classes and functions for the ImageConversionBackend backends."""
 
+from typing import Any
 from typing import Dict
 from typing import List
-from typing import Type, Any
+from typing import Type
 
 from .base import ConversionBackend
 from .ghostscript_backend import GhostscriptBackend

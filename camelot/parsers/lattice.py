@@ -6,7 +6,6 @@ import os
 from typing import Any
 
 from ..backends import ImageConversionBackend
-from ..backends.image_conversion import BACKENDS
 from ..image_processing import adaptive_threshold
 from ..image_processing import find_contours
 from ..image_processing import find_joints
