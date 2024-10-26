@@ -487,7 +487,7 @@ Clearly, the smaller lines separating the headers, couldn't be detected. Let's t
 .. code-block:: pycon
 
     >>> tables = pypdf_table_extraction.read_pdf('short_lines.pdf', line_scale=40)
-    >>> camelot.plot(tables[0], kind='grid').show()
+    >>> pypdf_table_extraction.plot(tables[0], kind='grid').show()
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -647,16 +647,16 @@ To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://gith
 Use alternative image conversion backends
 -----------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, pypdf_table_extraction uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternative image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with
+When using the :ref:`Lattice <lattice>` flavor, pypdf_table_extraction uses ``pdfium`` to convert PDF pages to images for line recognition. You can still use ``ghostscript`` after installing it. You can specify which image conversion backend you want to use with
 
 .. code-block:: pycon
 
-    >>> tables = pypdf_table_extraction.read_pdf(filename, backend="ghostscript")  # default
-    >>> tables = pypdf_table_extraction.read_pdf(filename, backend="poppler")
+    >>> tables = pypdf_table_extraction.read_pdf(filename, backend="pdfium")  # default
+    >>> tables = pypdf_table_extraction.read_pdf(filename, backend="ghostscript")
 
-.. note:: ``ghostscript`` will be replaced by ``poppler`` as the default image conversion backend in ``v0.12.0``.
+.. note:: ``ghostscript`` is replaced by ``pdfium`` as the default image conversion backend in ``v1.0.0``.
 
-If you face issues with both ``ghostscript`` and ``poppler``, you can supply your own image conversion backend
+If you face issues with ``pdfium``, ``ghostscript`` and ``poppler``, you can supply your own image conversion backend.
 
 .. code-block:: pycon
 

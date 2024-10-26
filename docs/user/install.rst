@@ -5,9 +5,10 @@ Installation
 
 This part of the documentation covers the steps to install pypdf_table_extraction.
 
-After :ref:`installing the dependencies <install_deps>`, which include `Ghostscript <https://www.ghostscript.com>`_ and `Tkinter <https://wiki.python.org/moin/TkInter>`_, you can use one of the following methods to install pypdf_table_extraction:
+.. note:: ``ghostscript`` is replaced by ``pdfium`` as the default image conversion backend in ``v1.0.0``. Which should make this library easier to install with just a pip install (on linux).
 
-.. warning:: The ``lattice`` flavor will fail to run if Ghostscript is not installed. You may run into errors as shown in `issue #193 <https://github.com/camelot-dev/camelot/issues/193>`_.
+You can use one of the following methods to install pypdf_table_extraction:
+
 
 pip
 ---
@@ -31,7 +32,7 @@ conda
 From the source code
 --------------------
 
-After :ref:`installing the dependencies <install_deps>`, you can install pypdf_table_extraction from source by:
+You can install pypdf_table_extraction from source by:
 
 1. Cloning the GitHub repository.
 
@@ -45,3 +46,6 @@ After :ref:`installing the dependencies <install_deps>`, you can install pypdf_t
 
     $ cd camelot
     $ pip install ".[base]"
+
+.. tip::
+    You can still use the `ghostscript`` backend after After :ref:`installing the dependencies <install_deps>`.
