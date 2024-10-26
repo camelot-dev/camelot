@@ -29,7 +29,7 @@ class GhostscriptBackend(ConversionBackend):
             raise OSError(
                 "Ghostscript is not installed. You can install it using the instructions"
                 " here: https://pypdf-table-extraction.readthedocs.io/en/latest/user/install-deps.html"
-            )
+            ) from ex
 
         gs_command = [
             "gs",
