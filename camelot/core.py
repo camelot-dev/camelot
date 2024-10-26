@@ -683,8 +683,9 @@ class Table:
     def _update_vertical_edges(self, start, end, index):
         if index is None:  # only right edge
             index = len(self.cols) - 1
-            for j in range(start, end):
-                self.cells[j][index].right = True
+            if index >= 0:
+                for j in range(start, end):
+                    self.cells[j][index].right = True
         elif index == 0:  # only left edge
             for j in range(start, end):
                 self.cells[j][0].left = True
@@ -709,8 +710,9 @@ class Table:
     def _update_horizontal_edges(self, start, end, index):
         if index is None:  # only bottom edge
             index = len(self.rows) - 1
-            for j in range(start, end):
-                self.cells[index][j].bottom = True
+            if index >= 0:
+                for j in range(start, end):
+                    self.cells[index][j].bottom = True
         elif index == 0:  # only top edge
             for j in range(start, end):
                 self.cells[0][j].top = True
