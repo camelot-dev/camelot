@@ -45,6 +45,42 @@ class ImageConversionBackend:
         )
 
     def get_backend(self, backend):
+        """Retrieve the specified backend for processing.
+
+        This method checks if the provided backend is a string representing
+        a known backend or an object implementing a 'convert' method. It
+        returns an instance of the backend if valid.
+
+        Parameters
+        ----------
+        backend : str or object
+            The backend to retrieve. This can be:
+                - A string ('poppler' or 'ghostscript') corresponding to a pre-defined backend.
+                - An object that must implement a 'convert' method.
+
+        Returns
+        -------
+        object
+            An instance of the specified backend.
+
+        Raises
+        ------
+        NotImplementedError
+            If the backend is a string that is not recognized or if it is an
+            object that does not implement the 'convert' method.
+
+        Examples
+        --------
+        >> backend_instance = get_backend('poppler')
+        >> backend_instance = get_backend(my_custom_backend)
+
+        Notes
+        -----
+        The valid backends are defined in the BACKENDS dictionary. The
+        method verifies the backend type and raises exceptions for
+        unsupported backends.
+        """
+
         def implements_convert():
             methods = [
                 method for method in dir(backend) if method.startswith("__") is False
