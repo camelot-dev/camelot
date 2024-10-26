@@ -104,6 +104,10 @@ def read_pdf(
 
         For more information, refer `OpenCV's dilate
         <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
+    backend* : str, optional by default "pdfium"
+        The backend to use for converting the PDF to an image so it can be processed by OpenCV.
+    use_fallback* : bool, optional
+        Fallback to another backend if unavailable, by default True
     resolution* : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
 
