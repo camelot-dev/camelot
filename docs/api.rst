@@ -3,22 +3,22 @@
 API Reference
 =============
 
-.. module:: camelot
+.. module:: pypdf_table_extraction
 
 Main Interface
 --------------
-.. autofunction:: camelot.read_pdf
+.. autofunction:: pypdf_table_extraction.read_pdf
 
 Lower-Level Classes
 -------------------
 
-.. autoclass:: camelot.handlers.PDFHandler
+.. autoclass:: pypdf_table_extraction.handlers.PDFHandler
    :inherited-members:
 
-.. autoclass:: camelot.parsers.Stream
+.. autoclass:: pypdf_table_extraction.parsers.Stream
    :inherited-members:
 
-.. autoclass:: camelot.parsers.Lattice
+.. autoclass:: pypdf_table_extraction.parsers.Lattice
    :inherited-members:
 
 .. autoclass:: camelot.parsers.Network
@@ -30,13 +30,13 @@ Lower-Level Classes
 Lower-Lower-Level Classes
 -------------------------
 
-.. autoclass:: camelot.core.TableList
+.. autoclass:: pypdf_table_extraction.core.TableList
    :inherited-members:
 
-.. autoclass:: camelot.core.Table
+.. autoclass:: pypdf_table_extraction.core.Table
    :inherited-members:
 
-.. autoclass:: camelot.core.Cell
+.. autoclass:: pypdf_table_extraction.core.Cell
 
 Plotting
 --------

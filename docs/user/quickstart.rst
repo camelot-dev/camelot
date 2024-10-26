@@ -20,7 +20,7 @@ Begin by importing the Camelot module
 
 .. code-block:: pycon
 
-    >>> import camelot
+    >>> import pypdf_table_extraction
 
 Now, let's try to read a PDF. (You can check out the PDF used in this example `here`_.) Since the PDF has a table with clearly demarcated lines, we will use the :ref:`Lattice <lattice>` method here.
 
@@ -30,7 +30,7 @@ Now, let's try to read a PDF. (You can check out the PDF used in this example `h
 
 .. code-block:: pycon
 
-    >>> tables = camelot.read_pdf('foo.pdf')
+    >>> tables = pypdf_table_extraction.read_pdf('foo.pdf')
     >>> tables
     <TableList n=1>
 

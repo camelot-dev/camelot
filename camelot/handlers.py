@@ -208,7 +208,7 @@ class PDFHandler:
             A dict of `pdfminer.layout.LAParams
             <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
         kwargs : dict
-            See camelot.read_pdf kwargs.
+            See pypdf_table_extraction.read_pdf kwargs.
 
         Returns
         -------

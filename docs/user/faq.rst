@@ -21,7 +21,7 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
 
 .. code-block:: python
 
-    import camelot
+    import pypdf_table_extraction
 
 
     def chunks(l, n):
@@ -42,8 +42,8 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
             Example: '1,3,4' or '1,4-end' or 'all'.
         """
 
-        # get list of pages from camelot.handlers.PDFHandler
-        handler = camelot.handlers.PDFHandler(filepath)
+        # get list of pages from pypdf_table_extraction.handlers.PDFHandler
+        handler = pypdf_table_extraction.handlers.PDFHandler(filepath)
         page_list = handler._get_pages(filepath, pages=pages)
 
         # chunk pages list
@@ -52,7 +52,7 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
         # extraction and export
         for chunk in page_chunks:
             pages_string = str(chunk).replace("[", "").replace("]", "")
-            tables = camelot.read_pdf(filepath, pages=pages_string, **params)
+            tables = pypdf_table_extraction.read_pdf(filepath, pages=pages_string, **params)
             tables.export(f"{export_path}/tables.csv")
 
 How can I supply my own image conversion backend to Lattice?
@@ -69,4 +69,4 @@ When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`im
     >>>         # write image to png_path
     >>>         pass
     >>>
-    >>> tables = camelot.read_pdf(filename, backend=ConversionBackend())
+    >>> tables = pypdf_table_extraction.read_pdf(filename, backend=ConversionBackend())

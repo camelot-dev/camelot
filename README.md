@@ -19,8 +19,8 @@ Or follow the example below.
 You can check out the PDF used in this example [here](https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/_static/pdf/foo.pdf).
 
 ```python3
->>> import camelot
->>> tables = camelot.read_pdf('foo.pdf')
+>>> import pypdf_table_extraction
+>>> tables = pypdf_table_extraction.read_pdf('foo.pdf')
 >>> tables
 <TableList n=1>
 >>> tables.export('foo.csv', f='csv', compress=True) # json, excel, html, markdown, sqlite
@@ -93,7 +93,7 @@ git clone https://github.com/py-pdf/pypdf_table_extraction.git
 and install using pip:
 
 ```
-cd camelot
+cd pypdf_table_extraction
 pip install ".[base]"
 ```
 

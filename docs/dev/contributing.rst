@@ -50,7 +50,7 @@ You can use the following code snippet to find this information::
     import sys; print('Python', sys.version)
     import numpy; print('NumPy', numpy.__version__)
     import cv2; print('OpenCV', cv2.__version__)
-    import camelot; print('Camelot', camelot.__version__)
+    import pypdf_table_extraction; print('pypdf_table_extraction', pypdf_table_extraction.__version__)
 
 - Steps to reproduce the bug, using code snippets. See `Creating and highlighting code blocks`_.
 
