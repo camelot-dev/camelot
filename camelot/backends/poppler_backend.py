@@ -10,7 +10,7 @@ ValueError
 
 import os
 import shutil
-import subprocess
+import subprocess  # noqa
 import sys
 
 from camelot.backends.base import ConversionBackend
@@ -49,7 +49,9 @@ class PopplerBackend(ConversionBackend):
 
         try:
             subprocess.check_output(
-                " ".join(pdftopng_command), stderr=subprocess.STDOUT, shell=False
+                " ".join(pdftopng_command),
+                stderr=subprocess.STDOUT,
+                shell=False,  # noqa
             )
         except subprocess.CalledProcessError as e:
             raise ValueError(e.output) from e
