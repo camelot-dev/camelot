@@ -79,7 +79,7 @@ conda install -c conda-forge pypdf-table-extraction
 After [installing the dependencies](https://pypdf-table-extraction.readthedocs.io/en/latest/user/install-deps.html) ([tk](https://packages.ubuntu.com/bionic/python/python-tk) and [ghostscript](https://www.ghostscript.com/)), you can also just use pip to install pypdf_table_extraction:
 
 ```bash
-pip install pypdf-table-extraction[base]
+pip install pypdf-table-extraction
 ```
 
 ### From the source code
@@ -94,7 +94,7 @@ and install using pip:
 
 ```
 cd pypdf_table_extraction
-pip install ".[base]"
+pip install "."
 ```
 
 ## Documentation

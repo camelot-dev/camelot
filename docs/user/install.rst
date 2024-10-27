@@ -17,7 +17,7 @@ To install pypdf_table_extraction from PyPI using ``pip``
 
 .. code-block:: console
 
-    $ pip install "pypdf-table-extraction[base]"
+    $ pip install "pypdf-table-extraction"
 
 conda
 -----
@@ -44,8 +44,8 @@ You can install pypdf_table_extraction from source by:
 
 .. code-block:: console
 
-    $ cd camelot
-    $ pip install ".[base]"
+    $ cd pypdf_table_extraction
+    $ pip install "."
 
 .. tip::
     You can still use the `ghostscript`` backend after After :ref:`installing the dependencies <install_deps>`.
