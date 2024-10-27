@@ -791,6 +791,14 @@ def boundaries_to_split_lines(boundaries):
         List of coordinates representing the split points, each half way
         between boundaries
     """
+    # Check if boundaries list is empty
+    if not boundaries:
+        return []
+
+    # Check if boundaries have at least one tuple
+    if len(boundaries) < 1:
+        return []
+
     # From the row boundaries, identify splits by getting the mid points
     # between the boundaries.
     anchors = list(
@@ -799,8 +807,13 @@ def boundaries_to_split_lines(boundaries):
             range(1, len(boundaries)),
         )
     )
+
+    # Insert the first boundary's left coordinate
     anchors.insert(0, boundaries[0][0])
+
+    # Append the last boundary's right coordinate
     anchors.append(boundaries[-1][1])
+
     return anchors
 
 
