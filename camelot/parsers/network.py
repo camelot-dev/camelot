@@ -387,24 +387,38 @@ class TextNetworks(TextAlignments):
         Elements should be connected to others both vertically
         and horizontally.
         """
+        # Initialize a flag to indicate if any singletons were removed
         removed_singletons = True
+
         while removed_singletons:
             removed_singletons = False
+
             for text_alignments in self._text_alignments.values():
                 # For each alignment edge, remove items if they are singletons
                 # either horizontally or vertically
                 for text_alignment in text_alignments:
-                    for i in range(len(text_alignment.textlines) - 1, -1, -1):
+                    # Create a list to hold textlines to be removed
+                    to_remove = []
+
+                    for i in range(len(text_alignment.textlines)):
                         textline = text_alignment.textlines[i]
                         alignments = self._textline_to_alignments[textline]
+
+                        # Check if the textline is a singleton in either direction
                         if (
                             alignments.max_h_count() <= 1
                             or alignments.max_v_count() <= 1
                         ):
-                            del text_alignment.textlines[i]
-                            removed_singletons = True
+                            to_remove.append(i)  # Mark for removal
+
+                    # Remove items after iterating to avoid modifying the list during iteration
+                    for index in reversed(to_remove):
+                        del text_alignment.textlines[index]
+                        removed_singletons = True
+
+            # Clear the alignment cache
             self._textline_to_alignments = {}
-            self._compute_alignment_counts()
+            self._compute_alignment_counts()  # Recompute alignment counts after removals
 
     def most_connected_textline(self):
         """Retrieve the textline that is most connected."""
