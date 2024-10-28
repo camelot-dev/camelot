@@ -799,11 +799,12 @@ class Network(TextBaseParser):
             self.parse_details["bbox_searches"] = []
             self.parse_details["col_searches"] = []
 
-        while True:
+        while textlines:  # Continue while there are textlines to process
             bbox_body = None
             bbox_body, gaps_hv = self._get_bbox_body(user_provided_bboxes, textlines)
+
             if bbox_body is None:
-                break
+                break  # Exit the loop if no more bbox_body can be generated
 
             tls_in_bbox = textlines_overlapping_bbox(bbox_body, textlines)
             cols_boundaries = find_columns_boundaries(tls_in_bbox)
@@ -836,7 +837,12 @@ class Network(TextBaseParser):
 
             # Update processed textlines
             textlines_processed.update(tls_in_bbox)
+            # Filter out processed textlines
             textlines = [tl for tl in textlines if tl not in textlines_processed]
+
+            # Early exit if all textlines have been processed
+            if not textlines:
+                break  # No more textlines to process, exit the loop
 
     def _get_bbox_body(self, user_provided_bboxes, textlines):
         if user_provided_bboxes is not None:
