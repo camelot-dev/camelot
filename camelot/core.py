@@ -726,12 +726,31 @@ class Table:
 
     def set_border(self):
         """Sets table border edges to True."""
-        for index, _row in enumerate(self.rows):
-            self.cells[index][0].left = True
-            self.cells[index][len(self.cols) - 1].right = True
-        for index, _col in enumerate(self.cols):
-            self.cells[0][index].top = True
-            self.cells[len(self.rows) - 1][index].bottom = True
+        num_rows = len(self.rows)
+        num_cols = len(self.cols)
+
+        # Ensure cells structure is valid
+        if num_rows == 0 or num_cols == 0:
+            return self  # No rows or columns, nothing to do
+
+        # Check if cells have the expected structure
+        if len(self.cells) != num_rows or any(
+            len(row) != num_cols for row in self.cells
+        ):
+            raise ValueError(
+                "Inconsistent cells structure: cells should match the dimensions of rows and cols."
+            )
+
+        # Set left and right borders for each row
+        for row_index in range(num_rows):
+            self.cells[row_index][0].left = True  # Set the left border
+            self.cells[row_index][num_cols - 1].right = True  # Set the right border
+
+        # Set top and bottom borders for each column
+        for col_index in range(num_cols):
+            self.cells[0][col_index].top = True  # Set the top border
+            self.cells[num_rows - 1][col_index].bottom = True  # Set the bottom border
+
         return self
 
     def copy_spanning_text(self, copy_text=None):
