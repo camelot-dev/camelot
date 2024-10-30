@@ -140,3 +140,18 @@ def test_network_layout_kwargs(testdir):
         filename, flavor="network", layout_kwargs={"detect_vertical": False}
     )
     assert_frame_equal(df, tables[0].df)
+
+
+def test_network_no_infinite_execution(testdir):
+    """Test for not infinite execution.
+
+    This test used to fail, because the network parse was'nt able to process the tables on this pages.
+    After a refactor it stops infinite execution. But parsing result could be improved.
+    Hence this is no qualitative test.
+    """
+    filename = os.path.join(testdir, "tabula/schools.pdf")
+    tables = camelot.read_pdf(
+        filename, flavor="network", backend="ghostscript", pages="4"
+    )
+
+    assert len(tables) >= 1
