@@ -783,7 +783,6 @@ class Network(TextBaseParser):
     def _generate_table_bbox(self):
         user_provided_bboxes = self._get_user_provided_bboxes()
 
-        # Ensure textlines is a list
         filtered_textlines = list(
             self._get_filtered_textlines()
         )  # Convert to list if not already
@@ -793,20 +792,21 @@ class Network(TextBaseParser):
             set()
         )  # Use a set for O(1) average time complexity for lookups
         self.table_bbox_parses = {}
-
         if self.parse_details is not None:
             self.parse_details["network_searches"] = []
             self.parse_details["bbox_searches"] = []
             self.parse_details["col_searches"] = []
 
         while textlines:  # Continue while there are textlines to process
-            bbox_body = None
             bbox_body, gaps_hv = self._get_bbox_body(user_provided_bboxes, textlines)
 
             if bbox_body is None:
                 break  # Exit the loop if no more bbox_body can be generated
 
             tls_in_bbox = textlines_overlapping_bbox(bbox_body, textlines)
+            if not tls_in_bbox:  # If there are no textlines in the bbox, break
+                break
+
             cols_boundaries = find_columns_boundaries(tls_in_bbox)
             cols_anchors = boundaries_to_split_lines(cols_boundaries)
 
@@ -819,7 +819,6 @@ class Network(TextBaseParser):
                 gaps_hv,
             )
 
-            # Ensure bbox_full is hashable; convert to tuple if it's a list
             if isinstance(bbox_full, list):
                 bbox_full = tuple(bbox_full)
 
@@ -841,8 +840,8 @@ class Network(TextBaseParser):
             textlines = [tl for tl in textlines if tl not in textlines_processed]
 
             # Early exit if all textlines have been processed
-            if not textlines:
-                break  # No more textlines to process, exit the loop
+            if not textlines:  # Check if there are no more textlines to process
+                break
 
     def _get_bbox_body(self, user_provided_bboxes, textlines):
         if user_provided_bboxes is not None:
