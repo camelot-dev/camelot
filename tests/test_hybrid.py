@@ -133,3 +133,10 @@ def test_hybrid_layout_kwargs(testdir):
         filename, flavor="hybrid", layout_kwargs={"detect_vertical": False}
     )
     assert_frame_equal(df, tables[0].df)
+
+
+def test_hybrid_keyerror(testdir):
+    """Parsing this PDF generates a key error."""
+    filename = os.path.join(testdir, "tabula/schools.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid", pages="4-5")
+    assert len(tables) >= 1
