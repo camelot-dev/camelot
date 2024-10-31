@@ -182,13 +182,14 @@ class BaseParser:
                     flag_size=self.flag_size,
                     strip_text=self.strip_text,
                 )
-                if indices[0][:2] != (-1, -1):
-                    pos_errors.append(error)
-                    indices = type(self)._reduce_index(
-                        table, indices, shift_text=self.shift_text
-                    )
-                    for r_idx, c_idx, text in indices:
-                        table.cells[r_idx][c_idx].text = text
+                if len(indices) > 0:
+                    if indices[0][:2] != (-1, -1):
+                        pos_errors.append(error)
+                        indices = type(self)._reduce_index(
+                            table, indices, shift_text=self.shift_text
+                        )
+                        for r_idx, c_idx, text in indices:
+                            table.cells[r_idx][c_idx].text = text
         return pos_errors
 
     def _generate_columns_and_rows(self, bbox, user_cols):
