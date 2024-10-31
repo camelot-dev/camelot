@@ -446,7 +446,6 @@ class TextNetworks(TextAlignments):
         -------
         gaps_hv : tuple
             (horizontal_gap, vertical_gap) in pdf coordinate space.
-
         """
         # Determine the textline that has the most combined
         # alignments across horizontal and vertical axis.
@@ -459,6 +458,7 @@ class TextNetworks(TextAlignments):
         if best_alignment is None:
             return None
 
+        # Extract the reference textlines
         __, ref_h_textlines = best_alignment.max_h()
         __, ref_v_textlines = best_alignment.max_v()
 
@@ -467,32 +467,31 @@ class TextNetworks(TextAlignments):
             return None
 
         # Sort textlines based on their positions
-        h_textlines = sorted(
-            ref_h_textlines, key=lambda textline: textline.x0, reverse=True
-        )
-        v_textlines = sorted(
-            ref_v_textlines, key=lambda textline: textline.y0, reverse=True
-        )
+        h_textlines = sorted(ref_h_textlines, key=lambda textline: textline.x0)
+        v_textlines = sorted(ref_v_textlines, key=lambda textline: textline.y0)
 
         # Calculate gaps between textlines
-        h_gaps = [
-            h_textlines[i - 1].x0 - h_textlines[i].x0
-            for i in range(1, len(h_textlines))
-        ]
-        v_gaps = [
-            v_textlines[i - 1].y0 - v_textlines[i].y0
-            for i in range(1, len(v_textlines))
-        ]
+        h_gaps = np.array(
+            [
+                h_textlines[i].x0 - h_textlines[i - 1].x0
+                for i in range(1, len(h_textlines))
+            ]
+        )
+        v_gaps = np.array(
+            [
+                v_textlines[i].y0 - v_textlines[i - 1].y0
+                for i in range(1, len(v_textlines))
+            ]
+        )
 
         # If no gaps are found, return None
-        if not h_gaps or not v_gaps:
+        if h_gaps.size == 0 or v_gaps.size == 0:
             return None
 
-        # Calculate the 75th percentile gaps
-        percentile = 75
+        # Calculate the 75th percentile gaps using numpy for efficiency
         gaps_hv = (
-            2.0 * np.percentile(h_gaps, percentile),
-            2.0 * np.percentile(v_gaps, percentile),
+            2.0 * np.percentile(h_gaps, 75),
+            2.0 * np.percentile(v_gaps, 75),
         )
 
         return gaps_hv
