@@ -950,13 +950,21 @@ class Network(TextBaseParser):
             cols = [text_x_min] + user_cols + [text_x_max]
             cols = [(cols[i], cols[i + 1]) for i in range(0, len(cols) - 1)]
         else:
-            parse_details = self.table_bbox_parses[bbox]
-            col_anchors = parse_details["cols_anchors"]
-            cols = list(
-                map(
-                    lambda idx: [col_anchors[idx], col_anchors[idx + 1]],
-                    range(0, len(col_anchors) - 1),
+            # Check if the bounding box exists as a key in the dictionary
+            if bbox in self.table_bbox_parses:
+                parse_details = self.table_bbox_parses[bbox]
+                col_anchors = parse_details["cols_anchors"]
+                cols = list(
+                    map(
+                        lambda idx: [col_anchors[idx], col_anchors[idx + 1]],
+                        range(0, len(col_anchors) - 1),
+                    )
                 )
-            )
+            else:
+                # Handle the KeyError gracefully by returning empty lists
+                # or by performing alternative logic, such as using a default
+                # bounding box or skipping the table.
+                print(f"Warning: Bounding box {bbox} not found in table_bbox_parses.")
+                return [], [], [], []  # Return empty lists for cols, rows, v_s, h_s
 
         return cols, rows, None, None

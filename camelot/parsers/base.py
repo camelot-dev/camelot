@@ -236,7 +236,16 @@ class BaseParser:
         """Record data about the origin of the table."""
         table.flavor = self.id
         table.filename = self.filename
-        table.parse = self.table_bbox_parses[table._bbox]
+        if table._bbox in self.table_bbox_parses:
+            table.parse = self.table_bbox_parses[table._bbox]
+        else:
+            # Handle the KeyError gracefully by returning empty lists
+            # or by performing alternative logic, such as using a default
+            # bounding box or skipping the table.
+            print(
+                f"Warning: Bounding box {table._bbox} not found in table_bbox_parses."
+            )
+            return [], [], [], []  # Return empty lists for cols, rows, v_s, h_s
         table.parse_details = self.parse_details
         pos_errors = self.compute_parse_errors(table)
         table.accuracy = compute_accuracy([[100, pos_errors]])
