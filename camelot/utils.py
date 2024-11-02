@@ -1399,45 +1399,6 @@ def get_page_layout(
         return layout, dim
 
 
-def get_text_objects(layout, ltype="char", t=None):
-    """Recursively parses pdf layout to get a list of PDFMiner text objects.
-
-    Parameters
-    ----------
-    layout : object
-        PDFMiner LTPage object.
-    ltype : string
-        Specify 'char', 'lh', 'lv' to get LTChar, LTTextLineHorizontal,
-        and LTTextLineVertical objects respectively.
-    t : list
-
-    Returns
-    -------
-    t : list
-        List of PDFMiner text objects.
-
-    """
-    if ltype == "char":
-        LTObject = LTChar  # noqa
-    elif ltype == "image":
-        LTObject = LTImage  # noqa
-    elif ltype == "horizontal_text":
-        LTObject = LTTextLineHorizontal  # noqa
-    elif ltype == "vertical_text":
-        LTObject = LTTextLineVertical  # noqa
-    if t is None:
-        t = []
-    try:
-        for obj in layout._objs:
-            if isinstance(obj, LTObject):  # noqa
-                t.append(obj)
-            else:
-                t += get_text_objects(obj, ltype=ltype)
-    except AttributeError:
-        pass
-    return t
-
-
 def get_char_and_text_objects(
     layout: LTContainer[LTItem],
 ) -> tuple[list[LTChar], list[LTTextLineHorizontal], list[LTTextLineVertical]]:
