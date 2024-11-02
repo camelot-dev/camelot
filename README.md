@@ -50,6 +50,8 @@ pypdf_table_extraction also comes packaged with a [command-line interface](https
 
 Refer to the [QuickStart Guide](https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/user/quickstart.rst#quickstart) to quickly get started with pypdf_table_extraction, extract tables from PDFs and explore some basic options.
 
+**Tip:** Visit the `parser-comparison-notebook` to get an overview of all the packed parsers and their features. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/parser-comparison-notebook.ipynb)
+
 **Note:** pypdf_table_extraction only works with text-based PDFs and not scanned documents. (As Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
 You can check out some frequently asked questions [here](https://pypdf-table-extraction.readthedocs.io/en/latest/user/faq.html).

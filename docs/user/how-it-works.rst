@@ -8,6 +8,13 @@ This part of the documentation includes a high-level explanation of how pypdf_ta
 You can choose between the following table parsing methods, *Stream*, *Lattice*, *Network* and *Hybrid*.
 Where *Hybrid* is a combination of the *Network* and *Lattice* parser.
 
+.. tip::
+    For a side-by-side visual comparison of the parser use the `parser-comparison-notebook`:
+
+    .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/parser-comparison-notebook.ipynb
+
+
 .. _stream:
 
 Stream
