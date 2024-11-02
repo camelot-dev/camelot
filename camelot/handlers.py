@@ -5,6 +5,7 @@ from __future__ import annotations
 import multiprocessing as mp
 import os
 from pathlib import Path
+from typing import Any
 
 from pypdf import PdfReader
 from pypdf import PdfWriter
@@ -116,15 +117,17 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _save_page(self, filepath: StrByteType | Path, page, temp):
+    def _save_page(self, filepath: StrByteType | Path, page: int, temp: str):
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
         ----------
+        filepath : str
+            Filepath or URL of the PDF file.
         page : int
             Page number.
-        layout_kwargs : dict, optional (default: {})
-            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.  # noqa
+        temp : str
+            Tmp directory.
 
 
         Returns
@@ -175,10 +178,10 @@ class PDFHandler:
 
     def parse(
         self,
-        flavor="lattice",
-        suppress_stdout=False,
-        parallel=False,
-        layout_kwargs=None,
+        flavor: str = "lattice",
+        suppress_stdout: bool = False,
+        parallel: bool = False,
+        layout_kwargs: dict[str, Any] | None = None,
         **kwargs,
     ):
         """Extract tables by calling parser.get_tables on all single page PDFs.
@@ -194,7 +197,7 @@ class PDFHandler:
             Process pages in parallel using all available cpu cores.
         layout_kwargs : dict, optional (default: {})
             A dict of `pdfminer.layout.LAParams
-            <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
+            <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
         kwargs : dict
             See camelot.read_pdf kwargs.
 
@@ -238,19 +241,22 @@ class PDFHandler:
 
         return TableList(sorted(tables))
 
-    def _parse_page(self, page, tempdir, parser, suppress_stdout, layout_kwargs):
+    def _parse_page(
+        self, page: int, tempdir: str, parser, suppress_stdout: bool, layout_kwargs
+    ):
         """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters
         ----------
-        page : str
+        page : int
             Page number to parse
         parser : Lattice, Stream, Network or Hybrid
             The parser to use.
         suppress_stdout : bool
             Suppress logs and warnings.
         layout_kwargs : dict, optional (default: {})
-            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
+            A dict of `pdfminer.layout.LAParams
+            <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
 
         Returns
         -------

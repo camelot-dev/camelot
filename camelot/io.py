@@ -46,7 +46,7 @@ def read_pdf(
         Process pages in parallel using all available cpu cores.
     layout_kwargs : dict, optional (default: {})
         A dict of `pdfminer.layout.LAParams
-        <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
+        <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
     table_areas : list, optional (default: None)
         List of table area strings of the form x1,y1,x2,y2
         where (x1, y1) -> left-top and (x2, y2) -> right-bottom

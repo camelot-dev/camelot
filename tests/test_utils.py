@@ -15,7 +15,7 @@ from camelot.utils import bbox_intersection_area
 def get_text_from_pdf(filename):
     """Method to extract text object from pdf."""
     # https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
-    # https://pdfminer-docs.readthedocs.io/programming.html#performing-layout-analysis
+    # https://pdfminersix.readthedocs.io/en/latest/topic/converting_pdf_to_text.html
     document = open(filename, "rb")
     # Create resource manager
     rsrcmgr = PDFResourceManager()
