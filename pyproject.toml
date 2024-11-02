@@ -85,6 +85,12 @@ matplotlib = [
     {version = "^3.8.0", python = ">=3.12"}
 ]
 
+[tool.poetry.group.ghostscript]
+optional = true
+
+[tool.poetry.group.ghostscript.dependencies]
+ghostscript = "^0.7"
+
 [tool.poetry_bumpversion.file."camelot/__version__.py"]
 
 [tool.coverage.paths]
