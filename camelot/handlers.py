@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
-import sys
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -71,8 +70,6 @@ class PDFHandler:
             self.password = ""  # noqa: S105
         else:
             self.password = password
-            if sys.version_info[0] < 3:
-                self.password = self.password.encode("ascii")
         self.pages = self._get_pages(pages)
 
     def _get_pages(self, pages):
