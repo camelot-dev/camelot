@@ -30,6 +30,7 @@ from pdfminer.layout import LTAnno
 from pdfminer.layout import LTChar
 from pdfminer.layout import LTContainer
 from pdfminer.layout import LTImage
+from pdfminer.layout import LTItem
 from pdfminer.layout import LTTextLine
 from pdfminer.layout import LTTextLineHorizontal
 from pdfminer.layout import LTTextLineVertical
@@ -1438,7 +1439,7 @@ def get_text_objects(layout, ltype="char", t=None):
 
 
 def get_char_and_text_objects(
-    layout: LTContainer,
+    layout: LTContainer[LTItem],
 ) -> tuple[list[LTChar], list[LTTextLineHorizontal], list[LTTextLineVertical]]:
     """Parse a pdf layout to get text objects.
 
@@ -1486,7 +1487,7 @@ def get_char_and_text_objects(
     return char, horizontal_text, vertical_text
 
 
-def get_char_objects(layout: LTContainer) -> list[LTChar]:
+def get_char_objects(layout: LTContainer[Any]) -> list[LTChar]:
     """Get charachter objects from a pdf layout.
 
     Recursively parses pdf layout to get a list of PDFMiner LTChar
@@ -1516,7 +1517,7 @@ def get_char_objects(layout: LTContainer) -> list[LTChar]:
 
 
 def get_image_and_text_objects(
-    layout: LTContainer,
+    layout: LTContainer[LTItem],
 ) -> tuple[list[LTImage], list[LTTextLineHorizontal], list[LTTextLineVertical]]:
     """Parse a PDF layout to get objects.
 
@@ -1550,7 +1551,7 @@ def get_image_and_text_objects(
                 vertical_text.append(_object)
             elif isinstance(_object, LTContainer):
                 child_image, child_horizontal_text, child_vertical_text = (
-                    get_char_and_text_objects(_object)
+                    get_image_and_text_objects(_object)
                 )
                 image.extend(child_image)
                 horizontal_text.extend(child_horizontal_text)
