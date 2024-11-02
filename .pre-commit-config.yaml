@@ -46,7 +46,7 @@ repos:
         entry: pyupgrade
         language: system
         types: [python]
-        args: [--py37-plus]
+        args: [--py38-plus]
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         entry: trailing-whitespace-fixer
