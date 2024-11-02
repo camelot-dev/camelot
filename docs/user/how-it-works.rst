@@ -87,7 +87,13 @@ Let's see how Lattice processes the second page of `this PDF`_, step-by-step.
 .. _network:
 
 Network
-------
+-------
+
+.. tip::
+    The mechanism of the Netowrk and Hybrid parser can best be understood by using the following notebook:
+
+    .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/hybrid-parser-step-by-step.ipynb
 
 The network parser is text-based: it relies on the bounding boxes of the text elements encoded in the .pdf document to identify patterns indicative of a table.
 
@@ -117,7 +123,7 @@ The search area and the table bounding box grow starting from the seed. See meth
 Hybrid
 ------
 
-The hybrid parser  aims to combine the strengths of the Network parser (identifying cells based on text alignments) and of the Lattice parser (relying on solid lines to determine tables rows and columns boundaries).
+The hybrid parser aims to combine the strengths of the Network parser (identifying cells based on text alignments) and of the Lattice parser (relying on solid lines to determine tables rows and columns boundaries).
 
 1. Hybrid calls both parsers, to get a) the standard table parse, b) the coordinates of the rows and columns boundaries, and c) the table boundaries (or contour).
 
