@@ -14,7 +14,6 @@ from camelot.utils import compute_whitespace  # noqa F401
 from camelot.utils import download_url  # noqa F401
 from camelot.utils import expand_bbox_with_textline  # noqa F401
 from camelot.utils import find_columns_boundaries  # noqa F401
-from camelot.utils import find_rows_boundaries  # noqa F401
 from camelot.utils import flag_font_size  # noqa F401
 from camelot.utils import flavor_to_kwargs  # noqa F401
 from camelot.utils import get_index_closest_point  # noqa F401

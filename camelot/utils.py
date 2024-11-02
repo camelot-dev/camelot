@@ -747,32 +747,6 @@ def find_columns_boundaries(tls, min_gap=1.0):
     return cols_bounds
 
 
-def find_rows_boundaries(tls, min_gap=1.0):
-    """Make a list of disjunct rows boundaries for a list of text objects.
-
-    Parameters
-    ----------
-    tls : list of PDFMiner text object.
-
-    min_gap : minimum distance between rows. Any elements closer than
-        this threshold are merged together.
-
-    Returns
-    -------
-    boundaries : list
-        List y-coordinates for rows.
-            [(1st row bottom, 1st row top), (2nd row bottom, 2nd row top), ...]
-    """
-    rows_bounds = []
-    tls.sort(key=lambda tl: tl.y0)
-    for tl in tls:
-        if (not rows_bounds) or rows_bounds[-1][1] + min_gap < tl.y0:
-            rows_bounds.append([tl.y0, tl.y1])
-        else:
-            rows_bounds[-1][1] = max(rows_bounds[-1][1], tl.y1)
-    return rows_bounds
-
-
 def boundaries_to_split_lines(boundaries):
     """Find split lines given a list of boundaries between rows or cols.
 
