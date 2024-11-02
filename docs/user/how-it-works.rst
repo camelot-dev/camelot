@@ -90,7 +90,7 @@ Network
 -------
 
 .. tip::
-    The mechanism of the Netowrk and Hybrid parser can best be understood by using the following notebook:
+    The mechanism of the Network and Hybrid parser can best be understood by using the following notebook:
 
     .. image:: https://colab.research.google.com/assets/colab-badge.svg
         :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/hybrid-parser-step-by-step.ipynb
