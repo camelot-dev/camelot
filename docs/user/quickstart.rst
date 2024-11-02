@@ -3,7 +3,13 @@
 Quickstart
 ==========
 
-In a hurry to extract tables from PDFs? This document gives a good introduction to help you get started with pypdf_table_extraction.
+In a hurry to extract tables from PDFs?
+This document gives a good introduction to help you get started with pypdf_table_extraction.
+Or checkout the quickstart-notebook.
+
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+    :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/quickstart-notebook/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+
 
 Read the PDF
 ------------

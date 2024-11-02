@@ -32,7 +32,14 @@ Release v\ |version|. (:ref:`Installation <install>`)
 
 ----
 
-**Here's how you can extract tables from PDFs.** You can check out the PDF used in this example `here`_.
+**Here's how you can extract tables from PDFs.**
+You can check out the quickstart notebook.
+
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+    :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+
+Or follow the example below.
+You can find the PDF used in this example `here`_.
 
 .. _here: _static/pdf/foo.pdf
 
