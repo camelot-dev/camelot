@@ -25,7 +25,6 @@ else:
 
 from .backends import ImageConversionBackend
 from .utils import build_file_path_in_temp_dir
-from .utils import compute_whitespace
 from .utils import get_index_closest_point
 from .utils import get_textline_coords
 
@@ -610,20 +609,6 @@ class Table:
             "page": self.page,
         }
         return report
-
-    def record_metadata(self, parser):
-        """Record data about the origin of the table."""
-        self.flavor = parser.id
-        self.filename = parser.filename
-        self.debug_info = parser.debug_info
-        if parser.copy_text is not None:
-            self.copy_spanning_text(parser.copy_text)
-        data = self.data
-        self.df = pd.DataFrame(data)
-        self.shape = self.df.shape
-
-        self.whitespace = compute_whitespace(data)
-        self.pdf_size = (parser.pdf_width, parser.pdf_height)
 
     def get_pdf_image(self):
         """Compute pdf image and cache it."""
