@@ -78,9 +78,6 @@ Let's plot all the text present on the table's PDF page.
         $ pypdf_table_extraction lattice -plot text foo.pdf
 
 .. figure:: ../_static/png/plot_text.png
-    :height: 674
-    :width: 1366
-    :scale: 50%
     :alt: A plot of all text on a PDF page
     :align: center
 
@@ -199,9 +196,6 @@ You can also visualize the textedges found on a page by specifying ``kind='texte
         $ pypdf_table_extraction stream -plot textedge foo.pdf
 
 .. figure:: ../_static/png/plot_textedge.png
-    :height: 674
-    :width: 1366
-    :scale: 50%
     :alt: A plot of relevant textedges on a PDF page
     :align: center
 
@@ -400,9 +394,6 @@ Let's see the table area that is detected by default.
         $ pypdf_table_extraction stream -plot contour edge_tol.pdf
 
 .. figure:: ../_static/png/edge_tol_1.png
-    :height: 674
-    :width: 1366
-    :scale: 50%
     :alt: Table area with default edge_tol
     :align: center
 
@@ -421,9 +412,6 @@ To improve the detected area, you can increase the ``edge_tol`` (default: 50) va
         $ pypdf_table_extraction stream -e 500 -plot contour edge_tol.pdf
 
 .. figure:: ../_static/png/edge_tol_2.png
-    :height: 674
-    :width: 1366
-    :scale: 50%
     :alt: Table area with custom edge_tol
     :align: center
 
@@ -656,10 +644,10 @@ To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://gith
 
 .. _image-conversion-backend:
 
-Use alternate image conversion backends
----------------------------------------
+Use alternative image conversion backends
+-----------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, pypdf_table_extraction uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternate image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with
+When using the :ref:`Lattice <lattice>` flavor, pypdf_table_extraction uses ``ghostscript`` to convert PDF pages to images for line recognition. If you face installation issues with ``ghostscript``, you can use an alternative image conversion backend called ``poppler``. You can specify which image conversion backend you want to use with
 
 .. code-block:: pycon
 

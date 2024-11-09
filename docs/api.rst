@@ -21,6 +21,12 @@ Lower-Level Classes
 .. autoclass:: camelot.parsers.Lattice
    :inherited-members:
 
+.. autoclass:: camelot.parsers.Network
+   :inherited-members:
+
+.. autoclass:: camelot.parsers.Hybrid
+   :inherited-members:
+
 Lower-Lower-Level Classes
 -------------------------
 
@@ -31,3 +37,11 @@ Lower-Lower-Level Classes
    :inherited-members:
 
 .. autoclass:: camelot.core.Cell
+
+Plotting
+--------
+
+.. autofunction:: camelot.plot
+
+.. autoclass:: camelot.plotting.PlotMethods
+   :inherited-members:

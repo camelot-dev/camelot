@@ -39,7 +39,7 @@ Lattice
 
 Lattice is more deterministic in nature, and it does not rely on guesses. It can be used to parse tables that have demarcated lines between cells, and it can automatically parse multiple tables present on a page.
 
-It starts by converting the PDF page to an image using ghostscript, and then processes it to get horizontal and vertical line segments by applying a set of morphological transformations (erosion and dilation) using OpenCV.
+It starts by converting the PDF page to an image using an image conversion backend (default pdfium), and then processes it to get horizontal and vertical line segments by applying a set of morphological transformations (erosion and dilation) using OpenCV.
 
 Let's see how Lattice processes the second page of `this PDF`_, step-by-step.
 
