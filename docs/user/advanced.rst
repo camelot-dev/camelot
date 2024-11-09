@@ -282,12 +282,12 @@ Let's get back to the *x* coordinates we got from plotting the text that exists 
     "NUMBER TYPE DBA NAME","","","LICENSEE NAME","ADDRESS","CITY","ST","ZIP","PHONE NUMBER","EXPIRES"
     "...","...","...","...","...","...","...","...","...","..."
 
-Ah! Since `PDFMiner <https://euske.github.io/pdfminer/>`_ merged the strings, "NUMBER", "TYPE" and "DBA NAME", all of them were assigned to the same cell. Let's see how we can fix this in the next section.
+Ah! Since `PDFMiner <https://github.com/pdfminer/pdfminer.six>`_ merged the strings, "NUMBER", "TYPE" and "DBA NAME", all of them were assigned to the same cell. Let's see how we can fix this in the next section.
 
 Split text along separators
 ---------------------------
 
-To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `PDFMiner <https://euske.github.io/pdfminer/>`_).
+To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `PDFMiner <https://github.com/pdfminer/pdfminer.six>`_).
 
 .. code-block:: pycon
   :class: full-width
@@ -636,7 +636,7 @@ Tweak layout generation
 
 pypdf_table_extraction is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences. In some cases (such as `#170 <https://github.com/atlanhq/camelot/issues/170>`_ and `#215 <https://github.com/atlanhq/camelot/issues/215>`_), PDFMiner can group characters that should belong to the same sentence into separate sentences.
 
-To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ to improve layout generation, by passing the keyword arguments as a dict using ``layout_kwargs`` in :meth:`read_pdf() <camelot.read_pdf>`. To know more about the parameters you can tweak, you can check out `PDFMiner docs <https://pdfminersix.rtfd.io/en/latest/reference/composable.html>`_.
+To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ to improve layout generation, by passing the keyword arguments as a dict using ``layout_kwargs`` in :meth:`read_pdf() <camelot.read_pdf>`. To know more about the parameters you can tweak, you can check out `PDFMiner docs <https://pdfminersix.rtfd.io/en/latest/reference/composable.html>`_.
 
 .. code-block:: pycon
 
