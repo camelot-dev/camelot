@@ -18,7 +18,7 @@ from .parsers import Network
 from .parsers import Stream
 from .utils import TemporaryDirectory
 from .utils import download_url
-from .utils import get_char_and_text_objects
+from .utils import get_image_char_and_text_objects
 from .utils import get_page_layout
 from .utils import get_rotation
 from .utils import is_url
@@ -119,7 +119,7 @@ class PDFHandler:
 
     def _save_page(
         self, filepath: StrByteType | Path, page: int, temp: str, **layout_kwargs
-    ):
+    ):  # -> int, int, tuple[list[LTImage], list[LTTextLineHorizontal], list[LTTextLineVertical]]:
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
@@ -156,7 +156,9 @@ class PDFHandler:
             outfile.write(f)
         layout, dimensions = get_page_layout(fpath, **layout_kwargs)
         # fix rotated PDF
-        chars, horizontal_text, vertical_text = get_char_and_text_objects(layout)
+        images, chars, horizontal_text, vertical_text = get_image_char_and_text_objects(
+            layout
+        )
         rotation = get_rotation(chars, horizontal_text, vertical_text)
         if rotation != "":
             fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
@@ -176,9 +178,12 @@ class PDFHandler:
                 outfile.write(f)
             # Only recompute layout and dimension after rotating the pdf
             layout, dimensions = get_page_layout(fpath, **layout_kwargs)
+            images, chars, horizontal_text, vertical_text = (
+                get_image_char_and_text_objects(layout)
+            )
             instream.close()
-            return layout, dimensions
-        return layout, dimensions
+            return layout, dimensions, images, chars, horizontal_text, vertical_text
+        return layout, dimensions, images, chars, horizontal_text, vertical_text
 
     def parse(
         self,
@@ -268,12 +273,19 @@ class PDFHandler:
             List of tables found in PDF.
 
         """
-        layout, dimensions = self._save_page(
-            self.filepath, page, tempdir, **layout_kwargs
+        layout, dimensions, images, chars, horizontal_text, vertical_text = (
+            self._save_page(self.filepath, page, tempdir, **layout_kwargs)
         )
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
         parser.prepare_page_parse(
-            page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
+            page_path,
+            layout,
+            dimensions,
+            page,
+            images,
+            horizontal_text,
+            vertical_text,
+            layout_kwargs=layout_kwargs,
         )
         tables = parser.extract_tables()
         return tables

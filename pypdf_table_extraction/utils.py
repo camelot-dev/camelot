@@ -16,9 +16,8 @@ from camelot.utils import expand_bbox_with_textline  # noqa F401
 from camelot.utils import find_columns_boundaries  # noqa F401
 from camelot.utils import flag_font_size  # noqa F401
 from camelot.utils import flavor_to_kwargs  # noqa F401
-from camelot.utils import get_char_and_text_objects  # noqa F401
 from camelot.utils import get_char_objects  # noqa F401
-from camelot.utils import get_image_and_text_objects  # noqa F401
+from camelot.utils import get_image_char_and_text_objects  # noqa F401
 from camelot.utils import get_index_closest_point  # noqa F401
 from camelot.utils import get_page_layout  # noqa F401
 from camelot.utils import get_rotation  # noqa F401
