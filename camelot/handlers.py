@@ -7,6 +7,10 @@ import os
 from pathlib import Path
 from typing import Any
 
+from pdfminer.layout import LTChar
+from pdfminer.layout import LTImage
+from pdfminer.layout import LTTextLineHorizontal
+from pdfminer.layout import LTTextLineVertical
 from pypdf import PdfReader
 from pypdf import PdfWriter
 from pypdf._utils import StrByteType
@@ -119,7 +123,14 @@ class PDFHandler:
 
     def _save_page(
         self, filepath: StrByteType | Path, page: int, temp: str, **layout_kwargs
-    ):  # -> int, int, tuple[list[LTImage], list[LTTextLineHorizontal], list[LTTextLineVertical]]:
+    ) -> tuple[
+        Any,
+        tuple[float, float],
+        list[LTImage],
+        list[LTChar],
+        list[LTTextLineHorizontal],
+        list[LTTextLineVertical],
+    ]:
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
