@@ -78,6 +78,8 @@ pypdf_table_extraction = "pypdf_table_extraction.__main__:main"
 opencv-python-headless = "^4.7.0.68"
 pypdfium2 = "^4"
 
+[tool.poetry.group.plot]
+optional = true
 
 [tool.poetry.group.plot.dependencies]
 matplotlib = [
