@@ -92,7 +92,17 @@ class Hybrid(BaseParser):
             debug=debug,
         )
 
-    def prepare_page_parse(self, filename, layout, dimensions, page_idx, layout_kwargs):
+    def prepare_page_parse(
+        self,
+        filename,
+        layout,
+        dimensions,
+        page_idx,
+        images,
+        horizontal_text,
+        vertical_text,
+        layout_kwargs,
+    ):
         """Call this method to prepare the page parsing .
 
         Parameters
@@ -109,13 +119,34 @@ class Hybrid(BaseParser):
             [description]
         """
         super().prepare_page_parse(
-            filename, layout, dimensions, page_idx, layout_kwargs
+            filename,
+            layout,
+            dimensions,
+            page_idx,
+            images,
+            horizontal_text,
+            vertical_text,
+            layout_kwargs,
         )
         self.network_parser.prepare_page_parse(
-            filename, layout, dimensions, page_idx, layout_kwargs
+            filename,
+            layout,
+            dimensions,
+            page_idx,
+            images,
+            horizontal_text,
+            vertical_text,
+            layout_kwargs,
         )
         self.lattice_parser.prepare_page_parse(
-            filename, layout, dimensions, page_idx, layout_kwargs
+            filename,
+            layout,
+            dimensions,
+            page_idx,
+            images,
+            horizontal_text,
+            vertical_text,
+            layout_kwargs,
         )
 
     def _generate_columns_and_rows(self, bbox, table_idx):

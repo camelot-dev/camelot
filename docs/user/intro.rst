@@ -43,7 +43,7 @@ As you can already guess, that library is named after `The Camelot Project`_.
 .. _Monty Python and the Holy Grail: https://en.wikipedia.org/wiki/Monty_Python_and_the_Holy_Grail
 .. _Arthurian legend: https://en.wikipedia.org/wiki/King_Arthur
 
-pypdf_table_extracion License
------------------------------
+pypdf_table_extraction License
+------------------------------
 
     .. include:: ../../LICENSE

@@ -19,8 +19,8 @@ Or follow the example below.
 You can check out the PDF used in this example [here](https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/_static/pdf/foo.pdf).
 
 ```python3
->>> import camelot
->>> tables = camelot.read_pdf('foo.pdf')
+>>> import pypdf_table_extraction
+>>> tables = pypdf_table_extraction.read_pdf('foo.pdf')
 >>> tables
 <TableList n=1>
 >>> tables.export('foo.csv', f='csv', compress=True) # json, excel, html, markdown, sqlite
@@ -50,6 +50,8 @@ pypdf_table_extraction also comes packaged with a [command-line interface](https
 
 Refer to the [QuickStart Guide](https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/user/quickstart.rst#quickstart) to quickly get started with pypdf_table_extraction, extract tables from PDFs and explore some basic options.
 
+**Tip:** Visit the `parser-comparison-notebook` to get an overview of all the packed parsers and their features. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/parser-comparison-notebook.ipynb)
+
 **Note:** pypdf_table_extraction only works with text-based PDFs and not scanned documents. (As Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
 You can check out some frequently asked questions [here](https://pypdf-table-extraction.readthedocs.io/en/latest/user/faq.html).
@@ -77,7 +79,7 @@ conda install -c conda-forge pypdf-table-extraction
 After [installing the dependencies](https://pypdf-table-extraction.readthedocs.io/en/latest/user/install-deps.html) ([tk](https://packages.ubuntu.com/bionic/python/python-tk) and [ghostscript](https://www.ghostscript.com/)), you can also just use pip to install pypdf_table_extraction:
 
 ```bash
-pip install pypdf-table-extraction[base]
+pip install pypdf-table-extraction
 ```
 
 ### From the source code
@@ -91,8 +93,8 @@ git clone https://github.com/py-pdf/pypdf_table_extraction.git
 and install using pip:
 
 ```
-cd camelot
-pip install ".[base]"
+cd pypdf_table_extraction
+pip install "."
 ```
 
 ## Documentation

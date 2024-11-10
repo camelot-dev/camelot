@@ -38,7 +38,9 @@ pass_config = click.make_pass_decorator(Config)
 
 @click.group(name="camelot")
 @click.version_option(version=__version__)
-@click.option("-q", "--quiet", is_flag=False, help="Suppress logs and warnings.")
+@click.option(
+    "-q", "--quiet", is_flag=False, default=False, help="Suppress logs and warnings."
+)
 @click.option(
     "-p",
     "--pages",

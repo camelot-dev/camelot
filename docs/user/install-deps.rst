@@ -3,7 +3,10 @@
 Installation of dependencies
 ============================
 
-The dependencies `Ghostscript <https://www.ghostscript.com>`_ and `Tkinter <https://wiki.python.org/moin/TkInter>`_ can be installed using your system's package manager or by running their installer.
+.. note:: as of ``v1.0.0`` ghostscript is replaced by `pdfium <https://pypdfium2.readthedocs.io/en/stable/>`_ as the default image conversion backend. Which should make this library easier to install with just a pip install (on linux). The other imageconversion backends can still be used and are now optional to install.
+
+
+The optional dependency `Ghostscript <https://www.ghostscript.com>`_ can be installed using your system's package manager or by running their installer.
 
 OS-specific instructions
 ------------------------
@@ -12,14 +15,14 @@ Ubuntu
 ^^^^^^
 .. code-block:: console
 
-    $ apt install ghostscript python3-tk
+    $ apt install ghostscript
 
 MacOS
 ^^^^^
 
 .. code-block:: console
 
-    $ brew install ghostscript tcl-tk
+    $ brew install ghostscript
 
 .. note::
   You might encounter the problem that the ghostscript module cannot be found. This can be fixed with the following commands.
@@ -63,14 +66,3 @@ For Windows
 **Check:** The output of the ``find_library`` function should not be empty.
 
 If the output is empty, then it's possible that the Ghostscript library is not available one of the ``LD_LIBRARY_PATH``/``DYLD_LIBRARY_PATH``/``PATH`` variables depending on your operating system. In this case, you may have to modify one of those path variables.
-
-For Tkinter
-^^^^^^^^^^^
-
-Launch Python and then import Tkinter
-
-.. code-block:: pycon
-
-    >>> import tkinter
-
-**Check:** Importing ``tkinter`` should not raise an import error.

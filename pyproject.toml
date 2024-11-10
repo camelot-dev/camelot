@@ -75,10 +75,11 @@ camelot = "camelot.__main__:main"
 pypdf_table_extraction = "pypdf_table_extraction.__main__:main"
 
 [tool.poetry.group.base.dependencies]
-ghostscript = "^0.7"
 opencv-python-headless = "^4.7.0.68"
 pypdfium2 = "^4"
 
+[tool.poetry.group.plot]
+optional = true
 
 [tool.poetry.group.plot.dependencies]
 matplotlib = [
@@ -86,6 +87,11 @@ matplotlib = [
     {version = "^3.8.0", python = ">=3.12"}
 ]
 
+[tool.poetry.group.ghostscript]
+optional = true
+
+[tool.poetry.group.ghostscript.dependencies]
+ghostscript = "^0.7"
 
 [tool.poetry_bumpversion.file."camelot/__version__.py"]
 

@@ -28,7 +28,9 @@ from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams
 from pdfminer.layout import LTAnno
 from pdfminer.layout import LTChar
+from pdfminer.layout import LTContainer
 from pdfminer.layout import LTImage
+from pdfminer.layout import LTItem
 from pdfminer.layout import LTTextLine
 from pdfminer.layout import LTTextLineHorizontal
 from pdfminer.layout import LTTextLineVertical
@@ -747,32 +749,6 @@ def find_columns_boundaries(tls, min_gap=1.0):
     return cols_bounds
 
 
-def find_rows_boundaries(tls, min_gap=1.0):
-    """Make a list of disjunct rows boundaries for a list of text objects.
-
-    Parameters
-    ----------
-    tls : list of PDFMiner text object.
-
-    min_gap : minimum distance between rows. Any elements closer than
-        this threshold are merged together.
-
-    Returns
-    -------
-    boundaries : list
-        List y-coordinates for rows.
-            [(1st row bottom, 1st row top), (2nd row bottom, 2nd row top), ...]
-    """
-    rows_bounds = []
-    tls.sort(key=lambda tl: tl.y0)
-    for tl in tls:
-        if (not rows_bounds) or rows_bounds[-1][1] + min_gap < tl.y0:
-            rows_bounds.append([tl.y0, tl.y1])
-        else:
-            rows_bounds[-1][1] = max(rows_bounds[-1][1], tl.y1)
-    return rows_bounds
-
-
 def boundaries_to_split_lines(boundaries):
     """Find split lines given a list of boundaries between rows or cols.
 
@@ -1423,40 +1399,82 @@ def get_page_layout(
         return layout, dim
 
 
-def get_text_objects(layout, ltype="char", t=None):
-    """Recursively parses pdf layout to get a list of PDFMiner text objects.
+def get_char_objects(layout: LTContainer[Any]) -> list[LTChar]:
+    """Get charachter objects from a pdf layout.
+
+    Recursively parses pdf layout to get a list of PDFMiner LTChar
 
     Parameters
     ----------
     layout : object
-        PDFMiner LTPage object.
-    ltype : string
-        Specify 'char', 'lh', 'lv' to get LTChar, LTTextLineHorizontal,
-        and LTTextLineVertical objects respectively.
-    t : list
+        PDFMiner LTContainer object.
 
     Returns
     -------
-    t : list
-        List of PDFMiner text objects.
+    result : list
+        List of LTChar text objects.
 
     """
-    if ltype == "char":
-        LTObject = LTChar  # noqa
-    elif ltype == "image":
-        LTObject = LTImage  # noqa
-    elif ltype == "horizontal_text":
-        LTObject = LTTextLineHorizontal  # noqa
-    elif ltype == "vertical_text":
-        LTObject = LTTextLineVertical  # noqa
-    if t is None:
-        t = []
+    char = []
     try:
-        for obj in layout._objs:
-            if isinstance(obj, LTObject):  # noqa
-                t.append(obj)
-            else:
-                t += get_text_objects(obj, ltype=ltype)
+        for _object in layout:
+            if isinstance(_object, LTChar):
+                char.append(_object)
+            elif isinstance(_object, LTContainer):
+                child_char = get_char_objects(_object)
+                char.extend(child_char)
     except AttributeError:
         pass
-    return t
+    return char
+
+
+def get_image_char_and_text_objects(
+    layout: LTContainer[LTItem],
+) -> tuple[
+    list[LTImage], list[LTChar], list[LTTextLineHorizontal], list[LTTextLineVertical]
+]:
+    """Parse a PDF layout to get objects.
+
+    Recursively parses pdf layout to get a list of
+    PDFMiner LTImage, LTTextLineHorizontal, LTTextLineVertical objects.
+
+    Parameters
+    ----------
+    layout : object
+        PDFMiner LTContainer object
+            ( LTPage, LTTextLineHorizontal, LTTextLineVertical).
+
+    Returns
+    -------
+    result : tuple
+        Include List of LTImage objects, list of LTTextLineHorizontal objects
+        and list of LTTextLineVertical objects
+
+    """
+    image = []
+    char = []
+    horizontal_text = []
+    vertical_text = []
+
+    try:
+        for _object in layout:
+            if isinstance(_object, LTImage):
+                image.append(_object)
+            elif isinstance(_object, LTTextLineHorizontal):
+                horizontal_text.append(_object)
+            elif isinstance(_object, LTTextLineVertical):
+                vertical_text.append(_object)
+            if isinstance(_object, LTChar):
+                char.append(_object)
+            elif isinstance(_object, LTContainer):
+                child_image, child_char, child_horizontal_text, child_vertical_text = (
+                    get_image_char_and_text_objects(_object)
+                )
+                image.extend(child_image)
+                child_char = get_char_objects(_object)
+                char.extend(child_char)
+                horizontal_text.extend(child_horizontal_text)
+                vertical_text.extend(child_vertical_text)
+    except AttributeError:
+        pass
+    return image, char, horizontal_text, vertical_text

@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
-import sys
 from pathlib import Path
+from typing import Any
 
+from pdfminer.layout import LTChar
+from pdfminer.layout import LTImage
+from pdfminer.layout import LTTextLineHorizontal
+from pdfminer.layout import LTTextLineVertical
 from pypdf import PdfReader
 from pypdf import PdfWriter
 from pypdf._utils import StrByteType
@@ -18,9 +22,9 @@ from .parsers import Network
 from .parsers import Stream
 from .utils import TemporaryDirectory
 from .utils import download_url
+from .utils import get_image_char_and_text_objects
 from .utils import get_page_layout
 from .utils import get_rotation
-from .utils import get_text_objects
 from .utils import is_url
 
 
@@ -71,8 +75,6 @@ class PDFHandler:
             self.password = ""  # noqa: S105
         else:
             self.password = password
-            if sys.version_info[0] < 3:
-                self.password = self.password.encode("ascii")
         self.pages = self._get_pages(pages)
 
     def _get_pages(self, pages):
@@ -119,15 +121,26 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _save_page(self, filepath: StrByteType | Path, page, temp):
+    def _save_page(
+        self, filepath: StrByteType | Path, page: int, temp: str, **layout_kwargs
+    ) -> tuple[
+        Any,
+        tuple[float, float],
+        list[LTImage],
+        list[LTChar],
+        list[LTTextLineHorizontal],
+        list[LTTextLineVertical],
+    ]:
         """Saves specified page from PDF into a temporary directory.
 
         Parameters
         ----------
+        filepath : str
+            Filepath or URL of the PDF file.
         page : int
             Page number.
-        layout_kwargs : dict, optional (default: {})
-            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.  # noqa
+        temp : str
+            Tmp directory.
 
 
         Returns
@@ -152,11 +165,11 @@ class PDFHandler:
         outfile.add_page(p)
         with open(fpath, "wb") as f:
             outfile.write(f)
-        layout, dim = get_page_layout(fpath)
+        layout, dimensions = get_page_layout(fpath, **layout_kwargs)
         # fix rotated PDF
-        chars = get_text_objects(layout, ltype="char")
-        horizontal_text = get_text_objects(layout, ltype="horizontal_text")
-        vertical_text = get_text_objects(layout, ltype="vertical_text")
+        images, chars, horizontal_text, vertical_text = get_image_char_and_text_objects(
+            layout
+        )
         rotation = get_rotation(chars, horizontal_text, vertical_text)
         if rotation != "":
             fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
@@ -174,14 +187,21 @@ class PDFHandler:
             outfile.add_page(p)
             with open(fpath, "wb") as f:
                 outfile.write(f)
+            # Only recompute layout and dimension after rotating the pdf
+            layout, dimensions = get_page_layout(fpath, **layout_kwargs)
+            images, chars, horizontal_text, vertical_text = (
+                get_image_char_and_text_objects(layout)
+            )
             instream.close()
+            return layout, dimensions, images, chars, horizontal_text, vertical_text
+        return layout, dimensions, images, chars, horizontal_text, vertical_text
 
     def parse(
         self,
-        flavor="lattice",
-        suppress_stdout=False,
-        parallel=False,
-        layout_kwargs=None,
+        flavor: str = "lattice",
+        suppress_stdout: bool = False,
+        parallel: bool = False,
+        layout_kwargs: dict[str, Any] | None = None,
         **kwargs,
     ):
         """Extract tables by calling parser.get_tables on all single page PDFs.
@@ -197,9 +217,9 @@ class PDFHandler:
             Process pages in parallel using all available cpu cores.
         layout_kwargs : dict, optional (default: {})
             A dict of `pdfminer.layout.LAParams
-            <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
+            <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
         kwargs : dict
-            See camelot.read_pdf kwargs.
+            See pypdf_table_extraction.read_pdf kwargs.
 
         Returns
         -------
@@ -241,19 +261,22 @@ class PDFHandler:
 
         return TableList(sorted(tables))
 
-    def _parse_page(self, page, tempdir, parser, suppress_stdout, layout_kwargs):
+    def _parse_page(
+        self, page: int, tempdir: str, parser, suppress_stdout: bool, layout_kwargs
+    ):
         """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters
         ----------
-        page : str
+        page : int
             Page number to parse
         parser : Lattice, Stream, Network or Hybrid
             The parser to use.
         suppress_stdout : bool
             Suppress logs and warnings.
         layout_kwargs : dict, optional (default: {})
-            A dict of `pdfminer.layout.LAParams <https://github.com/euske/pdfminer/blob/master/pdfminer/layout.py#L33>`_ kwargs.
+            A dict of `pdfminer.layout.LAParams
+            <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
 
         Returns
         -------
@@ -261,11 +284,19 @@ class PDFHandler:
             List of tables found in PDF.
 
         """
-        self._save_page(self.filepath, page, tempdir)
+        layout, dimensions, images, chars, horizontal_text, vertical_text = (
+            self._save_page(self.filepath, page, tempdir, **layout_kwargs)
+        )
         page_path = os.path.join(tempdir, f"page-{page}.pdf")
-        layout, dimensions = get_page_layout(page_path, **layout_kwargs)
         parser.prepare_page_parse(
-            page_path, layout, dimensions, page, layout_kwargs=layout_kwargs
+            page_path,
+            layout,
+            dimensions,
+            page,
+            images,
+            horizontal_text,
+            vertical_text,
+            layout_kwargs=layout_kwargs,
         )
         tables = parser.extract_tables()
         return tables

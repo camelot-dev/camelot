@@ -86,7 +86,6 @@ class Stream(TextBaseParser):
         Assumes that tables are situated relatively far apart
         vertically.
         """
-        # TODO: add support for arabic text #141
         # sort textlines in reading order
         textlines.sort(key=lambda x: (-x.y0, x.x0))
         textedges = TextEdges(edge_tol=self.edge_tol)

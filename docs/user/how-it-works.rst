@@ -8,12 +8,19 @@ This part of the documentation includes a high-level explanation of how pypdf_ta
 You can choose between the following table parsing methods, *Stream*, *Lattice*, *Network* and *Hybrid*.
 Where *Hybrid* is a combination of the *Network* and *Lattice* parser.
 
+.. tip::
+    For a side-by-side visual comparison of the parser use the `parser-comparison-notebook`:
+
+    .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/parser-comparison-notebook.ipynb
+
+
 .. _stream:
 
 Stream
 ------
 
-Stream can be used to parse tables that have whitespaces between cells to simulate a table structure. It is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences, using `margins <https://euske.github.io/pdfminer/#tools>`_.
+Stream can be used to parse tables that have whitespaces between cells to simulate a table structure. It is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences, using `margins <https://pdfminersix.readthedocs.io/en/latest/reference/commandline.html>`_.
 
 1. Words on the PDF page are grouped into text rows based on their *y* axis overlaps.
 
@@ -32,7 +39,7 @@ Lattice
 
 Lattice is more deterministic in nature, and it does not rely on guesses. It can be used to parse tables that have demarcated lines between cells, and it can automatically parse multiple tables present on a page.
 
-It starts by converting the PDF page to an image using ghostscript, and then processes it to get horizontal and vertical line segments by applying a set of morphological transformations (erosion and dilation) using OpenCV.
+It starts by converting the PDF page to an image using an image conversion backend (default pdfium), and then processes it to get horizontal and vertical line segments by applying a set of morphological transformations (erosion and dilation) using OpenCV.
 
 Let's see how Lattice processes the second page of `this PDF`_, step-by-step.
 

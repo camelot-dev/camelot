@@ -11,7 +11,6 @@ from ..utils import bbox_from_str
 from ..utils import compute_accuracy
 from ..utils import compute_whitespace
 from ..utils import get_table_index
-from ..utils import get_text_objects
 from ..utils import text_in_bbox
 
 
@@ -62,16 +61,26 @@ class BaseParser:
         """
         return sorted(self.table_bbox_parses.keys(), key=lambda x: x[1], reverse=True)
 
-    def prepare_page_parse(self, filename, layout, dimensions, page_idx, layout_kwargs):
+    def prepare_page_parse(
+        self,
+        filename,
+        layout,
+        dimensions,
+        page_idx,
+        images,
+        horizontal_text,
+        vertical_text,
+        layout_kwargs,
+    ):
         """Prepare the page for parsing."""
         self.filename = filename
         self.layout_kwargs = layout_kwargs
         self.layout = layout
         self.dimensions = dimensions
         self.page = page_idx
-        self.images = get_text_objects(self.layout, ltype="image")
-        self.horizontal_text = get_text_objects(self.layout, ltype="horizontal_text")
-        self.vertical_text = get_text_objects(self.layout, ltype="vertical_text")
+        self.images = images
+        self.horizontal_text = horizontal_text
+        self.vertical_text = vertical_text
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
 

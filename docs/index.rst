@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-pypdf_table_extraction (Camelot): PDF Table Extraction for Humans
-=================================================================
+pypdf_table_extraction (Camelot):
+==================================
+PDF Table Extraction for Humans
+===============================
 
 
 Release v\ |version|. (:ref:`Installation <install>`)
@@ -30,6 +32,8 @@ Release v\ |version|. (:ref:`Installation <install>`)
 
 .. _Camelot: https://github.com/camelot-dev/camelot
 
+.. note:: pypdf_table_extraction is the continuation of `Camelot`_ and inteded to be a compatible replacement. You can use the old 'camelot' name as well as 'pypdf_table_extraction' for the library and the :ref:`command-line interface <cli>`.
+
 ----
 
 **Here's how you can extract tables from PDFs.**
@@ -45,8 +49,8 @@ You can find the PDF used in this example `here`_.
 
 .. code-block:: pycon
 
-    >>> import camelot
-    >>> tables = camelot.read_pdf('foo.pdf')
+    >>> import pypdf_table_extraction
+    >>> tables = pypdf_table_extraction.read_pdf('foo.pdf')
     >>> tables
     <TableList n=1>
     >>> tables.export('foo.csv', f='csv', compress=True) # json, excel, html, markdown, sqlite
@@ -90,7 +94,7 @@ See `comparison with similar libraries and tools`_.
 The User Guide
 --------------
 
-This part of the documentation begins with some background information about why pypdf_table_extraction was created, takes you through some implementation details, and then focuses on step-by-step instructions for getting the most out of Camelot.
+This part of the documentation begins with some background information about why pypdf_table_extraction was created, takes you through some implementation details, and then focuses on step-by-step instructions for getting the most out of pypdf_table_extraction.
 
 .. toctree::
    :maxdepth: 2
