@@ -680,13 +680,13 @@ files = [
 
 [[package]]
 name = "dparse"
-version = "0.6.4b0"
+version = "0.6.4"
 description = "A parser for Python dependency files"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "dparse-0.6.4b0-py3-none-any.whl", hash = "sha256:592ff183348b8a5ea0a18442a7965e29445d3a26063654ec2c7e8ef42cd5753c"},
-    {file = "dparse-0.6.4b0.tar.gz", hash = "sha256:f8d49b41a527f3d16a269f854e6665245b325e50e41d2c213810cb984553e5c8"},
+    {file = "dparse-0.6.4-py3-none-any.whl", hash = "sha256:fbab4d50d54d0e739fbb4dedfc3d92771003a5b9aa8545ca7a7045e3b174af57"},
+    {file = "dparse-0.6.4.tar.gz", hash = "sha256:90b29c39e3edc36c6284c82c4132648eaf28a01863eb3c231c2512196132201a"},
 ]
 
 [package.dependencies]
@@ -694,7 +694,7 @@ packaging = "*"
 tomli = {version = "*", markers = "python_version < \"3.11\""}
 
 [package.extras]
-all = ["dparse[conda]", "dparse[pipenv]", "dparse[poetry]"]
+all = ["pipenv", "poetry", "pyyaml"]
 conda = ["pyyaml"]
 pipenv = ["pipenv"]
 poetry = ["poetry"]
@@ -3144,4 +3144,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "b97713a279a9687cfb03f3960b9f3ce942ab6d5e885fbf224173d0e6fd20fc64"
+content-hash = "e01a1eb2d980e1c287c0e0d849d7bf6a352b6e0559ff2718ef76b28668e2cc27"
