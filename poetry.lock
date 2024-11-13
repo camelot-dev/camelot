@@ -2588,19 +2588,19 @@ files = [
 
 [[package]]
 name = "safety"
-version = "3.2.10"
+version = "3.2.11"
 description = "Checks installed dependencies for known vulnerabilities and licenses."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "safety-3.2.10-py3-none-any.whl", hash = "sha256:3f177107ed3d0859ee081c56491739c13fcb12b5cf854f35d62eb324d5c0a581"},
-    {file = "safety-3.2.10.tar.gz", hash = "sha256:8ed71c43869f96613797c3ef9f0e27927db6c05d1ff81d5439bb64c13cc45242"},
+    {file = "safety-3.2.11-py3-none-any.whl", hash = "sha256:3c339c380c9ea6a2d3ab09e88c01ee7ecaabaf963a1c98c021e13aacb9eeea3a"},
+    {file = "safety-3.2.11.tar.gz", hash = "sha256:70a3b7cc75ba41907bf1705bcbbeab232688657c21088e108712ecb601fe0f20"},
 ]
 
 [package.dependencies]
 Authlib = ">=1.2.0"
 Click = ">=8.0.2"
-dparse = ">=0.6.4b0"
+dparse = ">=0.6.4"
 filelock = ">=3.12.2,<3.13.0"
 jinja2 = ">=3.1.0"
 marshmallow = ">=3.15.0"
