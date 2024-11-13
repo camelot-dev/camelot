@@ -1312,7 +1312,7 @@ def compute_accuracy(error_weights):
     return score
 
 
-def compute_whitespace(d):
+def compute_whitespace(d: list[list[str]]) -> float:
     """Calculates the percentage of empty strings in a two-dimensional list.
 
     Parameters
