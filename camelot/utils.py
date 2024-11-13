@@ -1318,20 +1318,36 @@ def compute_whitespace(d):
     Parameters
     ----------
     d : list
+        A two-dimensional list (list of lists) containing strings.
 
     Returns
     -------
     whitespace : float
         Percentage of empty cells.
-
     """
+    # Initialize the count of empty strings
     whitespace = 0
+    total_elements = 0  # Keep track of the total number of elements
+
+    # Iterate through each row in the 2D list
     for i in d:
-        for j in i:
-            if j.strip() == "":
-                whitespace += 1
-    whitespace = 100 * (whitespace / float(len(d) * len(d[0])))
-    return whitespace
+        # Only process if the row is a list
+        if isinstance(i, list):
+            total_elements += len(i)  # Count the number of elements in this row
+            # Iterate through each element in the row
+            for j in i:
+                # Check if the element is an empty string after stripping whitespace
+                if isinstance(j, str) and j.strip() == "":
+                    whitespace += 1  # Increment the count of empty strings
+
+    # Avoid division by zero
+    if total_elements == 0:
+        return 0.0  # If there are no elements, return 0%
+
+    # Calculate the percentage of empty strings
+    whitespace_percentage = 100 * (whitespace / total_elements)
+
+    return whitespace_percentage
 
 
 def get_page_layout(
