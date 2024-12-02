@@ -4,7 +4,7 @@ sphinx-click==6.0.0
 myst_parser==4.0.0
 ghostscript==0.7
 opencv-python-headless==4.10.0.84
-matplotlib==3.9.2
+matplotlib==3.9.3
 accessible-pygments==0.0.5
 pydata-sphinx-theme==0.16.0
 sphinx-copybutton==0.5.2
