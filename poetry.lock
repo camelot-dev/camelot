@@ -2590,13 +2590,13 @@ files = [
 
 [[package]]
 name = "safety"
-version = "3.2.11"
+version = "3.2.12"
 description = "Checks installed dependencies for known vulnerabilities and licenses."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "safety-3.2.11-py3-none-any.whl", hash = "sha256:3c339c380c9ea6a2d3ab09e88c01ee7ecaabaf963a1c98c021e13aacb9eeea3a"},
-    {file = "safety-3.2.11.tar.gz", hash = "sha256:70a3b7cc75ba41907bf1705bcbbeab232688657c21088e108712ecb601fe0f20"},
+    {file = "safety-3.2.12-py3-none-any.whl", hash = "sha256:e368b02d532ed6e248631617b246c1d01561e862b6a0949a87d28e0152322d13"},
+    {file = "safety-3.2.12.tar.gz", hash = "sha256:fab91195f32bfcb64d99b3a796b6865fc020950c67b1f940230201aaf8f46e01"},
 ]
 
 [package.dependencies]
@@ -2612,7 +2612,7 @@ pydantic = ">=1.10.12"
 requests = "*"
 rich = "*"
 "ruamel.yaml" = ">=0.17.21"
-safety-schemas = ">=0.0.8"
+safety_schemas = "0.0.10"
 setuptools = ">=65.5.1"
 typer = "*"
 typing-extensions = ">=4.7.1"
