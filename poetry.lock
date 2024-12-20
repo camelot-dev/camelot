@@ -1146,13 +1146,13 @@ files = [
 
 [[package]]
 name = "livereload"
-version = "2.7.0"
+version = "2.7.1"
 description = "Python LiveReload is an awesome tool for web developers"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "livereload-2.7.0-py3-none-any.whl", hash = "sha256:19bee55aff51d5ade6ede0dc709189a0f904d3b906d3ea71641ed548acff3246"},
-    {file = "livereload-2.7.0.tar.gz", hash = "sha256:f4ba199ef93248902841e298670eebfe1aa9e148e19b343bc57dbf1b74de0513"},
+    {file = "livereload-2.7.1-py3-none-any.whl", hash = "sha256:5201740078c1b9433f4b2ba22cd2729a39b9d0ec0a2cc6b4d3df257df5ad0564"},
+    {file = "livereload-2.7.1.tar.gz", hash = "sha256:3d9bf7c05673df06e32bea23b494b8d36ca6d10f7d5c3c8a6989608c09c986a9"},
 ]
 
 [package.dependencies]
