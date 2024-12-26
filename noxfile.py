@@ -8,9 +8,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import nox
-from nox import Session
-from nox import session
-
+from nox import Session, session
 
 package = "camelot"
 
@@ -136,17 +134,20 @@ def precommit(session: Session) -> None:
 @session(python=python_versions[2])
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
-    # Generate requirements.txt using uv
-    session.run(
+    requirements = session.run(
         "uv",
         "pip",
         "freeze",
         "--exclude-editable",
-        "--output",
-        "requirements.txt",
+        silent=True,
         external=True,
         success_codes=[0, 1],
     )
+
+    if requirements:
+        with open("requirements.txt", "w") as f:
+            f.write(requirements)
+
     session.install("safety")
     session.run("safety", "check", "--full-report", "--file=requirements.txt")
 
