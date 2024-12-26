@@ -136,7 +136,14 @@ def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
     # Generate requirements.txt using uv
     session.run(
-        "uv", "pip", "freeze", "--exclude-editable", external=True, success_codes=[0, 1]
+        "uv",
+        "pip",
+        "freeze",
+        "--exclude-editable",
+        "--output",
+        "requirements.txt",
+        external=True,
+        success_codes=[0, 1],
     )
     session.install("safety")
     session.run("safety", "check", "--full-report", "--file=requirements.txt")
