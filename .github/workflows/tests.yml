@@ -25,8 +25,8 @@ jobs:
           - { python: "3.12", os: "ubuntu-latest", session: "tests" }
           - { python: "3.11", os: "ubuntu-latest", session: "tests" }
           - { python: "3.10", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.9", os: "ubuntu-latest", session: "tests" }
           - { python: "3.8", os: "ubuntu-latest", session: "tests" }
+          - { python: "3.9", os: "ubuntu-latest", session: "tests" }
           - { python: "3.10", os: "windows-latest", session: "tests" }
           - { python: "3.10", os: "macos-latest", session: "tests" }
           - { python: "3.10", os: "ubuntu-latest", session: "typeguard" }
@@ -64,7 +64,7 @@ jobs:
       - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv --version
+          ${{ runner.os == 'Windows' && 'uv.exe' || 'uv' }} --version
 
       - name: Install Nox
         run: |
