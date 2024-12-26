@@ -6,10 +6,12 @@ from pandas.testing import assert_frame_equal
 
 import camelot
 from camelot.backends.ghostscript_backend import GhostscriptBackend
-from camelot.core import Table, TableList
+from camelot.core import Table
+from camelot.core import TableList
 from camelot.io import PDFHandler
 
-from .conftest import skip_on_windows, skip_pdftopng
+from .conftest import skip_on_windows
+from .conftest import skip_pdftopng
 from .data import *
 
 
