@@ -69,7 +69,6 @@ jobs:
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox
-          pipx inject nox nox-poetry
           nox --version
 
       - name: Install ghostscript
@@ -159,7 +158,6 @@ jobs:
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox
-          pipx inject nox nox-poetry
           nox --version
 
       - name: Download coverage data

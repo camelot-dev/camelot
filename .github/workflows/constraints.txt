@@ -1,6 +1,4 @@
 lockfile<0.13.0,>=0.12.2
 pip==24.3.1
 nox==2024.10.9
-nox-poetry==1.0.3
-poetry>=1.2.0
 virtualenv==20.28.0
