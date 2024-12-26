@@ -62,9 +62,7 @@ jobs:
               print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
 
       - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          ${{ runner.os == 'Windows' && '$env:USERPROFILE\\.local\\bin\\uv.exe' || 'uv' }} --version
+        uses: astral-sh/setup-uv@v5
 
       - name: Install Nox
         run: |
@@ -151,9 +149,7 @@ jobs:
           pip --version
 
       - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv --version
+        uses: astral-sh/setup-uv@v5
 
       - name: Install Nox
         run: |
