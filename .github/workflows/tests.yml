@@ -64,7 +64,7 @@ jobs:
       - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          ${{ runner.os == 'Windows' && '$env:USERPROFILE\.local\bin\uv.exe' || 'uv' }} --version
+          ${{ runner.os == 'Windows' && '$env:USERPROFILE\\.local\\bin\\uv.exe' || 'uv' }} --version
 
       - name: Install Nox
         run: |
