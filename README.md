@@ -13,11 +13,11 @@
 ---
 
 **Here's how you can extract tables from PDFs.**
-You can check out the quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/main/examples/pypdf_table_extraction_quick_start_notebook.ipynb) or follow the example below.
+You can check out the quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb) or follow the example below.
 
 You can check out the PDF used in this example [here](https://github.com/camelot-dev/camelot/blob/main/docs/_static/pdf/foo.pdf).
 
-```python3
+<pre>
 >>> import camelot
 >>> tables = camelot.read_pdf('foo.pdf')
 >>> tables
@@ -34,7 +34,7 @@ You can check out the PDF used in this example [here](https://github.com/camelot
 }
 >>> tables[0].to_csv('foo.csv') # to_json, to_excel, to_html, to_markdown, to_sqlite
 >>> tables[0].df # get a pandas DataFrame!
-```
+</pre>
 
 | Cycle Name | KI (1/km) | Distance (mi) | Percent Fuel Savings |                 |                 |                |
 | ---------- | --------- | ------------- | -------------------- | --------------- | --------------- | -------------- |
