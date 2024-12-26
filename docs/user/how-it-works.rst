@@ -12,7 +12,7 @@ Where *Hybrid* is a combination of the *Network* and *Lattice* parser.
     For a side-by-side visual comparison of the parser use the `parser-comparison-notebook`:
 
     .. image:: https://colab.research.google.com/assets/colab-badge.svg
-        :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/parser-comparison-notebook.ipynb
+        :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/main/examples/parser-comparison-notebook.ipynb
 
 
 .. _stream:
@@ -100,7 +100,7 @@ Network
     The mechanism of the Network and Hybrid parser can best be understood by using the following notebook:
 
     .. image:: https://colab.research.google.com/assets/colab-badge.svg
-        :target: https://colab.research.google.com/github/py-pdf/pypdf_table_extraction/blob/main/examples/hybrid-parser-step-by-step.ipynb
+        :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/main/examples/hybrid-parser-step-by-step.ipynb
 
 The network parser is text-based: it relies on the bounding boxes of the text elements encoded in the .pdf document to identify patterns indicative of a table.
 

@@ -229,7 +229,7 @@ Table areas that you want camelot to analyze can be passed as a list of comma-se
 Specify table regions
 ---------------------
 
-However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/py-pdf/camelot/blob/main/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
+However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/camelot-dev/camelot/blob/main/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
 
 You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot.read_pdf>` to solve for such cases. When ``table_regions`` is specified, camelot will only analyze the specified regions to look for tables.
 
@@ -348,7 +348,7 @@ You can solve this by passing ``flag_size=True``, which will enclose the supersc
 Strip characters from text
 --------------------------
 
-You can strip unwanted characters like spaces, dots and newlines from a string using the ``strip_text`` keyword argument. Take a look at `this PDF <https://github.com/py-pdf/camelot/blob/master/tests/files/tabula/12s0324.pdf>`_ as an example, the text at the start of each row contains a lot of unwanted spaces, dots and newlines.
+You can strip unwanted characters like spaces, dots and newlines from a string using the ``strip_text`` keyword argument. Take a look at `this PDF <https://github.com/camelot-dev/camelot/blob/master/tests/files/tabula/12s0324.pdf>`_ as an example, the text at the start of each row contains a lot of unwanted spaces, dots and newlines.
 
 .. code-block:: pycon
 
@@ -375,7 +375,7 @@ You can strip unwanted characters like spaces, dots and newlines from a string u
 Improve guessed table areas
 ---------------------------
 
-While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs like `this one <https://github.com/py-pdf/camelot/blob/master/tests/files/edge_tol.pdf>`_. That's because the text is relatively far apart vertically, which can lead to shorter textedges being calculated.
+While using :ref:`Stream <stream>`, automatic table detection can fail for PDFs like `this one <https://github.com/camelot-dev/camelot/blob/master/tests/files/edge_tol.pdf>`_. That's because the text is relatively far apart vertically, which can lead to shorter textedges being calculated.
 
 .. note:: To know more about how textedges are calculated to guess table areas, you can see pages 20, 35 and 40 of Anssi Nurminen's `master's thesis <https://trepo.tuni.fi/bitstream/handle/123456789/21520/Nurminen.pdf?sequence=3>`_.
 
