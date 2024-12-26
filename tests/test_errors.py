@@ -1,14 +1,21 @@
 import os
+import sys
 import warnings
+from unittest import mock
 
 import pytest
 
 import camelot
+from camelot.backends.image_conversion import ImageConversionError
+from camelot.utils import is_url
 from tests.conftest import skip_on_windows
 
 
 def test_unknown_flavor(foo_pdf):
-    message = "Unknown flavor specified." " Use either 'lattice' or 'stream'"
+    message = (
+        "Unknown flavor specified."
+        " Use either 'lattice', 'stream', 'network' or 'hybrid'"
+    )
     with pytest.raises(NotImplementedError, match=message):
         camelot.read_pdf(foo_pdf, flavor="chocolate")
 
@@ -82,10 +89,10 @@ def test_image_warning(testdir):
         warnings.simplefilter("error", category=UserWarning)
         with pytest.raises(UserWarning) as e:
             camelot.read_pdf(filename)
-            assert (
-                str(e.value)
-                == "page-1 is image-based, camelot only works on text-based pages."
-            )
+        assert (
+            str(e.value)
+            == "page-1 is image-based, camelot only works on text-based pages."
+        )
 
 
 def test_stream_no_tables_on_page(testdir):
@@ -103,7 +110,7 @@ def test_stream_no_tables_in_area(testdir):
         warnings.simplefilter("error")
         with pytest.raises(UserWarning) as e:
             tables = camelot.read_pdf(filename, flavor="stream")
-        assert str(e.value) == "No tables found in table area 1"
+        assert str(e.value) == "No tables found in table area (0, 0, 792, 612)"
 
 
 def test_lattice_no_tables_on_page(testdir):
@@ -116,9 +123,11 @@ def test_lattice_no_tables_on_page(testdir):
 
 
 def test_lattice_unknown_backend(foo_pdf):
-    message = "Unknown backend 'mupdf' specified. Please use either 'poppler' or 'ghostscript'."
+    message = "Unknown backend 'mupdf' specified. Please use 'pdfium', 'poppler' or 'ghostscript'."
     with pytest.raises(NotImplementedError, match=message):
-        tables = camelot.read_pdf(foo_pdf, backend="mupdf")
+        tables = camelot.read_pdf(
+            foo_pdf, flavor="lattice", backend="mupdf", use_fallback=False
+        )
 
 
 def test_lattice_no_convert_method(foo_pdf):
@@ -127,17 +136,57 @@ def test_lattice_no_convert_method(foo_pdf):
 
     message = "must implement a 'convert' method"
     with pytest.raises(NotImplementedError, match=message):
-        camelot.read_pdf(foo_pdf, backend=ConversionBackend())
+        camelot.read_pdf(
+            foo_pdf, flavor="lattice", backend=ConversionBackend(), use_fallback=False
+        )
 
 
-def test_lattice_ghostscript_deprecation_warning(foo_pdf):
-    ghostscript_deprecation_warning = (
-        "'ghostscript' will be replaced by 'poppler' as the default image conversion"
-        " backend in v0.12.0. You can try out 'poppler' with backend='poppler'."
-    )
+def test_invalid_url():
+    url = "fttp://google.com/pdf"
+    message = "File format not supported"
+    with pytest.raises(Exception, match=message):
+        url = camelot.read_pdf(url)
+    assert is_url(url) is False
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        with pytest.raises(DeprecationWarning) as e:
-            camelot.read_pdf(foo_pdf)
-            assert str(e.value) == ghostscript_deprecation_warning
+
+def test_pdfium_backend_import_error(testdir):
+    filename = os.path.join(testdir, "table_region.pdf")
+    with mock.patch.dict(sys.modules, {"pypdfium2": None}):
+        message = "pypdfium2 is not available: "
+        try:
+            tables = camelot.read_pdf(
+                filename,
+                flavor="lattice",
+                backend="pdfium",
+                use_fallback=False,
+            )
+        except Exception as em:
+            print(em)
+            assert message in str(em)
+
+
+def test_pdfium_backend_import_error_alternative(testdir):
+    filename = os.path.join(testdir, "table_region.pdf")
+    with mock.patch.dict(sys.modules, {"pypdfium2": None}):
+        message = "pypdfium2 is not available: "
+        tables = camelot.read_pdf(
+            filename,
+            flavor="lattice",
+            backend="pdfium",
+            use_fallback=False,
+        )
+    assert tables is not None
+
+
+def test_ghostscript_backend_import_error(testdir):
+    filename = os.path.join(testdir, "table_region.pdf")
+    with mock.patch.dict(sys.modules, {"ghostscript": None}):
+        message = "Ghostscript is not installed"
+        with pytest.raises(ImageConversionError) as e:
+            tables = camelot.read_pdf(
+                filename,
+                flavor="lattice",
+                backend="ghostscript",
+                use_fallback=False,
+            )
+        assert message in str(e.value)

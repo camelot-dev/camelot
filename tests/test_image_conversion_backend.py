@@ -10,6 +10,7 @@ def patch_backends(monkeypatch):
         {
             "poppler": PopplerBackendError,
             "ghostscript": GhostscriptBackendNoError,
+            "pdfdium": PdfiumBackendError,
         },
         raising=True,
     )
@@ -30,27 +31,45 @@ class GhostscriptBackendNoError:
         pass
 
 
-def test_poppler_backend_error_when_no_use_fallback(patch_backends):
-    backend = ImageConversionBackend(use_fallback=False)
+class PdfiumBackendError:
+    def convert(self, pdf_path, png_path):
+        raise ValueError("Image conversion failed")
 
-    message = "Image conversion failed with image conversion backend 'poppler'"
+
+def test_poppler_backend_error_when_no_use_fallback(patch_backends):
+    backend = ImageConversionBackend(backend="poppler", use_fallback=False)
+
+    message = r"Image conversion failed with image conversion backend.+Poppler"
     with pytest.raises(ValueError, match=message):
         backend.convert("foo", "bar")
 
 
 def test_ghostscript_backend_when_use_fallback(patch_backends):
-    backend = ImageConversionBackend()
+    backend = ImageConversionBackend(backend="ghostscript")
     backend.convert("foo", "bar")
 
 
 def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
-    backends = {"poppler": PopplerBackendError, "ghostscript": GhostscriptBackendError}
+    """Use an image conversion backend and let it fallback to ghostscript.
+
+    Then capture the error message of the second backend (the fallback).
+    """
+    backends = {
+        "pdfium": PdfiumBackendError,
+        "ghostscript": GhostscriptBackendError,
+        "poppler": PopplerBackendError,
+    }
 
     monkeypatch.setattr(
         "camelot.backends.image_conversion.BACKENDS", backends, raising=True
     )
-    backend = ImageConversionBackend()
+    backend = ImageConversionBackend(backend="pdfium")
 
-    message = "Image conversion failed with image conversion backend 'ghostscript'"
+    message = "Image conversion failed with image conversion backend 'ghostscript'\n error: Image conversion failed"
     with pytest.raises(ValueError, match=message):
         backend.convert("foo", "bar")
+
+
+@pytest.mark.xfail
+def test_invalid_backend():
+    ImageConversionBackend(backend="invalid_backend")

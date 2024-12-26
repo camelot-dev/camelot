@@ -1,4 +1,5 @@
 """Nox sessions."""
+
 import os
 import shlex
 import shutil
@@ -7,22 +8,14 @@ from pathlib import Path
 from textwrap import dedent
 
 import nox
+from nox import Session
+from nox import session
 
-
-try:
-    from nox_poetry import Session
-    from nox_poetry import session
-except ImportError:
-    message = f"""\
-    Nox failed to import the 'nox-poetry' package.
-
-    Please install it using the following command:
-
-    {sys.executable} -m pip install nox-poetry"""
-    raise SystemExit(dedent(message)) from None
 
 package = "camelot"
-python_versions = ["3.10", "3.9", "3.8", "3.11"]
+
+# TODO: certain sessions are pinned to Python 3.10
+python_versions = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -34,15 +27,19 @@ nox.options.sessions = (
     "docs-build",
 )
 
+# Configure nox to use uv for package installation
+nox.options.default_venv_backend = "uv"
+
 
 def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
-    """Activate virtualenv in hooks installed by pre-commit.
+    """Activate virtualenv in hooks installed by pre-commit.  # noqa
 
     This function patches git hooks installed by pre-commit to activate the
     session's virtual environment. This allows pre-commit to locate hooks in
     that environment when invoked from git.
 
     Args:
+    -----
         session: The Session object.
     """
     assert session.bin is not None  # noqa: S101
@@ -109,7 +106,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
                 break
 
 
-@session(name="pre-commit", python=python_versions[0])
+@session(name="pre-commit", python=python_versions[2])
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
     args = session.posargs or [
@@ -136,18 +133,31 @@ def precommit(session: Session) -> None:
         activate_virtualenv_in_precommit_hooks(session)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[2])
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
-    requirements = session.poetry.export_requirements()
+    requirements = session.run(
+        "uv",
+        "pip",
+        "freeze",
+        "--exclude-editable",
+        silent=True,
+        external=True,
+        success_codes=[0, 1],
+    )
+
+    if requirements:
+        with open("requirements.txt", "w") as f:
+            f.write(requirements)
+
     session.install("safety")
-    session.run("safety", "check", "--full-report", f"--file={requirements}")
+    session.run("safety", "check", "--full-report", "--file=requirements.txt")
 
 
 @session(python=python_versions)
 def mypy(session: Session) -> None:
     """Type-check using mypy."""
-    args = session.posargs or ["camelot", "tests", "docs/conf.py"]
+    args = session.posargs or ["camelot", "tests"]
     session.install(".")
     session.install("mypy", "pytest")
     session.run("mypy", *args)
@@ -155,7 +165,11 @@ def mypy(session: Session) -> None:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
-base_requires = ["ghostscript>=0.7", "opencv-python>=3.4.2.17"]
+base_requires = [
+    "ghostscript>=0.7",
+    "opencv-python-headless>=3.4.2.17",
+    "pypdfium2>=4,<5",
+]
 
 plot_requires = [
     "matplotlib>=2.2.3",
@@ -168,7 +182,12 @@ def tests(session: Session) -> None:
     session.install(".")
 
     session.install(
-        "coverage[toml]", "pytest", "pygments", *base_requires, *plot_requires
+        "coverage[toml]",
+        "pytest",
+        "pytest-mpl",
+        "pygments",
+        *base_requires,
+        *plot_requires,
     )
     try:
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
@@ -177,7 +196,7 @@ def tests(session: Session) -> None:
             session.notify("coverage", posargs=[])
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[2])
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report", "-i"]
@@ -190,7 +209,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[2])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install(".")
@@ -213,7 +232,7 @@ def xdoctest(session: Session) -> None:
     session.run("python", "-m", "xdoctest", *args)
 
 
-@session(name="docs-build", python=python_versions[0])
+@session(name="docs-build", python=python_versions[2])
 def docs_build(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
@@ -222,7 +241,14 @@ def docs_build(session: Session) -> None:
 
     session.install(".")
     session.install(
-        "sphinx", "sphinx-click", "furo", "myst-parser", *base_requires, *plot_requires
+        "sphinx",
+        "sphinx-click",
+        "sphinx-book-theme",
+        "myst-parser",
+        "sphinx-copybutton",
+        "sphinx-prompt",
+        *base_requires,
+        *plot_requires,
     )
 
     build_dir = Path("docs", "_build")
@@ -232,7 +258,7 @@ def docs_build(session: Session) -> None:
     session.run("sphinx-build", *args)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[2])
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
@@ -241,8 +267,10 @@ def docs(session: Session) -> None:
         "sphinx",
         "sphinx-autobuild",
         "sphinx-click",
-        "furo",
+        "sphinx-book-theme",
         "myst-parser",
+        "sphinx-copybutton",
+        "sphinx-prompt",
         *base_requires,
         *plot_requires,
     )

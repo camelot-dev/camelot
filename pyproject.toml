@@ -1,71 +1,79 @@
-[tool.poetry]
+[project]
 name = "camelot"
-version = "0.20.1"
+version = "0.12.0"
 description = "PDF Table Extraction for Humans."
-authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-homepage = "https://github.com/camelot-dev/camelot"
-repository = "https://github.com/camelot-dev/camelot"
-documentation = "https://camelot-py.readthedocs.io"
-packages = [
-    { include = "camelot", from = "." },
+authors = [
+    {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
 ]
+license = {text = "MIT"}
+readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
+dependencies = [
+    "click>=8.0.1",
+    "chardet>=5.1.0",
+    "numpy>=1.24.4; python_version < '3.12'",
+    "numpy>=1.26.1; python_version >= '3.12'",
+    "openpyxl>=3.1.0",
+    "pdfminer-six>=20240706",
+    "pypdf>=3.17,<4.0; python_version < '3.12'",
+    "pypdf>=4.0,<6.0; python_version >= '3.12'",
+    "pandas>=1.5.3; python_version < '3.10'",
+    "pandas>=2.2.2; python_version >= '3.10'",
+    "tabulate>=0.9.0",
+    "typing-extensions>=4.12.2; python_version < '3.11'",
+    "opencv-python-headless>=4.7.0.68",
+    "pypdfium2>=4",
+]
 
-[tool.poetry.urls]
-Changelog = "https://github.com/camelot-dev/camelot/blob/master/HISTORY.md"
+[project.urls]
+Homepage = "https://github.com/camelot-dev/camelot"
+Repository = "https://github.com/camelot-dev/camelot"
+Documentation = "https://camelot-py.readthedocs.io/"
+Changelog = "https://github.com/camelot-dev/camelot/releases"
 
-[tool.poetry.dependencies]
-python = "^3.8"
-click = ">=8.0.1"
-chardet = "^5.1.0"
-numpy = "^1.24.2"
-openpyxl = "^3.1.0"
-pandas = "^1.5.3"
-pdfminer-six = "^20221105"
-pypdf = "^3.4.0"
-tabulate = "^0.9.0"
+[project.optional-dependencies]
+plot = [
+    "matplotlib>=3.7.5; python_version < '3.12'",
+    "matplotlib>=3.8.0; python_version >= '3.12'",
+]
+ghostscript = [
+    "ghostscript>=0.7",
+]
+dev = [
+    "Pygments>=2.10.0",
+    "black>=23.1.0",
+    "coverage[toml]>=6.2",
+    "flake8>=4.0.1",
+    "flake8-bandit>=2.1.2",
+    "flake8-bugbear>=21.9.2",
+    "flake8-rst-docstrings>=0.2.5",
+    "sphinx-book-theme>=1.0.1",
+    "isort>=5.10.1",
+    "mypy>=0.930",
+    "pep8-naming>=0.12.1",
+    "pre-commit>=2.16.0",
+    "pre-commit-hooks>=4.1.0",
+    "pytest>=6.2.5",
+    "pytest-mpl>=0.17.0",
+    "pyupgrade>=2.29.1",
+    "safety>=2.2.3",
+    "sphinx>=4.3.2",
+    "sphinx-autobuild>=2021.3.14",
+    "sphinx-click>=3.0.2",
+    "sphinx-copybutton>=0.5.0",
+    "sphinx-prompt>=1.5.0",
+    "typeguard>=2.13.3",
+    "xdoctest[colors]>=0.15.10",
+    "myst-parser>=2.0.0",
+]
 
-[tool.poetry.dev-dependencies]
-Pygments = ">=2.10.0"
-black = ">=23.1.0"
-coverage = {extras = ["toml"], version = ">=6.2"}
-flake8 = ">=4.0.1"
-flake8-bandit = ">=2.1.2"
-flake8-bugbear = ">=21.9.2"
-flake8-rst-docstrings = ">=0.2.5"
-furo = ">=2021.11.12"
-isort = ">=5.10.1"
-mypy = ">=0.930"
-pep8-naming = ">=0.12.1"
-pre-commit = ">=2.16.0"
-pre-commit-hooks = ">=4.1.0"
-pytest = ">=6.2.5"
-pyupgrade = ">=2.29.1"
-safety = ">=2.2.3"
-sphinx = ">=4.3.2"
-sphinx-autobuild = ">=2021.3.14"
-sphinx-click = ">=3.0.2"
-typeguard = ">=2.13.3"
-xdoctest = {extras = ["colors"], version = ">=0.15.10"}
-myst-parser = {version = ">=0.16.1"}
-
-[tool.poetry.scripts]
+[project.scripts]
 camelot = "camelot.__main__:main"
 
-[tool.poetry.group.base.dependencies]
-ghostscript = "^0.7"
-opencv-python = "^4.7.0.68"
-
-
-[tool.poetry.group.plot.dependencies]
-matplotlib = "^3.6.3"
-
 [tool.coverage.paths]
-source = ["camelot", "*/site-packages"]
+source = ["camelot", "*\\camelot", "*/site-packages"]
 tests = ["tests", "*/tests"]
 
 [tool.coverage.run]
@@ -82,13 +90,47 @@ force_single_line = true
 lines_after_imports = 2
 
 [tool.mypy]
-strict = true
 warn_unreachable = true
 pretty = true
 show_column_numbers = true
 show_error_codes = true
 show_error_context = true
+ignore_missing_imports = true
+
+# strict = true
+# Strict is too agressive for now and not passing.
+# should uncomment the settings below one by one and make them pass.
+# Then strict can be enabled. (Values taken from mypy docs. section existing_code)
+
+# Start off with these
+warn_unused_configs = true
+warn_redundant_casts = true
+# warn_unused_ignores = true
+
+# Getting these passing should be easy
+strict_equality = true
+# extra_checks = true
+
+# Strongly recommend enabling this one as soon as you can
+# check_untyped_defs = true
+
+# These shouldn't be too much additional work, but may be tricky to
+# get passing if you use a lot of untyped libraries
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+
+# These next few are various gradations of forcing use of type annotations
+# disallow_untyped_calls = true
+# disallow_incomplete_defs = true
+# disallow_untyped_defs = true
+
+# This one isn't too hard to get passing, but return on investment is lower
+# no_implicit_reexport = true
+
+# This one can be tricky to get passing if you use a lot of untyped libraries
+# warn_return_any = true
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

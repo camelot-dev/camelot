@@ -15,6 +15,12 @@ from pygments.token import Whitespace
 
 
 class FlaskyStyle(Style):
+    """A Pygments style based on the Flask theme colors.
+
+    This style uses a light gray background (#f8f8f8) and default text styling.
+    It is used for syntax highlighting code blocks in Flask's documentation.
+    """
+
     background_color = "#f8f8f8"
     default_style = ""
 

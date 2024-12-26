@@ -1,37 +1,35 @@
-import ctypes
-import sys
-from ctypes.util import find_library
+"""Creates a ghostscript backend class to convert a pdf to a png file."""
+
+from camelot.backends.base import ConversionBackend
 
 
-def installed_posix():
-    library = find_library("gs")
-    return library is not None
+class GhostscriptBackend(ConversionBackend):
+    """Classmethod to create GhostscriptScriptBackend."""
 
+    def convert(self, pdf_path: str, png_path: str, resolution: int = 300) -> None:
+        """Convert a PDF to a PNG image using Ghostscript .
 
-def installed_windows():
-    library = find_library(
-        "".join(("gsdll", str(ctypes.sizeof(ctypes.c_voidp) * 8), ".dll"))
-    )
-    return library is not None
+        Parameters
+        ----------
+        pdf_path : str
+            [description]
+        png_path : str
+            [description]
+        resolution : int, optional
+            [description], by default 300
 
-
-class GhostscriptBackend:
-    def installed(self):
-        if sys.platform in ["linux", "darwin"]:
-            return installed_posix()
-        elif sys.platform == "win32":
-            return installed_windows()
-        else:
-            return installed_posix()
-
-    def convert(self, pdf_path, png_path, resolution=300):
-        if not self.installed():
+        Raises
+        ------
+        OSError
+            [description]
+        """
+        try:
+            import ghostscript  # type: ignore[import-untyped]
+        except ModuleNotFoundError as ex:
             raise OSError(
                 "Ghostscript is not installed. You can install it using the instructions"
-                " here: https://camelot-py.readthedocs.io/en/master/user/install-deps.html"
-            )
-
-        import ghostscript
+                " here: https://camelot-py.readthedocs.io/en/latest/user/install-deps.html"
+            ) from ex
 
         gs_command = [
             "gs",
