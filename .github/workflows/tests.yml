@@ -22,10 +22,6 @@ jobs:
               posargs:
                 ["camelot", "tests", "docs/conf.py", "--allow-untyped-globals"],
             }
-          #          - { python: "3.10", os: "ubuntu-latest", session: "mypy" }
-          #          - { python: "3.9", os: "ubuntu-latest", session: "mypy" }
-          #          - { python: "3.8", os: "ubuntu-latest", session: "mypy" }
-          #          - { python: "3.7", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.12", os: "ubuntu-latest", session: "tests" }
           - { python: "3.11", os: "ubuntu-latest", session: "tests" }
           - { python: "3.10", os: "ubuntu-latest", session: "tests" }
@@ -65,15 +61,14 @@ jobs:
           with open(os.environ["GITHUB_ENV"], mode="a") as io:
               print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
 
-      - name: Install Poetry
+      - name: Install uv
         run: |
-          pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt poetry
-          poetry --version
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv --version
 
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox nox-poetry
           nox --version
 
       - name: Install ghostscript
@@ -155,15 +150,14 @@ jobs:
           pip install --constraint=${PWD}/.github/workflows/constraints.txt pip
           pip --version
 
-      - name: Install Poetry
+      - name: Install uv
         run: |
-          pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt poetry
-          poetry --version
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv --version
 
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox nox-poetry
           nox --version
 
       - name: Download coverage data
