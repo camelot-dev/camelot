@@ -56,7 +56,7 @@ class Hybrid(BaseParser):
         row_tol=2,
         column_tol=0,
         debug=False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             "hybrid",

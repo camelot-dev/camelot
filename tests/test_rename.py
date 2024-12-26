@@ -1,5 +1,4 @@
 def test_imports():
-
     from camelot.backends.pdfium_backend import PdfiumBackend  # noqa: F401
     from camelot.backends.poppler_backend import PopplerBackend  # noqa: F401
     from camelot.handlers import Hybrid  # noqa: F401

@@ -9,25 +9,25 @@ import sys
 import tempfile
 import zipfile
 from operator import itemgetter
-from typing import Any
-from typing import Iterable
-from typing import Iterator
+from typing import Any, Iterable, Iterator
 
 import cv2
 import pandas as pd
 
-
 if sys.version_info >= (3, 11):
-    from typing import TypedDict  # pylint: disable=no-name-in-module
-    from typing import Unpack
+    from typing import (
+        TypedDict,  # pylint: disable=no-name-in-module
+        Unpack,
+    )
 else:
     from typing_extensions import TypedDict, Unpack
 
 from .backends import ImageConversionBackend
-from .utils import build_file_path_in_temp_dir
-from .utils import get_index_closest_point
-from .utils import get_textline_coords
-
+from .utils import (
+    build_file_path_in_temp_dir,
+    get_index_closest_point,
+    get_textline_coords,
+)
 
 # minimum number of vertical textline intersections for a textedge
 # to be considered valid

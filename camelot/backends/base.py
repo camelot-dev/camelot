@@ -2,7 +2,6 @@
 
 
 class ConversionBackend:  # noqa D101
-
     def installed(self) -> bool:  # noqa D102
         raise NotImplementedError
 
