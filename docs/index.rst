@@ -37,7 +37,7 @@ Release v\ |version|. (:ref:`Installation <install>`)
 You can check out the quickstart notebook.
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/main/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+    :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
 
 Or follow the example below.
 

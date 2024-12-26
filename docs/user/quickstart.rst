@@ -8,7 +8,7 @@ This document gives a good introduction to help you get started with Camelot.
 Or checkout the quickstart-notebook.
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/quickstart-notebook/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+    :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
 
 
 ead the PDF
