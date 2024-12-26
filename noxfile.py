@@ -8,7 +8,9 @@ from pathlib import Path
 from textwrap import dedent
 
 import nox
-from nox import Session, session
+from nox import Session
+from nox import session
+
 
 package = "camelot"
 
