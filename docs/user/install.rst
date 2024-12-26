@@ -1,51 +1,40 @@
 .. _install:
 
-Installation
-=============
+Installation of Camelot
+=======================
 
-This part of the documentation covers the steps to install pypdf_table_extraction.
+This part of the documentation covers the steps to install Camelot.
 
-.. note:: ``ghostscript`` is replaced by ``pdfium`` as the default image conversion backend in ``v1.0.0``. Which should make this library easier to install with just a pip install (on linux).
+After :ref:`installing the dependencies <install_deps>`, which include `Ghostscript <https://www.ghostscript.com>`_ and `Tkinter <https://wiki.python.org/moin/TkInter>`_, you can use one of the following methods to install Camelot:
 
-You can use one of the following methods to install pypdf_table_extraction:
-
+.. warning:: The ``lattice`` flavor will fail to run if Ghostscript is not installed. You may run into errors as shown in `issue #193 <https://github.com/camelot-dev/camelot/issues/193>`_.
 
 pip
 ---
 
-To install pypdf_table_extraction from PyPI using ``pip``
+To install Camelot from PyPI using ``pip``, please include the extra ``cv`` requirement as shown::
 
-.. code-block:: console
-
-    $ pip install "pypdf-table-extraction"
+    $ pip install "camelot-py[base]"
 
 conda
 -----
 
+`conda`_ is a package manager and environment management system for the `Anaconda <https://anaconda.org>`_ distribution. It can be used to install Camelot from the ``conda-forge`` channel::
 
-`conda`_ is a package manager and environment management system for the `Anaconda <https://anaconda.org>`_ distribution. It can be used to install pypdf_table_extraction from the ``conda-forge`` channel
-
-.. code-block:: console
-
-    $ conda install -c conda-forge pypdf-table-extraction
+    $ conda install -c conda-forge camelot-py
 
 From the source code
 --------------------
 
-You can install pypdf_table_extraction from source by:
+After :ref:`installing the dependencies <install_deps>`, you can install Camelot from source by:
 
 1. Cloning the GitHub repository.
+::
 
-.. code-block:: console
-
-    $ git clone https://github.com/py-pdf/pypdf_table_extraction.git
+    $ git clone https://www.github.com/camelot-dev/camelot
 
 2. And then simply using pip again.
+::
 
-.. code-block:: console
-
-    $ cd pypdf_table_extraction
-    $ pip install "."
-
-.. tip::
-    You can still use the `ghostscript`` backend after After :ref:`installing the dependencies <install_deps>`.
+    $ cd camelot
+    $ pip install ".[base]"

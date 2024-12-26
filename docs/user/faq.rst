@@ -3,12 +3,12 @@
 Frequently Asked Questions
 ==========================
 
-This part of the documentation answers some common questions. To add questions, please open an issue `here <https://github.com/py-pdf/pypdf_table_extraction/issues/new>`_.
+This part of the documentation answers some common questions. To add questions, please open an issue `here <https://github.com/camelot-dev/camelot/issues/new>`_.
 
-Does pypdf_table_extraction work with image-based PDFs?
--------------------------------------------------------
+Does Camelot work with image-based PDFs?
+----------------------------------------
 
-**No**, pypdf_table_extraction only works with text-based PDFs and not scanned documents. (As Tabula `explains <https://github.com/tabulapdf/tabula#why-tabula>`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
+**No**, Camelot only works with text-based PDFs and not scanned documents. (As Tabula `explains <https://github.com/tabulapdf/tabula#why-tabula>`_, "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
 
 How to reduce memory usage for long PDFs?
 -----------------------------------------
@@ -19,9 +19,9 @@ A simple workaround is to divide the extraction into chunks, and save extracted 
 
 For more details, check out this code snippet from `@anakin87 <https://github.com/anakin87>`_:
 
-.. code-block:: python
+::
 
-    import pypdf_table_extraction
+    import camelot
 
 
     def chunks(l, n):
@@ -42,8 +42,8 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
             Example: '1,3,4' or '1,4-end' or 'all'.
         """
 
-        # get list of pages from pypdf_table_extraction.handlers.PDFHandler
-        handler = pypdf_table_extraction.handlers.PDFHandler(filepath)
+        # get list of pages from camelot.handlers.PDFHandler
+        handler = camelot.handlers.PDFHandler(filepath)
         page_list = handler._get_pages(filepath, pages=pages)
 
         # chunk pages list
@@ -52,15 +52,13 @@ For more details, check out this code snippet from `@anakin87 <https://github.co
         # extraction and export
         for chunk in page_chunks:
             pages_string = str(chunk).replace("[", "").replace("]", "")
-            tables = pypdf_table_extraction.read_pdf(filepath, pages=pages_string, **params)
+            tables = camelot.read_pdf(filepath, pages=pages_string, **params)
             tables.export(f"{export_path}/tables.csv")
 
 How can I supply my own image conversion backend to Lattice?
 ------------------------------------------------------------
 
-When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`image conversion backend <image-conversion-backend>` by creating a class with a ``convert`` method as follows:
-
-.. code-block:: python
+When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`image conversion backend <image-conversion-backend>` by creating a class with a ``convert`` method as follows::
 
     >>> class ConversionBackend(object):
     >>>     def convert(pdf_path, png_path):
@@ -69,4 +67,4 @@ When using the :ref:`Lattice <lattice>` flavor, you can supply your own :ref:`im
     >>>         # write image to png_path
     >>>         pass
     >>>
-    >>> tables = pypdf_table_extraction.read_pdf(filename, backend=ConversionBackend())
+    >>> tables = camelot.read_pdf(filename, backend=ConversionBackend())

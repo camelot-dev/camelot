@@ -7,26 +7,20 @@ import os
 from pathlib import Path
 from typing import Any
 
-from pdfminer.layout import LTChar
-from pdfminer.layout import LTImage
-from pdfminer.layout import LTTextLineHorizontal
-from pdfminer.layout import LTTextLineVertical
-from pypdf import PdfReader
-from pypdf import PdfWriter
+from pdfminer.layout import LTChar, LTImage, LTTextLineHorizontal, LTTextLineVertical
+from pypdf import PdfReader, PdfWriter
 from pypdf._utils import StrByteType
 
 from .core import TableList
-from .parsers import Hybrid
-from .parsers import Lattice
-from .parsers import Network
-from .parsers import Stream
-from .utils import TemporaryDirectory
-from .utils import download_url
-from .utils import get_image_char_and_text_objects
-from .utils import get_page_layout
-from .utils import get_rotation
-from .utils import is_url
-
+from .parsers import Hybrid, Lattice, Network, Stream
+from .utils import (
+    TemporaryDirectory,
+    download_url,
+    get_image_char_and_text_objects,
+    get_page_layout,
+    get_rotation,
+    is_url,
+)
 
 PARSERS = {
     "lattice": Lattice,
@@ -219,7 +213,7 @@ class PDFHandler:
             A dict of `pdfminer.layout.LAParams
             <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
         kwargs : dict
-            See pypdf_table_extraction.read_pdf kwargs.
+            See camelot.read_pdf kwargs.
 
         Returns
         -------

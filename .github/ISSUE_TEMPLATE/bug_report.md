@@ -6,7 +6,7 @@ labels: bug
 assignees: ""
 ---
 
-<!-- Please read the filing issues section of the contributor's guide first: https://pypdf-table-extraction.readthedocs.io/en/latest/dev/contributing.html#filing-issues -->
+<!-- Please read the filing issues section of the contributor's guide first: https://camelot-py.readthedocs.io/en/latest/dev/contributing.html#filing-issues -->
 
 **Describe the bug**
 
@@ -14,7 +14,7 @@ assignees: ""
 
 **Steps to reproduce the bug**
 
-<!-- Steps used to install `pypdf_table_extraction`:
+<!-- Steps used to install `camelot`:
 1. Add step here (you can add more steps too) -->
 
 <!-- Steps to be used to reproduce behavior:
@@ -26,7 +26,7 @@ assignees: ""
 
 **Code**
 
-<!-- Add the pypdf_table_extraction code snippet that you used. -->
+<!-- Add the camelot code snippet that you used. -->
 
 ```
 
@@ -48,7 +48,7 @@ assignees: ""
 - Numpy version:
 - OpenCV version:
 - Ghostscript version:
-- pypdf_table_extraction version:
+- camelot version:
 
 **Additional context**
 

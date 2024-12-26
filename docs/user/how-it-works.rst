@@ -3,7 +3,7 @@
 How It Works
 ============
 
-This part of the documentation includes a high-level explanation of how pypdf_table_extraction extracts tables from PDF files.
+This part of the documentation includes a high-level explanation of how Camelot extracts tables from PDF files.
 
 You can choose between the following table parsing methods, *Stream*, *Lattice*, *Network* and *Hybrid*.
 Where *Hybrid* is a combination of the *Network* and *Lattice* parser.

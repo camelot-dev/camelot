@@ -3,45 +3,45 @@
 API Reference
 =============
 
-.. module:: pypdf_table_extraction
+.. module:: camelot
 
 Main Interface
 --------------
-.. autofunction:: pypdf_table_extraction.read_pdf
+.. autofunction:: camelot.read_pdf
 
 Lower-Level Classes
 -------------------
 
-.. autoclass:: pypdf_table_extraction.handlers.PDFHandler
+.. autoclass:: camelot.handlers.PDFHandler
    :inherited-members:
 
-.. autoclass:: pypdf_table_extraction.parsers.Stream
+.. autoclass:: camelot.parsers.Stream
    :inherited-members:
 
-.. autoclass:: pypdf_table_extraction.parsers.Lattice
+.. autoclass:: camelot.parsers.Lattice
    :inherited-members:
 
-.. autoclass:: pypdf_table_extraction.parsers.Network
+.. autoclass:: camelot.parsers.Network
    :inherited-members:
 
-.. autoclass:: pypdf_table_extraction.parsers.Hybrid
+.. autoclass:: camelot.parsers.Hybrid
    :inherited-members:
 
 Lower-Lower-Level Classes
 -------------------------
 
-.. autoclass:: pypdf_table_extraction.core.TableList
+.. autoclass:: camelot.core.TableList
    :inherited-members:
 
-.. autoclass:: pypdf_table_extraction.core.Table
+.. autoclass:: camelot.core.Table
    :inherited-members:
 
-.. autoclass:: pypdf_table_extraction.core.Cell
+.. autoclass:: camelot.core.Cell
 
 Plotting
 --------
 
-.. autofunction:: pypdf_table_extraction.plot
+.. autofunction:: camelot.plot
 
-.. autoclass:: pypdf_table_extraction.plotting.PlotMethods
+.. autoclass:: camelot.plotting.PlotMethods
    :inherited-members:

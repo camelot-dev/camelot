@@ -1,4 +1,4 @@
-"""pypdf_table_extraction offers multiple methods to parse pdfs and reconstruct the tables."""
+"""Camelot offers multiple methods to parse pdfs and reconstruct the tables."""
 
 from .hybrid import Hybrid
 from .lattice import Lattice

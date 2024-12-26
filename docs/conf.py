@@ -14,14 +14,13 @@ import sys
 
 import camelot
 
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 # sys.path.insert(0, os.path.abspath('..'))
 
-# Insert pypdf_table_extraction's path into the system.
+# Insert camelot's path into the system.
 sys.path.insert(0, os.path.abspath("../camelot"))
 sys.path.insert(0, os.path.abspath("_themes"))
 
@@ -61,9 +60,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "pypdf_table_extraction"
-copyright = "2024, pypdf_table_extraction Developers"
-author = "pypdf_table_extraction Developers"
+project = "Camelot"
+copyright = "2024, Camelot Developers"
+author = "Camelot Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -137,7 +136,7 @@ html_theme = "sphinx_book_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "repository_url": "https://github.com/py-pdf/pypdf_table_extraction",
+    "repository_url": "https://github.com/camelot-dev/camelot",
     "repository_branch": "main",
     "path_to_docs": "/docs",
     "use_repository_button": True,
@@ -159,7 +158,7 @@ html_theme_options = {
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = "_static/pypdf-table-extraction.png"
+html_logo = "_static/camelot.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -244,7 +243,7 @@ html_show_copyright = True
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "pypdf_table_extraction-doc"
+htmlhelp_basename = "camelot-doc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -269,8 +268,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "pypdf-table-extraction.tex",
-        "pypdf-table-extraction Documentation",
+        "camelot.tex",
+        "Camelot Documentation",
         "Vinayak Mehta",
         "manual",
     ),
@@ -316,8 +315,8 @@ latex_documents = [
 man_pages = [
     (
         master_doc,
-        "pypdf_table_extraction",
-        "pypdf_table_extraction Documentation",
+        "Camelot",
+        "Camelot Documentation",
         [author],
         1,
     )
@@ -336,10 +335,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "pypdf_table_extraction",
-        "pypdf_table_extraction Documentation",
+        "Camelot",
+        "Camelot Documentation",
         author,
-        "pypdf_table_extraction",
+        "Camelot",
         "PDF Table Extraction for Humans.",
         "Miscellaneous",
     ),

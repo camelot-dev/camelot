@@ -7,11 +7,13 @@ import warnings
 import pandas as pd
 
 from ..core import Table
-from ..utils import bbox_from_str
-from ..utils import compute_accuracy
-from ..utils import compute_whitespace
-from ..utils import get_table_index
-from ..utils import text_in_bbox
+from ..utils import (
+    bbox_from_str,
+    compute_accuracy,
+    compute_whitespace,
+    get_table_index,
+    text_in_bbox,
+)
 
 
 class BaseParser:
@@ -123,7 +125,7 @@ class BaseParser:
             if self.images:
                 warnings.warn(
                     f"{rootname} is image-based, "
-                    "pypdf_table_extraction only works on text-based pages.",
+                    "camelot only works on text-based pages.",
                     stacklevel=1,
                 )
             else:

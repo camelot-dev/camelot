@@ -14,34 +14,29 @@ import warnings
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
-from typing import Any
-from typing import Callable
+from typing import Any, Callable
 from urllib.parse import urlparse as parse_url
-from urllib.parse import uses_netloc
-from urllib.parse import uses_params
-from urllib.parse import uses_relative
-from urllib.request import Request
-from urllib.request import urlopen
+from urllib.parse import uses_netloc, uses_params, uses_relative
+from urllib.request import Request, urlopen
 
 import numpy as np
 from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LAParams
-from pdfminer.layout import LTAnno
-from pdfminer.layout import LTChar
-from pdfminer.layout import LTContainer
-from pdfminer.layout import LTImage
-from pdfminer.layout import LTItem
-from pdfminer.layout import LTTextLine
-from pdfminer.layout import LTTextLineHorizontal
-from pdfminer.layout import LTTextLineVertical
+from pdfminer.layout import (
+    LAParams,
+    LTAnno,
+    LTChar,
+    LTContainer,
+    LTImage,
+    LTItem,
+    LTTextLine,
+    LTTextLineHorizontal,
+    LTTextLineVertical,
+)
 from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowed
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.pdfpage import PDFPage, PDFTextExtractionNotAllowed
 from pdfminer.pdfparser import PDFParser
 from pypdf._utils import StrByteType
-
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
 _VALID_URLS.discard("")

@@ -1,5 +1,3 @@
-"""Initialize pypdf_table_extraction, formerly known as Camelot."""
-
 __all__ = ("main",)
 
 
