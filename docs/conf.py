@@ -1,3 +1,9 @@
+"""Configuration file for the Sphinx documentation builder.
+
+This file contains all the configuration needed to build Camelot's documentation
+using Sphinx. It sets up extensions, themes, and various build settings.
+"""
+
 #
 #
 # This file is execfile()d with the current directory set to its
