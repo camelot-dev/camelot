@@ -1,6 +1,6 @@
 [project]
 name = "camelot"
-version = "0.12.0"
+version = "0.11.0"
 description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
@@ -67,6 +67,7 @@ dev = [
     "typeguard>=2.13.3",
     "xdoctest[colors]>=0.15.10",
     "myst-parser>=2.0.0",
+    "nox>=2024.10.9",
 ]
 
 [project.scripts]

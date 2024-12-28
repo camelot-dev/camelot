@@ -8,14 +8,15 @@
 [![codecov.io](https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github)](https://codecov.io/github/camelot-dev/camelot?branch=master)
 [![image](https://img.shields.io/pypi/v/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/l/camelot-py.svg)](https://pypi.org/project/camelot-py/) [![image](https://img.shields.io/pypi/pyversions/camelot-py.svg)](https://pypi.org/project/camelot-py/)
 
-**Camelot** is a Python library that can help you extract tables from PDFs!
+**Camelot** is a Python library that can help you extract tables from PDFs.
 
 ---
 
-**Here's how you can extract tables from PDFs.**
-You can check out the quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb) or follow the example below.
+**Extract tables from PDFs in just a few lines of code:**
 
-You can check out the PDF used in this example [here](https://github.com/camelot-dev/camelot/blob/main/docs/_static/pdf/foo.pdf).
+Try it yourself in our interactive quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb)
+
+Or check out a simple example using [this pdf](https://github.com/camelot-dev/camelot/blob/main/docs/_static/pdf/foo.pdf).
 
 <pre>
 >>> import camelot
