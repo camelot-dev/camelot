@@ -67,6 +67,7 @@ dev = [
     "typeguard>=2.13.3",
     "xdoctest[colors]>=0.15.10",
     "myst-parser>=2.0.0",
+    "nox>=2024.10.9",
 ]
 
 [project.scripts]

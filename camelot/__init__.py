@@ -4,6 +4,7 @@ from .__version__ import __version__  # noqa D100, F400
 from .io import read_pdf
 from .plotting import PlotMethods
 
+
 # set up logging
 logger = logging.getLogger("camelot")
 
