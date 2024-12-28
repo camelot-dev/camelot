@@ -3,15 +3,14 @@
 Quickstart
 ==========
 
-In a hurry to extract tables from PDFs?
-This document gives a good introduction to help you get started with Camelot.
-Or checkout the quickstart-notebook.
+.. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+In a hurry to extract tables from PDFs? This document gives a good introduction to help you get started with Camelot.
+You can also check out our quickstart notebook. |colab|
 
 
-ead the PDF
+Read the PDF
 ------------
 
 Reading a PDF to extract tables with Camelot is very simple.

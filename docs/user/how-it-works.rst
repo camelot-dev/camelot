@@ -8,12 +8,11 @@ This part of the documentation includes a high-level explanation of how Camelot 
 You can choose between the following table parsing methods, *Stream*, *Lattice*, *Network* and *Hybrid*.
 Where *Hybrid* is a combination of the *Network* and *Lattice* parser.
 
+.. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/main/examples/parser-comparison-notebook.ipynb
+
 .. tip::
-    For a side-by-side visual comparison of the parser use the `parser-comparison-notebook`:
-
-    .. image:: https://colab.research.google.com/assets/colab-badge.svg
-        :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/main/examples/parser-comparison-notebook.ipynb
-
+    For a side-by-side visual comparison of the parsers use our comparison notebook. |colab|
 
 .. _stream:
 

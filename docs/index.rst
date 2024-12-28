@@ -25,25 +25,24 @@ Release v\ |version|. (:ref:`Installation <install>`)
     :target: https://pypi.org/project/camelot-py/
 
 
-**Camelot** is a Python library that can help you extract tables from PDFs!
+**Camelot** is a Python library that can help you extract tables from PDFs.
 
-.. note:: You can also check out `Excalibur`_, the web interface to Camelot!
+.. note:: You can also check out `Excalibur`_, the web interface to Camelot.
 
 .. _Excalibur: https://github.com/camelot-dev/excalibur
 
 ----
 
-**Here's how you can extract tables from PDFs.**
-You can check out the quickstart notebook.
+**Extract tables from PDFs in just a few lines of code:**
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+.. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
 
-Or follow the example below.
+Try it yourself in our interactive quickstart notebook. |colab|
 
-You can find the PDF used in this example `here`_.
+Or check out a simple example using `this pdf`_.
 
-.. _here: _static/pdf/foo.pdf
+.. _this pdf: _static/pdf/foo.pdf
 
 .. code-block:: pycon
 
