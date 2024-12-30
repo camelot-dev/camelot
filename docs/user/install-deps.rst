@@ -3,8 +3,7 @@
 Installation of dependencies
 ============================
 
-.. note:: as of ``v1.0.0`` ghostscript is replaced by `pdfium <https://pypdfium2.readthedocs.io/en/stable/>`_ as the default image conversion backend. Which should make this library easier to install with just a pip install (on linux). The other imageconversion backends can still be used and are now optional to install.
-
+.. note:: as of ``v1.0.0`` ghostscript is replaced by `pdfium <https://pypdfium2.readthedocs.io/en/stable/>`_ as the default image conversion backend. This should make the library easier to install with just a pip install (on linux). The other image conversion backends can still be used and are now optional to install.
 
 The optional dependency `Ghostscript <https://www.ghostscript.com>`_ can be installed using your system's package manager or by running their installer.
 

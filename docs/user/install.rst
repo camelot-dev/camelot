@@ -1,13 +1,13 @@
 .. _install:
 
-Installation of Camelot
-=======================
+Installation
+============
 
 This part of the documentation covers the steps to install Camelot.
 
-After :ref:`installing the dependencies <install_deps>`, which include `Ghostscript <https://www.ghostscript.com>`_ and `Tkinter <https://wiki.python.org/moin/TkInter>`_, you can use one of the following methods to install Camelot:
+.. note:: as of ``v1.0.0`` ghostscript is replaced by `pdfium <https://pypdfium2.readthedocs.io/en/stable/>`_ as the default image conversion backend. This should make the library easier to install with just a pip install (on linux). The other image conversion backends can still be used and are now optional to install.
 
-.. warning:: The ``lattice`` flavor will fail to run if Ghostscript is not installed. You may run into errors as shown in `issue #193 <https://github.com/camelot-dev/camelot/issues/193>`_.
+You can use one of the following methods to install Camelot:
 
 pip
 ---
