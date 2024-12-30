@@ -28,6 +28,10 @@ dependencies = [
     "pypdfium2>=4",
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project.urls]
 Homepage = "https://github.com/camelot-dev/camelot"
 Repository = "https://github.com/camelot-dev/camelot"
@@ -69,6 +73,8 @@ dev = [
     "xdoctest[colors]>=0.15.10",
     "myst-parser>=2.0.0",
     "nox>=2024.10.9",
+    "twine",
+    "build",
 ]
 
 [project.scripts]
@@ -132,7 +138,3 @@ disallow_any_generics = true
 
 # This one can be tricky to get passing if you use a lot of untyped libraries
 # warn_return_any = true
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
