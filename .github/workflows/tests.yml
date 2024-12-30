@@ -170,9 +170,8 @@ jobs:
         run: |
           nox --session=coverage -- xml -i
 
-      - name: Report test coverage to DeepSource
-        uses: deepsourcelabs/test-coverage-action@master
-        with:
-          key: python
-          coverage-file: ./coverage.xml
-          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
