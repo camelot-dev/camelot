@@ -10,7 +10,7 @@ readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
     "click>=8.0.1",
     "chardet>=5.1.0",
