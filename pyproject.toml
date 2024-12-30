@@ -1,5 +1,5 @@
 [project]
-name = "camelot"
+name = "camelot-py"
 version = "1.0.0"
 description = "PDF Table Extraction for Humans."
 authors = [
