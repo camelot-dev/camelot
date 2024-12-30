@@ -4,7 +4,7 @@ Quickstart
 ==========
 
 .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb
+  :target: https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/camelot-quickstart-notebook.ipynb
 
 In a hurry to extract tables from PDFs? This document gives a good introduction to help you get started with Camelot.
 You can also check out our quickstart notebook. |colab|

@@ -14,7 +14,7 @@
 
 **Extract tables from PDFs in just a few lines of code:**
 
-Try it yourself in our interactive quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/pypdf_table_extraction_quick_start_notebook.ipynb)
+Try it yourself in our interactive quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/camelot-quickstart-notebook.ipynb)
 
 Or check out a simple example using [this pdf](https://github.com/camelot-dev/camelot/blob/main/docs/_static/pdf/foo.pdf).
 
