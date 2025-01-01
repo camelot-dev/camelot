@@ -134,6 +134,11 @@ disallow_subclassing_any = true
 disallow_untyped_decorators = true
 disallow_any_generics = true
 
+[tool.uv]
+dev-dependencies = [
+    "pytest-cov>=5.0.0",
+]
+
 # These next few are various gradations of forcing use of type annotations
 # disallow_untyped_calls = true
 # disallow_incomplete_defs = true

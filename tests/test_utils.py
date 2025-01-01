@@ -2,6 +2,7 @@
 
 import os
 
+import pytest
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams
 from pdfminer.layout import LTTextBoxHorizontal
@@ -9,7 +10,7 @@ from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 
-from camelot.utils import bbox_intersection_area
+from camelot.utils import bbox_intersection_area, compute_whitespace, merge_close_lines
 
 
 def get_text_from_pdf(filename):
@@ -43,3 +44,54 @@ def test_bbox_intersection_text(testdir):
     pdftextelement2 = get_text_from_pdf(filename2)
 
     assert bbox_intersection_area(pdftextelement1, pdftextelement2) == 0.0
+
+
+@pytest.mark.parametrize(
+    "table_data, expected",
+    [
+        ([], 0.0),
+        ([[]], 0.0),
+        ([[""]], 100.0),
+        ([["a", "b", "c"], ["d", "e", "f"]], 0.0),
+        ([["", "", ""], ["", ""]], 100.0),
+        ([["a", "", "c"], ["", "e", ""]], 50.0),
+        ([["", "", ""]], 100.0),
+        ([["a", "b", "c"]], 0.0),
+        ([["a"]], 0.0),
+        ([[""]], 100.0),
+        (["not a list", ["a", "b"], ["", ""]], 50.0),
+        ([["a", "", "42"], ["", "None", ""]], 50.0),
+    ]
+)
+def test_compute_whitespace(table_data: list[list[str]], expected: float) -> None:
+    result: float = compute_whitespace(table_data)
+    assert result == pytest.approx(expected)
+
+
+def test_merge_empty_list() -> None:
+    """Test merging an empty list."""
+    assert merge_close_lines([]) == []
+
+def test_merge_single_element() -> None:
+    """Test merging a single-element list."""
+    assert merge_close_lines([5.0]) == pytest.approx([5.0])
+
+def test_merge_no_close_elements() -> None:
+    """Test a list with no close elements."""
+    assert merge_close_lines([1.0, 10.0, 20.0], line_tol=2) == pytest.approx([1.0, 10.0, 20.0])
+
+def test_merge_all_close_elements() -> None:
+    """Test a list where all elements are close."""
+    assert merge_close_lines([1.0, 2.0, 3.0], line_tol=2) == pytest.approx([2.25])
+
+def test_merge_some_close_elements() -> None:
+    """Test a list where some elements are close."""
+    assert merge_close_lines([1.0, 2.0, 5.0, 7.0], line_tol=2) == pytest.approx([1.5, 6.0])
+
+def test_merge_edge_case_tolerance_boundary() -> None:
+    """Test merging elements exactly on the tolerance boundary."""
+    assert merge_close_lines([1.0, 3.0, 5.0], line_tol=2) == pytest.approx([2.0, 5.0])
+
+def test_merge_negative_numbers():
+    """Test merging with negative numbers."""
+    assert merge_close_lines([-10.0, -8.0, 1.0, 3.0], line_tol=2) == pytest.approx([-9.0, 2.0])
