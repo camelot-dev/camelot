@@ -291,10 +291,10 @@ class Lattice(BaseParser):
         )
 
         for bbox, parse in self.table_bbox_parses.items():
-            joints = parse["joints"]
+            joints: list[tuple[float, float]] = parse["joints"]
 
             # Merge x coordinates that are close together
-            line_tol = self.line_tol
+            line_tol: int = self.line_tol
             # Sort the joints, make them a list of lists (instead of sets)
             joints_normalized = list(
                 map(lambda x: list(x), sorted(joints, key=lambda j: -j[0]))
