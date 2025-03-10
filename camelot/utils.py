@@ -38,7 +38,7 @@ from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowed
+from pdfminer.pdfdocument import PDFTextExtractionNotAllowed
 from pdfminer.pdfparser import PDFParser
 from pypdf._utils import StrByteType
 
@@ -48,7 +48,7 @@ _VALID_URLS.discard("")
 
 
 # https://github.com/pandas-dev/pandas/blob/master/pandas/io/common.py
-def is_url(url):
+def is_url(url) -> bool:
     """Check to see if a URL has a valid protocol.
 
     Parameters
@@ -67,8 +67,8 @@ def is_url(url):
         return False
 
 
-def random_string(length):
-    """Generate a random string .
+def random_string(length: int) -> str:
+    """Generate a random string.
 
     Parameters
     ----------
@@ -80,13 +80,10 @@ def random_string(length):
     string
         returns a random string
     """
-    ret = ""
-    while length:
-        ret += random.choice(  # noqa S311
-            string.digits + string.ascii_lowercase + string.ascii_uppercase
-        )
-        length -= 1
-    return ret
+    return "".join(
+        random.choice(string.digits + string.ascii_lowercase + string.ascii_uppercase)
+        for _ in range(length)
+    )
 
 
 def download_url(url: str) -> StrByteType | Path:
@@ -120,7 +117,7 @@ def download_url(url: str) -> StrByteType | Path:
     return filepath
 
 
-common_kwargs = [
+common_kwargs: list[str] = [
     "flag_size",
     "margins",
     "split_text",
@@ -129,8 +126,8 @@ common_kwargs = [
     "table_regions",
     "backend",
 ]
-text_kwargs = common_kwargs + ["columns", "edge_tol", "row_tol", "column_tol"]
-lattice_kwargs = common_kwargs + [
+text_kwargs: list[str] = common_kwargs + ["columns", "edge_tol", "row_tol", "column_tol"]
+lattice_kwargs: list[str] = common_kwargs + [
     "process_background",
     "line_scale",
     "copy_text",
@@ -143,7 +140,7 @@ lattice_kwargs = common_kwargs + [
     "resolution",
     "use_fallback",
 ]
-flavor_to_kwargs = {
+flavor_to_kwargs: dict[str, list[str]] = {
     "stream": text_kwargs,
     "network": text_kwargs,
     "lattice": lattice_kwargs,
@@ -151,53 +148,48 @@ flavor_to_kwargs = {
 }
 
 
-def validate_input(kwargs, flavor="lattice"):
+def validate_input(kwargs: dict[str, Any], flavor="lattice") -> None:
     """Validates input keyword arguments.
 
     Parameters
     ----------
-    kwargs : [type]
-        [description]
+    kwargs : dict[str, Any]
+        Keyword arguments
     flavor : str, optional
-        [description], by default "lattice"
+        Flavor, by default "lattice"
 
     Raises
     ------
     ValueError
-        [description]
+        Raises a value error when invalid keyword arguments are passed
     """
-    parser_kwargs = flavor_to_kwargs[flavor]
+    parser_kwargs: list[str] = flavor_to_kwargs[flavor]
     # s.difference(t): new set with elements in s but not in t
-    isec = set(kwargs.keys()).difference(set(parser_kwargs))
+    isec: set[str] = set(kwargs.keys()).difference(set(parser_kwargs))
     if isec:
         raise ValueError(
             "{} cannot be used with flavor='{}'".format(",".join(sorted(isec)), flavor)
         )
 
 
-def remove_extra(kwargs, flavor="lattice"):
-    """Remove extra key - value pairs from a kwargs dictionary.
+def remove_extra(kwargs: dict[str, Any], flavor="lattice") -> dict[str, Any]:
+    """Remove extra key-value pairs from a kwargs dictionary.
 
     Parameters
     ----------
-    kwargs : [type]
-        [description]
+    kwargs : dict[str, Any]
+        Keyword arguments
     flavor : str, optional
-        [description], by default "lattice"
+        Flavor, by default "lattice"
 
     Returns
     -------
-    [type]
-        [description]
+    dict[str, Any]
+        kwargs dictionary with extra key-value pairs removed.
 
     """
-    parser_kwargs = flavor_to_kwargs[flavor]
-    # Avoid "dictionary changed size during iteration"
-    kwargs_keys = list(kwargs.keys())
-    for key in kwargs_keys:
-        if key not in parser_kwargs:
-            kwargs.pop(key)
-    return kwargs
+    parser_kwargs: list[str] = flavor_to_kwargs[flavor]
+    return {key: value for key, value in kwargs.items() if key in parser_kwargs}
 
 
 # https://stackoverflow.com/a/22726782
@@ -234,7 +226,7 @@ class TemporaryDirectory:
         pass
 
 
-def build_file_path_in_temp_dir(filename, extension=None):
+def build_file_path_in_temp_dir(filename: str, extension: str = "") -> str:
     """Generate a new path within a temporary directory.
 
     Parameters
@@ -250,7 +242,7 @@ def build_file_path_in_temp_dir(filename, extension=None):
     with TemporaryDirectory() as temp_dir:
         if extension:
             filename = filename + extension
-        path = os.path.join(temp_dir, filename)
+        path: str = os.path.join(temp_dir, filename)
     return path
 
 
@@ -291,36 +283,44 @@ def scale(value: float, factor: float) -> float:
     return value * factor
 
 
-def scale_pdf(k, factors):
+def scale_pdf(
+    table_bounding_box: tuple[float, ...], factors: tuple[float, ...]
+) -> tuple[float, ...]:
     """Translate and scale pdf coordinate space to image coordinate space.
 
     Parameters
     ----------
-    k : tuple
+    table_bounding_box : tuple[float, ...]
         Tuple (x1, y1, x2, y2) representing table bounding box where
         (x1, y1) -> lt and (x2, y2) -> rb in PDFMiner coordinate
         space.
-    factors : tuple
+    factors : tuple[float, ...]
         Tuple (scaling_factor_x, scaling_factor_y, pdf_y) where the
         first two elements are scaling factors and pdf_y is height of
         pdf.
 
     Returns
     -------
-    knew : tuple
+    tuple[float, ...]
         Tuple (x1, y1, x2, y2) representing table bounding box where
         (x1, y1) -> lt and (x2, y2) -> rb in OpenCV coordinate
         space.
 
     """
-    x1, y1, x2, y2 = k
+    x1: float
+    y1: float
+    x2: float
+    y2: float
+    scaling_factor_x: float
+    scaling_factor_y: float
+    pdf_y: float
+    x1, y1, x2, y2 = table_bounding_box
     scaling_factor_x, scaling_factor_y, pdf_y = factors
     x1 = scale(x1, scaling_factor_x)
     y1 = scale(abs(translate(-pdf_y, y1)), scaling_factor_y)
     x2 = scale(x2, scaling_factor_x)
     y2 = scale(abs(translate(-pdf_y, y2)), scaling_factor_y)
-    knew = (int(x1), int(y1), int(x2), int(y2))
-    return knew
+    return (int(x1), int(y1), int(x2), int(y2))
 
 
 def scale_image(
@@ -361,8 +361,16 @@ def scale_image(
         - v_segments_new: A new list of scaled vertical segments.
         - h_segments_new: A new list of scaled horizontal segments.
     """
+    scaling_factor_x: float
+    scaling_factor_y: float
+    img_y: float
     scaling_factor_x, scaling_factor_y, img_y = factors
     tables_new = {}
+
+    x1: float
+    y1: float
+    x2: float
+    y2: float
 
     for k in tables.keys():
         x1, y1, x2, y2 = k
@@ -373,8 +381,10 @@ def scale_image(
 
         # j_x and j_y are tuples of floats
         j_x, j_y = zip(*tables[k])  # noqa B905
-        j_x_scaled = [scale(j, scaling_factor_x) for j in j_x]
-        j_y_scaled = [scale(abs(translate(-img_y, j)), scaling_factor_y) for j in j_y]
+        j_x_scaled: list[float] = [scale(j, scaling_factor_x) for j in j_x]
+        j_y_scaled: list[float] = [
+            scale(abs(translate(-img_y, j)), scaling_factor_y) for j in j_y
+        ]
 
         tables_new[(x1, y1, x2, y2)] = {
             "joints": list(zip(j_x_scaled, j_y_scaled))  # noqa B905
@@ -814,7 +824,6 @@ def get_index_closest_point(
     """
     n = len(sorted_list)
 
-    # If the list is empty, return None
     if n == 0:
         return None
 
@@ -867,36 +876,42 @@ def bbox_longer(ba, bb) -> bool:
     return (ba.x1 - ba.x0) >= (bb.x1 - bb.x0)
 
 
-def merge_close_lines(ar, line_tol=2):
+def merge_close_lines(array: list[float], line_tol: int = 2) -> list[float]:
     """Merge lines which are within a tolerance.
+
+    Merges close floating-point values within a specified tolerance.
 
     By calculating a moving mean, based on their x or y axis projections.
 
+    Assumes the input list of numbers is sorted.
+
     Parameters
     ----------
-    ar : list
+    array : list[float]
+        List of floats.
     line_tol : int, optional (default: 2)
+        Line tolerance.
 
     Returns
     -------
     ret : list
 
     """
-    ret = []
-    for a in ar:
+    ret: list[float] = []
+    for element in array:
         if not ret:
-            ret.append(a)
+            ret.append(element)
         else:
-            temp = ret[-1]
-            if math.isclose(temp, a, abs_tol=line_tol):
-                temp = (temp + a) / 2.0
+            temp: float = ret[-1]
+            if math.isclose(temp, element, abs_tol=line_tol):
+                temp = (temp + element) / 2.0
                 ret[-1] = temp
             else:
-                ret.append(a)
+                ret.append(element)
     return ret
 
 
-def text_strip(text, strip=""):
+def text_strip(text: str, strip: str = "") -> str:
     """Strip any characters in `strip` that are present in `text`.
 
     Parameters
@@ -908,15 +923,14 @@ def text_strip(text, strip=""):
 
     Returns
     -------
-    stripped : str
+    str
+        The processed string.
     """
-    if not strip:
-        return text
-
-    stripped = re.sub(
-        rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
+    return (
+        re.sub(rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE)
+        if strip
+        else text
     )
-    return stripped
 
 
 # TODO: combine the following functions into a TextProcessor class which
@@ -1138,23 +1152,23 @@ def _group_and_process_chars(
         chars_list = list(chars)  # Convert the iterator to a list to reuse it
 
         if flag_size:
-            grouped_chars.append(
-                (
-                    key[0],
-                    key[1],
-                    flag_font_size(
-                        [t[2] for t in chars_list], direction, strip_text=strip_text
-                    ),
-                )
-            )
+            grouped_chars.append((
+                key[0],
+                key[1],
+                flag_font_size(
+                    [t[2] for t in chars_list], direction, strip_text=strip_text
+                ),
+            ))
         else:
             gchars = []
             for t in chars_list:
                 gchars.append(t[2].get_text())
 
-            grouped_chars.append(
-                (key[0], key[1], text_strip("".join(gchars), strip_text))
-            )
+            grouped_chars.append((
+                key[0],
+                key[1],
+                text_strip("".join(gchars), strip_text),
+            ))
 
     return grouped_chars
 
@@ -1312,12 +1326,12 @@ def compute_accuracy(error_weights):
     return score
 
 
-def compute_whitespace(d: list[list[str]]) -> float:
+def compute_whitespace(table_data: list[list[str]]) -> float:
     """Calculates the percentage of empty strings in a two-dimensional list.
 
     Parameters
     ----------
-    d : list
+    table_data : list[list[str]]
         A two-dimensional list (list of lists) containing strings.
 
     Returns
@@ -1325,29 +1339,17 @@ def compute_whitespace(d: list[list[str]]) -> float:
     whitespace : float
         Percentage of empty cells.
     """
-    # Initialize the count of empty strings
-    whitespace = 0
-    total_elements = 0  # Keep track of the total number of elements
-
-    # Iterate through each row in the 2D list
-    for i in d:
-        # Only process if the row is a list
-        if isinstance(i, list):
-            total_elements += len(i)  # Count the number of elements in this row
-            # Iterate through each element in the row
-            for j in i:
-                # Check if the element is an empty string after stripping whitespace
-                if isinstance(j, str) and j.strip() == "":
-                    whitespace += 1  # Increment the count of empty strings
-
-    # Avoid division by zero
-    if total_elements == 0:
-        return 0.0  # If there are no elements, return 0%
-
-    # Calculate the percentage of empty strings
-    whitespace_percentage = 100 * (whitespace / total_elements)
-
-    return whitespace_percentage
+    total_elements: int = sum(
+        len(row) for row in table_data if isinstance(row, list) if row
+    )
+    whitespace: int = sum(
+        1
+        for row in table_data
+        if isinstance(row, list)
+        for element in row
+        if element.strip() == ""
+    )
+    return 0.0 if total_elements == 0 else 100 * (whitespace / total_elements)
 
 
 def get_page_layout(
