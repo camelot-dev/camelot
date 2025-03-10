@@ -238,7 +238,15 @@ def search_header_from_body_bbox(
             textline_center = 0.5 * (textline.x0 + textline.x1)
             if textline.y0 > top and left < textline_center < right:
                 all_above.append(textline)
-                closest_above = min(all_above, key=lambda tl: tl.y0, default=None)
+                closest_above = None
+                all_above = [
+                    tl
+                    for tl in textlines
+                    if tl.y0 > top and left < 0.5 * (tl.x0 + tl.x1) < right
+                ]
+
+                if all_above:
+                    closest_above = min(all_above, key=lambda tl: tl.y0)
 
         if closest_above and closest_above.y0 < top + max_v_gap:
             # We have a candidate cell that is within the correct
