@@ -2,7 +2,19 @@
    <img src="https://github.com/py-pdf/pypdf_table_extraction/blob/main/docs/_static/pypdf-table-extraction.png" width="200">
 </p>
 
-# pypdf_table_extraction (Camelot): PDF Table Extraction for Humans
+# pypdf_table_extraction (DEPRECATED)
+
+**This project is deprecated and no longer actively maintained.**
+
+Please use [camelot-py](https://github.com/camelot-dev/camelot) instead.
+
+Camelot-py is the actively maintained successor to this library and provides robust PDF table extraction capabilities.
+
+## Installation
+
+```bash
+pip install camelot-py
+```
 
 [![tests](https://github.com/py-pdf/pypdf_table_extraction/actions/workflows/tests.yml/badge.svg)](https://github.com/py-pdf/pypdf_table_extraction/actions/workflows/tests.yml) [![Documentation Status](https://readthedocs.org/projects/pypdf-table-extraction/badge/?version=latest)](https://pypdf-table-extraction.readthedocs.io/en/latest/)
 [![codecov.io](https://codecov.io/github/py-pdf/pypdf_table_extraction/badge.svg?branch=main&service=github)](https://codecov.io/github/py-pdf/pypdf_table_extraction/?branch=main)
