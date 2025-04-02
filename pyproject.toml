@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "pypdf_table_extraction"
-version = "1.0.1"
-description = "PDF Table Extraction for Humans."
+version = "1.0.2"
+description = "DEPRECATED - Please use camelot-py instead."
 authors = ["Vinayak Mehta <vmehta94@gmail.com>"]
 license = "MIT"
 readme = "README.md"
