@@ -144,7 +144,7 @@ html_theme = "sphinx_book_theme"
 # documentation.
 html_theme_options = {
     "repository_url": "https://github.com/camelot-dev/camelot",
-    "repository_branch": "main",
+    "repository_branch": "master",
     "path_to_docs": "/docs",
     "use_repository_button": True,
     # "launch_buttons": "dict to notebooks to launch",

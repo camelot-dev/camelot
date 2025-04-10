@@ -229,7 +229,7 @@ Table areas that you want camelot to analyze can be passed as a list of comma-se
 Specify table regions
 ---------------------
 
-However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/camelot-dev/camelot/blob/main/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
+However there may be cases like `[1] <../_static/pdf/table_regions.pdf>`__ and `[2] <https://github.com/camelot-dev/camelot/blob/master/tests/files/tableception.pdf>`__, where the table might not lie at the exact coordinates every time but in an approximate region.
 
 You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot.read_pdf>` to solve for such cases. When ``table_regions`` is specified, camelot will only analyze the specified regions to look for tables.
 
