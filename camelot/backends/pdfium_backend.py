@@ -41,3 +41,5 @@ class PdfiumBackend(ConversionBackend):
         doc.init_forms()
         image = doc[0].render(scale=resolution / 72).to_pil()
         image.save(png_path)
+        image.close()
+        doc.close()
