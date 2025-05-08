@@ -1,0 +1,29 @@
+name: Dependabot Auto-Approve
+
+on:
+  pull_request_target: # Use pull_request_target to get write permissions for approval
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: write # Needed to approve PRs
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    # Only run for PRs authored by dependabot[bot]
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot'
+    steps:
+      - name: Checkout code (not strictly necessary for just approval)
+        uses: actions/checkout@v4
+        # no further steps needed for just approval
+
+      - name: Auto-approve Dependabot PR
+        run: |
+          gh pr review --approve "$PR_URL"
+          echo "Approved Dependabot PR: $PR_URL"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
