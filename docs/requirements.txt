@@ -2,7 +2,7 @@ sphinx==8.1.3
 sphinx-book-theme>=1.0.1
 sphinx-click==6.0.0
 myst_parser==4.0.0
-ghostscript==0.7
+ghostscript==0.8.1
 opencv-python-headless==4.11.0.86
 matplotlib==3.10.1
 accessible-pygments==0.0.5
