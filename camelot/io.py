@@ -129,13 +129,13 @@ def read_pdf(
             warnings.simplefilter("ignore")
 
         validate_input(kwargs, flavor=flavor)
-        p = PDFHandler(filepath, pages=pages, password=password, debug=debug)
-        kwargs = remove_extra(kwargs, flavor=flavor)
-        tables = p.parse(
-            flavor=flavor,
-            suppress_stdout=suppress_stdout,
-            parallel=parallel,
-            layout_kwargs=layout_kwargs,
-            **kwargs,
-        )
+        with PDFHandler(filepath, pages=pages, password=password, debug=debug) as p:
+            kwargs = remove_extra(kwargs, flavor=flavor)
+            tables = p.parse(
+                flavor=flavor,
+                suppress_stdout=suppress_stdout,
+                parallel=parallel,
+                layout_kwargs=layout_kwargs,
+                **kwargs,
+            )
         return tables
