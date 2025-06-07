@@ -63,6 +63,7 @@ class PDFHandler:
         debug=False,
     ):
         self.debug = debug
+        self.is_temp_file = is_url(filepath)
         if is_url(filepath):
             filepath = download_url(str(filepath))
         self.filepath: Path | str = filepath
@@ -123,8 +124,36 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
+    def __enter__(self) -> "PDFHandler":
+        """Allow ``PDFHandler`` to be used as a context manager.
+
+        On ``__exit__`` any temp file created by :func:`download_url` (when
+        the caller passed a URL) is removed — see :meth:`close`.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Clean up the URL-downloaded temp file, if any."""
+        self.close()
+
+    def close(self) -> None:
+        """Delete the URL-downloaded temp file, if any.
+
+        Idempotent; safe to call from both ``__exit__`` and an explicit
+        ``handler.close()`` call. No-op when ``filepath`` was a user-owned
+        path (we never delete a file the caller passed in).
+        """
+        if not self.is_temp_file:
+            return
+        path = self.filepath
+        if isinstance(path, (str, Path)) and os.path.exists(path):
+            os.remove(path)
+            # Mark cleaned so a second close() doesn't re-stat-and-remove.
+            self.is_temp_file = False
+
     # Kept for backwards-compat with anything that called the old name.
     # New code should access self.pages or call _resolve_pages directly.
+
     def _get_pages(self, pages):
         """Convert pages string to list of integers.
 
