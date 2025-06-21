@@ -12,8 +12,8 @@ Release v\ |version|. (:ref:`Installation <install>`)
     :target: https://camelot-py.readthedocs.io/
     :alt: Documentation Status
 
-.. image:: https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=main&service=github
-    :target: https://codecov.io/github/camelot-dev/camelot/?branch=main
+.. image:: https://codecov.io/github/camelot-dev/camelot/badge.svg?branch=master&service=github
+    :target: https://codecov.io/github/camelot-dev/camelot/?branch=master
 
 .. image:: https://img.shields.io/pypi/v/camelot-py.svg
     :target: https://pypi.org/project/camelot-py/
