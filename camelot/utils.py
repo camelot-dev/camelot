@@ -24,22 +24,18 @@ from urllib.request import Request
 from urllib.request import urlopen
 
 import numpy as np
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LAParams
-from pdfminer.layout import LTAnno
-from pdfminer.layout import LTChar
-from pdfminer.layout import LTContainer
-from pdfminer.layout import LTImage
-from pdfminer.layout import LTItem
-from pdfminer.layout import LTTextLine
-from pdfminer.layout import LTTextLineHorizontal
-from pdfminer.layout import LTTextLineVertical
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfparser import PDFParser
+import playa
+import paves.miner as pm
+from paves.miner import LAParams
+from paves.miner import LTAnno
+from paves.miner import LTChar
+from paves.miner import LTContainer
+from paves.miner import LTImage
+from paves.miner import LTItem
+from paves.miner import LTTextLine
+from paves.miner import LTTextLineHorizontal
+from paves.miner import LTTextLineVertical
+from playa.exceptions import PDFTextExtractionNotAllowed
 from pypdf._utils import StrByteType
 
 
@@ -1385,9 +1381,7 @@ def get_page_layout(
         Dimension of pdf page in the form (width, height).
 
     """
-    with open(filename, "rb") as f:
-        parser = PDFParser(f)
-        document = PDFDocument(parser)
+    with playa.open(filename, space="page") as document:
         if not document.is_extractable:
             raise PDFTextExtractionNotAllowed(
                 f"Text extraction is not allowed: {filename}"
@@ -1401,14 +1395,9 @@ def get_page_layout(
             detect_vertical=detect_vertical,
             all_texts=all_texts,
         )
-        rsrcmgr = PDFResourceManager()
-        device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        page = next(PDFPage.create_pages(document), None)
-        if page is None:
+        if len(document.pages) == 0:
             raise PDFTextExtractionNotAllowed
-        interpreter.process_page(page)
-        layout = device.get_result()
+        layout = pm.extract_page(document.pages[0], laparams)
         width = layout.bbox[2]
         height = layout.bbox[3]
         dim = (width, height)

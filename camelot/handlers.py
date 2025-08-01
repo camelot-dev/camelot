@@ -7,10 +7,11 @@ import os
 from pathlib import Path
 from typing import Any
 
-from pdfminer.layout import LTChar
-from pdfminer.layout import LTImage
-from pdfminer.layout import LTTextLineHorizontal
-from pdfminer.layout import LTTextLineVertical
+import playa
+from paves.miner import LTChar
+from paves.miner import LTImage
+from paves.miner import LTTextLineHorizontal
+from paves.miner import LTTextLineVertical
 from pypdf import PdfReader
 from pypdf import PdfWriter
 from pypdf._utils import StrByteType
@@ -99,23 +100,19 @@ class PDFHandler:
         if pages == "1":
             page_numbers.append({"start": 1, "end": 1})
         else:
-            infile = PdfReader(self.filepath, strict=False)
-
-            if infile.is_encrypted:
-                infile.decrypt(self.password)
-
+            with playa.open(self.filepath, password=self.password) as pdf:
+                page_count = len(pdf.pages)
             if pages == "all":
-                page_numbers.append({"start": 1, "end": len(infile.pages)})
+                page_numbers.append({"start": 1, "end": page_count})
             else:
                 for r in pages.split(","):
                     if "-" in r:
                         a, b = r.split("-")
                         if b == "end":
-                            b = len(infile.pages)
+                            b = page_count
                         page_numbers.append({"start": int(a), "end": int(b)})
                     else:
                         page_numbers.append({"start": int(r), "end": int(r)})
-
         result = []
         for p in page_numbers:
             result.extend(range(p["start"], p["end"] + 1))
