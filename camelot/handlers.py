@@ -224,8 +224,8 @@ class PDFHandler:
                 pages = [x - 1 for x in self.pages]
                 tables = pdf.pages[pages].map(
                     partial(self._parse_page, parser=parser, layout_kwargs=layout_kwargs))
-        except playa.PDFPasswordIncorrect:
-            raise RuntimeError("File has not been decrypted")
+        except playa.PDFPasswordIncorrect as e:
+            raise RuntimeError("File has not been decrypted") from e
         return TableList(sorted(chain.from_iterable(tables)))
 
     def _parse_page(
