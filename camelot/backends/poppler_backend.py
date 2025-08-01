@@ -44,7 +44,7 @@ class PopplerBackend(ConversionBackend):
         pdftopng_executable = shutil.which("pdftocairo", path=path)
         if pdftopng_executable is None:
             raise OSError(
-                "pdftopng is not installed. You can install it using the 'pip install pdftopng' command."
+                "pdftocairo is not installed. Please install `poppler-utils`."
             )
 
         png_stem, _ = os.path.splitext(png_path)
