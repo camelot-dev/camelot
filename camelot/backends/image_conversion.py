@@ -104,7 +104,7 @@ class ImageConversionBackend:
 
             return backend
 
-    def convert(self, pdf_path: str, png_path: str) -> None:
+    def convert(self, pdf_path: str, png_path: str, page: int = 1) -> None:
         """Convert PDF to png_path.
 
         Parameters
@@ -113,6 +113,8 @@ class ImageConversionBackend:
             Path where to read the pdf file.
         png_path : str
             Path where to save png file.
+        page: int, optional
+            Single page to convert.
 
         Raises
         ------
@@ -122,13 +124,13 @@ class ImageConversionBackend:
             [description]
         """
         try:
-            self.backend.convert(pdf_path, png_path)
+            self.backend.convert(pdf_path, png_path, page=page)
         except Exception as f:
             if self.use_fallback:
                 for fallback in self.fallbacks:
                     try:
                         converter = BACKENDS[fallback]()
-                        converter.convert(pdf_path, png_path)
+                        converter.convert(pdf_path, png_path, page=page)
                     except Exception as e:
                         msg = f"Image conversion failed with image conversion backend {fallback!r}\n error: {e}"
                         raise ImageConversionError(msg) from e

@@ -6,7 +6,7 @@ from camelot.backends.base import ConversionBackend
 class GhostscriptBackend(ConversionBackend):
     """Classmethod to create GhostscriptScriptBackend."""
 
-    def convert(self, pdf_path: str, png_path: str, resolution: int = 300) -> None:
+    def convert(self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1) -> None:
         """Convert a PDF to a PNG image using Ghostscript .
 
         Parameters
@@ -17,6 +17,8 @@ class GhostscriptBackend(ConversionBackend):
             [description]
         resolution : int, optional
             [description], by default 300
+        page: int, optional
+            Single page to convert.
 
         Raises
         ------
@@ -35,6 +37,8 @@ class GhostscriptBackend(ConversionBackend):
             "gs",
             "-q",
             "-sDEVICE=png16m",
+            f"-dFirstPage={page}",
+            f"-dLastPage={page}",
             "-o",
             png_path,
             f"-r{resolution}",
