@@ -123,15 +123,14 @@ class BaseParser:
             Whether the document doesn't have any text at all.
         """
         if not self.horizontal_text:
-            rootname = os.path.basename(self.rootname)
             if self.images:
                 warnings.warn(
-                    f"{rootname} is image-based, "
+                    f"page-{self.page} is image-based, "
                     "camelot only works on text-based pages.",
                     stacklevel=1,
                 )
             else:
-                warnings.warn(f"No tables found on {rootname}", stacklevel=2)
+                warnings.warn(f"No tables found on page-{self.page}", stacklevel=2)
             return True
         return False
 

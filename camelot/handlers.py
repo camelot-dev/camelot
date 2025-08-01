@@ -214,15 +214,18 @@ class PDFHandler:
             pass
         else:
             cpu_count = 1
-        with playa.open(
-            self.filepath,
-            password=self.password,
-            space="page",
-            max_workers=cpu_count,
-        ) as pdf:
-            pages = [x - 1 for x in self.pages]
-            tables = pdf.pages[pages].map(
-                partial(self._parse_page, parser=parser, layout_kwargs=layout_kwargs))
+        try:
+            with playa.open(
+                self.filepath,
+                password=self.password,
+                space="page",
+                max_workers=cpu_count,
+            ) as pdf:
+                pages = [x - 1 for x in self.pages]
+                tables = pdf.pages[pages].map(
+                    partial(self._parse_page, parser=parser, layout_kwargs=layout_kwargs))
+        except playa.PDFPasswordIncorrect:
+            raise RuntimeError("File has not been decrypted")
         return TableList(sorted(chain.from_iterable(tables)))
 
     def _parse_page(
