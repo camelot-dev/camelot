@@ -209,10 +209,16 @@ class PDFHandler:
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
 
+        cpu_count = mp.cpu_count()
+        if parallel and len(self.pages) > 1 and cpu_count > 1:
+            pass
+        else:
+            cpu_count = 1
         with playa.open(
             self.filepath,
             password=self.password,
             space="page",
+            max_workers=cpu_count,
         ) as pdf:
             pages = [x - 1 for x in self.pages]
             tables = pdf.pages[pages].map(
