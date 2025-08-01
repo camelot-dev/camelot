@@ -24,6 +24,7 @@ from .parsers import Network
 from .parsers import Stream
 from .utils import download_url
 from .utils import get_image_char_and_text_objects
+from .utils import get_page_layout
 from .utils import get_rotation
 from .utils import is_url
 
@@ -147,30 +148,24 @@ class PDFHandler:
             normalized version.
 
         """
-        laparams = pm.LAParams(**layout_kwargs)
-        layout = pm.extract_page(page, laparams)
-        width = layout.bbox[2]
-        height = layout.bbox[3]
-        dimensions = (width, height)
+        layout, dimensions = get_page_layout(page, **layout_kwargs)
         # fix rotated PDF
         images, chars, horizontal_text, vertical_text = get_image_char_and_text_objects(
             layout
         )
         rotation = get_rotation(chars, horizontal_text, vertical_text)
         if rotation:
+            width, height = dimensions
             # rotate the page by simply frobbing the CTM
             if rotation == "clockwise":
-                page.ctm = mult_matrix((0, -1, 1, 0, 0, width))
+                page.ctm = mult_matrix((0, 1, -1, 0, height, 0), page.ctm)
             elif rotation == "anticlockwise":
-                page.ctm = mult_matrix((0, 1, -1, 0, height, 0))
+                page.ctm = mult_matrix((0, -1, 1, 0, 0, width), page.ctm)
             else:
                 raise AssertionError(
                     f"rotation should be clockwise or anticlockwise, is {rotation}")
             # now re-run layout analysis
-            layout = pm.extract_page(page, laparams)
-            width = layout.bbox[2]
-            height = layout.bbox[3]
-            dimensions = (width, height)
+            layout, dimensions = get_page_layout(page, **layout_kwargs)
             images, chars, horizontal_text, vertical_text = (
                 get_image_char_and_text_objects(layout)
             )
