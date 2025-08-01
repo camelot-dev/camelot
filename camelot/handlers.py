@@ -4,27 +4,26 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
+from itertools import chain
+from functools import partial
 from pathlib import Path
 from typing import Any
 
 import playa
+import paves.miner as pm
+from playa.utils import mult_matrix
 from paves.miner import LTChar
 from paves.miner import LTImage
 from paves.miner import LTTextLineHorizontal
 from paves.miner import LTTextLineVertical
-from pypdf import PdfReader
-from pypdf import PdfWriter
-from pypdf._utils import StrByteType
 
 from .core import TableList
 from .parsers import Hybrid
 from .parsers import Lattice
 from .parsers import Network
 from .parsers import Stream
-from .utils import TemporaryDirectory
 from .utils import download_url
 from .utils import get_image_char_and_text_objects
-from .utils import get_page_layout
 from .utils import get_rotation
 from .utils import is_url
 
@@ -59,7 +58,7 @@ class PDFHandler:
 
     def __init__(
         self,
-        filepath: StrByteType | Path | str,
+        filepath: bytes | Path | str,
         pages="1",
         password=None,
         debug=False,
@@ -67,7 +66,7 @@ class PDFHandler:
         self.debug = debug
         if is_url(filepath):
             filepath = download_url(str(filepath))
-        self.filepath: StrByteType | Path | str = filepath
+        self.filepath: bytes | Path | str = filepath
 
         if isinstance(filepath, str) and not filepath.lower().endswith(".pdf"):
             raise NotImplementedError("File format not supported")
@@ -118,8 +117,8 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _save_page(
-        self, filepath: StrByteType | Path, page: int, temp: str, **layout_kwargs
+    def _get_layout(
+        self, page: playa.Page, **layout_kwargs
     ) -> tuple[
         Any,
         tuple[float, float],
@@ -128,16 +127,12 @@ class PDFHandler:
         list[LTTextLineHorizontal],
         list[LTTextLineVertical],
     ]:
-        """Saves specified page from PDF into a temporary directory.
+        """Get layout from a page.
 
         Parameters
         ----------
-        filepath : str
-            Filepath or URL of the PDF file.
-        page : int
-            Page number.
-        temp : str
-            Tmp directory.
+        page : playa.Page
+            Page in the document.
 
 
         Returns
@@ -152,45 +147,33 @@ class PDFHandler:
             normalized version.
 
         """
-        infile = PdfReader(filepath, strict=False)
-        if infile.is_encrypted:
-            infile.decrypt(self.password)
-        fpath = os.path.join(temp, f"page-{page}.pdf")
-        froot, fext = os.path.splitext(fpath)
-        p = infile.pages[page - 1]
-        outfile = PdfWriter()
-        outfile.add_page(p)
-        with open(fpath, "wb") as f:
-            outfile.write(f)
-        layout, dimensions = get_page_layout(fpath, **layout_kwargs)
+        laparams = pm.LAParams(**layout_kwargs)
+        layout = pm.extract_page(page, laparams)
+        width = layout.bbox[2]
+        height = layout.bbox[3]
+        dimensions = (width, height)
         # fix rotated PDF
         images, chars, horizontal_text, vertical_text = get_image_char_and_text_objects(
             layout
         )
         rotation = get_rotation(chars, horizontal_text, vertical_text)
-        if rotation != "":
-            fpath_new = "".join([froot.replace("page", "p"), "_rotated", fext])
-            os.rename(fpath, fpath_new)
-            instream = open(fpath_new, "rb")
-            infile = PdfReader(instream, strict=False)
-            if infile.is_encrypted:
-                infile.decrypt(self.password)
-            outfile = PdfWriter()
-            p = infile.pages[0]
-            if rotation == "anticlockwise":
-                p.rotate(90)
-            elif rotation == "clockwise":
-                p.rotate(-90)
-            outfile.add_page(p)
-            with open(fpath, "wb") as f:
-                outfile.write(f)
-            # Only recompute layout and dimension after rotating the pdf
-            layout, dimensions = get_page_layout(fpath, **layout_kwargs)
+        if rotation:
+            # rotate the page by simply frobbing the CTM
+            if rotation == "clockwise":
+                page.ctm = mult_matrix((0, -1, 1, 0, 0, width))
+            elif rotation == "anticlockwise":
+                page.ctm = mult_matrix((0, 1, -1, 0, height, 0))
+            else:
+                raise AssertionError(
+                    f"rotation should be clockwise or anticlockwise, is {rotation}")
+            # now re-run layout analysis
+            layout = pm.extract_page(page, laparams)
+            width = layout.bbox[2]
+            height = layout.bbox[3]
+            dimensions = (width, height)
             images, chars, horizontal_text, vertical_text = (
                 get_image_char_and_text_objects(layout)
             )
-            instream.close()
-            return layout, dimensions, images, chars, horizontal_text, vertical_text
         return layout, dimensions, images, chars, horizontal_text, vertical_text
 
     def parse(
@@ -232,45 +215,27 @@ class PDFHandler:
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
 
-        with TemporaryDirectory() as tempdir:
-            cpu_count = mp.cpu_count()
-            # Using multiprocessing only when cpu_count > 1 to prevent a stallness issue
-            # when cpu_count is 1
-            if parallel and len(self.pages) > 1 and cpu_count > 1:
-                with mp.get_context("spawn").Pool(processes=cpu_count) as pool:
-                    jobs = []
-                    for p in self.pages:
-                        j = pool.apply_async(
-                            self._parse_page,
-                            (p, tempdir, parser, suppress_stdout, layout_kwargs),
-                        )
-                        jobs.append(j)
-
-                    for j in jobs:
-                        t = j.get()
-                        tables.extend(t)
-            else:
-                for p in self.pages:
-                    t = self._parse_page(
-                        p, tempdir, parser, suppress_stdout, layout_kwargs
-                    )
-                    tables.extend(t)
-
-        return TableList(sorted(tables))
+        with playa.open(
+            self.filepath,
+            password=self.password,
+            space="page",
+        ) as pdf:
+            pages = [x - 1 for x in self.pages]
+            tables = pdf.pages[pages].map(
+                partial(self._parse_page, parser=parser, layout_kwargs=layout_kwargs))
+        return TableList(sorted(chain.from_iterable(tables)))
 
     def _parse_page(
-        self, page: int, tempdir: str, parser, suppress_stdout: bool, layout_kwargs
+        self, page: playa.Page, parser, layout_kwargs
     ):
         """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters
         ----------
-        page : int
-            Page number to parse
+        page : playa.Page
+            Page to parse
         parser : Lattice, Stream, Network or Hybrid
             The parser to use.
-        suppress_stdout : bool
-            Suppress logs and warnings.
         layout_kwargs : dict, optional (default: {})
             A dict of `pdfminer.layout.LAParams
             <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
@@ -282,14 +247,13 @@ class PDFHandler:
 
         """
         layout, dimensions, images, chars, horizontal_text, vertical_text = (
-            self._save_page(self.filepath, page, tempdir, **layout_kwargs)
+            self._get_layout(page, **layout_kwargs)
         )
-        page_path = os.path.join(tempdir, f"page-{page}.pdf")
         parser.prepare_page_parse(
-            page_path,
+            self.filepath,
             layout,
             dimensions,
-            page,
+            page.page_idx + 1,
             images,
             horizontal_text,
             vertical_text,
