@@ -432,8 +432,7 @@ dependencies = [
     { name = "paves" },
     { name = "pillow", version = "10.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "pillow", version = "11.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-    { name = "pypdf", version = "3.17.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "pypdf", version = "5.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "playa-pdf" },
     { name = "pypdfium2" },
     { name = "tabulate" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
@@ -517,11 +516,10 @@ requires-dist = [
     { name = "paves", specifier = ">=0.6.1" },
     { name = "pep8-naming", marker = "extra == 'dev'", specifier = ">=0.12.1" },
     { name = "pillow", specifier = ">=10.4.0" },
+    { name = "playa-pdf", specifier = ">=0.6.5" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=2.16.0" },
     { name = "pre-commit-hooks", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pygments", marker = "extra == 'dev'", specifier = ">=2.10.0" },
-    { name = "pypdf", marker = "python_full_version < '3.12'", specifier = ">=3.17,<4.0" },
-    { name = "pypdf", marker = "python_full_version >= '3.12'", specifier = ">=4.0,<6.0" },
     { name = "pypdfium2", specifier = ">=4" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=6.2.5" },
     { name = "pytest-mpl", marker = "extra == 'dev'", specifier = ">=0.17.0" },
@@ -2877,11 +2875,11 @@ wheels = [
 
 [[package]]
 name = "playa-pdf"
-version = "0.6.4"
+version = "0.6.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/66/8e31e00df89e7f910e649b72a69c3ceadf0f3ec1c4ef0494d6adbf800a78/playa_pdf-0.6.4.tar.gz", hash = "sha256:22850e3b0ca1c02b2edaee65a97298a0ac1c4be932b582015ec1a5199d5a7ec9", size = 8023739, upload-time = "2025-07-26T16:09:34.73Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/b8/ec57b53bc47f543b229bd941e8bf2ea95a197964f32c911e01f32c338bc8/playa_pdf-0.6.5.tar.gz", hash = "sha256:ba74e74a503903ef01a89663c997f4c367b2a90dac6e55f755c1060a66815e66", size = 8105354, upload-time = "2025-08-01T16:35:47.931Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/66/5362cccdabd6b425cbf6cf2e115560255066427d52a45c36891e63f7be97/playa_pdf-0.6.4-py3-none-any.whl", hash = "sha256:d8ff856bab8be784fd39ad83bbd7bdd09db382b1cb6923d14a0cb03e0e6841f0", size = 5661468, upload-time = "2025-07-26T16:09:33.04Z" },
+    { url = "https://files.pythonhosted.org/packages/81/6e/86098d41b3e21b53b6a46851c22275ab66d21d318b354d03ac73366392e4/playa_pdf-0.6.5-py3-none-any.whl", hash = "sha256:8d27a0526ea9e42b2737d57b0bcda2d7b8875af3936bd6f29c096e58d5d6e40f", size = 5662095, upload-time = "2025-08-01T16:35:46.119Z" },
 ]
 
 [[package]]
@@ -3298,52 +3296,6 @@ resolution-markers = [
 sdist = { url = "https://files.pythonhosted.org/packages/8c/d5/e5aeee5387091148a19e1145f63606619cb5f20b83fccb63efae6474e7b2/pyparsing-3.2.0.tar.gz", hash = "sha256:cbf74e27246d595d9a74b186b810f6fbb86726dbf3b9532efb343f6d7294fe9c", size = 920984, upload-time = "2024-10-13T10:01:16.046Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/be/ec/2eb3cd785efd67806c46c13a17339708ddc346cbb684eade7a6e6f79536a/pyparsing-3.2.0-py3-none-any.whl", hash = "sha256:93d9577b88da0bbea8cc8334ee8b918ed014968fd2ec383e868fb8afb1ccef84", size = 106921, upload-time = "2024-10-13T10:01:13.682Z" },
-]
-
-[[package]]
-name = "pypdf"
-version = "3.17.4"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
-    "python_full_version == '3.11.*' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version == '3.11.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux')",
-    "python_full_version == '3.10.*' and sys_platform == 'darwin'",
-    "python_full_version == '3.10.*' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version == '3.10.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.10.*' and sys_platform != 'darwin' and sys_platform != 'linux')",
-    "python_full_version == '3.9.*' and platform_machine == 'arm64' and sys_platform == 'darwin'",
-    "python_full_version == '3.9.*' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version == '3.9.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')",
-    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'arm64' and sys_platform == 'darwin'",
-    "python_full_version < '3.8.1' and platform_machine == 'arm64' and sys_platform == 'darwin'",
-    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "python_full_version < '3.8.1' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux')",
-    "(python_full_version < '3.8.1' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.8.1' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.8.1' and sys_platform != 'darwin' and sys_platform != 'linux')",
-]
-dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.10'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6a/28/81460a77a64bb1e5254e37d4fa855e0a0549634a717bd4e407cba5fc92c6/pypdf-3.17.4.tar.gz", hash = "sha256:ec96e2e4fc9648ac609d19c00d41e9d606e0ae2ce5a0bbe7691426f5f157166a", size = 276323, upload-time = "2023-12-24T10:41:09.674Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/10/055b649e914ad8c5d07113c22805014988825abbeff007b0e89255b481fa/pypdf-3.17.4-py3-none-any.whl", hash = "sha256:6aa0f61b33779b64486de3f42835d3668badd48dac4a536aeb87da187a5eacd2", size = 278159, upload-time = "2023-12-24T10:41:06.79Z" },
-]
-
-[[package]]
-name = "pypdf"
-version = "5.1.0"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.13' and sys_platform == 'darwin'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin'",
-    "python_full_version >= '3.13' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "python_full_version == '3.12.*' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version >= '3.13' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux')",
-    "(python_full_version == '3.12.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux')",
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/9a/72d74f05f64895ebf1c7f6646cf7fe6dd124398c5c49240093f92d6f0fdd/pypdf-5.1.0.tar.gz", hash = "sha256:425a129abb1614183fd1aca6982f650b47f8026867c0ce7c4b9f281c443d2740", size = 5011381, upload-time = "2024-10-27T19:46:47.002Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/04/fc/6f52588ac1cb4400a7804ef88d0d4e00cfe57a7ac6793ec3b00de5a8758b/pypdf-5.1.0-py3-none-any.whl", hash = "sha256:3bd4f503f4ebc58bae40d81e81a9176c400cbbac2ba2d877367595fb524dfdfc", size = 297976, upload-time = "2024-10-27T19:46:44.439Z" },
 ]
 
 [[package]]

@@ -36,7 +36,6 @@ from paves.miner import LTTextLine
 from paves.miner import LTTextLineHorizontal
 from paves.miner import LTTextLineVertical
 from playa.exceptions import PDFTextExtractionNotAllowed
-from pypdf._utils import StrByteType
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -85,7 +84,7 @@ def random_string(length):
     return ret
 
 
-def download_url(url: str) -> StrByteType | Path:
+def download_url(url: str) -> str | bytes | Path:
     """Download file from specified URL.
 
     Parameters
@@ -94,7 +93,7 @@ def download_url(url: str) -> StrByteType | Path:
 
     Returns
     -------
-    filepath : Union[StrByteType, Path]
+    filepath : Union[str, bytes, Path]
         Temporary filepath.
 
     """
