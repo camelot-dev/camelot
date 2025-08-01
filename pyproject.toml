@@ -31,7 +31,7 @@ dependencies = [
     "pypdfium2>=4",
     "pillow>=10.4.0",
     "paves>=0.6.1",
-    "playa-pdf>=0.6.5",
+    "playa-pdf>=0.6.6",
 ]
 
 [build-system]

@@ -154,12 +154,13 @@ class PDFHandler:
         )
         rotation = get_rotation(chars, horizontal_text, vertical_text)
         if rotation:
-            width, height = dimensions
-            # rotate the page by simply frobbing the CTM
+            # de-rotate the page
             if rotation == "clockwise":
-                page.ctm = mult_matrix((0, 1, -1, 0, height, 0), page.ctm)
+                # rotate -90 degrees
+                page.set_initial_ctm(page.space, page.rotate - 90)
             elif rotation == "anticlockwise":
-                page.ctm = mult_matrix((0, -1, 1, 0, 0, width), page.ctm)
+                # rotate 90 degrees
+                page.set_initial_ctm(page.space, page.rotate + 90)
             else:
                 raise AssertionError(
                     f"rotation should be clockwise or anticlockwise, is {rotation}")
