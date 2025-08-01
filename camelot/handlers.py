@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 import playa
-import paves.miner as pm
 from playa.utils import mult_matrix
 from paves.miner import LTChar
 from paves.miner import LTImage
