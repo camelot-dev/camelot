@@ -23,7 +23,6 @@ dependencies = [
     "numpy>=1.24.4; python_version < '3.12'",
     "numpy>=1.26.1; python_version >= '3.12'",
     "openpyxl>=3.1.0",
-    "pdfminer-six>=20240706",
     "pypdf>=3.17,<4.0; python_version < '3.12'",
     "pypdf>=4.0,<6.0; python_version >= '3.12'",
     "pandas>=1.5.3; python_version < '3.10'",
@@ -33,6 +32,7 @@ dependencies = [
     "opencv-python-headless>=4.7.0.68",
     "pypdfium2>=4",
     "pillow>=10.4.0",
+    "paves>=0.6.1",
 ]
 
 [build-system]
