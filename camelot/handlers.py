@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-import os
 from itertools import chain
 from functools import partial
 from pathlib import Path
@@ -99,7 +98,8 @@ class PDFHandler:
         if pages == "1":
             page_numbers.append({"start": 1, "end": 1})
         else:
-            with playa.open(self.filepath, password=self.password) as pdf:
+            with playa.open(self.filepath,
+                            space="page", password=self.password) as pdf:
                 page_count = len(pdf.pages)
             if pages == "all":
                 page_numbers.append({"start": 1, "end": page_count})
