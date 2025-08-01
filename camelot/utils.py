@@ -1346,7 +1346,7 @@ def compute_whitespace(d: list[list[str]]) -> float:
 
 
 def get_page_layout(
-    filename,
+    page,
     line_overlap=0.5,
     char_margin=1.0,
     line_margin=0.5,
@@ -1355,7 +1355,7 @@ def get_page_layout(
     detect_vertical=True,
     all_texts=True,
 ):
-    """Return a PDFMiner LTPage object and page dimension of a single page pdf.
+    """Return a PDFMiner LTPage object and page dimension from a page of a PDF.
 
     To get the definitions of kwargs, see
     https://pdfminersix.rtfd.io/en/latest/reference/composable.html.
@@ -1380,27 +1380,20 @@ def get_page_layout(
         Dimension of pdf page in the form (width, height).
 
     """
-    with playa.open(filename, space="page") as document:
-        if not document.is_extractable:
-            raise PDFTextExtractionNotAllowed(
-                f"Text extraction is not allowed: {filename}"
-            )
-        laparams = LAParams(
-            line_overlap=line_overlap,
-            char_margin=char_margin,
-            line_margin=line_margin,
-            word_margin=word_margin,
-            boxes_flow=boxes_flow,
-            detect_vertical=detect_vertical,
-            all_texts=all_texts,
-        )
-        if len(document.pages) == 0:
-            raise PDFTextExtractionNotAllowed
-        layout = pm.extract_page(document.pages[0], laparams)
-        width = layout.bbox[2]
-        height = layout.bbox[3]
-        dim = (width, height)
-        return layout, dim
+    laparams = LAParams(
+        line_overlap=line_overlap,
+        char_margin=char_margin,
+        line_margin=line_margin,
+        word_margin=word_margin,
+        boxes_flow=boxes_flow,
+        detect_vertical=detect_vertical,
+        all_texts=all_texts,
+    )
+    layout = pm.extract_page(page, laparams)
+    width = layout.bbox[2]
+    height = layout.bbox[3]
+    dim = (width, height)
+    return layout, dim
 
 
 def get_char_objects(layout: LTContainer[Any]) -> list[LTChar]:
