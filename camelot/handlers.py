@@ -126,6 +126,7 @@ class PDFHandler:
         list[LTChar],
         list[LTTextLineHorizontal],
         list[LTTextLineVertical],
+        str,
     ]:
         """Get layout from a page.
 
@@ -169,7 +170,7 @@ class PDFHandler:
             images, chars, horizontal_text, vertical_text = (
                 get_image_char_and_text_objects(layout)
             )
-        return layout, dimensions, images, chars, horizontal_text, vertical_text
+        return layout, dimensions, images, chars, horizontal_text, vertical_text, rotation
 
     def parse(
         self,
@@ -250,7 +251,7 @@ class PDFHandler:
             List of tables found in PDF.
 
         """
-        layout, dimensions, images, chars, horizontal_text, vertical_text = (
+        layout, dimensions, images, chars, horizontal_text, vertical_text, rotation = (
             self._get_layout(page, **layout_kwargs)
         )
         parser.prepare_page_parse(
@@ -261,6 +262,7 @@ class PDFHandler:
             images,
             horizontal_text,
             vertical_text,
+            rotation,
             layout_kwargs=layout_kwargs,
         )
         tables = parser.extract_tables()
