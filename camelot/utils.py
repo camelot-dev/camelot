@@ -24,7 +24,6 @@ from urllib.request import Request
 from urllib.request import urlopen
 
 import numpy as np
-import playa
 import paves.miner as pm
 from paves.miner import LAParams
 from paves.miner import LTAnno
@@ -35,7 +34,6 @@ from paves.miner import LTItem
 from paves.miner import LTTextLine
 from paves.miner import LTTextLineHorizontal
 from paves.miner import LTTextLineVertical
-from playa.exceptions import PDFTextExtractionNotAllowed
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -84,7 +82,7 @@ def random_string(length):
     return ret
 
 
-def download_url(url: str) -> str | bytes | Path:
+def download_url(url: str) -> str | Path:
     """Download file from specified URL.
 
     Parameters
@@ -93,7 +91,7 @@ def download_url(url: str) -> str | bytes | Path:
 
     Returns
     -------
-    filepath : Union[str, bytes, Path]
+    filepath : Union[str, Path]
         Temporary filepath.
 
     """

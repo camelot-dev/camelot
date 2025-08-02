@@ -10,7 +10,7 @@ from .utils import validate_input
 
 
 def read_pdf(
-    filepath: Union[str, bytes, Path],
+    filepath: Union[str, Path],
     pages="1",
     password=None,
     flavor="lattice",
