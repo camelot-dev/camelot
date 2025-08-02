@@ -22,7 +22,9 @@ path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
 class PopplerBackend(ConversionBackend):
     """Classmethod to create a poplerBackendBackend class."""
 
-    def convert(self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1) -> None:
+    def convert(
+        self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1
+    ) -> None:
         """Convert PDF to png.
 
         Parameters
@@ -48,8 +50,17 @@ class PopplerBackend(ConversionBackend):
             )
 
         png_stem, _ = os.path.splitext(png_path)
-        pdftopng_command = [pdftopng_executable, "-png", "-singlefile",
-                            "-f", str(page), "-l", str(page), pdf_path, png_stem]
+        pdftopng_command = [
+            pdftopng_executable,
+            "-png",
+            "-singlefile",
+            "-f",
+            str(page),
+            "-l",
+            str(page),
+            pdf_path,
+            png_stem,
+        ]
 
         try:
             subprocess.check_output(

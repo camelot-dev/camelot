@@ -25,7 +25,9 @@ def undo_rotation(pdf_image, rotation):
     return pdf_image
 
 
-def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2, rotation=""):
+def adaptive_threshold(
+    imagename, process_background=False, blocksize=15, c=-2, rotation=""
+):
     """Thresholds an image using OpenCV's adaptiveThreshold.
 
     Parameters
