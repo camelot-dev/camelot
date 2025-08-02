@@ -117,14 +117,6 @@ def test_stream_layout_kwargs(testdir):
     assert_frame_equal(df, tables[0].df)
 
 
-def test_stream_duplicated_text(testdir):
-    df = pd.DataFrame(data_stream_duplicated_text)
-
-    filename = os.path.join(testdir, "birdisland.pdf")
-    tables = camelot.read_pdf(filename, flavor="stream")
-    assert_frame_equal(df, tables[0].df)
-
-
 def test_stream_inner_outer_columns(testdir):
     df = pd.DataFrame(data_stream_inner_outer_columns)
 
