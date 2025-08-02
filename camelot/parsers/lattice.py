@@ -237,8 +237,8 @@ class Lattice(BaseParser):
             process_background=self.process_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
+            rotation=self.rotation,
         )
-        self.pdf_image = undo_rotation(self.pdf_image, self.rotation)
 
         image_width = self.pdf_image.shape[1]
         image_height = self.pdf_image.shape[0]
