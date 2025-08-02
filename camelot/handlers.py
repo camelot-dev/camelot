@@ -14,6 +14,7 @@ from paves.miner import LTImage
 from paves.miner import LTTextLineHorizontal
 from paves.miner import LTTextLineVertical
 from playa.exceptions import PDFPasswordIncorrect
+from playa.exceptions import PDFTextExtractionNotAllowed
 
 from .core import TableList
 from .parsers import Hybrid
@@ -228,6 +229,10 @@ class PDFHandler:
                 space="page",
                 max_workers=cpu_count,
             ) as pdf:
+                if not pdf.is_extractable:
+                    raise PDFTextExtractionNotAllowed(
+                        f"Text extraction is not allowed: {self.filepath}"
+                    )
                 pages = [x - 1 for x in self.pages]
                 tables = pdf.pages[pages].map(
                     partial(
@@ -236,6 +241,8 @@ class PDFHandler:
                 )
         except PDFPasswordIncorrect as e:
             raise RuntimeError("File has not been decrypted") from e
+        except PDFTextExtractionNotAllowed:
+            raise
         return TableList(sorted(chain.from_iterable(tables)))
 
     def _parse_page(self, page: playa.Page, parser, layout_kwargs):
