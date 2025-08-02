@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-from itertools import chain
 from functools import partial
+from itertools import chain
 from pathlib import Path
 from typing import Any
 
 import playa
-from playa.exceptions import PDFTextExtractionNotAllowed, PDFPasswordIncorrect
 from paves.miner import LTChar
 from paves.miner import LTImage
 from paves.miner import LTTextLineHorizontal
 from paves.miner import LTTextLineVertical
+from playa.exceptions import PDFPasswordIncorrect
+from playa.exceptions import PDFTextExtractionNotAllowed
 
 from .core import TableList
 from .parsers import Hybrid
