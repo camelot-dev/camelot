@@ -70,6 +70,7 @@ class BaseParser:
         images,
         horizontal_text,
         vertical_text,
+        rotation,
         layout_kwargs,
     ):
         """Prepare the page for parsing."""
@@ -81,6 +82,7 @@ class BaseParser:
         self.images = images
         self.horizontal_text = horizontal_text
         self.vertical_text = vertical_text
+        self.rotation = rotation
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
 
@@ -152,6 +154,7 @@ class BaseParser:
         table = Table(cols, rows)
         table.page = self.page
         table.order = table_idx + 1
+        table.rotation = self.rotation
         table._bbox = bbox
         return table
 

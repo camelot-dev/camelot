@@ -4,6 +4,27 @@ import cv2
 import numpy as np
 
 
+def undo_rotation(pdf_image, rotation):
+    """Undo rotation of an image extracted from a PDF.
+
+    Parameters
+    ----------
+    pdf_image: numpy.ndarray representing the image.
+    rotation: str
+       Either "" (no rotation), "clockwise", or "anticlockwise".  The
+       **inverse** of this rotation will be applied to the image.
+
+    Returns
+    -------
+    img: numpy.ndarray representing the rotated image.
+    """
+    if rotation == "clockwise":
+        return cv2.rotate(pdf_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    if rotation == "anticlockwise":
+        return cv2.rotate(pdf_image, cv2.ROTATE_90_CLOCKWISE)
+    return pdf_image
+
+
 def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
     """Thresholds an image using OpenCV's adaptiveThreshold.
 
