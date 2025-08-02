@@ -516,7 +516,7 @@ requires-dist = [
     { name = "paves", specifier = ">=0.6.1" },
     { name = "pep8-naming", marker = "extra == 'dev'", specifier = ">=0.12.1" },
     { name = "pillow", specifier = ">=10.4.0" },
-    { name = "playa-pdf", specifier = ">=0.6.5" },
+    { name = "playa-pdf", specifier = ">=0.6.6" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=2.16.0" },
     { name = "pre-commit-hooks", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pygments", marker = "extra == 'dev'", specifier = ">=2.10.0" },
@@ -2875,11 +2875,11 @@ wheels = [
 
 [[package]]
 name = "playa-pdf"
-version = "0.6.5"
+version = "0.6.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/9f/b8/ec57b53bc47f543b229bd941e8bf2ea95a197964f32c911e01f32c338bc8/playa_pdf-0.6.5.tar.gz", hash = "sha256:ba74e74a503903ef01a89663c997f4c367b2a90dac6e55f755c1060a66815e66", size = 8105354, upload-time = "2025-08-01T16:35:47.931Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/3f/8b7bb1f295f45ca54cfee5e690aa4924310342a50fbdba3754d19398425a/playa_pdf-0.6.6.tar.gz", hash = "sha256:db13bcd7ce5151e464a6a41ebb2605877623f8061b7e3127d89569363198b95f", size = 8107059, upload-time = "2025-08-01T23:30:05.99Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/6e/86098d41b3e21b53b6a46851c22275ab66d21d318b354d03ac73366392e4/playa_pdf-0.6.5-py3-none-any.whl", hash = "sha256:8d27a0526ea9e42b2737d57b0bcda2d7b8875af3936bd6f29c096e58d5d6e40f", size = 5662095, upload-time = "2025-08-01T16:35:46.119Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/8e/d3cf7044f197e4da12ffa4a1a3750fac93ac58209e3617488c29ddfc62fa/playa_pdf-0.6.6-py3-none-any.whl", hash = "sha256:acf2217944d9c94424e2dd46a1fff60e308a0b582ea3a6ac1ad5f4a08009852d", size = 5662316, upload-time = "2025-08-01T23:30:03.453Z" },
 ]
 
 [[package]]
