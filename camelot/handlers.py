@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import playa
-from playa.utils import mult_matrix
+from playa.exceptions import PDFTextExtractionNotAllowed, PDFPasswordIncorrect
 from paves.miner import LTChar
 from paves.miner import LTImage
 from paves.miner import LTTextLineHorizontal
@@ -57,7 +57,7 @@ class PDFHandler:
 
     def __init__(
         self,
-        filepath: bytes | Path | str,
+        filepath: Path | str,
         pages="1",
         password=None,
         debug=False,
@@ -65,7 +65,7 @@ class PDFHandler:
         self.debug = debug
         if is_url(filepath):
             filepath = download_url(str(filepath))
-        self.filepath: bytes | Path | str = filepath
+        self.filepath: Path | str = filepath
 
         if isinstance(filepath, str) and not filepath.lower().endswith(".pdf"):
             raise NotImplementedError("File format not supported")
@@ -206,7 +206,6 @@ class PDFHandler:
         if layout_kwargs is None:
             layout_kwargs = {}
 
-        tables = []
         # parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
@@ -223,11 +222,17 @@ class PDFHandler:
                 space="page",
                 max_workers=cpu_count,
             ) as pdf:
+                if not pdf.is_extractable:
+                    raise PDFTextExtractionNotAllowed(
+                        f"Text extraction is not allowed: {self.filepath}"
+                    )
                 pages = [x - 1 for x in self.pages]
                 tables = pdf.pages[pages].map(
                     partial(self._parse_page, parser=parser, layout_kwargs=layout_kwargs))
-        except playa.PDFPasswordIncorrect as e:
+        except PDFPasswordIncorrect as e:
             raise RuntimeError("File has not been decrypted") from e
+        except PDFTextExtractionNotAllowed:
+            raise
         return TableList(sorted(chain.from_iterable(tables)))
 
     def _parse_page(
