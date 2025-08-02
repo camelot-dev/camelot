@@ -99,8 +99,7 @@ class PDFHandler:
         if pages == "1":
             page_numbers.append({"start": 1, "end": 1})
         else:
-            with playa.open(self.filepath,
-                            space="page", password=self.password) as pdf:
+            with playa.open(self.filepath, space="page", password=self.password) as pdf:
                 page_count = len(pdf.pages)
             if pages == "all":
                 page_numbers.append({"start": 1, "end": page_count})
@@ -118,9 +117,7 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _get_layout(
-        self, page: playa.Page, **layout_kwargs
-    ) -> tuple[
+    def _get_layout(self, page: playa.Page, **layout_kwargs) -> tuple[
         Any,
         tuple[float, float],
         list[LTImage],
@@ -165,13 +162,22 @@ class PDFHandler:
                 page.set_initial_ctm(page.space, page.rotate + 90)
             else:
                 raise AssertionError(
-                    f"rotation should be clockwise or anticlockwise, is {rotation}")
+                    f"rotation should be clockwise or anticlockwise, is {rotation}"
+                )
             # now re-run layout analysis
             layout, dimensions = get_page_layout(page, **layout_kwargs)
             images, chars, horizontal_text, vertical_text = (
                 get_image_char_and_text_objects(layout)
             )
-        return layout, dimensions, images, chars, horizontal_text, vertical_text, rotation
+        return (
+            layout,
+            dimensions,
+            images,
+            chars,
+            horizontal_text,
+            vertical_text,
+            rotation,
+        )
 
     def parse(
         self,
@@ -229,16 +235,17 @@ class PDFHandler:
                     )
                 pages = [x - 1 for x in self.pages]
                 tables = pdf.pages[pages].map(
-                    partial(self._parse_page, parser=parser, layout_kwargs=layout_kwargs))
+                    partial(
+                        self._parse_page, parser=parser, layout_kwargs=layout_kwargs
+                    )
+                )
         except PDFPasswordIncorrect as e:
             raise RuntimeError("File has not been decrypted") from e
         except PDFTextExtractionNotAllowed:
             raise
         return TableList(sorted(chain.from_iterable(tables)))
 
-    def _parse_page(
-        self, page: playa.Page, parser, layout_kwargs
-    ):
+    def _parse_page(self, page: playa.Page, parser, layout_kwargs):
         """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters

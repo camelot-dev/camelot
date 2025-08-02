@@ -621,8 +621,7 @@ class Table:
                 )
                 backend = ImageConversionBackend(use_fallback=True)
                 backend.convert(self.filename, self._image_path)
-            self._image = undo_rotation(cv2.imread(self._image_path),
-                                        self.rotation)
+            self._image = undo_rotation(cv2.imread(self._image_path), self.rotation)
         return self._image
 
     def set_all_edges(self):

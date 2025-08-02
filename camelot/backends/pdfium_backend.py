@@ -20,7 +20,9 @@ class PdfiumBackend(ConversionBackend):
             return True
         return False
 
-    def convert(self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1) -> None:
+    def convert(
+        self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1
+    ) -> None:
         """Convert PDF to png.
 
         Parameters
