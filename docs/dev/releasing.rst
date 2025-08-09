@@ -10,10 +10,11 @@ Release Steps
 
 1.  **Create a Version Bump Pull Request**
 
-    To begin a new release, a contributor must create a pull request that increments the version number. The version number must be updated in one place:
+    To begin a new release, a contributor must create a pull request that increments the version number. The version number must be updated in **both** of the following files to keep them in sync:
     *   `pyproject.toml`
+    *   `camelot/__version__.py`
 
-    For example, to release version `1.0.2`, you would change the following line in `pyproject.toml`:
+    For example, to release version `1.0.2`, you would change the following line in both files:
 
     .. code-block:: toml
 
