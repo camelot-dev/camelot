@@ -9,7 +9,7 @@ license = {text = "MIT"}
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-"Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -89,7 +89,7 @@ dev = [
 camelot = "camelot.__main__:main"
 
 [tool.coverage.paths]
-source = ["camelot", "*\\camelot", "*/site-packages"]
+source = ["camelot", "*\camelot", "*/site-packages"]
 tests = ["tests", "*/tests"]
 
 [tool.coverage.run]
@@ -149,3 +149,69 @@ disallow_any_generics = true
 
 [tool.setuptools_scm]
 write_to = "camelot/__version__.py"
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+[tool.cibuildwheel]
+test-requires = "pytest"
+test-command = "pytest {project}/tests"
+# In the future we might want to test other platforms
+build = "cp3{8,9,10,11,12,13}-manylinux*"
+# Skip 32-bit builds
+skip = "*-i686"
+
+[tool.release-drafter]
+# Configuration for release-drafter
+# https://github.com/release-drafter/release-drafter
+#
+# We want to use the same categories as Keep a Changelog
+# https://keepachangelog.com/en/1.0.0/
+categories = [
+  {
+    "title": "🚀 Features",
+    "labels": ["feature", "enhancement"]
+  },
+  {
+    "title": "🐛 Bug Fixes",
+    "labels": ["bug", "bugfix", "fix"]
+  },
+  {
+    "title": "🧰 Maintenance",
+    "labels": ["chore", "ci", "docs", "refactor", "style", "test"]
+  }
+]
+# We don't want to include contributors in the release notes
+exclude-contributors = true
+# We want to use the name and tag from the release drafter
+name-template: "$NEXT_PATCH_VERSION"
+tag-template: "v$NEXT_PATCH_VERSION"
+# We want to automatically categorize pull requests
+template: |
+  ## Changes
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
+# We want to sort the pull requests by title
+sort-by: "title"
+# We want to sort the pull requests in ascending order
+sort-direction: "ascending"
+# We want to prune the old release drafter config
+prerelease: false
+# We want to use the version from the release drafter
+version-resolver:
+  major:
+    labels: ["major"]
+  minor:
+    labels: ["minor"]
+  patch:
+    labels: ["patch"]
+  default: "patch"
