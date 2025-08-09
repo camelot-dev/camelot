@@ -1,6 +1,6 @@
 [project]
 name = "camelot-py"
-dynamic = ["version"]
+version = "1.0.2"
 description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
@@ -72,7 +72,6 @@ dev = [
     "pytest-mpl>=0.17.0",
     "pyupgrade>=2.29.1",
     "safety>=2.2.3",
-.
     "sphinx>=4.3.2",
     "sphinx-autobuild>=2021.3.14",
     "sphinx-click>=3.0.2",
