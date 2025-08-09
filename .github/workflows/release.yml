@@ -1,95 +1,56 @@
-name: Publish Python 🐍 distribution 📦 to PyPI
+name: Release
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
-    name: Build distribution 📦
+  release:
+    name: Release
     runs-on: ubuntu-latest
-
+    permissions:
+      # These permissions are essential for the workflow to function.
+      contents: write # To create tags and releases
+      id-token: write # To publish to PyPI using trusted publishing
+      pull-requests: read # For release-drafter
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the repository
+        uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          # Fetch all history so the version detection can find previous tags
+          fetch-depth: 0
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-      - name: Install pypa/build
-        run: >-
-          python3 -m
-          pip install
-          build
-          --user
-      - name: Build a binary wheel and a source tarball
-        run: python3 -m build
-      - name: Store the distribution packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
+          python-version: "3.10"
 
-  publish-to-pypi:
-    name: >-
-      Publish Python 🐍 distribution 📦 to PyPI
-    if: startsWith(github.ref, 'refs/tags/') # only publish to PyPI on tag pushes
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/camelot-py
-    permissions:
-      id-token: write # IMPORTANT: mandatory for trusted publishing
+      - name: Install build dependencies
+        run: python -m pip install build
 
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v5
+      - name: Detect and tag new version
+        id: check-version
+        uses: salsify/action-detect-and-tag-new-version@v2.0.3
         with:
-          name: python-package-distributions
-          path: dist/
-      - name: Publish distribution 📦 to PyPI
+          # Extract version from pyproject.toml
+          version-command: "grep version pyproject.toml | head -n 1 | cut -d '\"' -f 2"
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish package to PyPI
+        if: steps.check-version.outputs.tag != ''
         uses: pypa/gh-action-pypi-publish@release/v1
-
-  github-release:
-    name: >-
-      Sign the Python 🐍 distribution 📦 with Sigstore
-      and upload them to GitHub Release
-    needs:
-      - publish-to-pypi
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write # IMPORTANT: mandatory for making GitHub Releases
-      id-token: write # IMPORTANT: mandatory for sigstore
-
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v5
         with:
-          name: python-package-distributions
-          path: dist/
-      - name: Sign the dists with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.0.1
+          # Use the trusted publisher flow instead of a password
+          id-token: write
+
+      - name: Publish the release notes
+        if: steps.check-version.outputs.tag != ''
+        uses: release-drafter/release-drafter@v6.0.0
         with:
-          inputs: >-
-            ./dist/*.tar.gz
-            ./dist/*.whl
-      - name: Create GitHub Release
+          publish: true # We publish immediately
+          tag: ${{ steps.check-version.outputs.tag }}
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create
-          "$GITHUB_REF_NAME"
-          --repo "$GITHUB_REPOSITORY"
-          --notes ""
-      - name: Upload artifact signatures to GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        # Upload to GitHub Release using the `gh` CLI.
-        # `dist/` contains the built packages, and the
-        # sigstore-produced signatures and certificates.
-        run: >-
-          gh release upload
-          "$GITHUB_REF_NAME" dist/**
-          --repo "$GITHUB_REPOSITORY"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
