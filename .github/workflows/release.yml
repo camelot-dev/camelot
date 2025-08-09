@@ -1,28 +1,42 @@
-name: Publish Python 🐍 distribution 📦 to PyPI
+name: Release Drafter and Publish Python 🐍 distribution 📦 to PyPI
 
-on: push
+on:
+  push:
+    branches:
+      - master
+  release:
+    types: [published]
 
 jobs:
+  release-drafter:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build:
     name: Build distribution 📦
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Install pypa/build
-        run: >-
-          python3 -m
-          pip install
-          build
-          --user
+        run: python -m pip install build --user
       - name: Build a binary wheel and a source tarball
-        run: python3 -m build
+        run: python -m build
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
@@ -32,7 +46,7 @@ jobs:
   publish-to-pypi:
     name: >-
       Publish Python 🐍 distribution 📦 to PyPI
-    if: startsWith(github.ref, 'refs/tags/') # only publish to PyPI on tag pushes
+    if: github.event_name == 'release'
     needs:
       - build
     runs-on: ubuntu-latest
@@ -40,8 +54,7 @@ jobs:
       name: pypi
       url: https://pypi.org/p/camelot-py
     permissions:
-      id-token: write # IMPORTANT: mandatory for trusted publishing
-
+      id-token: write
     steps:
       - name: Download all the dists
         uses: actions/download-artifact@v5
@@ -53,16 +66,14 @@ jobs:
 
   github-release:
     name: >-
-      Sign the Python 🐍 distribution 📦 with Sigstore
-      and upload them to GitHub Release
+      Sign and upload to GitHub Release
+    if: github.event_name == 'release'
     needs:
       - publish-to-pypi
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write # IMPORTANT: mandatory for making GitHub Releases
-      id-token: write # IMPORTANT: mandatory for sigstore
-
+      contents: write
+      id-token: write
     steps:
       - name: Download all the dists
         uses: actions/download-artifact@v5
@@ -75,21 +86,10 @@ jobs:
           inputs: >-
             ./dist/*.tar.gz
             ./dist/*.whl
-      - name: Create GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create
-          "$GITHUB_REF_NAME"
-          --repo "$GITHUB_REPOSITORY"
-          --notes ""
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        # Upload to GitHub Release using the `gh` CLI.
-        # `dist/` contains the built packages, and the
-        # sigstore-produced signatures and certificates.
         run: >-
           gh release upload
-          "$GITHUB_REF_NAME" dist/**
+          "${{ github.event.release.tag_name }}" dist/**
           --repo "$GITHUB_REPOSITORY"
