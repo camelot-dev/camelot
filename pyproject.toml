@@ -9,7 +9,7 @@ license = {text = "MIT"}
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-"Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -72,6 +72,7 @@ dev = [
     "pytest-mpl>=0.17.0",
     "pyupgrade>=2.29.1",
     "safety>=2.2.3",
+.
     "sphinx>=4.3.2",
     "sphinx-autobuild>=2021.3.14",
     "sphinx-click>=3.0.2",
@@ -89,7 +90,7 @@ dev = [
 camelot = "camelot.__main__:main"
 
 [tool.coverage.paths]
-source = ["camelot", "*\\camelot", "*/site-packages"]
+source = ["camelot", "*\camelot", "*/site-packages"]
 tests = ["tests", "*/tests"]
 
 [tool.coverage.run]
