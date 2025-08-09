@@ -1,6 +1,6 @@
 [project]
 name = "camelot-py"
-version = "1.0.0"
+dynamic = ["version"]
 description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
@@ -146,3 +146,6 @@ disallow_any_generics = true
 
 # This one can be tricky to get passing if you use a lot of untyped libraries
 # warn_return_any = true
+
+[tool.setuptools_scm]
+write_to = "camelot/__version__.py"
