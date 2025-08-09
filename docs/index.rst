@@ -125,4 +125,5 @@ If you want to contribute to the project, this part of the documentation is for 
    :maxdepth: 2
 
    dev/contributing
+   dev/releasing
    Changelog <https://github.com/camelot-dev/camelot/releases>
