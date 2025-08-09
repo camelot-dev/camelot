@@ -1,24 +1,43 @@
-name: Release
+name: Release Drafter and Publish Python 🐍 distribution 📦 to PyPI
 
 on:
   push:
     branches:
-      - main
+      - master
+  release:
+    types: [published]
 
 jobs:
-  release:
-    name: Release
+  release-drafter:
+    name: Draft Release Notes
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     permissions:
-      # These permissions are essential for the workflow to function.
-      contents: write # To create tags and releases
-      id-token: write # To publish to PyPI using trusted publishing
-      pull-requests: read # For release-drafter
+      contents: write
+      pull-requests: write
     steps:
-      - name: Check out the repository
+      - name: Draft Release
+        uses: release-drafter/release-drafter@v6
+        with:
+          publish: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-publish:
+    name: Build, Sign, and Publish to PyPI 📦
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/your-package-name
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Fetch all history so the version detection can find previous tags
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -29,28 +48,23 @@ jobs:
       - name: Install build dependencies
         run: python -m pip install build
 
-      - name: Detect and tag new version
-        id: check-version
-        uses: salsify/action-detect-and-tag-new-version@v2.0.3
-        with:
-          # Extract version from pyproject.toml
-          version-command: "grep version pyproject.toml | head -n 1 | cut -d '"' -f 2"
-
-      - name: Build package
+      - name: Build a binary wheel and a source tarball
         run: python -m build
 
-      - name: Publish package to PyPI
-        if: steps.check-version.outputs.tag != ''
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.1
         with:
-          # Use the trusted publisher flow instead of a password
-          id-token: write
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
 
-      - name: Publish the release notes
-        if: steps.check-version.outputs.tag != ''
-        uses: release-drafter/release-drafter@v6.0.0
-        with:
-          publish: true # We publish immediately
-          tag: ${{ steps.check-version.outputs.tag }}
+      - name: Publish Python 🐍 distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Upload artifact signatures to GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload
+          "${{ github.event.release.tag_name }}" ./dist/*.sig ./dist/*.crt
+          --repo "$GITHUB_REPOSITORY"
