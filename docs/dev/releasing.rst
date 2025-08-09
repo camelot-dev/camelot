@@ -3,43 +3,49 @@ Making a New Release
 
 This document outlines the process for creating a new release of `camelot-py`.
 
-The release process is semi-automated using GitHub Actions and `release-drafter`.
-
-Prerequisites
--------------
-
-- You must have maintainer access to the `camelot-dev/camelot` repository.
+The release process is semi-automated, starting with a version number change and concluding with a manual release publication on GitHub. This approach ensures versioning is correct and secure.
 
 Release Steps
 -------------
 
-1.  **Drafting the Release**
+1.  **Create a Version Bump Pull Request**
 
-    Every time a pull request is merged into the `master` branch, the `release-drafter` GitHub Action will automatically update a draft release. This draft will include all the changes since the last release. You can view the draft under the "Releases" section of the repository.
+    To begin a new release, a contributor must create a pull request that increments the version number. The version number must be updated in the `pyproject.toml` file.
 
-2.  **Publishing the Release**
+    For example, to release version `1.0.2`, you would change the following line in the file:
 
-    When you are ready to create a new release, follow these steps:
+    .. code-block:: toml
 
-    a. Navigate to the `Releases <https://github.com/camelot-dev/camelot/releases>`_ page of the repository.
+        version = "1.0.1"
 
-    b. You should see a draft release at the top of the page. Click the "Edit" button (pencil icon) next to the draft release.
+    to:
 
-    c. Review the release notes that have been automatically generated. You can edit them if needed.
+    .. code-block:: toml
 
-    d. **Crucially, update the version number in the "Tag version" field.** Follow `semantic versioning <https://semver.org/>`_. For example, if the last release was `v1.0.0`, the new one could be `v1.1.0` for a minor release or `v1.0.1` for a patch release.
+        version = "1.0.2"
 
-    e. Once you are satisfied with the release notes and version number, click the "Publish release" button.
+    The title of the pull request should be descriptive, for example: "Bump version to 1.0.2 for release".
 
-3.  **Automated Publishing**
+2.  **Merge the Pull Request**
 
-    Once you publish the release, a GitHub Action will automatically be triggered to:
+    Once the pull request is reviewed and approved, it can be merged into the `main` branch. This action will trigger the `release-drafter` GitHub Action, which will automatically create a draft release with compiled notes from the merged pull requests.
 
-    - Build the Python distribution (wheel and source tarball).
-    - Publish the distribution to PyPI.
-    - Sign the distribution with Sigstore.
-    - Upload the distribution and signatures as assets to the GitHub release.
+3.  **Publish the GitHub Release**
 
-    You can monitor the progress of this action under the "Actions" tab of the repository.
+    This is the **manual and most critical step**. A repository maintainer must go to the `Releases` page on GitHub and find the newly created draft release.
 
-And that's it! The new release will be available on PyPI and GitHub.
+    -   Review the automatically generated release notes.
+    -   Ensure the tag is correct (e.g., `v1.0.2`).
+    -   Click the **"Publish release"** button.
+
+
+
+4.  **Automated Release Workflow**
+
+    Publishing the release will trigger the main release workflow. This workflow will perform the following steps:
+    -   Build the Python distribution (wheel and source tarball) from the tagged commit.
+    -   Sign the distributions using Sigstore for enhanced supply chain security.
+    -   Publish the signed distributions to PyPI.
+    -   Upload the signed distributions and their signatures to the GitHub release assets.
+
+You can monitor the progress of this workflow under the "Actions" tab of the repository.

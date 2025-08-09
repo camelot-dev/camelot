@@ -1,6 +1,6 @@
 [project]
 name = "camelot-py"
-dynamic = ["version"]
+version = "1.0.2"
 description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["setuptools>=61", "setuptools-scm"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
@@ -89,7 +89,7 @@ dev = [
 camelot = "camelot.__main__:main"
 
 [tool.coverage.paths]
-source = ["camelot", "*\camelot", "*/site-packages"]
+source = ["camelot", "*\\camelot", "*/site-packages"]
 tests = ["tests", "*/tests"]
 
 [tool.coverage.run]
@@ -112,6 +112,7 @@ show_column_numbers = true
 show_error_codes = true
 show_error_context = true
 ignore_missing_imports = true
+
 
 # strict = true
 # Strict is too agressive for now and not passing.
@@ -146,72 +147,3 @@ disallow_any_generics = true
 
 # This one can be tricky to get passing if you use a lot of untyped libraries
 # warn_return_any = true
-
-[tool.setuptools_scm]
-write_to = "camelot/__version__.py"
-
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
-testpaths = [
-    "tests",
-]
-filterwarnings = [
-    "ignore::DeprecationWarning",
-]
-[tool.cibuildwheel]
-test-requires = "pytest"
-test-command = "pytest {project}/tests"
-# In the future we might want to test other platforms
-build = "cp3{8,9,10,11,12,13}-manylinux*"
-# Skip 32-bit builds
-skip = "*-i686"
-
-[tool.release-drafter]
-# Configuration for release-drafter
-# https://github.com/release-drafter/release-drafter
-#
-# We want to use the same categories as Keep a Changelog
-# https://keepachangelog.com/en/1.0.0/
-categories = [
-  {
-    "title": "🚀 Features",
-    "labels": ["feature", "enhancement"]
-  },
-  {
-    "title": "🐛 Bug Fixes",
-    "labels": ["bug", "bugfix", "fix"]
-  },
-  {
-    "title": "🧰 Maintenance",
-    "labels": ["chore", "ci", "docs", "refactor", "style", "test"]
-  }
-]
-# We don't want to include contributors in the release notes
-exclude-contributors = true
-# We want to use the name and tag from the release drafter
-name-template: "$NEXT_PATCH_VERSION"
-tag-template: "v$NEXT_PATCH_VERSION"
-# We want to automatically categorize pull requests
-template: |
-  ## Changes
-
-  $CHANGES
-
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
-# We want to sort the pull requests by title
-sort-by: "title"
-# We want to sort the pull requests in ascending order
-sort-direction: "ascending"
-# We want to prune the old release drafter config
-prerelease: false
-# We want to use the version from the release drafter
-version-resolver:
-  major:
-    labels: ["major"]
-  minor:
-    labels: ["minor"]
-  patch:
-    labels: ["patch"]
-  default: "patch"
