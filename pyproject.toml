@@ -1,20 +1,20 @@
 [project]
 name = "camelot-py"
-version = "1.0.0"
+version = "1.0.9"
 description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
 ]
-license = {text = "MIT"}
+license = "MIT"
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: MIT License",
 ]
 requires-python = ">=3.8"
 dependencies = [
@@ -38,6 +38,11 @@ dependencies = [
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["camelot*"]
+exclude = ["activate"]
 
 [project.urls]
 Homepage = "https://github.com/camelot-dev/camelot"
@@ -111,6 +116,7 @@ show_column_numbers = true
 show_error_codes = true
 show_error_context = true
 ignore_missing_imports = true
+
 
 # strict = true
 # Strict is too agressive for now and not passing.

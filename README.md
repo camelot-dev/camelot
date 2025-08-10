@@ -16,7 +16,7 @@
 
 Try it yourself in our interactive quickstart notebook. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/camelot-quickstart-notebook.ipynb)
 
-Or check out a simple example using [this pdf](https://github.com/camelot-dev/camelot/blob/main/docs/_static/pdf/foo.pdf).
+Or check out a simple example using [this pdf](https://github.com/camelot-dev/camelot/blob/master/docs/_static/pdf/foo.pdf).
 
 <pre>
 >>> import camelot
@@ -48,7 +48,7 @@ Or check out a simple example using [this pdf](https://github.com/camelot-dev/ca
 
 Camelot also comes packaged with a [command-line interface](https://camelot-py.readthedocs.io/en/latest/user/cli.html)!
 
-Refer to the [QuickStart Guide](https://github.com/camelot-dev/camelot/blob/main/docs/user/quickstart.rst#quickstart) to quickly get started with Camelot, extract tables from PDFs and explore some basic options.
+Refer to the [QuickStart Guide](https://github.com/camelot-dev/camelot/blob/master/docs/user/quickstart.rst#quickstart) to quickly get started with Camelot, extract tables from PDFs and explore some basic options.
 
 **Tip:** Visit the `parser-comparison-notebook` to get an overview of all the packed parsers and their features. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/parser-comparison-notebook.ipynb)
 
@@ -124,3 +124,4 @@ Camelot uses [Semantic Versioning](https://semver.org/). For the available versi
 This project is licensed under the MIT License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/LICENSE) file for details.
 
 The documentation theme is licensed under a seperate BSD-like License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/docs/_themes/LICENSE) file for details.
+

@@ -15,7 +15,7 @@ from nox import session
 package = "camelot"
 
 # TODO: certain sessions are pinned to Python 3.10
-python_versions = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+python_versions = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -232,7 +232,7 @@ def xdoctest(session: Session) -> None:
     session.run("python", "-m", "xdoctest", *args)
 
 
-@session(name="docs-build", python=python_versions[2])
+@session(name="docs-build", python=python_versions[5])
 def docs_build(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
