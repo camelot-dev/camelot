@@ -1,5 +1,6 @@
 """Defines a base parser. As well as generic methods for other parsers."""
 
+import logging
 import math
 import os
 import warnings
@@ -12,6 +13,9 @@ from ..utils import compute_accuracy
 from ..utils import compute_whitespace
 from ..utils import get_table_index
 from ..utils import text_in_bbox
+
+
+logger = logging.getLogger("camelot")
 
 
 class BaseParser:
@@ -251,10 +255,10 @@ class BaseParser:
             # Handle the KeyError gracefully by returning empty lists
             # or by performing alternative logic, such as using a default
             # bounding box or skipping the table.
-            print(
-                f"Warning: Bounding box {table._bbox} not found in table_bbox_parses."
+            logger.warning(
+                f"Bounding box {table._bbox} not found in table_bbox_parses."
             )
-            return [], [], [], []  # Return empty lists for cols, rows, v_s, h_s
+            return
         table.parse_details = self.parse_details
         pos_errors = self.compute_parse_errors(table)
         table.accuracy = compute_accuracy([[100, pos_errors]])
