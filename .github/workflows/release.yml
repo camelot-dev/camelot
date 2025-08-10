@@ -61,7 +61,7 @@ jobs:
       - name: Publish Python 🐍 distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: "dist" # Specify the directory
+          packages-dir: "dist" # Specify the directory
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
