@@ -12,13 +12,27 @@ except ImportError:
 else:
     _HAS_MPL = True
 
-from . import __version__
+import importlib.metadata
+from typing import Optional
+
 from . import plot
 from . import read_pdf
 
 
 logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)
+
+
+def get_version() -> Optional[str]:
+    """Get the version information."""
+    try:
+        return importlib.metadata.version("camelot-py")
+    except importlib.metadata.PackageNotFoundError:
+        # Package is not installed in editable mode or in the current environment
+        return None
+
+
+__version__ = get_version() or "0.0.0+unknown"
 
 
 class Config:
