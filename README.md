@@ -76,15 +76,15 @@ conda install -c conda-forge camelot-py
 
 ### Using pip
 
-After [installing the dependencies](https://camelot-py.readthedocs.io/en/latest/user/install-deps.html) ([tk](https://packages.ubuntu.com/bionic/python/python-tk) and [ghostscript](https://www.ghostscript.com/)), you can also just use pip to install Camelot:
+You can also use pip to install Camelot:
 
 ```bash
-pip install "camelot-py[base]"
+pip install "camelot-py"
 ```
 
-### From the source code
+Note that [additional dependencies](https://camelot-py.readthedocs.io/en/latest/user/install-deps.html) may be required if you want to use the non-default backend [ghostscript](https://www.ghostscript.com/).
 
-After [installing the dependencies](https://camelot-py.readthedocs.io/en/latest/user/install.html#using-pip), clone the repo using:
+### From the source code
 
 ```bash
 git clone https://github.com/camelot-dev/camelot.git
@@ -96,6 +96,8 @@ and install using pip:
 cd camelot
 pip install "."
 ```
+
+Note that [additional dependencies](https://camelot-py.readthedocs.io/en/latest/user/install-deps.html) may be required if you want to use the non-default backend [ghostscript](https://www.ghostscript.com/).
 
 ## Documentation
 
@@ -120,3 +122,6 @@ Camelot uses [Semantic Versioning](https://semver.org/). For the available versi
 ## License
 
 This project is licensed under the MIT License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/LICENSE) file for details.
+
+The documentation theme is licensed under a seperate BSD-like License, see the [LICENSE](https://github.com/camelot-dev/camelot/blob/master/docs/_themes/LICENSE) file for details.
+
