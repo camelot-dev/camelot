@@ -29,7 +29,7 @@ jobs:
     if: github.event_name == 'release'
     environment:
       name: pypi
-      url: https://pypi.org/p/your-package-name
+      url: https://pypi.org/p/camelot-py
     permissions:
       id-token: write
       contents: write
@@ -60,11 +60,12 @@ jobs:
 
       - name: Publish Python 🐍 distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
+        with:
+          packages_dir: "dist" # Specify the directory
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: >-
           gh release upload
-          "${{ github.event.release.tag_name }}" ./dist/*.sig ./dist/*.crt
+          "${{ github.event.release.tag_name }}" ./dist/*.sig ./dist/*.crt ./dist/*.sigstore.json
           --repo "$GITHUB_REPOSITORY"
