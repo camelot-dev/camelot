@@ -59,7 +59,7 @@ jobs:
             ./dist/*.whl
 
       - name: Remove Sigstore files
-        run: rm dist/*.sig dist/*.crt dist/*.sigstore.json
+        run: rm -f dist/*.sig dist/*.crt dist/*.sigstore.json
 
       - name: Publish Python 🐍 distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
