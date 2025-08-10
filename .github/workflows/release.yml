@@ -63,6 +63,9 @@ jobs:
         with:
           packages-dir: "dist" # Specify the directory
           verify-metadata: true
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
