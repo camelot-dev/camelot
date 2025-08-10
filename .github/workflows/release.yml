@@ -58,14 +58,14 @@ jobs:
             ./dist/*.tar.gz
             ./dist/*.whl
 
+      - name: Remove Sigstore files
+        run: rm dist/*.sig dist/*.crt dist/*.sigstore.json
+
       - name: Publish Python 🐍 distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: "dist" # Specify the directory
-          verify-metadata: true
-          inputs: >-
-            ./dist/*.tar.gz
-            ./dist/*.whl
+          packages-dir: "dist"
+
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
