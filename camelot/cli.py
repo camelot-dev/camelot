@@ -52,6 +52,15 @@ pass_config = click.make_pass_decorator(Config)
 
 @click.group(name="camelot")
 @click.version_option(version=__version__)
+@click.pass_context
+def cli(ctx, *args, **kwargs):
+    """Camelot: PDF Table Extraction for Humans."""
+    ctx.obj = Config()
+    for key, value in kwargs.items():
+        ctx.obj.set_config(key, value)
+
+
+@cli.command("lattice")
 @click.option(
     "-q", "--quiet", is_flag=False, default=False, help="Suppress logs and warnings."
 )
@@ -101,15 +110,6 @@ pass_config = click.make_pass_decorator(Config)
     default=(1.0, 0.5, 0.1),
     help="PDFMiner char_margin, line_margin and word_margin.",
 )
-@click.pass_context
-def cli(ctx, *args, **kwargs):
-    """Camelot: PDF Table Extraction for Humans."""
-    ctx.obj = Config()
-    for key, value in kwargs.items():
-        ctx.obj.set_config(key, value)
-
-
-@cli.command("lattice")
 @click.option(
     "-R",
     "--table_regions",
@@ -203,15 +203,13 @@ def cli(ctx, *args, **kwargs):
 @pass_config
 def lattice(c, *args, **kwargs):
     """Use lines between text to parse the table."""
-    conf = c.config
-    pages = conf.pop("pages")
-    output = conf.pop("output")
-    f = conf.pop("format")
-    compress = conf.pop("zip")
-    quiet = conf.pop("quiet")
+    pages = kwargs.pop("pages")
+    output = kwargs.pop("output")
+    f = kwargs.pop("format")
+    compress = kwargs.pop("zip")
+    quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
     filepath = kwargs.pop("filepath")
-    kwargs.update(conf)
 
     table_regions = list(kwargs["table_regions"])
     kwargs["table_regions"] = None if not table_regions else table_regions
@@ -243,6 +241,55 @@ def lattice(c, *args, **kwargs):
 
 
 @cli.command("stream")
+@click.option(
+    "-q", "--quiet", is_flag=False, default=False, help="Suppress logs and warnings."
+)
+@click.option(
+    "-p",
+    "--pages",
+    default="1",
+    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+)
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Read pdf pages in parallel using all CPU cores.",
+)
+@click.option("-pw", "--password", help="Password for decryption.")
+@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-f",
+    "--format",
+    type=click.Choice(["csv", "excel", "html", "json", "markdown", "sqlite"]),
+    help="Output file format.",
+)
+@click.option("-z", "--zip", is_flag=True, help="Create ZIP archive.")
+@click.option(
+    "-split",
+    "--split_text",
+    is_flag=True,
+    help="Split text that spans across multiple cells.",
+)
+@click.option(
+    "-flag",
+    "--flag_size",
+    is_flag=True,
+    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+)
+@click.option(
+    "-strip",
+    "--strip_text",
+    help="Characters that should be stripped from a string before"
+    " assigning it to a cell.",
+)
+@click.option(
+    "-M",
+    "--margins",
+    nargs=3,
+    default=(1.0, 0.5, 0.1),
+    help="PDFMiner char_margin, line_margin and word_margin.",
+)
 @click.option(
     "-R",
     "--table_regions",
@@ -295,15 +342,13 @@ def lattice(c, *args, **kwargs):
 @pass_config
 def stream(c, *args, **kwargs):
     """Use spaces between text to parse the table."""
-    conf = c.config
-    pages = conf.pop("pages")
-    output = conf.pop("output")
-    f = conf.pop("format")
-    compress = conf.pop("zip")
-    quiet = conf.pop("quiet")
+    pages = kwargs.pop("pages")
+    output = kwargs.pop("output")
+    f = kwargs.pop("format")
+    compress = kwargs.pop("zip")
+    quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
     filepath = kwargs.pop("filepath")
-    kwargs.update(conf)
 
     table_regions = list(kwargs["table_regions"])
     kwargs["table_regions"] = None if not table_regions else table_regions
@@ -312,7 +357,7 @@ def stream(c, *args, **kwargs):
     columns = list(kwargs["columns"])
     kwargs["columns"] = None if not columns else columns
 
-    margins = conf.pop("margins")
+    margins = kwargs.pop("margins")
 
     if margins is None:
         layout_kwargs = {}
@@ -350,6 +395,55 @@ def stream(c, *args, **kwargs):
 
 
 @cli.command("hybrid")
+@click.option(
+    "-q", "--quiet", is_flag=False, default=False, help="Suppress logs and warnings."
+)
+@click.option(
+    "-p",
+    "--pages",
+    default="1",
+    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+)
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Read pdf pages in parallel using all CPU cores.",
+)
+@click.option("-pw", "--password", help="Password for decryption.")
+@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-f",
+    "--format",
+    type=click.Choice(["csv", "excel", "html", "json", "markdown", "sqlite"]),
+    help="Output file format.",
+)
+@click.option("-z", "--zip", is_flag=True, help="Create ZIP archive.")
+@click.option(
+    "-split",
+    "--split_text",
+    is_flag=True,
+    help="Split text that spans across multiple cells.",
+)
+@click.option(
+    "-flag",
+    "--flag_size",
+    is_flag=True,
+    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+)
+@click.option(
+    "-strip",
+    "--strip_text",
+    help="Characters that should be stripped from a string before"
+    " assigning it to a cell.",
+)
+@click.option(
+    "-M",
+    "--margins",
+    nargs=3,
+    default=(1.0, 0.5, 0.1),
+    help="PDFMiner char_margin, line_margin and word_margin.",
+)
 @click.option(
     "-R",
     "--table_regions",
@@ -402,15 +496,13 @@ def stream(c, *args, **kwargs):
 @pass_config
 def hybrid(c, *args, **kwargs):
     """Combines the strengths of both the Network and the Lattice parser."""
-    conf = c.config
-    pages = conf.pop("pages")
-    output = conf.pop("output")
-    f = conf.pop("format")
-    compress = conf.pop("zip")
-    quiet = conf.pop("quiet")
+    pages = kwargs.pop("pages")
+    output = kwargs.pop("output")
+    f = kwargs.pop("format")
+    compress = kwargs.pop("zip")
+    quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
     filepath = kwargs.pop("filepath")
-    kwargs.update(conf)
 
     table_regions = list(kwargs["table_regions"])
     kwargs["table_regions"] = None if not table_regions else table_regions
@@ -441,6 +533,55 @@ def hybrid(c, *args, **kwargs):
 
 
 @cli.command("network")
+@click.option(
+    "-q", "--quiet", is_flag=False, default=False, help="Suppress logs and warnings."
+)
+@click.option(
+    "-p",
+    "--pages",
+    default="1",
+    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+)
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Read pdf pages in parallel using all CPU cores.",
+)
+@click.option("-pw", "--password", help="Password for decryption.")
+@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-f",
+    "--format",
+    type=click.Choice(["csv", "excel", "html", "json", "markdown", "sqlite"]),
+    help="Output file format.",
+)
+@click.option("-z", "--zip", is_flag=True, help="Create ZIP archive.")
+@click.option(
+    "-split",
+    "--split_text",
+    is_flag=True,
+    help="Split text that spans across multiple cells.",
+)
+@click.option(
+    "-flag",
+    "--flag_size",
+    is_flag=True,
+    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+)
+@click.option(
+    "-strip",
+    "--strip_text",
+    help="Characters that should be stripped from a string before"
+    " assigning it to a cell.",
+)
+@click.option(
+    "-M",
+    "--margins",
+    nargs=3,
+    default=(1.0, 0.5, 0.1),
+    help="PDFMiner char_margin, line_margin and word_margin.",
+)
 @click.option(
     "-R",
     "--table_regions",
@@ -493,15 +634,13 @@ def hybrid(c, *args, **kwargs):
 @pass_config
 def network(c, *args, **kwargs):
     """Use text alignments to parse the table."""
-    conf = c.config
-    pages = conf.pop("pages")
-    output = conf.pop("output")
-    f = conf.pop("format")
-    compress = conf.pop("zip")
-    quiet = conf.pop("quiet")
+    pages = kwargs.pop("pages")
+    output = kwargs.pop("output")
+    f = kwargs.pop("format")
+    compress = kwargs.pop("zip")
+    quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
     filepath = kwargs.pop("filepath")
-    kwargs.update(conf)
 
     table_regions = list(kwargs["table_regions"])
     kwargs["table_regions"] = None if not table_regions else table_regions
