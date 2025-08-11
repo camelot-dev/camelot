@@ -32,16 +32,16 @@ def test_cli_lattice(testdir):
         outfile = os.path.join(tempdir, "foo.csv")
         runner = CliRunner()
         result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "lattice", infile]
+            cli, ["lattice", "--format", "csv", "--output", outfile, infile]
         )
         assert result.exit_code == 0
         assert "Found 1 tables" in result.output
 
-        result = runner.invoke(cli, ["--format", "csv", "lattice", infile])
+        result = runner.invoke(cli, ["lattice", "--format", "csv", infile])
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
-        result = runner.invoke(cli, ["--output", outfile, "lattice", infile])
+        result = runner.invoke(cli, ["lattice", "--output", outfile, infile])
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
@@ -52,22 +52,23 @@ def test_cli_stream(testdir):
         outfile = os.path.join(tempdir, "budget.csv")
         runner = CliRunner()
         result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "stream", infile]
+            cli, ["stream", "--format", "csv", "--output", outfile, infile]
         )
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
 
-        result = runner.invoke(cli, ["--format", "csv", "stream", infile])
+        result = runner.invoke(cli, ["stream", "--format", "csv", infile])
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
-        result = runner.invoke(cli, ["--output", outfile, "stream", infile])
+        result = runner.invoke(cli, ["stream", "--output", outfile, infile])
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
         result = runner.invoke(
             cli,
             [
+                "stream",
                 "--margins",
                 "1.5",
                 "0.5",
@@ -76,7 +77,6 @@ def test_cli_stream(testdir):
                 "csv",
                 "--output",
                 outfile,
-                "stream",
                 infile,
             ],
         )
@@ -86,6 +86,7 @@ def test_cli_stream(testdir):
         result = runner.invoke(
             cli,
             [
+                "stream",
                 "--margins",
                 "1.5",
                 "0.5",
@@ -93,7 +94,6 @@ def test_cli_stream(testdir):
                 "csv",
                 "--output",
                 outfile,
-                "stream",
                 infile,
             ],
         )
@@ -110,6 +110,7 @@ def test_cli_parallel(testdir):
         result = runner.invoke(
             cli,
             [
+                "lattice",
                 "--parallel",
                 "--pages",
                 "1,2,3",
@@ -117,7 +118,6 @@ def test_cli_parallel(testdir):
                 "csv",
                 "--output",
                 outfile,
-                "lattice",
                 infile,
             ],
         )
@@ -131,16 +131,16 @@ def test_cli_hybrid(testdir):
         outfile = os.path.join(tempdir, "budget.csv")
         runner = CliRunner()
         result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "hybrid", infile]
+            cli, ["hybrid", "--format", "csv", "--output", outfile, infile]
         )
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
 
-        result = runner.invoke(cli, ["--format", "csv", "hybrid", infile])
+        result = runner.invoke(cli, ["hybrid", "--format", "csv", infile])
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
-        result = runner.invoke(cli, ["--output", outfile, "hybrid", infile])
+        result = runner.invoke(cli, ["hybrid", "--output", outfile, infile])
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
@@ -151,14 +151,14 @@ def test_cli_network(testdir):
         outfile = os.path.join(tempdir, "budget.csv")
         runner = CliRunner()
         result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "network", infile]
+            cli, ["network", "--format", "csv", "--output", outfile, infile]
         )
         assert result.exit_code == 0
         assert result.output == "Found 1 tables\n"
-        result = runner.invoke(cli, ["--format", "csv", "network", infile])
+        result = runner.invoke(cli, ["network", "--format", "csv", infile])
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
-        result = runner.invoke(cli, ["--output", outfile, "network", infile])
+        result = runner.invoke(cli, ["network", "--output", outfile, infile])
         format_error = "Please specify output file format using --format"
         assert format_error in result.output
 
@@ -171,13 +171,13 @@ def test_cli_password(testdir):
         result = runner.invoke(
             cli,
             [
+                "stream",
                 "--password",
                 "userpass",
                 "--format",
                 "csv",
                 "--output",
                 outfile,
-                "stream",
                 infile,
             ],
         )
@@ -187,7 +187,7 @@ def test_cli_password(testdir):
         output_error = "File has not been decrypted"
         # no password
         result = runner.invoke(
-            cli, ["--format", "csv", "--output", outfile, "stream", infile]
+            cli, ["stream", "--format", "csv", "--output", outfile, infile]
         )
         assert output_error in str(result.exception)
 
@@ -195,13 +195,13 @@ def test_cli_password(testdir):
         result = runner.invoke(
             cli,
             [
+                "stream",
                 "--password",
                 "wrongpass",
                 "--format",
                 "csv",
                 "--output",
                 outfile,
-                "stream",
                 infile,
             ],
         )
@@ -218,7 +218,7 @@ def test_cli_output_format(testdir):
         outfile = os.path.join(tempdir, "health.json")
         result = runner.invoke(
             cli,
-            ["--format", "json", "--output", outfile, "stream", infile],
+            ["stream", "--format", "json", "--output", outfile, infile],
         )
         assert result.exit_code == 0, f"Output: {result.output}"
 
@@ -226,7 +226,7 @@ def test_cli_output_format(testdir):
         outfile = os.path.join(tempdir, "health.xlsx")
         result = runner.invoke(
             cli,
-            ["--format", "excel", "--output", outfile, "stream", infile],
+            ["stream", "--format", "excel", "--output", outfile, infile],
         )
         assert result.exit_code == 0, f"Output: {result.output}"
 
@@ -234,7 +234,7 @@ def test_cli_output_format(testdir):
         outfile = os.path.join(tempdir, "health.html")
         result = runner.invoke(
             cli,
-            ["--format", "html", "--output", outfile, "stream", infile],
+            ["stream", "--format", "html", "--output", outfile, infile],
         )
         assert result.exit_code == 0, f"Output: {result.output}"
 
@@ -242,7 +242,7 @@ def test_cli_output_format(testdir):
         outfile = os.path.join(tempdir, "health.md")
         result = runner.invoke(
             cli,
-            ["--format", "markdown", "--output", outfile, "stream", infile],
+            ["stream", "--format", "markdown", "--output", outfile, infile],
         )
         assert result.exit_code == 0, f"Output: {result.output}"
 
@@ -251,12 +251,12 @@ def test_cli_output_format(testdir):
         result = runner.invoke(
             cli,
             [
+                "stream",
                 "--zip",
                 "--format",
                 "csv",
                 "--output",
                 outfile,
-                "stream",
                 infile,
             ],
         )
@@ -275,12 +275,12 @@ def test_cli_quiet(testdir):
                 result = runner.invoke(
                     cli,
                     [
+                        "stream",
                         "--quiet",
                         "--format",
                         "csv",
                         "--output",
                         outfile,
-                        "stream",
                         infile,
                     ],
                 )
@@ -296,11 +296,11 @@ def test_cli_lattice_plot_type():
         result = runner.invoke(
             cli,
             [
+                "lattice",
                 "--plot_type",
                 "contour",
                 "--output",
                 outfile,
-                "--format",
                 "--format",
                 "png",
             ],
