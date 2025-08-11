@@ -190,7 +190,20 @@ def tests(session: Session) -> None:
         *plot_requires,
     )
     try:
-        session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
+        session.run(
+            "coverage",
+            "run",
+            "--parallel",
+            "-m",
+            "pytest",
+            *session.posargs,
+            env={
+                "PYTHONWARNINGS": (
+                    "ignore:ARC4 has been moved to"
+                    " cryptography.hazmat.decrepit.ciphers.algorithms.ARC4"
+                )
+            },
+        )
     finally:
         if session.interactive:
             session.notify("coverage", posargs=[])
