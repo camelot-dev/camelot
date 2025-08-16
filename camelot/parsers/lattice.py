@@ -10,7 +10,6 @@ from ..image_processing import adaptive_threshold
 from ..image_processing import find_contours
 from ..image_processing import find_joints
 from ..image_processing import find_lines
-from ..image_processing import undo_rotation
 from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
 from ..utils import scale_image
