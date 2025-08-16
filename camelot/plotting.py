@@ -1,6 +1,6 @@
 """Plotting functions usefull for visual debugging."""
 
-from pdfminer.layout import LTTextLineVertical
+from paves.miner import LTTextLineVertical
 
 
 try:

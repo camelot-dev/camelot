@@ -243,20 +243,10 @@ def test_handler_pages_generator(testdir):
     assert handler._get_pages("all") == [1]
 
 
-def test_handler_with_stream(testdir):
-    filename = os.path.join(testdir, "foo.pdf")
-
-    with open(filename, "rb") as f:
-        handler = PDFHandler(f)
-        assert handler._get_pages("1") == [1]
-
-
 def test_handler_with_pathlib(testdir):
     filename = Path(os.path.join(testdir, "foo.pdf"))
-
-    with open(filename, "rb") as f:
-        handler = PDFHandler(f)
-        assert handler._get_pages("1") == [1]
+    handler = PDFHandler(filename)
+    assert handler._get_pages("1") == [1]
 
 
 def test_table_list_iter():

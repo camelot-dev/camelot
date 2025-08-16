@@ -227,15 +227,16 @@ class Lattice(BaseParser):
             return scaled_areas
 
         self.image_path = build_file_path_in_temp_dir(
-            os.path.basename(self.filename), ".png"
+            f"{os.path.basename(self.filename)}-page{self.page}", ".png"
         )
-        self.icb.convert(self.filename, self.image_path)
+        self.icb.convert(self.filename, self.image_path, self.page)
 
         self.pdf_image, self.threshold = adaptive_threshold(
             self.image_path,
             process_background=self.process_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
+            rotation=self.rotation,
         )
 
         image_width = self.pdf_image.shape[1]

@@ -22,7 +22,9 @@ path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
 class PopplerBackend(ConversionBackend):
     """Classmethod to create a poplerBackendBackend class."""
 
-    def convert(self, pdf_path: str, png_path: str, resolution: int = 300) -> None:
+    def convert(
+        self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1
+    ) -> None:
         """Convert PDF to png.
 
         Parameters
@@ -31,6 +33,8 @@ class PopplerBackend(ConversionBackend):
             Path where to read the pdf file.
         png_path : str
             Path where to save png file.
+        page: int, optional
+            Single page to convert.
 
         Raises
         ------
@@ -39,13 +43,24 @@ class PopplerBackend(ConversionBackend):
         ValueError
             [description]
         """
-        pdftopng_executable = shutil.which("pdftopng", path=path)
+        pdftopng_executable = shutil.which("pdftocairo", path=path)
         if pdftopng_executable is None:
             raise OSError(
-                "pdftopng is not installed. You can install it using the 'pip install pdftopng' command."
+                "pdftocairo is not installed. Please install `poppler-utils`."
             )
 
-        pdftopng_command = [pdftopng_executable, pdf_path, png_path]
+        png_stem, _ = os.path.splitext(png_path)
+        pdftopng_command = [
+            pdftopng_executable,
+            "-png",
+            "-singlefile",
+            "-f",
+            str(page),
+            "-l",
+            str(page),
+            pdf_path,
+            png_stem,
+        ]
 
         try:
             subprocess.check_output(
