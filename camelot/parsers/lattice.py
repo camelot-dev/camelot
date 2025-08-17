@@ -210,7 +210,6 @@ class Lattice(BaseParser):
         """Record data about the origin of the table."""
         super().record_parse_metadata(table)
         # for plotting
-        table._image = self.pdf_image  # Reuse the image used for calc
         table._segments = (self.vertical_segments, self.horizontal_segments)
 
     def _generate_table_bbox(self):
