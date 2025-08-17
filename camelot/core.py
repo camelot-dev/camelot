@@ -620,7 +620,7 @@ class Table:
                     os.path.basename(self.filename), ".png"
                 )
                 backend = ImageConversionBackend(use_fallback=True)
-                backend.convert(self.filename, self._image_path)
+                backend.convert(self.filename, self._image_path, page=self.page)
             self._image = undo_rotation(cv2.imread(self._image_path), self.rotation)
         return self._image
 
