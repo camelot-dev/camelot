@@ -24,6 +24,7 @@ else:
     from typing_extensions import TypedDict, Unpack
 
 from .backends import ImageConversionBackend
+from .image_processing import undo_rotation
 from .utils import build_file_path_in_temp_dir
 from .utils import get_index_closest_point
 from .utils import get_textline_coords
@@ -548,6 +549,7 @@ class Table:
         self.filename = None
         self.order = None
         self.page = None
+        self.rotation = ""
         self.flavor = None  # Flavor of the parser that generated the table
         self.pdf_size = None  # Dimensions of the original PDF page
         self._bbox = None  # Bounding box in original document
@@ -618,8 +620,8 @@ class Table:
                     os.path.basename(self.filename), ".png"
                 )
                 backend = ImageConversionBackend(use_fallback=True)
-                backend.convert(self.filename, self._image_path)
-            self._image = cv2.imread(self._image_path)
+                backend.convert(self.filename, self._image_path, page=self.page)
+            self._image = undo_rotation(cv2.imread(self._image_path), self.rotation)
         return self._image
 
     def set_all_edges(self):

@@ -6,8 +6,8 @@ import math
 from typing import Any
 
 import numpy as np
-from pdfminer.layout import LTTextLineHorizontal
-from pdfminer.layout import LTTextLineVertical
+from paves.miner import LTTextLineHorizontal
+from paves.miner import LTTextLineVertical
 
 from ..core import ALL_ALIGNMENTS
 from ..core import HORIZONTAL_ALIGNMENTS

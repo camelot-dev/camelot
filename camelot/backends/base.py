@@ -6,6 +6,6 @@ class ConversionBackend:  # noqa D101
         raise NotImplementedError
 
     def convert(  # noqa D102
-        self, pdf_path: str, png_path: str, resolution: int = 300
+        self, pdf_path: str, png_path: str, resolution: int = 300, page: int = 1
     ) -> None:  # noqa D102
         raise NotImplementedError

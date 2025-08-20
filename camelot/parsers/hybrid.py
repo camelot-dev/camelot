@@ -101,6 +101,7 @@ class Hybrid(BaseParser):
         images,
         horizontal_text,
         vertical_text,
+        rotation,
         layout_kwargs,
     ):
         """Call this method to prepare the page parsing .
@@ -126,6 +127,7 @@ class Hybrid(BaseParser):
             images,
             horizontal_text,
             vertical_text,
+            rotation,
             layout_kwargs,
         )
         self.network_parser.prepare_page_parse(
@@ -136,6 +138,7 @@ class Hybrid(BaseParser):
             images,
             horizontal_text,
             vertical_text,
+            rotation,
             layout_kwargs,
         )
         self.lattice_parser.prepare_page_parse(
@@ -146,6 +149,7 @@ class Hybrid(BaseParser):
             images,
             horizontal_text,
             vertical_text,
+            rotation,
             layout_kwargs,
         )
 
