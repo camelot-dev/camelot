@@ -169,6 +169,7 @@ base_requires = [
     "ghostscript>=0.7",
     "opencv-python-headless>=3.4.2.17",
     "pypdfium2>=4,<5",
+    "setuptools>=75",
 ]
 
 plot_requires = [
