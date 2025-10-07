@@ -142,3 +142,10 @@ def test_hybrid_keyerror(testdir):
     filename = os.path.join(testdir, "tabula/schools.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid", pages="4-5")
     assert len(tables) >= 1
+
+
+def test_hybrid_multipage(testdir):
+    """Hybrid parser should clear table bboxes on each new page."""
+    filename = os.path.join(testdir, "hybrid_multipage.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid", pages="1-2")
+    assert len(tables) == 2  # not 3
