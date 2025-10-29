@@ -44,8 +44,8 @@ Optional Dependencies
 
 Additional dependencies for Camelot can be installed using the following options
 
-- ``[plot]`` installs the python package ``matplotlib`` and is used for :ref:`visual debugging <visual_debug>`. 
+- ``[plot]`` installs the python package ``matplotlib`` and is used for :ref:`visual debugging <visual_debug>`.
 
 -  ``[ghostscript]`` installs the python package ``ghostscript`` and is used for the optional ghostscript backend.
 
-Note that ``[ghostscript]`` only installs the python package ``ghostscript``, which provides an interface to the Ghostscript C-API. Users must still `download <https://www.ghostscript.com/>`_ and install Ghostscript manually. 
+Note that ``[ghostscript]`` only installs the python package ``ghostscript``, which provides an interface to the Ghostscript C-API. Users must still `download <https://www.ghostscript.com/>`_ and install Ghostscript manually.
