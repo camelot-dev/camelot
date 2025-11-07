@@ -320,7 +320,7 @@ def test_import_error():
 def test_version_package_not_found():
     with mock.patch(
         "importlib.metadata.version", 
-        side_effect=importlib.metadata.PackageNotFoundError
+        side_effect=importlib.metadata.PackageNotFoundError,
     ):
         from camelot.cli import get_version
 
