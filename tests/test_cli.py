@@ -1,9 +1,8 @@
+import importlib.metadata
 import os
 import sys
 import warnings
 from unittest import mock
-
-import importlib.metadata
 
 import pytest
 from click.testing import CliRunner
@@ -319,7 +318,10 @@ def test_import_error():
 
 
 def test_version_package_not_found():
-    with mock.patch("importlib.metadata.version", side_effect=importlib.metadata.PackageNotFoundError):
+    with mock.patch(
+        "importlib.metadata.version", 
+        side_effect=importlib.metadata.PackageNotFoundError
+    ):
         from camelot.cli import get_version
+
         assert get_version() is None
-        
