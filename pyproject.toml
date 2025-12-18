@@ -5,7 +5,7 @@ description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
 ]
-license = "MIT"
+license = {text = "MIT"}
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
