@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Any
 
 import playa
-from paves.miner import LTChar
-from paves.miner import LTImage
-from paves.miner import LTTextLineHorizontal
-from paves.miner import LTTextLineVertical
+from playa.miner import LTChar
+from playa.miner import LTImage
+from playa.miner import LTTextLineHorizontal
+from playa.miner import LTTextLineVertical
 from playa.exceptions import PDFPasswordIncorrect
 from playa.exceptions import PDFTextExtractionNotAllowed
 

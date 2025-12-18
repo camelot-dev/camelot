@@ -2,9 +2,9 @@
 
 import os
 
-import paves.miner as pm
-from paves.miner import LAParams
-from paves.miner import LTTextBoxHorizontal
+import playa.miner as pm
+from playa.miner import LAParams
+from playa.miner import LTTextBoxHorizontal
 
 from camelot.utils import bbox_intersection_area
 

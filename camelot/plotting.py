@@ -1,6 +1,6 @@
 """Plotting functions usefull for visual debugging."""
 
-from paves.miner import LTTextLineVertical
+from playa.miner import LTTextLineVertical
 
 
 try:

@@ -24,16 +24,16 @@ from urllib.request import Request
 from urllib.request import urlopen
 
 import numpy as np
-import paves.miner as pm
-from paves.miner import LAParams
-from paves.miner import LTAnno
-from paves.miner import LTChar
-from paves.miner import LTContainer
-from paves.miner import LTImage
-from paves.miner import LTItem
-from paves.miner import LTTextLine
-from paves.miner import LTTextLineHorizontal
-from paves.miner import LTTextLineVertical
+import playa.miner as pm
+from playa.miner import LAParams
+from playa.miner import LTAnno
+from playa.miner import LTChar
+from playa.miner import LTContainer
+from playa.miner import LTImage
+from playa.miner import LTItem
+from playa.miner import LTTextLine
+from playa.miner import LTTextLineHorizontal
+from playa.miner import LTTextLineVertical
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
