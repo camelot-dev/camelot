@@ -6,8 +6,8 @@ import math
 from typing import Any
 
 import numpy as np
-from paves.miner import LTTextLineHorizontal
-from paves.miner import LTTextLineVertical
+from playa.miner import LTTextLineHorizontal
+from playa.miner import LTTextLineVertical
 
 from ..core import ALL_ALIGNMENTS
 from ..core import HORIZONTAL_ALIGNMENTS

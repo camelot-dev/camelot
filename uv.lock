@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.8"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'darwin'",
@@ -418,7 +418,7 @@ wheels = [
 
 [[package]]
 name = "camelot-py"
-version = "1.0.0"
+version = "1.0.9"
 source = { editable = "." }
 dependencies = [
     { name = "chardet" },
@@ -429,7 +429,6 @@ dependencies = [
     { name = "openpyxl" },
     { name = "pandas", version = "2.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "pandas", version = "2.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-    { name = "paves" },
     { name = "pillow", version = "10.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "pillow", version = "11.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "playa-pdf" },
@@ -513,10 +512,9 @@ requires-dist = [
     { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "pandas", marker = "python_full_version < '3.10'", specifier = ">=1.5.3" },
     { name = "pandas", marker = "python_full_version >= '3.10'", specifier = ">=2.2.2" },
-    { name = "paves", specifier = ">=0.6.1" },
     { name = "pep8-naming", marker = "extra == 'dev'", specifier = ">=0.12.1" },
     { name = "pillow", specifier = ">=10.4.0" },
-    { name = "playa-pdf", specifier = ">=0.6.6" },
+    { name = "playa-pdf", specifier = ">=0.8.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=2.16.0" },
     { name = "pre-commit-hooks", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pygments", marker = "extra == 'dev'", specifier = ">=2.10.0" },
@@ -2626,20 +2624,6 @@ wheels = [
 ]
 
 [[package]]
-name = "paves"
-version = "0.6.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pillow", version = "10.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
-    { name = "pillow", version = "11.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-    { name = "playa-pdf" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b6/52/111534d7bda42ad4c746865bfbf49b7360bfa6eddd00661075f08d25493f/paves-0.6.1.tar.gz", hash = "sha256:bc046b35313461bb2016d29c8d1d8a1fd0ca69eec338b3781e55a5b4ab4310e4", size = 1519472, upload-time = "2025-07-16T01:30:38.774Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/73/1b53f4bea65bc027d20a0b6a837c0e1a3625c9bbd90595f8f3c758f4975c/paves-0.6.1-py3-none-any.whl", hash = "sha256:b0d935a28d2d4c5dace5ee798b1bea8aa2289ff5358930eae01d76ae107e8164", size = 27067, upload-time = "2025-07-16T01:30:36.921Z" },
-]
-
-[[package]]
 name = "pbr"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2875,11 +2859,55 @@ wheels = [
 
 [[package]]
 name = "playa-pdf"
-version = "0.6.6"
+version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fb/3f/8b7bb1f295f45ca54cfee5e690aa4924310342a50fbdba3754d19398425a/playa_pdf-0.6.6.tar.gz", hash = "sha256:db13bcd7ce5151e464a6a41ebb2605877623f8061b7e3127d89569363198b95f", size = 8107059, upload-time = "2025-08-01T23:30:05.99Z" }
+dependencies = [
+    { name = "mypy-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/7f/208fea59297be02fbc5f21df1e4e44065325ed4283a4270e4ac643619dfc/playa_pdf-0.8.0.tar.gz", hash = "sha256:dfde2b97c51d268389f6c8ff3d1727f6a2edd78e73acaa661d807d33f648614c", size = 7942752, upload-time = "2025-12-18T19:46:30.634Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/8e/d3cf7044f197e4da12ffa4a1a3750fac93ac58209e3617488c29ddfc62fa/playa_pdf-0.6.6-py3-none-any.whl", hash = "sha256:acf2217944d9c94424e2dd46a1fff60e308a0b582ea3a6ac1ad5f4a08009852d", size = 5662316, upload-time = "2025-08-01T23:30:03.453Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/54/acc66809c2abd8b0356a63e47c9e2a31785616dc4674681c2d3ff67cd0fd/playa_pdf-0.8.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e87dcf5715a793778887b7558255da054cc07de149cd2d58c6e5dc3671f4e552", size = 7811578, upload-time = "2025-12-18T19:45:05.037Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/31/69d3cf7ffa38ce1538f0cc7e66b4704be6d0d304e0a062bbfac779bc1a06/playa_pdf-0.8.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:45311ab382e8e6620c765095496237dc7a88cbea5a844afe25e5500f3cbef917", size = 7778926, upload-time = "2025-12-18T19:45:07.676Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/ab/f13c7f498db19ca22466f54d864c2eb295cdc2621de87dbba71afa3cb924/playa_pdf-0.8.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:09ae27c78e22d5b6f70d08ac3fd571a3993497406ccbaa852201a18de205fc6e", size = 8051086, upload-time = "2025-12-18T19:45:09.655Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/8c/c207ab4b2745e4ce9d9f5dc94172f31f98e7e6304bd70f10a6a8c6397d40/playa_pdf-0.8.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:31fb3252a970dcdb7cc79f70fd549c377809fe8265970b0cecde408d22077450", size = 8077629, upload-time = "2025-12-18T19:45:11.36Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/d9/06152b9df7522fb6c2c01807206285fd01584e2bbac874fdeffdceeec51e/playa_pdf-0.8.0-cp310-cp310-win32.whl", hash = "sha256:abf792af482e5fd8fcf9a7cb2e6db09c51992cde90d16f9c3dab2b7cb5b4b596", size = 7578990, upload-time = "2025-12-18T19:45:13.308Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/73/2220e187ca0e77be3c88eb6ae9ae6c677f1356e2bd0be51cbf80ffaa1b2e/playa_pdf-0.8.0-cp310-cp310-win_amd64.whl", hash = "sha256:9b365f3eb011f32dbd54f49aaf1ac9fa875f1b9f5135efc228fed928475f17c2", size = 7631155, upload-time = "2025-12-18T19:45:15.369Z" },
+    { url = "https://files.pythonhosted.org/packages/82/f8/cc6ea6c9c345b7f02813ff3699a21275853745d79d10a5ed086ffebd37ed/playa_pdf-0.8.0-cp310-cp310-win_arm64.whl", hash = "sha256:b4434ab87a60a91c6d57f79f2f4468dc55a9fe496e1799d031b98b7b0754cafe", size = 7581227, upload-time = "2025-12-18T19:45:17.127Z" },
+    { url = "https://files.pythonhosted.org/packages/44/91/1fa9dddc28e70c9be21bf4f530c18b6b121d8584f9b37a274bb154c7db04/playa_pdf-0.8.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:6455a142ef22c6e87c0a24d850af25cc6dcf77a4b1030bac5c3c034e44f9b857", size = 7809209, upload-time = "2025-12-18T19:45:19.17Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/13/913988d2ed5eb981c1ec08d00f2474895b27473365b90c856f51875cd845/playa_pdf-0.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c4884a7778234d8582eb61c296ab32d8d89b71936d9d11a99a741d88edf46d17", size = 7775763, upload-time = "2025-12-18T19:45:21.212Z" },
+    { url = "https://files.pythonhosted.org/packages/91/fa/9fe87102262405cef88a7c1197427cd9f1f587f3e5ab5da98b6c2134ad41/playa_pdf-0.8.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5fcacd8b8d8032d4710f103930f3d8797b7dec3e30665cdd32f3abb9df7519f1", size = 8053766, upload-time = "2025-12-18T19:45:23.285Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/4f/ef904a1b9fadf78e26963b8439cbd4aea74fb1773c3581cf8994268ddd79/playa_pdf-0.8.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:45052d9de53af083deed2f6634839ae3068e7b77ea13194c50894c2db2a0b6f9", size = 8085137, upload-time = "2025-12-18T19:45:24.981Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/3d/c62f2fe637166df76589f6bb1018479333a5fa47f7243a1e300fe71ef378/playa_pdf-0.8.0-cp311-cp311-win32.whl", hash = "sha256:3e4c7258dc7f6101bd646e5c4bd2b49c14a6bad80f9b2b2b4ac5624bc56a1990", size = 7580050, upload-time = "2025-12-18T19:45:28.087Z" },
+    { url = "https://files.pythonhosted.org/packages/52/a3/9bad9092236bdc0895e3f1d6de5f4afdfa2c6beca5c3aa6b811296ec97b3/playa_pdf-0.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:822a6dd13d072ec471d62f1fdfa145a12060e1a7b2336bea3b681246bbd0608c", size = 7632718, upload-time = "2025-12-18T19:45:30.186Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/47/4bf09d9fd730c9f4d9a5adc8fd398bc2a75f551ba35cec1bbdc09566dec9/playa_pdf-0.8.0-cp311-cp311-win_arm64.whl", hash = "sha256:f01a80d68ccee7884428ac971c3309586fe2a7c3f6da6a417fe22ba7de421318", size = 7583570, upload-time = "2025-12-18T19:45:33.014Z" },
+    { url = "https://files.pythonhosted.org/packages/69/e9/1cc74cbee87548e925eb1ddc325495d504cb5b8d27afc07786b5269796cc/playa_pdf-0.8.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:43f94464661f39a11cc8fd16997ac3e29c8eb9df99d5e48cfb3dbc34bae66ad1", size = 7811453, upload-time = "2025-12-18T19:45:35.194Z" },
+    { url = "https://files.pythonhosted.org/packages/02/60/f26b720c779d8fdb6e302323a368706d26d4d403dada713bf9cc22032912/playa_pdf-0.8.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d9ace4a423fab2a0da7dfff0d7a07dac43e2612689a00eed46a7d0f88c747fb9", size = 7777824, upload-time = "2025-12-18T19:45:37.541Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/4b/526125cfd491a5d86b8f55f18db6efcf2ee303997ec594e15883534f7080/playa_pdf-0.8.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a0f82b3a09a205752f1c05d20c5890c5efa7d97489d6329a34024010ea6b3a87", size = 8070617, upload-time = "2025-12-18T19:45:39.298Z" },
+    { url = "https://files.pythonhosted.org/packages/15/22/5092cdba0225dc65710a1b47394462b3e244c02655ff902c675f7ec230de/playa_pdf-0.8.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:02c02c75b02ff4f294dd97c88a19211edc105518cfca70d02b93bbf1ae5a0947", size = 8116326, upload-time = "2025-12-18T19:45:41.063Z" },
+    { url = "https://files.pythonhosted.org/packages/84/e5/fb975de985a1e25099a4aec1afd072a0c7c1547eca0cf64ffba27e90b22b/playa_pdf-0.8.0-cp312-cp312-win32.whl", hash = "sha256:5d4c771f13e0003fe58218b8732b5695f92baf7a88c72e4e97bc67a91379c149", size = 7576839, upload-time = "2025-12-18T19:45:42.868Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/27/ae2b5060df5a273139fbe831a293aaddd03b0db0beed86141358999c1ab5/playa_pdf-0.8.0-cp312-cp312-win_amd64.whl", hash = "sha256:26cb4fd37771c2d8fbd403a88fedd3abf7566b76cd4395d6a251054f9f41b794", size = 7629210, upload-time = "2025-12-18T19:45:44.594Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/4e/1aca7c4e132cc4611b4d847f2643664f4bb94e6bfd4b22f230ed61ba3916/playa_pdf-0.8.0-cp312-cp312-win_arm64.whl", hash = "sha256:dadbab6c8ab715ce55845df07c1b01bc42b163e7744125f9850dd07f27c10971", size = 7581924, upload-time = "2025-12-18T19:45:46.277Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/6f/601b9fac942c8b6fda39a8a1efcf80d42c2e36da1b5d6371ef22b4e1ad42/playa_pdf-0.8.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:af39746b766b77e8cad91c5a14a2d3ff1c64c27c54e494c2f09ce20f2ee6bdc6", size = 7810722, upload-time = "2025-12-18T19:45:48.024Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/b7/2cab93189b27c8d169e3589e3642d33a1c2a7860db9e9b5fa202886b3b68/playa_pdf-0.8.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:e9c1a018f2dcb12819b15f72b7a2bddd548f0231c0b55858fd2210ed23aeb5f1", size = 7777454, upload-time = "2025-12-18T19:45:50.45Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/43/7e70044e01463ebb17a5df660f27e3d5e310e20810ef621754c29e5a4bfb/playa_pdf-0.8.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:1c110c0bd148c12dc756d3f1e3b574dc1308b8daa523b7373730ca9adfb84cc4", size = 8066257, upload-time = "2025-12-18T19:45:52.147Z" },
+    { url = "https://files.pythonhosted.org/packages/62/25/a04b9a8e78c91c8d1f74b030f8c03235c3c267849b9b14c6f7ec2c35f5b8/playa_pdf-0.8.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5104298b9a1208c71111c5bb607bc55179a4e2eadc7f5accf14ad666a6a3db09", size = 8111932, upload-time = "2025-12-18T19:45:54.379Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/2c/2f57cffd697f40c1fa2e3bf76679eac0c3227f1ad3c8c20397711a21d25a/playa_pdf-0.8.0-cp313-cp313-win32.whl", hash = "sha256:61ae54ad452d2663d210361ff77fafbacfb20d4cf08921b086b4c27454b48c6b", size = 7576756, upload-time = "2025-12-18T19:45:56.396Z" },
+    { url = "https://files.pythonhosted.org/packages/06/45/31b1afc61f17bd468e33aa192ded5e787da1d82063a9b5f09540708f3bbd/playa_pdf-0.8.0-cp313-cp313-win_amd64.whl", hash = "sha256:f24ec8d2decaf642f69d8f7b5a5d21208c964d6d62f168a4c63c25cc76515ace", size = 7629402, upload-time = "2025-12-18T19:45:58.427Z" },
+    { url = "https://files.pythonhosted.org/packages/20/17/89cd0943123f978c2cf1416b8df7bd4139b1b969153f7a2b48f7c839506b/playa_pdf-0.8.0-cp313-cp313-win_arm64.whl", hash = "sha256:37fef8ed91815c8d8e57ffe90f39d4d0400c61d53513fce8c73a42649540e520", size = 7582622, upload-time = "2025-12-18T19:46:00.863Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/93/a1a7c7fc43f33c451e8a45b94335fa4ef14b29e29fab23ec103e2206199e/playa_pdf-0.8.0-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:c64f633e74a9c3a72500f9cd0255115f1002c5586f9cb1e62fcf4282e27236a8", size = 7808821, upload-time = "2025-12-18T19:46:02.596Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/8e/5781317479f5a9e8ffa722fe42d01402ed2102c6bfda352601808afaf7ee/playa_pdf-0.8.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:979ad2c1c608d369d290f47703dd3f5da7d8c8e91a1b1a659320501e284c5bb9", size = 7774864, upload-time = "2025-12-18T19:46:04.787Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/75/b03fe72b9f10bfe00a93ba896145945a2b8aeb4365a93c241be625a1732d/playa_pdf-0.8.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:47f220323323f77c75a63c77e9cb07cb5bd42764593c659a8f4453fccaefc2a3", size = 8072642, upload-time = "2025-12-18T19:46:06.527Z" },
+    { url = "https://files.pythonhosted.org/packages/de/ad/33e0bca7918265fd3aa1abf9627f6b2d01f216d75855be34b0cd05486e9b/playa_pdf-0.8.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4491d5f3a1945d7a6b195243903ca93de97cb5ba64cd09d91136389aa81b0a9b", size = 8117249, upload-time = "2025-12-18T19:46:08.402Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/a6/f71c707ccd88bcdd804b7709856d16fd8fa1e838ccda51d049240c487f72/playa_pdf-0.8.0-cp314-cp314-win32.whl", hash = "sha256:79138dafcf4a9e127d2a6eb9f2bdf6345e20786abc83d359d002ada0a78faecf", size = 7768059, upload-time = "2025-12-18T19:46:10.576Z" },
+    { url = "https://files.pythonhosted.org/packages/0e/9a/adbaabad2bac1f8b494fcdb375c15269c809eb6ef9ea50ad329adf421ed7/playa_pdf-0.8.0-cp314-cp314-win_amd64.whl", hash = "sha256:af4ab1c0d78a4fe142c01fd49154c05b36dafc50b71b6db72f3eec4c6d952263", size = 7822441, upload-time = "2025-12-18T19:46:12.612Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/e8/4074adaa9c7dcd8a4f7cfd694269aa04b68b00487403cdfdff715c2cd58c/playa_pdf-0.8.0-cp314-cp314-win_arm64.whl", hash = "sha256:5f87014214026bced9e11b956711a232292619421e1479a0256696d627521070", size = 7775617, upload-time = "2025-12-18T19:46:14.836Z" },
+    { url = "https://files.pythonhosted.org/packages/86/14/0c87431f7ed8e0e778bd5cf87240d55a9174a0847c62a6fcccbe1a81e20b/playa_pdf-0.8.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:0183e5d7e4e6ad18dcca2c2cfba484912bd2822cd589075bed7a221d78563c28", size = 7840698, upload-time = "2025-12-18T19:46:16.688Z" },
+    { url = "https://files.pythonhosted.org/packages/37/aa/26c888ce3e8a4f247edadbfa420a7185affc5e383fbc1e35c494f566c559/playa_pdf-0.8.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:2565eb772fdabc63564a8fb5b9651a4eb133cdf9b9513b8fca9f59b6d593521d", size = 7809120, upload-time = "2025-12-18T19:46:19.038Z" },
+    { url = "https://files.pythonhosted.org/packages/80/84/861bcf6e1ddd38d362c840f1e4588d771b7e1d771cb4b85920bffc49886b/playa_pdf-0.8.0-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:59ea14eb86a8f6280b9909619d653f24e8514e4b609f13aebdbe6170176ea023", size = 8178711, upload-time = "2025-12-18T19:46:21.026Z" },
+    { url = "https://files.pythonhosted.org/packages/97/ed/8bc4f738012f2ee202f9e0e75f1bdd4ac1443645e5ec7ce6fc90830647bd/playa_pdf-0.8.0-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bc68ea6e1bda21983a955aec58e0661ac2cb9f7cda802c8396d842dc65023644", size = 8218558, upload-time = "2025-12-18T19:46:22.737Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/cd/c141b129ce2a8c2d15eef8953dfac5a359a60476e76b3cfbaececf6cb295/playa_pdf-0.8.0-cp314-cp314t-win32.whl", hash = "sha256:31be67dd6f9571af202b344d587b584b3a1427db62984d90c75d86756f8da2dc", size = 7809055, upload-time = "2025-12-18T19:46:24.641Z" },
+    { url = "https://files.pythonhosted.org/packages/98/a0/a55c41a2af5c201ceeb40d5ad0e2c145a6f116619f2ccdc570c6e176d01d/playa_pdf-0.8.0-cp314-cp314t-win_amd64.whl", hash = "sha256:308be406427baea471fb2dc2fc02d4855b19f48327037f588034a62edd330229", size = 7877936, upload-time = "2025-12-18T19:46:26.718Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/25/e1eb17d59c6159f47a65e488ddf0931b81aa5ee535c558b1c99e0c8df99c/playa_pdf-0.8.0-cp314-cp314t-win_arm64.whl", hash = "sha256:09fa7e6c37e0ca001b882331b0b60edcab1ae2490a626b9c60ef90ef6f95e200", size = 7795009, upload-time = "2025-12-18T19:46:28.775Z" },
 ]
 
 [[package]]
