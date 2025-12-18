@@ -247,6 +247,7 @@ class Hybrid(BaseParser):
             self.table_bbox_parses[augmented_bbox] = self.network_parser
 
     def _generate_table_bbox(self):
+        self.table_bbox_parses = {}
         # Collect bboxes from both parsers
         self.lattice_parser._generate_table_bbox()
         _lattice_bboxes = sorted(
