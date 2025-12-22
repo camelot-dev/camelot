@@ -9,12 +9,12 @@ from pathlib import Path
 from typing import Any
 
 import playa
+from playa.exceptions import PDFPasswordIncorrect
+from playa.exceptions import PDFTextExtractionNotAllowed
 from playa.miner import LTChar
 from playa.miner import LTImage
 from playa.miner import LTTextLineHorizontal
 from playa.miner import LTTextLineVertical
-from playa.exceptions import PDFPasswordIncorrect
-from playa.exceptions import PDFTextExtractionNotAllowed
 
 from .core import TableList
 from .parsers import Hybrid
