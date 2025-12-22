@@ -30,7 +30,7 @@ dependencies = [
     "opencv-python-headless>=4.7.0.68",
     "pypdfium2>=4",
     "pillow>=10.4.0",
-    "playa-pdf>=0.8.0",
+    "playa-pdf>=0.8.1",
 ]
 
 [build-system]
