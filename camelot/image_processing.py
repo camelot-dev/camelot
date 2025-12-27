@@ -4,7 +4,30 @@ import cv2
 import numpy as np
 
 
-def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
+def undo_rotation(pdf_image, rotation):
+    """Undo rotation of an image extracted from a PDF.
+
+    Parameters
+    ----------
+    pdf_image: numpy.ndarray representing the image.
+    rotation: str
+       Either "" (no rotation), "clockwise", or "anticlockwise".  The
+       **inverse** of this rotation will be applied to the image.
+
+    Returns
+    -------
+    img: numpy.ndarray representing the rotated image.
+    """
+    if rotation == "clockwise":
+        return cv2.rotate(pdf_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    if rotation == "anticlockwise":
+        return cv2.rotate(pdf_image, cv2.ROTATE_90_CLOCKWISE)
+    return pdf_image
+
+
+def adaptive_threshold(
+    imagename, process_background=False, blocksize=15, c=-2, rotation=""
+):
     """Thresholds an image using OpenCV's adaptiveThreshold.
 
     Parameters
@@ -25,6 +48,9 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
 
         For more information, refer `OpenCV's adaptiveThreshold
         <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
+    rotation: str, optional (default: "")
+        Either "" (no rotation), "clockwise", or "anticlockwise".  The
+        **inverse** of this rotation will be applied to the image.
 
     Returns
     -------
@@ -34,6 +60,7 @@ def adaptive_threshold(imagename, process_background=False, blocksize=15, c=-2):
         numpy.ndarray representing the thresholded image.
     """
     img = cv2.imread(imagename)
+    img = undo_rotation(img, rotation)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if not process_background:
         gray = np.invert(gray)

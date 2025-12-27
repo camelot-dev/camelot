@@ -74,6 +74,7 @@ class BaseParser:
         images,
         horizontal_text,
         vertical_text,
+        rotation,
         layout_kwargs,
     ):
         """Prepare the page for parsing."""
@@ -85,6 +86,7 @@ class BaseParser:
         self.images = images
         self.horizontal_text = horizontal_text
         self.vertical_text = vertical_text
+        self.rotation = rotation
         self.pdf_width, self.pdf_height = self.dimensions
         self.rootname, __ = os.path.splitext(self.filename)
 
@@ -123,15 +125,14 @@ class BaseParser:
             Whether the document doesn't have any text at all.
         """
         if not self.horizontal_text:
-            rootname = os.path.basename(self.rootname)
             if self.images:
                 warnings.warn(
-                    f"{rootname} is image-based, "
+                    f"page-{self.page} is image-based, "
                     "camelot only works on text-based pages.",
                     stacklevel=1,
                 )
             else:
-                warnings.warn(f"No tables found on {rootname}", stacklevel=2)
+                warnings.warn(f"No tables found on page-{self.page}", stacklevel=2)
             return True
         return False
 
@@ -157,6 +158,7 @@ class BaseParser:
         table = Table(cols, rows)
         table.page = self.page
         table.order = table_idx + 1
+        table.rotation = self.rotation
         table._bbox = bbox
         return table
 

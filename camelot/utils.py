@@ -24,23 +24,16 @@ from urllib.request import Request
 from urllib.request import urlopen
 
 import numpy as np
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LAParams
-from pdfminer.layout import LTAnno
-from pdfminer.layout import LTChar
-from pdfminer.layout import LTContainer
-from pdfminer.layout import LTImage
-from pdfminer.layout import LTItem
-from pdfminer.layout import LTTextLine
-from pdfminer.layout import LTTextLineHorizontal
-from pdfminer.layout import LTTextLineVertical
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfparser import PDFParser
-from pypdf._utils import StrByteType
+import playa.miner as pm
+from playa.miner import LAParams
+from playa.miner import LTAnno
+from playa.miner import LTChar
+from playa.miner import LTContainer
+from playa.miner import LTImage
+from playa.miner import LTItem
+from playa.miner import LTTextLine
+from playa.miner import LTTextLineHorizontal
+from playa.miner import LTTextLineVertical
 
 
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
@@ -89,7 +82,7 @@ def random_string(length):
     return ret
 
 
-def download_url(url: str) -> StrByteType | Path:
+def download_url(url: str) -> str | Path:
     """Download file from specified URL.
 
     Parameters
@@ -98,7 +91,7 @@ def download_url(url: str) -> StrByteType | Path:
 
     Returns
     -------
-    filepath : Union[StrByteType, Path]
+    filepath : Union[str, Path]
         Temporary filepath.
 
     """
@@ -1351,7 +1344,7 @@ def compute_whitespace(d: list[list[str]]) -> float:
 
 
 def get_page_layout(
-    filename,
+    page,
     line_overlap=0.5,
     char_margin=1.0,
     line_margin=0.5,
@@ -1360,7 +1353,7 @@ def get_page_layout(
     detect_vertical=True,
     all_texts=True,
 ):
-    """Return a PDFMiner LTPage object and page dimension of a single page pdf.
+    """Return a PDFMiner LTPage object and page dimension from a page of a PDF.
 
     To get the definitions of kwargs, see
     https://pdfminersix.rtfd.io/en/latest/reference/composable.html.
@@ -1385,34 +1378,20 @@ def get_page_layout(
         Dimension of pdf page in the form (width, height).
 
     """
-    with open(filename, "rb") as f:
-        parser = PDFParser(f)
-        document = PDFDocument(parser)
-        if not document.is_extractable:
-            raise PDFTextExtractionNotAllowed(
-                f"Text extraction is not allowed: {filename}"
-            )
-        laparams = LAParams(
-            line_overlap=line_overlap,
-            char_margin=char_margin,
-            line_margin=line_margin,
-            word_margin=word_margin,
-            boxes_flow=boxes_flow,
-            detect_vertical=detect_vertical,
-            all_texts=all_texts,
-        )
-        rsrcmgr = PDFResourceManager()
-        device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        page = next(PDFPage.create_pages(document), None)
-        if page is None:
-            raise PDFTextExtractionNotAllowed
-        interpreter.process_page(page)
-        layout = device.get_result()
-        width = layout.bbox[2]
-        height = layout.bbox[3]
-        dim = (width, height)
-        return layout, dim
+    laparams = LAParams(
+        line_overlap=line_overlap,
+        char_margin=char_margin,
+        line_margin=line_margin,
+        word_margin=word_margin,
+        boxes_flow=boxes_flow,
+        detect_vertical=detect_vertical,
+        all_texts=all_texts,
+    )
+    layout = pm.extract_page(page, laparams)
+    width = layout.bbox[2]
+    height = layout.bbox[3]
+    dim = (width, height)
+    return layout, dim
 
 
 def get_char_objects(layout: LTContainer[Any]) -> list[LTChar]:

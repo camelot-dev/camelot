@@ -17,22 +17,22 @@ def patch_backends(monkeypatch):
 
 
 class PopplerBackendError:
-    def convert(self, pdf_path, png_path):
+    def convert(self, pdf_path, png_path, page=1):
         raise ValueError("Image conversion failed")
 
 
 class GhostscriptBackendError:
-    def convert(self, pdf_path, png_path):
+    def convert(self, pdf_path, png_path, page=1):
         raise ValueError("Image conversion failed")
 
 
 class GhostscriptBackendNoError:
-    def convert(self, pdf_path, png_path):
+    def convert(self, pdf_path, png_path, page=1):
         pass
 
 
 class PdfiumBackendError:
-    def convert(self, pdf_path, png_path):
+    def convert(self, pdf_path, png_path, page=1):
         raise ValueError("Image conversion failed")
 
 

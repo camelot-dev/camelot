@@ -210,7 +210,6 @@ class Lattice(BaseParser):
         """Record data about the origin of the table."""
         super().record_parse_metadata(table)
         # for plotting
-        table._image = self.pdf_image  # Reuse the image used for calc
         table._segments = (self.vertical_segments, self.horizontal_segments)
 
     def _generate_table_bbox(self):
@@ -227,15 +226,16 @@ class Lattice(BaseParser):
             return scaled_areas
 
         self.image_path = build_file_path_in_temp_dir(
-            os.path.basename(self.filename), ".png"
+            f"{os.path.basename(self.filename)}-page{self.page}", ".png"
         )
-        self.icb.convert(self.filename, self.image_path)
+        self.icb.convert(self.filename, self.image_path, self.page)
 
         self.pdf_image, self.threshold = adaptive_threshold(
             self.image_path,
             process_background=self.process_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
+            rotation=self.rotation,
         )
 
         image_width = self.pdf_image.shape[1]
