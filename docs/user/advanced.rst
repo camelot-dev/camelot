@@ -35,6 +35,7 @@ To process background lines, you can pass ``process_background=True``.
   :file: ../_static/csv/background_lines.csv
   :class: full-width
 
+.. _visual_debug:
 Visual debugging
 ----------------
 
