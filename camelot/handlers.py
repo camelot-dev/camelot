@@ -64,9 +64,11 @@ class PDFHandler:
         debug=False,
     ):
         self.debug = debug
+        self.is_temp_file = is_url(filepath)
         if is_url(filepath):
-            filepath = download_url(str(filepath))
-        self.filepath: StrByteType | Path | str = filepath
+            self.filepath = download_url(str(filepath))
+        else:
+            self.filepath: StrByteType | Path | str = filepath
 
         if isinstance(filepath, str) and not filepath.lower().endswith(".pdf"):
             raise NotImplementedError("File format not supported")
@@ -76,6 +78,41 @@ class PDFHandler:
         else:
             self.password = password
         self.pages = self._get_pages(pages)
+
+    def __enter__(self):
+        """Enter the context manager.
+
+        Returns
+        -------
+        PDFHandler
+            The instance itself.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the context manager and clean up temporary files.
+
+        Deletes the temporary file if it was created from a URL.
+
+        Parameters
+        ----------
+        exc_type : type or None
+            Type of the exception raised in the context, if any.
+        exc_val : Exception or None
+            The exception instance raised, if any.
+        exc_tb : traceback or None
+            The traceback of the exception, if any.
+        """
+        if self.is_temp_file and os.path.exists(self.filepath):  # type: ignore
+            os.remove(self.filepath)  # type: ignore
+
+    def close(self):
+        """Close the handler and clean up temporary files.
+
+        Deletes the temporary file if it was created from a URL.
+        """
+        if self.is_temp_file and os.path.exists(self.filepath):  # type: ignore
+            os.remove(self.filepath)  # type: ignore
 
     def _get_pages(self, pages):
         """Convert pages string to list of integers.
