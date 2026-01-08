@@ -1,7 +1,5 @@
 """Implementation of hybrid table parser."""
 
-import numpy as np
-
 from ..utils import bboxes_overlap
 from ..utils import boundaries_to_split_lines
 from .base import BaseParser
@@ -158,10 +156,10 @@ class Hybrid(BaseParser):
         table = parser._generate_table(table_idx, bbox, cols, rows, **kwargs)
         # Because hybrid can inject extraneous splits from both lattice and
         # network, remove lines / cols that are completely empty.
-        table.df = table.df.replace("", np.nan)
-        table.df = table.df.dropna(axis=0, how="all")
-        table.df = table.df.dropna(axis=1, how="all")
-        table.df = table.df.replace(np.nan, "")
+        # drop empty rows
+        table.df = table.df.loc[~(table.df == "").all(axis=1)]
+        # drop empty columns
+        table.df = table.df.loc[:, ~(table.df == "").all(axis=0)]
         table.shape = table.df.shape
         return table
 
