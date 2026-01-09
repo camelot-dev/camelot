@@ -19,7 +19,6 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     "click>=8.0.1",
-    "chardet>=5.1.0",
     "numpy>=1.24.4; python_version < '3.12'",
     "numpy>=1.26.1; python_version >= '3.12'",
     "openpyxl>=3.1.0",
