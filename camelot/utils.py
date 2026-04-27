@@ -223,7 +223,15 @@ class TemporaryDirectory:
         traceback : [type]
             [description]
         """
-        pass
+        # Unregister the atexit callback so we don't try to clean up twice.
+        # Then immediately delete the temp directory. This fixes PermissionError
+        # on Windows when processing multiple PDFs, where pdfium/pypdf file
+        # handles may still be open when atexit runs at program exit.
+        try:
+            atexit.unregister(shutil.rmtree)
+        except ValueError:
+            pass
+        shutil.rmtree(self.name, ignore_errors=True)
 
 
 def build_file_path_in_temp_dir(filename, extension=None):
