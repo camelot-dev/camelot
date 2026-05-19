@@ -1,1 +1,0 @@
-Using Python 3.10.18 environment at .nox/safety
