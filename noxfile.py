@@ -145,6 +145,9 @@ def safety(session: Session) -> None:
         external=True,
     )
 
+    if output is None:
+        return
+
     lines = []
     for line in output.splitlines():
         if "Using Python" in line or not line.strip():
