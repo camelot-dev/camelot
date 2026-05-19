@@ -273,3 +273,19 @@ def test_table_list_iter():
     assert iterator_b is not None
     item_c = next(iterator_b)
     assert item_c is not None
+
+
+def test_tablelist_accepts_iterable():
+    """TableList should accept any Iterable[Table], not just Sized (#655)."""
+    # Empty generator: bool / len must work without consuming-issues.
+    empty = TableList(t for t in [])
+    assert len(empty) == 0
+    assert bool(empty) is False
+
+    # Non-empty generator: previously raised TypeError on len/bool.
+    sentinels = [object(), object()]
+    tl = TableList(iter(sentinels))
+    assert len(tl) == 2
+    assert bool(tl) is True
+    assert tl[0] is sentinels[0]
+    assert tl[1] is sentinels[1]
