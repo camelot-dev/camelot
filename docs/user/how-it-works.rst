@@ -19,7 +19,7 @@ Where *Hybrid* is a combination of the *Network* and *Lattice* parser.
 Stream
 ------
 
-Stream can be used to parse tables that have whitespaces between cells to simulate a table structure. It is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences, using `margins <https://pdfminersix.readthedocs.io/en/latest/reference/commandline.html>`_.
+Stream can be used to parse tables that have whitespaces between cells to simulate a table structure. It is built on top of `playa <https://pypi.org/project/playa-pdf/>`_'s PDFMiner-compatible functionality for grouping characters on a page into words and sentences, using `margins <https://pdfminersix.readthedocs.io/en/latest/reference/commandline.html>`_.
 
 1. Words on the PDF page are grouped into text rows based on their *y* axis overlaps.
 

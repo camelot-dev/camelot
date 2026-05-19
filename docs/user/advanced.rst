@@ -283,12 +283,12 @@ Let's get back to the *x* coordinates we got from plotting the text that exists 
     "NUMBER TYPE DBA NAME","","","LICENSEE NAME","ADDRESS","CITY","ST","ZIP","PHONE NUMBER","EXPIRES"
     "...","...","...","...","...","...","...","...","...","..."
 
-Ah! Since `PDFMiner <https://github.com/pdfminer/pdfminer.six>`_ merged the strings, "NUMBER", "TYPE" and "DBA NAME", all of them were assigned to the same cell. Let's see how we can fix this in the next section.
+Ah! Since `playa <https://pypi.org/project/playa-pdf/>`_ (the PDFMiner-compatible layout engine Camelot now uses) merged the strings, "NUMBER", "TYPE" and "DBA NAME", all of them were assigned to the same cell. Let's see how we can fix this in the next section.
 
 Split text along separators
 ---------------------------
 
-To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `PDFMiner <https://github.com/pdfminer/pdfminer.six>`_).
+To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `playa <https://pypi.org/project/playa-pdf/>`_, the PDFMiner-compatible layout engine).
 
 .. code-block:: pycon
   :class: full-width
@@ -635,9 +635,9 @@ We don't need anything else. Now, let's pass ``copy_text=['v']`` to copy text in
 Tweak layout generation
 -----------------------
 
-camelot is built on top of PDFMiner's functionality of grouping characters on a page into words and sentences. In some cases (such as `#170 <https://github.com/atlanhq/camelot/issues/170>`_ and `#215 <https://github.com/atlanhq/camelot/issues/215>`_), PDFMiner can group characters that should belong to the same sentence into separate sentences.
+Camelot is built on top of `playa <https://pypi.org/project/playa-pdf/>`_'s PDFMiner-compatible functionality for grouping characters on a page into words and sentences. In some cases (such as `#170 <https://github.com/atlanhq/camelot/issues/170>`_ and `#215 <https://github.com/atlanhq/camelot/issues/215>`_), the layout engine can group characters that should belong to the same sentence into separate sentences.
 
-To deal with such cases, you can tweak PDFMiner's `LAParams kwargs <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ to improve layout generation, by passing the keyword arguments as a dict using ``layout_kwargs`` in :meth:`read_pdf() <camelot.read_pdf>`. To know more about the parameters you can tweak, you can check out `PDFMiner docs <https://pdfminersix.rtfd.io/en/latest/reference/composable.html>`_.
+To deal with such cases, you can tweak the layout engine's `LAParams kwargs <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ to improve layout generation, by passing the keyword arguments as a dict using ``layout_kwargs`` in :meth:`read_pdf() <camelot.read_pdf>`. ``playa.miner`` mirrors PDFMiner.six's ``LAParams``, so the upstream `PDFMiner.six docs <https://pdfminersix.rtfd.io/en/latest/reference/composable.html>`_ still describe what each parameter does.
 
 .. code-block:: pycon
 
