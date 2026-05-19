@@ -3,7 +3,6 @@ import sys
 
 import pytest
 
-
 skip_on_windows = pytest.mark.skipif(
     sys.platform.startswith("win"),
     reason="Ghostscript not installed in Windows test environment",

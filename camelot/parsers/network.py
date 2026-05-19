@@ -22,7 +22,6 @@ from ..utils import text_in_bbox_per_axis
 from ..utils import textlines_overlapping_bbox
 from .base import TextBaseParser
 
-
 # maximum number of columns over which a header can spread
 MAX_COL_SPREAD_IN_HEADER = 3
 
@@ -90,7 +89,7 @@ def find_closest_tls(  # noqa: C901
     top: LTTextLineHorizontal | LTTextLineVertical | None = None
     bottom: LTTextLineHorizontal | LTTextLineVertical | None = None
 
-    (bbox_left, bbox_bottom, bbox_right, bbox_top) = bbox
+    bbox_left, bbox_bottom, bbox_right, bbox_top = bbox
 
     for textline in tls:
         if textline.x1 < bbox_left:
@@ -223,7 +222,7 @@ def search_header_from_body_bbox(
         The expanded bounding box in the format (left, bottom, right, top).
     """
     new_bbox = body_bbox
-    (left, bottom, right, top) = body_bbox
+    left, bottom, right, top = body_bbox
     zones: list[list[float]] = []
 
     keep_searching = True

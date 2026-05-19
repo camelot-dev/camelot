@@ -14,7 +14,6 @@ from ..utils import compute_whitespace
 from ..utils import get_table_index
 from ..utils import text_in_bbox
 
-
 logger = logging.getLogger("camelot")
 
 
