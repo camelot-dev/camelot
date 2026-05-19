@@ -848,7 +848,12 @@ class Table:
             Output filepath.
 
         """
-        kw = {"encoding": "utf-8"}
+        # Mirror to_csv defaults: suppress pandas' auto-generated integer
+        # row index and column header. Camelot's DataFrame uses positional
+        # indices (0, 1, 2, …) for rows and columns, which leak into the
+        # Excel output as a meaningless extra row and column. See #634.
+        # Users can override by passing index=True / header=True.
+        kw = {"encoding": "utf-8", "index": False, "header": False}
         sheet_name = f"page-{self.page}-table-{self.order}"
         kw.update(kwargs)
         writer = pd.ExcelWriter(path)
