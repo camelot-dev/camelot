@@ -17,7 +17,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Draft Release
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           publish: false
         env:
