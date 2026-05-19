@@ -59,7 +59,9 @@ def is_url(url):
         return False
 
 
-_RANDOM_STRING_ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase
+_RANDOM_STRING_ALPHABET = (
+    string.digits + string.ascii_lowercase + string.ascii_uppercase
+)
 
 
 def random_string(length):
@@ -570,8 +572,7 @@ def text_in_bbox(bbox, text):
     t_bbox = [
         t
         for t in text
-        if x_lo <= (t.x0 + t.x1) / 2.0 <= x_hi
-        and y_lo <= (t.y0 + t.y1) / 2.0 <= y_hi
+        if x_lo <= (t.x0 + t.x1) / 2.0 <= x_hi and y_lo <= (t.y0 + t.y1) / 2.0 <= y_hi
     ]
 
     # Discard text bounding boxes that are >80% contained inside a longer
