@@ -11,11 +11,10 @@ import nox
 from nox import Session
 from nox import session
 
-
 package = "camelot"
 
 # TODO: certain sessions are pinned to Python 3.10
-python_versions = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+python_versions = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -106,7 +105,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
                 break
 
 
-@session(name="pre-commit", python=python_versions[2])
+@session(name="pre-commit", python=python_versions[1])
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
     args = session.posargs or [
@@ -133,25 +132,36 @@ def precommit(session: Session) -> None:
         activate_virtualenv_in_precommit_hooks(session)
 
 
-@session(python=python_versions[2])
+@session(python=python_versions[1])
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
-    requirements = session.run(
+    session.install(".")
+    output = session.run(
         "uv",
         "pip",
         "freeze",
         "--exclude-editable",
         silent=True,
         external=True,
-        success_codes=[0, 1],
     )
 
-    if requirements:
-        with open("requirements.txt", "w") as f:
-            f.write(requirements)
+    if output is None:
+        return
 
-    session.install("safety")
-    session.run("safety", "check", "--full-report", "--file=requirements.txt")
+    lines = []
+    for line in output.splitlines():
+        if "Using Python" in line or not line.strip():
+            continue
+        lines.append(line)
+
+    requirements_path = Path("requirements-safety.txt")
+    requirements_path.write_text("\n".join(lines) + "\n")
+
+    session.install("safety<3")
+    try:
+        session.run("safety", "check", "--full-report", f"--file={requirements_path}")
+    finally:
+        requirements_path.unlink(missing_ok=True)
 
 
 @session(python=python_versions)
@@ -169,6 +179,7 @@ base_requires = [
     "ghostscript>=0.7",
     "opencv-python-headless>=3.4.2.17",
     "pypdfium2>=4,<5",
+    "setuptools>=75",
 ]
 
 plot_requires = [
@@ -196,7 +207,7 @@ def tests(session: Session) -> None:
             session.notify("coverage", posargs=[])
 
 
-@session(python=python_versions[2])
+@session(python=python_versions[1], reuse_venv=True)
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report", "-i"]
@@ -209,7 +220,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[2])
+@session(python=python_versions[1])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install(".")
@@ -232,7 +243,7 @@ def xdoctest(session: Session) -> None:
     session.run("python", "-m", "xdoctest", *args)
 
 
-@session(name="docs-build", python=python_versions[5])
+@session(name="docs-build", python=python_versions[4])
 def docs_build(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
@@ -258,7 +269,7 @@ def docs_build(session: Session) -> None:
     session.run("sphinx-build", *args)
 
 
-@session(python=python_versions[2])
+@session(python=python_versions[1])
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
