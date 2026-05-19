@@ -35,7 +35,6 @@ from playa.miner import LTTextLine
 from playa.miner import LTTextLineHorizontal
 from playa.miner import LTTextLineVertical
 
-
 _VALID_URLS = set(uses_relative + uses_netloc + uses_params)
 _VALID_URLS.discard("")
 
@@ -519,8 +518,8 @@ def bboxes_overlap(bbox1, bbox2):
     bool
         Returns True if two bounding boxes overlap
     """
-    (left1, bottom1, right1, top1) = bbox1
-    (left2, bottom2, right2, top2) = bbox2
+    left1, bottom1, right1, top1 = bbox1
+    left2, bottom2, right2, top2 = bbox2
     return ((left1 < left2 < right1) or (left1 < right2 < right1)) and (
         (bottom1 < bottom2 < top1) or (bottom1 < top2 < top1)
     )

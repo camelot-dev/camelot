@@ -27,7 +27,6 @@ from .utils import get_page_layout
 from .utils import get_rotation
 from .utils import is_url
 
-
 PARSERS = {
     "lattice": Lattice,
     "stream": Stream,

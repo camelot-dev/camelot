@@ -15,7 +15,6 @@ import sys
 
 from camelot.backends.base import ConversionBackend
 
-
 path = os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
 
 

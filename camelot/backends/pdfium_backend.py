@@ -2,7 +2,6 @@
 
 from camelot.backends.base import ConversionBackend
 
-
 PDFIUM_EXC = None
 
 try:

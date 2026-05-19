@@ -11,7 +11,6 @@ import nox
 from nox import Session
 from nox import session
 
-
 package = "camelot"
 
 # TODO: certain sessions are pinned to Python 3.10

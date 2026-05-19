@@ -2,7 +2,6 @@
 
 from playa.miner import LTTextLineVertical
 
-
 try:
     import matplotlib.patches as patches
     import matplotlib.pyplot as plt

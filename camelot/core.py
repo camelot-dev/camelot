@@ -16,7 +16,6 @@ from typing import Iterator
 import cv2
 import pandas as pd
 
-
 if sys.version_info >= (3, 11):
     from typing import TypedDict  # pylint: disable=no-name-in-module
     from typing import Unpack
@@ -28,7 +27,6 @@ from .image_processing import undo_rotation
 from .utils import build_file_path_in_temp_dir
 from .utils import get_index_closest_point
 from .utils import get_textline_coords
-
 
 # minimum number of vertical textline intersections for a textedge
 # to be considered valid

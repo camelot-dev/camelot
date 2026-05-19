@@ -4,7 +4,6 @@ import logging
 
 import click
 
-
 try:
     import matplotlib.pyplot as plt
 except ImportError:
@@ -17,7 +16,6 @@ from typing import Optional
 
 from . import plot
 from . import read_pdf
-
 
 logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)

@@ -10,7 +10,6 @@ from .ghostscript_backend import GhostscriptBackend
 from .pdfium_backend import PdfiumBackend
 from .poppler_backend import PopplerBackend
 
-
 BACKENDS: Dict[str, Type[ConversionBackend]] = {
     "pdfium": PdfiumBackend,
     "ghostscript": GhostscriptBackend,
