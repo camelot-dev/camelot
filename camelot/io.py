@@ -16,6 +16,7 @@ def read_pdf(
     flavor="lattice",
     suppress_stdout=False,
     parallel=False,
+    cpu_count=None,
     layout_kwargs=None,
     debug=False,
     **kwargs,
@@ -42,6 +43,11 @@ def read_pdf(
         Print all logs and warnings.
     parallel : bool, optional (default: False)
         Process pages in parallel using all available cpu cores.
+    cpu_count : int, optional (default: None)
+        Maximum number of worker processes when ``parallel=True``. ``None``
+        (default) uses all available cores. Values are clamped to
+        ``[1, multiprocessing.cpu_count()]``. Ignored when
+        ``parallel=False``.
     layout_kwargs : dict, optional (default: {})
         A dict of `pdfminer.layout.LAParams
         <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
@@ -133,6 +139,7 @@ def read_pdf(
             flavor=flavor,
             suppress_stdout=suppress_stdout,
             parallel=parallel,
+            cpu_count=cpu_count,
             layout_kwargs=layout_kwargs,
             **kwargs,
         )
