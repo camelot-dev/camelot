@@ -934,8 +934,11 @@ class TableList:
     def __len__(self):  # noqa D105
         return len(self._tables)
 
-    def __getitem__(self, idx):  # noqa D105
-        return self._tables[idx]
+    def __getitem__(self, idx: int) -> Table:  # noqa D105
+        # _tables is currently typed as Iterable[Table]; #710 materialises it
+        # to list[Table] which will let this index without the ignore. Until
+        # that lands, silence mypy's (correct) complaint here.
+        return self._tables[idx]  # type: ignore[index]
 
     def __iter__(self) -> Iterator[Table]:  # noqa D105
         return iter(self._tables)
