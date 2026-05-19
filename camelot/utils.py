@@ -59,8 +59,11 @@ def is_url(url):
         return False
 
 
+_RANDOM_STRING_ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase
+
+
 def random_string(length):
-    """Generate a random string .
+    """Generate a random string.
 
     Parameters
     ----------
@@ -72,13 +75,10 @@ def random_string(length):
     string
         returns a random string
     """
-    ret = ""
-    while length:
-        ret += random.choice(  # noqa S311
-            string.digits + string.ascii_lowercase + string.ascii_uppercase
-        )
-        length -= 1
-    return ret
+    # Single random.choices + str.join is several times faster than the old
+    # per-char loop with string concatenation and rebuilds the alphabet
+    # once at import time instead of on every call.
+    return "".join(random.choices(_RANDOM_STRING_ALPHABET, k=length))  # noqa S311
 
 
 def download_url(url: str) -> str | Path:
@@ -566,30 +566,38 @@ def text_in_bbox(bbox, text):
         List of PDFMiner text objects that lie inside table, discarding the overlapping ones
 
     """
-    lb = (bbox[0], bbox[1])
-    rt = (bbox[2], bbox[3])
+    x_lo, y_lo, x_hi, y_hi = bbox[0] - 2, bbox[1] - 2, bbox[2] + 2, bbox[3] + 2
     t_bbox = [
         t
         for t in text
-        if lb[0] - 2 <= (t.x0 + t.x1) / 2.0 <= rt[0] + 2
-        and lb[1] - 2 <= (t.y0 + t.y1) / 2.0 <= rt[1] + 2
+        if x_lo <= (t.x0 + t.x1) / 2.0 <= x_hi
+        and y_lo <= (t.y0 + t.y1) / 2.0 <= y_hi
     ]
 
-    # Avoid duplicate text by discarding overlapping boxes
-    rest = {t for t in t_bbox}
-    for ba in t_bbox:
-        for bb in rest.copy():
-            if ba == bb:
+    # Discard text bounding boxes that are >80% contained inside a longer
+    # neighbour. The old version copied the working set on every iteration
+    # of the outer loop, which made the discard pass O(n³) in the size of
+    # t_bbox. Track discards in a side set instead — same result, O(n²).
+    discarded: set[int] = set()
+    n = len(t_bbox)
+    for i in range(n):
+        if i in discarded:
+            continue
+        ba = t_bbox[i]
+        ba_area = bbox_area(ba)
+        for j in range(n):
+            if i == j or j in discarded:
                 continue
-            if bbox_intersect(ba, bb):
-                ba_area = bbox_area(ba)
-                # if the intersection is larger than 80% of ba's size, we keep the longest
-                if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
-                    if bbox_longer(bb, ba):
-                        rest.discard(ba)
-    unique_boxes = list(rest)
+            bb = t_bbox[j]
+            if not bbox_intersect(ba, bb):
+                continue
+            # Intersection covers >80% of ba; drop ba if bb is the longer box.
+            if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
+                if bbox_longer(bb, ba):
+                    discarded.add(i)
+                    break
 
-    return unique_boxes
+    return [t_bbox[i] for i in range(n) if i not in discarded]
 
 
 def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
