@@ -183,6 +183,7 @@ class PDFHandler:
         flavor: str = "lattice",
         suppress_stdout: bool = False,
         parallel: bool = False,
+        cpu_count: int | None = None,
         layout_kwargs: dict[str, Any] | None = None,
         **kwargs,
     ):
@@ -197,6 +198,11 @@ class PDFHandler:
             Suppress logs and warnings.
         parallel : bool (default: False)
             Process pages in parallel using all available cpu cores.
+        cpu_count : int, optional (default: None)
+            Maximum number of worker processes to use when ``parallel`` is
+            True. ``None`` (default) uses all available cores. Values are
+            clamped to ``[1, multiprocessing.cpu_count()]``. Ignored when
+            ``parallel`` is False.
         layout_kwargs : dict, optional (default: {})
             A dict of `pdfminer.layout.LAParams
             <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
@@ -216,9 +222,10 @@ class PDFHandler:
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
 
-        cpu_count = mp.cpu_count()
-        if parallel and len(self.pages) > 1 and cpu_count > 1:
-            pass
+        max_cpus = mp.cpu_count()
+        if parallel and len(self.pages) > 1 and max_cpus > 1:
+            # Clamp the caller's cpu_count to [1, max_cpus]; default to all.
+            cpu_count = max_cpus if cpu_count is None else max(1, min(cpu_count, max_cpus))
         else:
             cpu_count = 1
         try:
