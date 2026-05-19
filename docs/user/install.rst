@@ -12,9 +12,9 @@ You can use one of the following methods to install Camelot:
 pip
 ---
 
-To install Camelot from PyPI using ``pip``, please include the extra ``cv`` requirement as shown::
+To install Camelot from PyPI using ``pip``::
 
-    $ pip install "camelot-py[base]"
+    $ pip install "camelot-py"
 
 conda
 -----
@@ -37,4 +37,15 @@ After :ref:`installing the dependencies <install_deps>`, you can install Camelot
 ::
 
     $ cd camelot
-    $ pip install ".[base]"
+    $ pip install "."
+
+Optional Dependencies
+---------------------
+
+Additional dependencies for Camelot can be installed using the following options
+
+- ``[plot]`` installs the python package ``matplotlib`` and is used for :ref:`visual debugging <visual_debug>`.
+
+-  ``[ghostscript]`` installs the python package ``ghostscript`` and is used for the optional ghostscript backend.
+
+Note that ``[ghostscript]`` only installs the python package ``ghostscript``, which provides an interface to the Ghostscript C-API. Users must still `download <https://www.ghostscript.com/>`_ and install Ghostscript manually.
