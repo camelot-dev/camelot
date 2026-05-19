@@ -325,3 +325,31 @@ def test_version_package_not_found():
         from camelot.cli import get_version
 
         assert get_version() is None
+
+
+def test_config_set_config():
+    """Config.set_config stores values for the cli group's kwargs handoff (#614).
+
+    Direct unit test — the group accepts no options of its own today, so this
+    code path isn't exercised by the subcommand integration tests.
+    """
+    from camelot.cli import Config
+
+    c = Config()
+    c.set_config("flag", True)
+    c.set_config("name", "lattice")
+    assert c.config == {"flag": True, "name": "lattice"}
+
+
+def test_cli_group_help_invokes_config():
+    """The group callback wires ctx.obj to a Config instance (#614)."""
+    from click.testing import CliRunner
+
+    from camelot.cli import cli
+
+    runner = CliRunner()
+    # Invoke a real subcommand with --help so we hit the group's body
+    # (setting ctx.obj) but stop before requiring positional args.
+    result = runner.invoke(cli, ["lattice", "--help"])
+    assert result.exit_code == 0
+    assert "lattice" in result.output.lower()
