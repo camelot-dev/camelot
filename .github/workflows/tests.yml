@@ -48,6 +48,10 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Upgrade pip
+        # The constraint pins pip>=26 which dropped Python 3.9 support, so
+        # installing it on the 3.9 runner crashes on import. Skip the
+        # upgrade there and rely on the pip shipped by setup-python.
+        if: matrix.python != '3.9'
         run: |
           pip install --constraint=${PWD}/.github/workflows/constraints.txt pip
           pip --version
