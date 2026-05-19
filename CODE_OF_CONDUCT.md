@@ -1,6 +1,6 @@
 Be cordial or be on your way. --Kenneth Reitz
 
-https://kennethreitz.org/essays/2013/01/27/be-cordial-or-be-on-your-way
+https://kennethreitz.org/essays/2013-01-be_cordial_or_be_on_your_way
 
 # Contributor Covenant Code of Conduct
 
