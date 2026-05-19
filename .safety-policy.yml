@@ -1,0 +1,5 @@
+# Safety policy file
+# https://docs.pyup.io/docs/safety-20-policy-file
+
+security:
+  ignore-vulnerabilities: {}

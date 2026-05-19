@@ -135,22 +135,30 @@ def precommit(session: Session) -> None:
 @session(python=python_versions[1])
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
-    requirements = session.run(
+    session.install(".")
+    output = session.run(
         "uv",
         "pip",
         "freeze",
         "--exclude-editable",
         silent=True,
         external=True,
-        success_codes=[0, 1],
     )
 
-    if requirements:
-        with open("requirements.txt", "w") as f:
-            f.write(requirements)
+    lines = []
+    for line in output.splitlines():
+        if "Using Python" in line or not line.strip():
+            continue
+        lines.append(line)
 
-    session.install("safety")
-    session.run("safety", "check", "--full-report", "--file=requirements.txt")
+    requirements_path = Path("requirements-safety.txt")
+    requirements_path.write_text("\n".join(lines) + "\n")
+
+    session.install("safety<3")
+    try:
+        session.run("safety", "check", "--full-report", f"--file={requirements_path}")
+    finally:
+        requirements_path.unlink(missing_ok=True)
 
 
 @session(python=python_versions)
