@@ -3,7 +3,6 @@
 import cv2
 import numpy as np
 
-
 #: Minimum contour area, expressed as a fraction of the page image area,
 #: for a contour to be considered a candidate table. The previous code
 #: capped the contour list at the 10 largest regardless of size, which
