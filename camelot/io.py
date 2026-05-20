@@ -200,11 +200,20 @@ def read_pdf(
     strip_text : str or sequence of str, optional (default: '')
         Characters or substrings to strip from each cell before
         assignment. A ``str`` strips per-character — every character in
-        the string is removed wherever it appears (e.g. ``" \\n"`` drops
+        the string is removed wherever it appears (e.g. ``" \n"`` drops
         all spaces and newlines). A list/tuple of ``str`` strips whole
         substrings (e.g. ``["[1]", "[2]"]`` removes those footnote
         markers but leaves bare ``[``/``]`` alone). Whole-substring
         mode requested in #484.
+    replace_text : dict, optional (default: None)
+        Mapping of substring → replacement applied to every cell's
+        text just before it is written into the table. Keys are
+        matched as literal substrings (regex metacharacters are
+        escaped). Useful for collapsing soft-broken words (e.g.
+        ``{" \n": " "}``), normalising abbreviations, or rewriting
+        unit names. Distinct from ``strip_text`` which can only
+        remove characters; this can replace with arbitrary text.
+        Requested in #481. (#482)
     row_tol^ : int, optional (default: 2)
         Tolerance parameter used to combine text vertically,
         to generate rows.

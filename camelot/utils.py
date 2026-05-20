@@ -118,6 +118,7 @@ def download_url(url: str) -> str | Path:
 common_kwargs = [
     "flag_size",
     "margins",
+    "replace_text",
     "split_text",
     "strip_text",
     "table_areas",
@@ -967,6 +968,44 @@ def merge_close_lines(ar, line_tol=2):
             else:
                 ret.append(a)
     return ret
+
+
+def text_replace(text, replacements):
+    """Apply key→value substring substitutions to `text`.
+
+    Parameters
+    ----------
+    text : str
+        Text to process.
+    replacements : dict[str, str] or sequence of (str, str), optional
+        Mapping of pattern → replacement. Each key is matched as a
+        literal substring (regex metacharacters are escaped) and every
+        occurrence is replaced with the corresponding value. Empty
+        keys are ignored. Falsy `replacements` returns the text
+        unchanged. Order: when several keys could match at the same
+        position, the longest one wins (so ``{"abc": "X", "ab": "Y"}``
+        replaces ``"abc"`` with ``"X"`` rather than producing ``"Yc"``).
+
+    Returns
+    -------
+    str
+    """
+    if not replacements:
+        return text
+    if hasattr(replacements, "items"):
+        items = list(replacements.items())
+    else:
+        items = list(replacements)
+    # Drop empty patterns and prefer longer keys (re's alternation is
+    # left-first, so we sort longest-first to make {"abc":"X","ab":"Y"}
+    # behave the obvious way).
+    items = [(k, v) for k, v in items if k]
+    if not items:
+        return text
+    items.sort(key=lambda kv: len(kv[0]), reverse=True)
+    pattern = "|".join(re.escape(k) for k, _ in items)
+    table = dict(items)
+    return re.sub(pattern, lambda m: table[m.group(0)], text, flags=re.UNICODE)
 
 
 def text_strip(text, strip=""):
