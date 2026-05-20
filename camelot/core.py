@@ -669,20 +669,57 @@ class Table:
         return d
 
     @property
-    def parsing_report(self):
-        """Returns a parsing report.
+    def confidence(self) -> float:
+        """A unified per-table quality score in ``[0.0, 1.0]``.
 
-        with % accuracy, % whitespace,
-        table number on page and page number.
+        Computed from the existing per-flavor signals as
+        ``(accuracy / 100) * (1 - whitespace / 100)``. The intent is a
+        single number suitable for production filtering and automated
+        validation — ``confidence >= 0.8`` works as a reasonable
+        first-cut threshold; tune for the source PDFs.
+
+        Components and their meaning are identical across flavors:
+
+        - ``accuracy`` (0-100): how well the detected cells line up
+          with the parser's structural hints (line joints for lattice,
+          text alignments for stream/network/hybrid). Higher is better.
+        - ``whitespace`` (0-100): percentage of cells that are empty
+          after stripping. Lower is better (a perfectly populated
+          table is 0; a mostly-empty one trends toward 100).
+        - ``confidence`` (0-1): the composite. ``accuracy=90``,
+          ``whitespace=10`` → ``confidence≈0.81``; either signal
+          going to its worst value pulls ``confidence`` to 0.
+
+        See #659.
         """
-        # pretty?
-        report = {
+        return max(0.0, (self.accuracy / 100.0) * (1.0 - self.whitespace / 100.0))
+
+    @property
+    def parsing_report(self):
+        """Per-table parsing report.
+
+        Standard keys across all flavors:
+
+        =================  ==============================================
+        ``page``           1-based page number the table was found on.
+        ``order``          1-based rank within that page (left-to-right /
+                           top-to-bottom).
+        ``accuracy``       Float in ``[0, 100]``. See ``confidence`` for
+                           component-by-component definitions.
+        ``whitespace``     Float in ``[0, 100]``.
+        ``confidence``     Float in ``[0, 1]``. Unified quality score —
+                           combines accuracy and whitespace.
+        =================  ==============================================
+
+        See #659.
+        """
+        return {
             "accuracy": round(self.accuracy, 2),
             "whitespace": round(self.whitespace, 2),
             "order": self.order,
             "page": self.page,
+            "confidence": round(self.confidence, 4),
         }
-        return report
 
     def get_pdf_image(self):
         """Compute pdf image and cache it."""

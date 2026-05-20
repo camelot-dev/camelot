@@ -17,11 +17,21 @@ from .data import *
 
 @skip_on_windows
 def test_parsing_report(testdir):
-    parsing_report = {"accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1}
+    # #659: parsing_report also now includes a 'confidence' composite in
+    # [0, 1] computed from accuracy + whitespace. The other keys are
+    # unchanged; this test keeps pinning those values and adds the
+    # derived 'confidence' alongside.
+    expected = {
+        "accuracy": 99.02,
+        "whitespace": 12.24,
+        "order": 1,
+        "page": 1,
+        "confidence": round((99.02 / 100.0) * (1.0 - 12.24 / 100.0), 4),
+    }
 
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    assert tables[0].parsing_report == parsing_report
+    assert tables[0].parsing_report == expected
 
 
 def test_password(testdir):
@@ -295,3 +305,30 @@ def test_tablelist_accepts_iterable():
     assert bool(tl) is True
     assert tl[0] is sentinels[0]
     assert tl[1] is sentinels[1]
+
+
+def test_parsing_report_includes_confidence():
+    """parsing_report now includes a unified 'confidence' composite in [0, 1] (#659)."""
+    import math
+
+    from camelot.core import Table
+
+    t = Table([(0.0, 100.0), (100.0, 200.0)], [(100.0, 90.0), (90.0, 80.0)])
+    t.accuracy = 90.0
+    t.whitespace = 10.0
+    t.order = 1
+    t.page = 1
+
+    report = t.parsing_report
+    # Schema: legacy keys still there, new key added.
+    assert {"page", "order", "accuracy", "whitespace", "confidence"} == set(report)
+    assert math.isclose(report["confidence"], 0.81, abs_tol=1e-4)
+    assert 0.0 <= report["confidence"] <= 1.0
+
+    # Edge cases.
+    t.accuracy, t.whitespace = 100.0, 0.0
+    assert math.isclose(t.confidence, 1.0)
+    t.accuracy, t.whitespace = 0.0, 50.0
+    assert t.confidence == 0.0
+    t.accuracy, t.whitespace = 100.0, 100.0
+    assert t.confidence == 0.0
