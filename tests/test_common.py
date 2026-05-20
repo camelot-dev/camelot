@@ -83,7 +83,7 @@ def test_repr_ghostscript_custom_backend(testdir):
 
 
 def test_url_pdfium():
-    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    url = "https://camelot-py.readthedocs.io/en/latest/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(
         url, flavor="lattice", backend="pdfium", use_fallback=False
     )
@@ -120,7 +120,7 @@ def test_url_ghostscript_custom_backend(testdir):
 
 
 def test_pages_pdfium():
-    url = "https://camelot-py.readthedocs.io/en/master/_static/pdf/foo.pdf"
+    url = "https://camelot-py.readthedocs.io/en/latest/_static/pdf/foo.pdf"
     tables = camelot.read_pdf(url, backend="pdfium", use_fallback=False)
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
