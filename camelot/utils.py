@@ -969,14 +969,20 @@ def merge_close_lines(ar, line_tol=2):
 
 
 def text_strip(text, strip=""):
-    """Strip any characters in `strip` that are present in `text`.
+    """Strip characters (or whole substrings) from `text`.
 
     Parameters
     ----------
     text : str
         Text to process and strip.
-    strip : str, optional (default: '')
-        Characters that should be stripped from `text`.
+    strip : str or sequence of str, optional (default: '')
+        If a ``str``: every occurrence of *any character* in `strip` is
+        removed from `text` (the long-standing behaviour).
+        If a list/tuple of ``str``: every occurrence of *each substring*
+        is removed from `text`. This is the request from #484 — the
+        whole-substring mode is opt-in by passing a sequence, so
+        existing callers passing a single string keep their per-character
+        semantics.
 
     Returns
     -------
@@ -985,6 +991,17 @@ def text_strip(text, strip=""):
     if not strip:
         return text
 
+    if isinstance(strip, (list, tuple)):
+        # Substring-strip mode: build an alternation of escaped pieces.
+        # Drop empties so users passing ["", "foo"] don't get "match the
+        # empty string everywhere" behaviour.
+        pieces = [s for s in strip if s]
+        if not pieces:
+            return text
+        pattern = "|".join(re.escape(s) for s in pieces)
+        return re.sub(pattern, "", text, flags=re.UNICODE)
+
+    # Backward-compatible character-class strip.
     stripped = re.sub(
         rf"[{''.join(map(re.escape, strip))}]", "", text, flags=re.UNICODE
     )

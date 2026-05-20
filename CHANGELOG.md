@@ -58,6 +58,10 @@ changes. **Heads-up if upgrading from 1.0.x**:
   kwargs. Useful for multi-layout PDFs where some pages need different
   `table_areas` / `columns` / `flavor` than the rest. Concept originally
   proposed by @sverma25 in #41. (#41)
+- **`strip_text=` now accepts a list/tuple of substrings** alongside the
+  long-standing per-character `str` form. `strip_text=["[1]", "[2]"]`
+  strips those footnote markers as whole substrings;
+  `strip_text="[]"` keeps the existing per-character behaviour. (#484)
 - **`cpu_count` parameter** on `read_pdf(..., parallel=True, cpu_count=N)`
   and `PDFHandler.parse(...)` — caps the worker count when running in
   parallel. Defaults to all cores; clamped to

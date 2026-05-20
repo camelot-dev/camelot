@@ -28,9 +28,10 @@ class Hybrid(BaseParser):
     flag_size : bool, optional (default: False)
         Flag text based on font size. Useful to detect
         super/subscripts. Adds <s></s> around flagged text.
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
-        assigning it to a cell.
+    strip_text : str or sequence of str, optional (default: '')
+        Characters or substrings to strip from each cell. A ``str``
+        strips per-character; a list/tuple of ``str`` strips whole
+        substrings (#484).
     edge_tol : int, optional (default: 50)
         Tolerance parameter for extending textedges vertically.
     row_tol : int, optional (default: 2)
