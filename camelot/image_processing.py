@@ -2,6 +2,9 @@
 
 import cv2
 import numpy as np
+from playa.miner import LTContainer
+from playa.miner import LTLine
+from playa.miner import LTRect
 
 #: Minimum contour area, expressed as a fraction of the page image area,
 #: for a contour to be considered a candidate table. The previous code
@@ -338,3 +341,117 @@ def find_joints(contours, vertical, horizontal):
         tables[(x, y + h, x + w, y)] = joint_coords
 
     return tables
+
+
+# --- Stage 1 of #763: vector-line engine for Lattice -------------------------
+#
+# These helpers read ruled lines directly from playa's layout tree (LTLine /
+# LTRect) instead of rasterising the page and using OpenCV findContours. They
+# are not wired into the Lattice parser yet — that's Stage 2 of #763, gated
+# behind a new ``engine='vector'`` kwarg. Stage 1 lands the helpers + tests
+# so the function shape can be reviewed in isolation.
+
+#: Angle tolerance (in PDF units) within which a line is considered
+#: orthogonal. PDFs draw nominally-axis-aligned ruled lines with the exact
+#: equal coordinates we want, but a tiny float epsilon — be generous, we
+#: don't want to drop a 0.0001-unit-off line just because of rounding.
+_LINE_ORTHOGONAL_TOL = 0.5
+
+#: A "filled" rectangle whose narrower side is below this width is treated
+#: as a stroked line (some PDF generators draw ruled lines as 0.5pt-wide
+#: filled rectangles rather than as stroked LTLines).
+_LINE_AS_THIN_RECT_TOL = 1.5
+
+
+def _walk_layout_objects(container):
+    """Recursively yield every object in an LTContainer subtree."""
+    for obj in container:
+        yield obj
+        if isinstance(obj, LTContainer):
+            yield from _walk_layout_objects(obj)
+
+
+def _ruled_lines_from_layout(layout):
+    """Collect ruled line segments from a layout tree (PDF coord space).
+
+    Returns a list of ``(x0, y0, x1, y1)`` tuples. Both stroked LTLines
+    and the four edges of stroked LTRects are emitted. Filled-but-not-
+    stroked LTRects with one narrow dimension are also treated as lines
+    (covers PDFs that draw rules as thin filled rectangles).
+    """
+    out: list[tuple[float, float, float, float]] = []
+    for obj in _walk_layout_objects(layout):
+        if isinstance(obj, LTLine) and getattr(obj, "stroke", True):
+            out.append((obj.x0, obj.y0, obj.x1, obj.y1))
+        elif isinstance(obj, LTRect):
+            stroked = getattr(obj, "stroke", False)
+            filled = getattr(obj, "fill", False)
+            if stroked:
+                # Four edges of the rectangle as separate line segments.
+                out.append((obj.x0, obj.y0, obj.x1, obj.y0))  # bottom
+                out.append((obj.x0, obj.y1, obj.x1, obj.y1))  # top
+                out.append((obj.x0, obj.y0, obj.x0, obj.y1))  # left
+                out.append((obj.x1, obj.y0, obj.x1, obj.y1))  # right
+            elif filled:
+                # Thin filled rect → treat the long axis as the line.
+                width = obj.x1 - obj.x0
+                height = obj.y1 - obj.y0
+                if (
+                    min(width, height) <= _LINE_AS_THIN_RECT_TOL
+                    and max(width, height) > _LINE_AS_THIN_RECT_TOL
+                ):
+                    if width >= height:
+                        mid_y = (obj.y0 + obj.y1) / 2
+                        out.append((obj.x0, mid_y, obj.x1, mid_y))
+                    else:
+                        mid_x = (obj.x0 + obj.x1) / 2
+                        out.append((mid_x, obj.y0, mid_x, obj.y1))
+    return out
+
+
+def find_lines_from_layout(layout, direction="horizontal"):
+    """Return ruled lines from a playa layout tree (Stage 1 of #763).
+
+    Drop-in companion to :func:`find_lines` for ``flavor='lattice'``'s
+    vector engine. Walks ``layout`` (recursively), classifies each
+    LTLine / stroked LTRect / thin filled LTRect into horizontal or
+    vertical based on its dominant axis, and returns the subset matching
+    ``direction``.
+
+    Parameters
+    ----------
+    layout : object
+        An ``LTPage`` / ``LTContainer`` from ``playa`` — typically what
+        the lattice parser already stores on ``self.layout``.
+    direction : str, optional (default: 'horizontal')
+        ``'horizontal'`` returns lines whose y-delta is below the
+        orthogonality tolerance; ``'vertical'`` returns those whose
+        x-delta is below it.
+
+    Returns
+    -------
+    lines : list[tuple[float, float, float, float]]
+        Each tuple is ``(x0, y0, x1, y1)`` in PDF coordinate space —
+        same shape as :func:`find_lines`'s second return value, but in
+        PDF coords (not image coords). The Lattice integration in
+        Stage 2 will apply the existing ``scale_pdf`` to convert.
+
+    Notes
+    -----
+    The output drops the morphological mask :func:`find_lines` produces
+    as its first return; the vector engine doesn't need it because it
+    bypasses :func:`find_contours` (which is the only consumer of the
+    mask) and computes table bboxes from line intersections directly.
+    """
+    if direction not in ("horizontal", "vertical"):
+        raise ValueError("direction must be 'horizontal' or 'vertical'")
+    raw = _ruled_lines_from_layout(layout)
+    result: list[tuple[float, float, float, float]] = []
+    for x0, y0, x1, y1 in raw:
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        if direction == "horizontal" and dy <= _LINE_ORTHOGONAL_TOL and dx > 0:
+            result.append((min(x0, x1), y0, max(x0, x1), y0))
+        elif direction == "vertical" and dx <= _LINE_ORTHOGONAL_TOL and dy > 0:
+            result.append((x0, min(y0, y1), x0, max(y0, y1)))
+    return result
