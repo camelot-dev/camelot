@@ -5,7 +5,9 @@ on:
     branches:
       - master
   release:
-    types: [published]
+    # `published`   — stable release => PyPI
+    # `prereleased` — GitHub "this is a pre-release" checkbox => TestPyPI
+    types: [published, prereleased]
 
 jobs:
   release-drafter:
@@ -28,8 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     environment:
-      name: pypi
-      url: https://pypi.org/p/camelot-py
+      # Pre-releases go to test.pypi.org; stable releases to pypi.org.
+      # The two GitHub-environment names ("testpypi" / "pypi") are also the
+      # PyPI Trusted Publisher environment names — register each side once on
+      # the corresponding PyPI account.
+      name: ${{ github.event.release.prerelease && 'testpypi' || 'pypi' }}
+      url: ${{ github.event.release.prerelease && 'https://test.pypi.org/p/camelot-py' || 'https://pypi.org/p/camelot-py' }}
     permissions:
       id-token: write
       contents: write
@@ -69,7 +75,15 @@ jobs:
       - name: Remove Sigstore files
         run: rm -f dist/*.sig dist/*.crt dist/*.sigstore.json
 
+      - name: Publish Python 🐍 distribution 📦 to TestPyPI
+        if: github.event.release.prerelease
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: "dist"
+          repository-url: https://test.pypi.org/legacy/
+
       - name: Publish Python 🐍 distribution 📦 to PyPI
+        if: ${{ !github.event.release.prerelease }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: "dist"
