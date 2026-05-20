@@ -68,7 +68,7 @@ def _detect_flavor(filepath, password=None):
 
 
 def read_pdf(
-    filepath: Union[str, Path],
+    filepath: str | Path,
     pages="1",
     password=None,
     flavor="lattice",

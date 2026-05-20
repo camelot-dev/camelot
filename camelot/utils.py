@@ -16,7 +16,7 @@ from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
-from typing import Callable
+from collections.abc import Callable
 from urllib.parse import urlparse as parse_url
 from urllib.parse import uses_netloc
 from urllib.parse import uses_params

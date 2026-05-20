@@ -22,7 +22,7 @@ logger = logging.getLogger("camelot")
 logger.setLevel(logging.INFO)
 
 
-def get_version() -> Optional[str]:
+def get_version() -> str | None:
     """Get the version information."""
     try:
         return importlib.metadata.version("camelot-py")
