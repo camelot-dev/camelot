@@ -926,7 +926,10 @@ class TableList:
     """
 
     def __init__(self, tables: Iterable[Table]) -> None:  # noqa D105
-        self._tables: Iterable[Table] = tables
+        # Materialise the iterable so __len__, __bool__, and __getitem__ work
+        # for any Iterable[Table] input (e.g. a generator), not just Sized
+        # containers. See #655.
+        self._tables: list[Table] = list(tables)
 
     def __repr__(self):  # noqa D105
         return f"<{self.__class__.__name__} n={self.n}>"
