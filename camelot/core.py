@@ -143,9 +143,14 @@ class TextEdge(TextAlignment):
         if math.isclose(self.y0, textline.y0, abs_tol=edge_tol):
             self.register_aligned_textline(textline, x)
             self.y0 = textline.y0
-            # a textedge is valid only if it extends uninterrupted
-            # over a required number of textlines
-            if len(self.textlines) > TEXTEDGE_REQUIRED_ELEMENTS:
+            # A textedge is valid once it extends uninterrupted over the
+            # required number of textlines. The docstring (TextEdge.is_valid:
+            # "intersects with at least TEXTEDGE_REQUIRED_ELEMENTS rows") and
+            # the constant comment both say "minimum 4" — but the comparison
+            # was strict-greater, so an edge with exactly 4 textlines was
+            # still considered invalid and the surrounding table dropped.
+            # Reported as #342, originally patched in #345.
+            if len(self.textlines) >= TEXTEDGE_REQUIRED_ELEMENTS:
                 self.is_valid = True
 
 
