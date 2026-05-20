@@ -3,6 +3,15 @@
 import cv2
 import numpy as np
 
+#: Minimum contour area, expressed as a fraction of the page image area,
+#: for a contour to be considered a candidate table. The previous code
+#: capped the contour list at the 10 largest regardless of size, which
+#: silently dropped any tables past the first 10 on a page (#319). A
+#: relative-area threshold scales correctly across page sizes and keeps
+#: typed-character noise (a single glyph is well under 0.05% of A4) out
+#: of the candidate list.
+_MIN_TABLE_AREA_FRACTION = 0.0005
+
 
 def undo_rotation(pdf_image, rotation):
     """Undo rotation of an image extracted from a PDF.
@@ -271,8 +280,14 @@ def find_contours(vertical, horizontal):
     contours, __ = cv2.findContours(
         mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
-    # sort in reverse based on contour area and use first 10 contours
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
+    # Sort largest-first so callers iterating in detected order pick up the
+    # primary table first; filter out anything smaller than the configured
+    # fraction of the page area. Replaces the previous arbitrary 10-contour
+    # cap that silently dropped tables past index 9 (#319).
+    page_area = float(mask.shape[0] * mask.shape[1]) or 1.0
+    min_area = page_area * _MIN_TABLE_AREA_FRACTION
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    contours = [c for c in contours if cv2.contourArea(c) >= min_area]
 
     cont = []
     for c in contours:
