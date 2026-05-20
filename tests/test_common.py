@@ -17,11 +17,21 @@ from .data import *
 
 @skip_on_windows
 def test_parsing_report(testdir):
-    parsing_report = {"accuracy": 99.02, "whitespace": 12.24, "order": 1, "page": 1}
+    # #659: parsing_report also now includes a 'confidence' composite in
+    # [0, 1] computed from accuracy + whitespace. The other keys are
+    # unchanged; this test keeps pinning those values and adds the
+    # derived 'confidence' alongside.
+    expected = {
+        "accuracy": 99.02,
+        "whitespace": 12.24,
+        "order": 1,
+        "page": 1,
+        "confidence": round((99.02 / 100.0) * (1.0 - 12.24 / 100.0), 4),
+    }
 
     filename = os.path.join(testdir, "foo.pdf")
     tables = camelot.read_pdf(filename)
-    assert tables[0].parsing_report == parsing_report
+    assert tables[0].parsing_report == expected
 
 
 def test_password(testdir):

@@ -704,8 +704,8 @@ class Table:
         ``page``           1-based page number the table was found on.
         ``order``          1-based rank within that page (left-to-right /
                            top-to-bottom).
-        ``accuracy``       Float in ``[0, 100]``. See :attr:`confidence`
-                           for component-by-component definitions.
+        ``accuracy``       Float in ``[0, 100]``. See ``confidence`` for
+                           component-by-component definitions.
         ``whitespace``     Float in ``[0, 100]``.
         ``confidence``     Float in ``[0, 1]``. Unified quality score —
                            combines accuracy and whitespace.
