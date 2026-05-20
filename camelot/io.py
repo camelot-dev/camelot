@@ -75,6 +75,7 @@ def read_pdf(
     parallel=False,
     cpu_count=None,
     layout_kwargs=None,
+    per_page=None,
     debug=False,
     **kwargs,
 ):
@@ -116,6 +117,28 @@ def read_pdf(
     layout_kwargs : dict, optional (default: {})
         A dict of `pdfminer.layout.LAParams
         <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
+    per_page : dict, optional (default: None)
+        Per-page parameter overrides. Maps a 1-indexed page number (int
+        or str) to a dict of any keyword argument otherwise valid for
+        ``read_pdf``. Values supplied here override the globally-supplied
+        kwargs for that one page only — every other page keeps the global
+        values. Useful for multi-layout PDFs where different pages need
+        different ``table_areas``, ``columns``, ``flavor``, etc. The
+        per-page ``flavor`` itself may be overridden; the global flavor
+        applies otherwise. Originally proposed by @sverma25 in #41.
+
+        Example::
+
+            tables = camelot.read_pdf(
+                "report.pdf",
+                pages="1-3",
+                flavor="stream",
+                split_text=True,
+                per_page={2: {"table_areas": ["120, 210, 400, 90"]}},
+            )
+
+        Here pages 1 and 3 use the global ``flavor="stream", split_text=True``
+        only; page 2 uses both *and* the page-specific ``table_areas``.
     table_areas : list, optional (default: None)
         List of table area strings of the form x1,y1,x2,y2
         where (x1, y1) -> left-top and (x2, y2) -> right-bottom
@@ -209,6 +232,25 @@ def read_pdf(
             " Use either 'lattice', 'stream', 'network', 'hybrid' or 'auto'"
         )
 
+    # Normalize per_page to {int: dict}. Accept str keys too — the 2019
+    # proposal used "2" and existing user code may follow suit.
+    if per_page is None:
+        per_page_norm: dict[int, dict] = {}
+    else:
+        per_page_norm = {}
+        for k, v in per_page.items():
+            try:
+                page_no = int(k)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"per_page keys must be page numbers, got {k!r}"
+                ) from exc
+            if not isinstance(v, dict):
+                raise ValueError(
+                    f"per_page[{k!r}] must be a dict of kwargs, got {type(v).__name__}"
+                )
+            per_page_norm[page_no] = dict(v)  # shallow copy: don't mutate caller's
+
     with warnings.catch_warnings():
         if suppress_stdout:
             warnings.simplefilter("ignore")
@@ -223,12 +265,28 @@ def read_pdf(
                 )
             validate_input(kwargs, flavor=flavor)
             kwargs = remove_extra(kwargs, flavor=flavor)
+
+            # Validate + clean per-page overrides against each page's
+            # effective flavor (which may itself be a per-page override).
+            for page_no, overrides in per_page_norm.items():
+                page_flavor = overrides.get("flavor", flavor)
+                if page_flavor not in ("lattice", "stream", "network", "hybrid"):
+                    raise NotImplementedError(
+                        f"per_page[{page_no}] flavor={page_flavor!r} is not"
+                        " one of: 'lattice', 'stream', 'network', 'hybrid'."
+                        " ('auto' is only valid as the global flavor.)"
+                    )
+                # validate non-flavor keys against page_flavor
+                page_kwargs = {k: v for k, v in overrides.items() if k != "flavor"}
+                validate_input(page_kwargs, flavor=page_flavor)
+
             tables = p.parse(
                 flavor=flavor,
                 suppress_stdout=suppress_stdout,
                 parallel=parallel,
                 cpu_count=cpu_count,
                 layout_kwargs=layout_kwargs,
+                per_page=per_page_norm,
                 **kwargs,
             )
         return tables

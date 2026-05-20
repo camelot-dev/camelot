@@ -53,6 +53,11 @@ changes. **Heads-up if upgrading from 1.0.x**:
   `accuracy` / `whitespace` / `page` / `order`. Suitable for production
   filtering. The whole `parsing_report` schema is now documented in the
   property docstring. (#739)
+- **`per_page` parameter** on `read_pdf(..., per_page={...})` — apply
+  per-page kwarg overrides (including `flavor`) on top of the global
+  kwargs. Useful for multi-layout PDFs where some pages need different
+  `table_areas` / `columns` / `flavor` than the rest. Concept originally
+  proposed by @sverma25 in #41. (#41)
 - **`cpu_count` parameter** on `read_pdf(..., parallel=True, cpu_count=N)`
   and `PDFHandler.parse(...)` — caps the worker count when running in
   parallel. Defaults to all cores; clamped to

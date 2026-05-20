@@ -277,6 +277,7 @@ class PDFHandler:
         parallel: bool = False,
         cpu_count: int | None = None,
         layout_kwargs: dict[str, Any] | None = None,
+        per_page: dict[int, dict] | None = None,
         **kwargs,
     ):
         """Extract tables by calling parser.get_tables on all single page PDFs.
@@ -309,8 +310,9 @@ class PDFHandler:
         """
         if layout_kwargs is None:
             layout_kwargs = {}
+        per_page = per_page or {}
 
-        # parser = Lattice(**kwargs) if flavor == "lattice" else Stream(**kwargs)
+        # Default parser used by any page without a per_page override.
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
 
@@ -346,7 +348,12 @@ class PDFHandler:
                 pages = [x - 1 for x in self._pages_cache]
                 tables = pdf.pages[pages].map(
                     partial(
-                        self._parse_page, parser=parser, layout_kwargs=layout_kwargs
+                        self._parse_page,
+                        parser=parser,
+                        layout_kwargs=layout_kwargs,
+                        flavor=flavor,
+                        base_kwargs=kwargs,
+                        per_page=per_page,
                     )
                 )
         except PDFPasswordIncorrect as e:
@@ -355,7 +362,15 @@ class PDFHandler:
             raise
         return TableList(sorted(chain.from_iterable(tables)))
 
-    def _parse_page(self, page: playa.Page, parser, layout_kwargs):
+    def _parse_page(
+        self,
+        page: playa.Page,
+        parser,
+        layout_kwargs,
+        flavor: str = "lattice",
+        base_kwargs: dict | None = None,
+        per_page: dict[int, dict] | None = None,
+    ):
         """Extract tables by calling parser.get_tables on a single page PDF.
 
         Parameters
@@ -363,10 +378,18 @@ class PDFHandler:
         page : playa.Page
             Page to parse
         parser : Lattice, Stream, Network or Hybrid
-            The parser to use.
+            The default parser to use when no per-page override applies.
         layout_kwargs : dict, optional (default: {})
             A dict of `pdfminer.layout.LAParams
             <https://pdfminersix.readthedocs.io/en/latest/reference/composable.html#laparams>`_ kwargs.
+        flavor : str, optional
+            The global flavor; used as the fallback when a per-page override
+            doesn't itself supply ``flavor=``.
+        base_kwargs : dict, optional
+            The global (already-cleaned) parser kwargs. Merged with any
+            per-page override to construct a fresh parser for that page.
+        per_page : dict, optional
+            Page-number-keyed kwargs overrides (already validated upstream).
 
         Returns
         -------
@@ -374,10 +397,22 @@ class PDFHandler:
             List of tables found in PDF.
 
         """
+        # playa's page_idx is 0-indexed; user-facing per_page uses 1-indexed.
+        page_no = page.page_idx + 1
+        overrides = (per_page or {}).get(page_no)
+        if overrides:
+            page_flavor = overrides.get("flavor", flavor)
+            merged = dict(base_kwargs or {})
+            for k, v in overrides.items():
+                if k != "flavor":
+                    merged[k] = v
+            page_parser = PARSERS[page_flavor](debug=self.debug, **merged)
+        else:
+            page_parser = parser
         layout, dimensions, images, chars, horizontal_text, vertical_text, rotation = (
             self._get_layout(page, **layout_kwargs)
         )
-        parser.prepare_page_parse(
+        page_parser.prepare_page_parse(
             self.filepath,
             layout,
             dimensions,
@@ -388,5 +423,5 @@ class PDFHandler:
             rotation,
             layout_kwargs=layout_kwargs,
         )
-        tables = parser.extract_tables()
+        tables = page_parser.extract_tables()
         return tables
