@@ -277,7 +277,7 @@ class PDFHandler:
         parallel: bool = False,
         cpu_count: int | None = None,
         layout_kwargs: dict[str, Any] | None = None,
-        per_page: dict[int, dict] | None = None,
+        per_page: dict[int, dict[str, Any]] | None = None,
         **kwargs,
     ):
         """Extract tables by calling parser.get_tables on all single page PDFs.
@@ -368,8 +368,8 @@ class PDFHandler:
         parser,
         layout_kwargs,
         flavor: str = "lattice",
-        base_kwargs: dict | None = None,
-        per_page: dict[int, dict] | None = None,
+        base_kwargs: dict[str, Any] | None = None,
+        per_page: dict[int, dict[str, Any]] | None = None,
     ):
         """Extract tables by calling parser.get_tables on a single page PDF.
 

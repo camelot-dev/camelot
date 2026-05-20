@@ -3,6 +3,7 @@
 import os
 import warnings
 from pathlib import Path
+from typing import Any
 
 from .handlers import PDFHandler
 from .utils import TemporaryDirectory
@@ -64,6 +65,51 @@ def _detect_flavor(filepath, password=None):
         and len(h_segments) >= _AUTO_FLAVOR_LINE_THRESHOLD
     )
     return "lattice" if has_grid else "network"
+
+
+def _normalize_per_page(per_page):
+    """Coerce ``per_page`` to ``{int: dict}`` form, raising ValueError on bad input.
+
+    Accepts None / empty (returns ``{}``), int or str keys, and dict
+    values. Other shapes raise ``ValueError`` with a precise message
+    naming the offending entry. Values are shallow-copied so a later
+    in-place edit doesn't mutate the caller's dict.
+    """
+    if per_page is None:
+        return {}
+    per_page_norm: dict[int, dict[str, Any]] = {}
+    for k, v in per_page.items():
+        try:
+            page_no = int(k)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"per_page keys must be page numbers, got {k!r}") from exc
+        if not isinstance(v, dict):
+            raise ValueError(
+                f"per_page[{k!r}] must be a dict of kwargs," f" got {type(v).__name__}"
+            )
+        per_page_norm[page_no] = dict(v)
+    return per_page_norm
+
+
+def _validate_per_page(per_page_norm, global_flavor):
+    """Validate each per-page override against its effective flavor.
+
+    Each entry's flavor is either an explicit override (must be one of
+    the four concrete flavors — ``"auto"`` doesn't make sense
+    page-by-page) or the global flavor. All non-flavor kwargs are then
+    checked with the existing :func:`validate_input` against that
+    effective flavor.
+    """
+    for page_no, overrides in per_page_norm.items():
+        page_flavor = overrides.get("flavor", global_flavor)
+        if page_flavor not in ("lattice", "stream", "network", "hybrid"):
+            raise NotImplementedError(
+                f"per_page[{page_no}] flavor={page_flavor!r} is not"
+                " one of: 'lattice', 'stream', 'network', 'hybrid'."
+                " ('auto' is only valid as the global flavor.)"
+            )
+        page_kwargs = {k: v for k, v in overrides.items() if k != "flavor"}
+        validate_input(page_kwargs, flavor=page_flavor)
 
 
 def read_pdf(
@@ -232,24 +278,7 @@ def read_pdf(
             " Use either 'lattice', 'stream', 'network', 'hybrid' or 'auto'"
         )
 
-    # Normalize per_page to {int: dict}. Accept str keys too — the 2019
-    # proposal used "2" and existing user code may follow suit.
-    if per_page is None:
-        per_page_norm: dict[int, dict] = {}
-    else:
-        per_page_norm = {}
-        for k, v in per_page.items():
-            try:
-                page_no = int(k)
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"per_page keys must be page numbers, got {k!r}"
-                ) from exc
-            if not isinstance(v, dict):
-                raise ValueError(
-                    f"per_page[{k!r}] must be a dict of kwargs, got {type(v).__name__}"
-                )
-            per_page_norm[page_no] = dict(v)  # shallow copy: don't mutate caller's
+    per_page_norm = _normalize_per_page(per_page)
 
     with warnings.catch_warnings():
         if suppress_stdout:
@@ -266,19 +295,7 @@ def read_pdf(
             validate_input(kwargs, flavor=flavor)
             kwargs = remove_extra(kwargs, flavor=flavor)
 
-            # Validate + clean per-page overrides against each page's
-            # effective flavor (which may itself be a per-page override).
-            for page_no, overrides in per_page_norm.items():
-                page_flavor = overrides.get("flavor", flavor)
-                if page_flavor not in ("lattice", "stream", "network", "hybrid"):
-                    raise NotImplementedError(
-                        f"per_page[{page_no}] flavor={page_flavor!r} is not"
-                        " one of: 'lattice', 'stream', 'network', 'hybrid'."
-                        " ('auto' is only valid as the global flavor.)"
-                    )
-                # validate non-flavor keys against page_flavor
-                page_kwargs = {k: v for k, v in overrides.items() if k != "flavor"}
-                validate_input(page_kwargs, flavor=page_flavor)
+            _validate_per_page(per_page_norm, flavor)
 
             tables = p.parse(
                 flavor=flavor,
