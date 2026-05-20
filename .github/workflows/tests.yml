@@ -28,7 +28,6 @@ jobs:
           - { python: "3.12", os: "ubuntu-latest", session: "tests" }
           - { python: "3.11", os: "ubuntu-latest", session: "tests" }
           - { python: "3.10", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.9", os: "ubuntu-latest", session: "tests" }
           - { python: "3.13", os: "ubuntu-latest", session: "tests" }
           - { python: "3.14", os: "ubuntu-latest", session: "tests" }
           - {
@@ -60,12 +59,11 @@ jobs:
           allow-prereleases: true
 
       - name: Upgrade pip
-        # The pip pin in constraints.txt does not work on every Python
-        # version in the matrix: pip>=26 dropped Python 3.9, and the
-        # earlier pip==25.0.1 relied on `typing.no_type_check_decorator`
-        # which Python 3.15 removed. Skip the explicit upgrade on those
-        # rows and rely on the pip shipped by setup-python.
-        if: matrix.python != '3.9' && matrix.python != '3.15'
+        # constraints.txt pins pip==26.x, which relies on
+        # `typing.no_type_check_decorator` that Python 3.15 removed.
+        # Skip the explicit upgrade on the 3.15 row and rely on the pip
+        # shipped by setup-python.
+        if: matrix.python != '3.15'
         run: |
           pip install --constraint=${PWD}/.github/workflows/constraints.txt pip
           pip --version

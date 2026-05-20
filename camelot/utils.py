@@ -669,9 +669,8 @@ def text_in_bbox(bbox, text):
     keep = ~discard_any
 
     # keep is a boolean mask of length n derived from idx_in/t_bbox, so the
-    # two iterables are equal-length by construction; zip(strict=True) would
-    # be cleaner but is Python 3.10+ only and the project still supports 3.9.
-    return [t for t, k in zip(t_bbox, keep.tolist()) if k]  # noqa: B905
+    # two iterables are equal-length by construction.
+    return [t for t, k in zip(t_bbox, keep.tolist(), strict=True) if k]
 
 
 def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):

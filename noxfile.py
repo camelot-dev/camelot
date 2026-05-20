@@ -20,7 +20,7 @@ package = "camelot"
 # `experimental: true` / continue-on-error knob to keep the row non-blocking.
 # Note: uv's python download parser does not accept "3.15-dev" as a version,
 # so we use the bare "3.15" form here and in the matrix.
-python_versions = ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+python_versions = ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
