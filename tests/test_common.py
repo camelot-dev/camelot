@@ -277,13 +277,19 @@ def test_table_list_iter():
 
 def test_tablelist_accepts_iterable():
     """Accept any Iterable[Table] for TableList — not just Sized (#655)."""
+    from unittest.mock import MagicMock
+
     # Empty generator: bool / len must work without consuming-issues.
     empty = TableList(t for t in [])
     assert len(empty) == 0
     assert bool(empty) is False
 
-    # Non-empty generator: previously raised TypeError on len/bool.
-    sentinels = [object(), object()]
+    # Non-empty generator: previously raised TypeError on len/bool. Use
+    # MagicMock(spec=Table) so the typeguard session is happy with
+    # __getitem__'s `-> Table` annotation; plain `object()` would trip
+    # `typeguard.TypeCheckError: the return value (object) is not an
+    # instance of camelot.core.Table`.
+    sentinels = [MagicMock(spec=Table), MagicMock(spec=Table)]
     tl = TableList(iter(sentinels))
     assert len(tl) == 2
     assert bool(tl) is True
