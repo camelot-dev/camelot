@@ -158,7 +158,7 @@ def test_stroked_ltrect_yields_four_edges(monkeypatch):
 
 
 def test_thin_filled_rect_treated_as_line(monkeypatch):
-    """PDFs that draw rules as 0.5pt filled rects are recovered."""
+    """Rule lines drawn as 0.5pt filled rects are recovered."""
     from camelot import image_processing as ip
 
     monkeypatch.setattr(ip, "LTLine", _MockLTLine)
