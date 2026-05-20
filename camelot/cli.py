@@ -1,6 +1,7 @@
 """Implementation of the command line interface."""
 
 import logging
+import os
 
 import click
 
@@ -48,6 +49,34 @@ class Config:
 pass_config = click.make_pass_decorator(Config)
 
 
+# Map of output filename extension -> --format value. Used by every
+# subcommand to make --format optional when the user already gave a clear
+# extension via --output. See #639.
+_OUTPUT_FORMAT_BY_EXT = {
+    ".csv": "csv",
+    ".xlsx": "excel",
+    ".xls": "excel",
+    ".html": "html",
+    ".htm": "html",
+    ".json": "json",
+    ".md": "markdown",
+    ".markdown": "markdown",
+    ".sqlite": "sqlite",
+    ".sqlite3": "sqlite",
+    ".db": "sqlite",
+}
+
+
+def _infer_format(output, explicit):
+    """Pick the output format. Honour an explicit --format; else infer from output ext."""
+    if explicit is not None:
+        return explicit
+    if output is None:
+        return None
+    _, ext = os.path.splitext(output)
+    return _OUTPUT_FORMAT_BY_EXT.get(ext.lower())
+
+
 @click.group(name="camelot")
 @click.version_option(version=__version__)
 @click.pass_context
@@ -75,7 +104,14 @@ def cli(ctx, *args, **kwargs):
     help="Read pdf pages in parallel using all CPU cores.",
 )
 @click.option("-pw", "--password", help="Password for decryption.")
-@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-o",
+    "--output",
+    help="Output file path. Treated as a template — each detected table is "
+    "written to '<output_stem>-page-<P>-table-<T>.<ext>'. If --format is "
+    "omitted, the format is inferred from the path's extension "
+    "(.csv, .xlsx, .html, .json, .md, .sqlite, etc.).",
+)
 @click.option(
     "-f",
     "--format",
@@ -203,7 +239,7 @@ def lattice(c, *args, **kwargs):
     """Use lines between text to parse the table."""
     pages = kwargs.pop("pages")
     output = kwargs.pop("output")
-    f = kwargs.pop("format")
+    f = _infer_format(output, kwargs.pop("format"))
     compress = kwargs.pop("zip")
     quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
@@ -255,7 +291,14 @@ def lattice(c, *args, **kwargs):
     help="Read pdf pages in parallel using all CPU cores.",
 )
 @click.option("-pw", "--password", help="Password for decryption.")
-@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-o",
+    "--output",
+    help="Output file path. Treated as a template — each detected table is "
+    "written to '<output_stem>-page-<P>-table-<T>.<ext>'. If --format is "
+    "omitted, the format is inferred from the path's extension "
+    "(.csv, .xlsx, .html, .json, .md, .sqlite, etc.).",
+)
 @click.option(
     "-f",
     "--format",
@@ -342,7 +385,7 @@ def stream(c, *args, **kwargs):
     """Use spaces between text to parse the table."""
     pages = kwargs.pop("pages")
     output = kwargs.pop("output")
-    f = kwargs.pop("format")
+    f = _infer_format(output, kwargs.pop("format"))
     compress = kwargs.pop("zip")
     quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
@@ -409,7 +452,14 @@ def stream(c, *args, **kwargs):
     help="Read pdf pages in parallel using all CPU cores.",
 )
 @click.option("-pw", "--password", help="Password for decryption.")
-@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-o",
+    "--output",
+    help="Output file path. Treated as a template — each detected table is "
+    "written to '<output_stem>-page-<P>-table-<T>.<ext>'. If --format is "
+    "omitted, the format is inferred from the path's extension "
+    "(.csv, .xlsx, .html, .json, .md, .sqlite, etc.).",
+)
 @click.option(
     "-f",
     "--format",
@@ -496,7 +546,7 @@ def hybrid(c, *args, **kwargs):
     """Combines the strengths of both the Network and the Lattice parser."""
     pages = kwargs.pop("pages")
     output = kwargs.pop("output")
-    f = kwargs.pop("format")
+    f = _infer_format(output, kwargs.pop("format"))
     compress = kwargs.pop("zip")
     quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
@@ -547,7 +597,14 @@ def hybrid(c, *args, **kwargs):
     help="Read pdf pages in parallel using all CPU cores.",
 )
 @click.option("-pw", "--password", help="Password for decryption.")
-@click.option("-o", "--output", help="Output file path.")
+@click.option(
+    "-o",
+    "--output",
+    help="Output file path. Treated as a template — each detected table is "
+    "written to '<output_stem>-page-<P>-table-<T>.<ext>'. If --format is "
+    "omitted, the format is inferred from the path's extension "
+    "(.csv, .xlsx, .html, .json, .md, .sqlite, etc.).",
+)
 @click.option(
     "-f",
     "--format",
@@ -634,7 +691,7 @@ def network(c, *args, **kwargs):
     """Use text alignments to parse the table."""
     pages = kwargs.pop("pages")
     output = kwargs.pop("output")
-    f = kwargs.pop("format")
+    f = _infer_format(output, kwargs.pop("format"))
     compress = kwargs.pop("zip")
     quiet = kwargs.pop("quiet")
     plot_type = kwargs.pop("plot_type")
