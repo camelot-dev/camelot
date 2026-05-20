@@ -24,7 +24,8 @@ def _make_table(df, page=1, order=1, cols_x=(0, 100, 200), rows_y=(300, 200, 100
     t.order = order
     t.accuracy = 95.0
     t.whitespace = 5.0
-    t.confidence = (t.accuracy / 100.0) * (1 - t.whitespace / 100.0)
+    # `confidence` is a read-only @property on Table; it recomputes
+    # from accuracy + whitespace on access.
     return t
 
 
