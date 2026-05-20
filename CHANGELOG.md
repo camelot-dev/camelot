@@ -69,6 +69,12 @@ changes. **Heads-up if upgrading from 1.0.x**:
   (`{" \n": " "}`), normalising abbreviations, or rewriting unit
   names. Keys are matched as literal substrings; when several keys
   could match at the same position the longest one wins. (#482)
+- **`read_pdf` accepts `bytes` and binary file-like objects** as
+  `filepath`, in addition to str/Path and URLs. `io.BytesIO`, an open
+  `"rb"` handle, `requests` response `.raw`, etc. all work. The bytes
+  are spilled to a temp file once (so the Lattice OpenCV image
+  conversion keeps working) and cleaned up on context-manager exit.
+  Long-standing requests #170, #245. (#270)
 - **`cpu_count` parameter** on `read_pdf(..., parallel=True, cpu_count=N)`
   and `PDFHandler.parse(...)` — caps the worker count when running in
   parallel. Defaults to all cores; clamped to
