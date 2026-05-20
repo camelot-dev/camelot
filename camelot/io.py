@@ -5,6 +5,7 @@ import warnings
 from pathlib import Path
 from typing import Any
 
+from .handlers import FilepathOrBuffer
 from .handlers import PDFHandler
 from .utils import TemporaryDirectory
 from .utils import remove_extra
@@ -113,7 +114,7 @@ def _validate_per_page(per_page_norm, global_flavor):
 
 
 def read_pdf(
-    filepath: str | Path,
+    filepath: FilepathOrBuffer,
     pages="1",
     password=None,
     flavor="lattice",
@@ -133,8 +134,14 @@ def read_pdf(
 
     Parameters
     ----------
-    filepath : str, Path, IO
-        Filepath or URL of the PDF file.
+    filepath : str, Path, bytes, or binary file-like
+        Source PDF. Accepts a filesystem path / URL, a ``bytes``-like
+        object, or any binary stream with a ``.read()`` method
+        (``io.BytesIO``, an open ``"rb"`` file, ``requests`` response
+        ``.raw``, etc). For in-memory inputs the bytes are spilled to
+        a temporary file once and cleaned up on context-manager exit,
+        so the Lattice OpenCV image-conversion backend keeps working
+        unchanged. Originally requested in #170 / #245 / #270.
     pages : str, optional (default: '1')
         Comma-separated page numbers.
         Example: '1,3,4' or '1,4-end' or 'all'.
