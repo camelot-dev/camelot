@@ -31,7 +31,10 @@ def test_text_strip_list_with_overlapping_substrings():
 
 
 def test_text_strip_list_unicode():
-    assert text_strip("café crème — espresso", ["café", "crème"]) == " —  espresso"
+    # Input has spaces around "café" and "crème"; stripping just the two
+    # words leaves those spaces in place: "[ ]café[ ]crème[ ]—[ ]espresso"
+    # becomes "[ ][ ]—[ ]espresso".
+    assert text_strip("café crème — espresso", ["café", "crème"]) == "  — espresso"
 
 
 def test_text_strip_list_with_empty_entry_skipped():

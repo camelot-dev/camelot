@@ -125,7 +125,7 @@ def read_pdf(
     debug=False,
     **kwargs,
 ):
-    """Read PDF and return extracted tables.
+    r"""Read PDF and return extracted tables.
 
     Note: kwargs annotated with ^ can only be used with flavor='stream' or flavor='network'
     and kwargs annotated with * can only be used with flavor='lattice'.
