@@ -332,3 +332,38 @@ def test_parsing_report_includes_confidence():
     assert t.confidence == 0.0
     t.accuracy, t.whitespace = 100.0, 100.0
     assert t.confidence == 0.0
+
+
+def test_auto_flavor_warns_and_extracts(testdir):
+    """flavor='auto' picks one of the supported flavors, warns, and parses."""
+    import re
+    import warnings
+
+    import camelot
+
+    filename = os.path.join(testdir, "foo.pdf")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        tables = camelot.read_pdf(filename, flavor="auto")
+    # The auto-detection warning must fire with one of the supported flavor
+    # names. We deliberately don't pin which one — the heuristic depends on
+    # the rendered-image line-detection sensitivity, which varies slightly
+    # across cv2/Pillow builds. What matters is that auto returned a real
+    # flavor (not 'auto' echoed back), the warning fired, and the parse
+    # produced at least one table on foo.pdf.
+    auto_warns = [w for w in caught if "auto-detected" in str(w.message)]
+    assert auto_warns, f"expected an auto-detection UserWarning, got: {caught!r}"
+    match = re.search(r"auto-detected flavor='(\w+)'", str(auto_warns[-1].message))
+    assert match, f"unexpected warning text: {auto_warns[-1].message!r}"
+    assert match.group(1) in {"lattice", "stream", "network", "hybrid"}
+    assert len(tables) >= 1
+
+
+def test_auto_flavor_rejects_unknown():
+    """flavor='unknown' still raises NotImplementedError with the new value listed."""
+    import pytest
+
+    import camelot
+
+    with pytest.raises(NotImplementedError, match=r"auto"):
+        camelot.read_pdf("nonexistent.pdf", flavor="banana")
