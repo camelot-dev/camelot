@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import math
 import os
 import sqlite3
@@ -1069,6 +1070,88 @@ class Table:
         conn.close()
 
 
+def _vstack_run(run: list["Table"], drop_repeated_header: bool = False) -> "Table":
+    """Vertically concatenate a run of contiguous Tables (#628 POC).
+
+    All tables in ``run`` must share the same column count — the caller
+    (:meth:`TableList.stack_contiguous`) is responsible for that
+    invariant. A single-element run is returned via a deep copy so the
+    output never aliases the input.
+
+    Geometry:
+        * The first table's ``rows`` / ``cells`` / ``_bbox`` stay in
+          place. Each subsequent table's y-coordinates are shifted so
+          its top sits at the previous table's bottom — the stacked
+          result reads as one tall page even though source pages
+          differ.
+
+    ``parsing_report`` is mean-aggregated across the run (accuracy,
+    whitespace, confidence are averaged); ``page`` and ``order`` are
+    taken from the first table.
+    """
+    if len(run) == 1:
+        return copy.deepcopy(run[0])
+
+    out = copy.deepcopy(run[0])
+    out_dfs = [out.df]
+
+    for nxt in run[1:]:
+        nxt_copy = copy.deepcopy(nxt)
+        # Shift the upcoming table's geometry so its top sits at the
+        # current bottom of `out`. PDF coords: y0 = bottom, y1 = top
+        # within each table (rows are stored as (top_y, bottom_y) tuples
+        # within Table.rows; bbox is (x0, y0, x1, y1)).
+        out_bottom = out._bbox[1]
+        nxt_top = nxt_copy._bbox[3]
+        dy = out_bottom - nxt_top
+        nxt_copy.rows = [(r0 + dy, r1 + dy) for (r0, r1) in nxt_copy.rows]
+        for row in nxt_copy.cells:
+            for cell in row:
+                cell.y1 += dy
+                cell.y2 += dy
+                # lb/lt/rb/rt are snapshot tuples set in Cell.__init__;
+                # rebuild them so plotting and any other downstream
+                # geometry consumer sees the shifted coords.
+                cell.lb = (cell.x1, cell.y1)
+                cell.lt = (cell.x1, cell.y2)
+                cell.rb = (cell.x2, cell.y1)
+                cell.rt = (cell.x2, cell.y2)
+        nxt_copy._bbox = (
+            nxt_copy._bbox[0],
+            nxt_copy._bbox[1] + dy,
+            nxt_copy._bbox[2],
+            nxt_copy._bbox[3] + dy,
+        )
+
+        out.rows = out.rows + nxt_copy.rows
+        out.cells = out.cells + nxt_copy.cells
+        out._bbox = (
+            min(out._bbox[0], nxt_copy._bbox[0]),
+            nxt_copy._bbox[1],  # new bottom
+            max(out._bbox[2], nxt_copy._bbox[2]),
+            out._bbox[3],  # original top
+        )
+
+        nxt_df = nxt_copy.df
+        if drop_repeated_header and not nxt_df.empty:
+            nxt_df = nxt_df.iloc[1:].reset_index(drop=True)
+        out_dfs.append(nxt_df)
+
+    out.df = pd.concat(out_dfs, ignore_index=True)
+
+    # Average per-table quality metrics across the run.
+    accs = [t.accuracy for t in run if getattr(t, "accuracy", None) is not None]
+    wss = [t.whitespace for t in run if getattr(t, "whitespace", None) is not None]
+    if accs:
+        out.accuracy = sum(accs) / len(accs)
+    if wss:
+        out.whitespace = sum(wss) / len(wss)
+    if accs and wss:
+        out.confidence = (out.accuracy / 100.0) * (1 - out.whitespace / 100.0)
+
+    return out
+
+
 class _Kw(TypedDict):
     """Helper class to define file related arguments."""
 
@@ -1122,6 +1205,113 @@ class TableList:
     def n(self) -> int:
         """The number of tables in the list."""
         return len(self)
+
+    def stack_contiguous(
+        self,
+        match: str = "column_count",
+        keep_first_header: bool = False,
+    ) -> "TableList":
+        """Vertically stack tables that look like continuations across pages.
+
+        Many PDF reports break a single logical table over several pages
+        — a header on every page, a footer on every page, body rows in
+        between. ``read_pdf`` returns one :class:`Table` per page; this
+        helper stitches contiguous ones back together so the resulting
+        :class:`TableList` has one entry per *logical* table instead of
+        one per *physical* page.
+
+        Parameters
+        ----------
+        match : str, optional (default: 'column_count')
+            How to decide whether two adjacent tables are continuations
+            of each other.
+
+            * ``'column_count'`` — same number of columns (the rule from
+              #628's POC; the common case).
+            * ``'first_row'`` — same column count *and* identical text
+              in the first row (catches PDFs that repeat the header on
+              every page).
+        keep_first_header : bool, optional (default: False)
+            When ``match='first_row'``, the matching first row of every
+            continuation table is dropped (so the stacked table has
+            exactly one header row). Set to ``True`` to keep every
+            page's header row in the stacked output.
+
+        Returns
+        -------
+        camelot.core.TableList
+            A new TableList with continuation runs collapsed. Tables
+            that don't continue from the previous one (different
+            column count or different first row, depending on ``match``)
+            are passed through unchanged. The originals in ``self`` are
+            not mutated.
+
+        Notes
+        -----
+        Originally proposed by @TimothyOfDelphi in #628. Consolidates
+        #8 / #133 / #357 / #531.
+
+        Limitations:
+
+        * The stacked :class:`Table`'s ``page`` keeps the *first*
+          stitched table's page number; ``order`` keeps the first
+          table's order. Callers iterating with both shouldn't be
+          surprised by a missing row-of-pages.
+        * ``parsing_report`` is averaged: ``accuracy`` and
+          ``whitespace`` are mean-aggregated across the stitched
+          tables; ``confidence`` is recomputed from the averaged
+          accuracy + whitespace.
+        * Cell geometry (``_bbox``, ``cells``, ``rows``) is preserved
+          via the y-shift trick from #628's POC, so downstream
+          plotting on a single stitched table still works
+          page-locally. Cells from the second-and-later tables are
+          shifted to sit below the first table's bottom.
+        """
+        if match not in ("column_count", "first_row"):
+            raise ValueError(
+                f"match must be 'column_count' or 'first_row', got {match!r}"
+            )
+        if not self._tables:
+            return TableList([])
+
+        stitched: list[Table] = []
+        run: list[Table] = []
+
+        for table in self._tables:
+            if not run:
+                run.append(table)
+                continue
+            head = run[-1]
+            same_cols = len(head.cols) == len(table.cols)
+            same_header = same_cols and (
+                match != "first_row"
+                or (
+                    list(head.df.iloc[0]) == list(table.df.iloc[0])
+                    if not head.df.empty and not table.df.empty
+                    else False
+                )
+            )
+            if same_cols and (match == "column_count" or same_header):
+                run.append(table)
+            else:
+                stitched.append(
+                    _vstack_run(
+                        run,
+                        drop_repeated_header=(match == "first_row")
+                        and not keep_first_header,
+                    )
+                )
+                run = [table]
+        if run:
+            stitched.append(
+                _vstack_run(
+                    run,
+                    drop_repeated_header=(match == "first_row")
+                    and not keep_first_header,
+                )
+            )
+
+        return TableList(stitched)
 
     def _write_file(self, f=None, **kwargs: Unpack[_Kw]) -> None:
         dirname = kwargs["dirname"]
