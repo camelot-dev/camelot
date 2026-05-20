@@ -1,7 +1,14 @@
-"""Microbenchmark + correctness check for the PERF 4 merge/group/join hotspots.
+"""Negative-result microbenchmark for the PERF 4 merge/group/join hotspots.
+
+**This bench is shipped on purpose as a *negative* result.** Every NumPy
+candidate it measures is *slower* than the current Python implementation at
+the realistic per-page input sizes Camelot actually deals with (n ≤ 500).
+The file stays in the tree so anyone future-perf-curious has an immediate
+"yes, that was tried, here are the numbers" signal — keep it as a regression
+net against well-meaning rewrites.
 
 Not a pytest test - run directly with
-``python bench/bench_merge_group_join.py``.
+``python bench/bench_negative_results.py``.
 
 The perf report flagged these as the next-biggest pure-Python hot loops after
 ``text_in_bbox`` (PR #731) and ``get_table_index`` (PR #733):
