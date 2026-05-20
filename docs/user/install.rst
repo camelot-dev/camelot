@@ -16,6 +16,19 @@ To install Camelot from PyPI using ``pip``::
 
     $ pip install "camelot-py"
 
+.. warning::
+
+   Camelot depends on ``opencv-python-headless`` (the GUI-less OpenCV
+   build). If your environment already has the full ``opencv-python``
+   package installed, pip will let both sit side-by-side and the two
+   shadow each other in ``site-packages``, which leads to broken
+   ``import cv2`` at runtime. Uninstall the conflicting package first::
+
+       $ pip uninstall opencv-python
+       $ pip install camelot-py
+
+   See `issue #645 <https://github.com/camelot-dev/camelot/issues/645>`_.
+
 conda
 -----
 

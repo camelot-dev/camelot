@@ -103,13 +103,13 @@ Network
 
 The network parser is text-based: it relies on the bounding boxes of the text elements encoded in the .pdf document to identify patterns indicative of a table.
 
-The plot belows shows the bounding boxes of all the text elements on the parsed document, in light blue for horizontal elements, light red for vertical elements (rare in most documents).
+The parser starts by enumerating the bounding boxes of every text element on the page — typically horizontal-running boxes (the bulk of the text) and occasional vertical-running boxes (rare in most documents).
 
 1. The network parser starts by identifying common horizontal or vertical coordinate alignments across these text elements. In other words it looks for bounding box rectangles which either share the same top, center, or bottom coordinates (horizontal axis), or the same left, right, or middle coordinates (vertical axis). See the generate method.
 
 Once the parser found these alignments, it performs some pruning to only keep text elements that are part of a network - they have connections along both axis The idea is that it's not enough for two elements to be aligned to belong to a table, for instance the lines of text in this paragraph are all left-aligned, but they do not form a network. The pruning is done iteratively, see "remove_unconnected_edges" method.
 
-Once the network is pruned, the parser keeps track of how many alignments each text element belongs to: that's the number on top (vertical alignments) or to the left of each alignment in the plot below. The text element with the most connections (in red on the plot) is the starting point -the seed- of the next step. Finally, the parser measures how far the alignments are from one another, to determine a plausible search zone around each cell for the next stage of growing the table. See "compute_plausible_gaps" method.
+Once the network is pruned, the parser counts how many alignments each text element belongs to. The text element with the most connections is the starting point — the *seed* — of the next step. Finally, the parser measures how far the alignments are from one another, to determine a plausible search zone around each cell for the next stage of growing the table. See "compute_plausible_gaps" method.
 
 2. n the next step, the parser iteratively "grows" a table, starting from the seed identified in the previous step. The bounding box is initialized with the bounding box of the seed, then it iteratively searches for text elements that are close to the bounding box, then grows the table to ingest them, until there are no more text elements to ingest. The two steps are:
 
