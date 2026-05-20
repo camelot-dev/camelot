@@ -2,7 +2,6 @@
 
 import os
 import warnings
-from pathlib import Path
 from typing import Any
 
 from .handlers import FilepathOrBuffer

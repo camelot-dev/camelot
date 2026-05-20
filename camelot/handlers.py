@@ -94,39 +94,53 @@ class PDFHandler:
     ):
         self.debug = debug
         self.is_temp_file = False
+        # Resolved by one of the branches below; always a real path-like.
+        resolved: str | Path
 
         if isinstance(filepath, (bytes, bytearray, memoryview)):
             # Raw bytes input — spill to a tempfile and treat as a path.
-            self.filepath = _spill_bytes_to_tempfile(bytes(filepath))
+            resolved = _spill_bytes_to_tempfile(bytes(filepath))
             self.is_temp_file = True
         elif hasattr(filepath, "read") and callable(filepath.read):
             # Binary file-like (BytesIO, open('rb', ...), urlopen response,
-            # requests Response.raw, etc). Read once, preserve caller's
-            # cursor position so they can keep using the stream.
+            # requests Response.raw, etc). Always read from the start of
+            # the stream — a PDF mid-stream isn't useful — and preserve
+            # the caller's cursor afterwards so they can keep using the
+            # same handle.
             tell = getattr(filepath, "tell", None)
             seek = getattr(filepath, "seek", None)
             pos = tell() if callable(tell) else None
+            if callable(seek):
+                try:
+                    seek(0)
+                except (OSError, ValueError):
+                    # Non-seekable stream — `.read()` will return whatever
+                    # is left from the current position; nothing else we
+                    # can do.
+                    pass
             data = filepath.read()
             if pos is not None and callable(seek):
                 try:
                     seek(pos)
                 except (OSError, ValueError):
-                    # Non-seekable stream (e.g. a network socket) —
-                    # nothing to restore, drop silently.
                     pass
             if not isinstance(data, (bytes, bytearray, memoryview)):
                 raise TypeError(
                     "file-like 'filepath' must return bytes from .read(),"
                     f" got {type(data).__name__}"
                 )
-            self.filepath = _spill_bytes_to_tempfile(bytes(data))
+            resolved = _spill_bytes_to_tempfile(bytes(data))
             self.is_temp_file = True
         else:
             # Path or URL (existing behaviour).
             self.is_temp_file = is_url(filepath)
             if is_url(filepath):
-                filepath = download_url(str(filepath))
-            self.filepath = filepath
+                resolved = download_url(str(filepath))
+            else:
+                # mypy: at this branch filepath is the str | Path | os.PathLike
+                # subset of FilepathOrBuffer (we've ruled out bytes / file-like).
+                resolved = filepath  # type: ignore[assignment]
+        self.filepath: str | Path = resolved
 
         if password is None:
             self.password = ""  # noqa: S105
