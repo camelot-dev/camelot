@@ -119,6 +119,22 @@ def read_pdf(
     -------
     tables : camelot.core.TableList
 
+    Notes
+    -----
+    **Encrypted PDFs / extraction permissions** (#590). Camelot honours the
+    ``/Encrypt`` dictionary's text-extraction permission: ``read_pdf`` raises
+    :class:`playa.exceptions.PDFTextExtractionNotAllowed` if the PDF is
+    encrypted and the user-password permission set forbids text extraction.
+    The check fires on the document object returned by ``playa.open`` while
+    the encryption metadata is still attached — this is a real behavioural
+    change vs the pre-1.0 backend, where per-page temp-PDF splitting
+    silently dropped the metadata so the check was effectively a no-op.
+    Note: PDF spec only enforces the flag through the encryption layer —
+    for **unencrypted** PDFs that carry a "no extraction" claim via
+    ``/Perms``, there is no enforcement mechanism and Camelot extracts.
+    Supplying the document owner password through ``password=`` bypasses
+    the user-password permission set (matches every other PDF tool).
+
     """
     if layout_kwargs is None:
         layout_kwargs = {}
