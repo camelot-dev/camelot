@@ -100,9 +100,7 @@ class PDFHandler:
         if pages == "1":
             return [1]
         if pdf is None:
-            with playa.open(
-                self.filepath, space="page", password=self.password
-            ) as pdf:
+            with playa.open(self.filepath, space="page", password=self.password) as pdf:
                 return self._resolve_pages(pages, pdf)
         return self._expand_pages_spec(pages, len(pdf.pages))
 
