@@ -872,57 +872,71 @@ class Table:
         -------
         camelot.core.Table
             The updated table with copied text in spanning cells.
+
+        Notes
+        -----
+        Iterates the directional copy passes until the table is stable.
+        A single pass-per-direction misses cells spanned in *both*
+        directions (a 2D span): the source cell from which the
+        2D-spanned cell would copy hasn't itself been filled yet, so
+        the empty string propagates through. Repeating the chosen
+        passes until no cell changes converges in O(spans) iterations
+        and fixes the symptom reported in #349.
         """
         if copy_text is None:
             return self
 
-        for direction in copy_text:
-            if direction == "h":
-                self._copy_horizontal_text()
-            elif direction == "v":
-                self._copy_vertical_text()
+        passes = {"h": self._copy_horizontal_text, "v": self._copy_vertical_text}
+        # Cap to a sane upper bound — converges in O(spans) but the
+        # loop guards against a hypothetical pathological table.
+        for _ in range(max(len(self.cells), 1) * 2):
+            changed = False
+            for direction in copy_text:
+                pass_fn = passes.get(direction)
+                if pass_fn is not None and pass_fn():
+                    changed = True
+            if not changed:
+                break
 
         return self
 
     def _copy_horizontal_text(self):
-        """
-        Copies text horizontally in empty spanning cells.
+        """Copy text rightwards into empty horizontally-spanned cells.
 
-        This method iterates through the cells and fills empty cells that span
-        horizontally with the text from the left adjacent cell.
-
-        Returns
-        -------
-        None
+        Fills empty cells that span horizontally with the text from the
+        left adjacent cell. Returns ``True`` when at least one cell's
+        text was changed — used by :meth:`copy_spanning_text` to decide
+        whether another pass is needed.
         """
+        changed = False
         for i in range(len(self.cells)):
             for j in range(len(self.cells[i])):
-                if (
-                    self.cells[i][j].text.strip() == ""
-                    and self.cells[i][j].hspan
-                    and not self.cells[i][j].left
-                ):
-                    self.cells[i][j].text = self.cells[i][j - 1].text
+                cell = self.cells[i][j]
+                if cell.text.strip() == "" and cell.hspan and not cell.left:
+                    source = self.cells[i][j - 1].text
+                    if source != cell.text:
+                        cell.text = source
+                        changed = True
+        return changed
 
     def _copy_vertical_text(self):
-        """
-        Copies text vertically in empty spanning cells.
+        """Copy text downwards into empty vertically-spanned cells.
 
-        This method iterates through the cells and fills empty cells that span
-        vertically with the text from the top adjacent cell.
-
-        Returns
-        -------
-        None
+        Fills empty cells that span vertically with the text from the
+        top adjacent cell. Returns ``True`` when at least one cell's
+        text was changed — used by :meth:`copy_spanning_text` to decide
+        whether another pass is needed.
         """
+        changed = False
         for i in range(len(self.cells)):
             for j in range(len(self.cells[i])):
-                if (
-                    self.cells[i][j].text.strip() == ""
-                    and self.cells[i][j].vspan
-                    and not self.cells[i][j].top
-                ):
-                    self.cells[i][j].text = self.cells[i - 1][j].text
+                cell = self.cells[i][j]
+                if cell.text.strip() == "" and cell.vspan and not cell.top:
+                    source = self.cells[i - 1][j].text
+                    if source != cell.text:
+                        cell.text = source
+                        changed = True
+        return changed
 
     def to_csv(self, path, **kwargs):
         """Write Table(s) to a comma-separated values (csv) file.
