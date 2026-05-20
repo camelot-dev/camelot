@@ -1,0 +1,107 @@
+/*
+ * Camelot brand theme overlay on top of sphinx-book-theme.
+ *
+ * The base theme (pydata-sphinx-theme under the hood) exposes a small
+ * set of CSS custom properties for colour control; we rewire them to
+ * match the Camelot logo's saturated green.
+ *
+ * Logo green sampled from docs/_static/camelot.png: #0F9D47.
+ * Darker shade for hover/active: #0B7A38.
+ * Light tint for backgrounds: #E6F4EB.
+ */
+
+:root,
+html[data-theme="light"] {
+  --pst-color-primary: #0f9d47;
+  --pst-color-primary-text: #ffffff;
+  --pst-color-primary-highlight: #0b7a38;
+  --pst-color-secondary: #0b7a38;
+  --pst-color-secondary-highlight: #0f9d47;
+  --pst-color-link: #0b7a38;
+  --pst-color-link-hover: #0f9d47;
+  --pst-color-accent: #0f9d47;
+}
+
+/* sphinx-book-theme has its own variable namespace too; mirror them so
+ * the sidebar / TOC / next-prev navigation pick up the new accent. */
+:root,
+html[data-theme="light"] {
+  --sbt-color-link: var(--pst-color-link);
+  --sbt-color-link-hover: var(--pst-color-link-hover);
+}
+
+/* Dark mode — keep the green but with a slightly lighter shade so it
+ * carries enough contrast against the dark background. */
+html[data-theme="dark"] {
+  --pst-color-primary: #2cc36b;
+  --pst-color-primary-text: #0a1f12;
+  --pst-color-primary-highlight: #5bd98f;
+  --pst-color-secondary: #5bd98f;
+  --pst-color-secondary-highlight: #2cc36b;
+  --pst-color-link: #5bd98f;
+  --pst-color-link-hover: #8be6ad;
+  --pst-color-accent: #2cc36b;
+  --sbt-color-link: var(--pst-color-link);
+  --sbt-color-link-hover: var(--pst-color-link-hover);
+}
+
+/* Brand the page header underline + section anchors. */
+.bd-header.navbar-light .navbar-nav .nav-link:hover,
+.bd-header.navbar-light .navbar-nav .nav-link.active {
+  color: var(--pst-color-primary-highlight);
+}
+
+/* The "On this page" right sidebar uses a coloured accent bar — paint
+ * it Camelot green rather than the default blue. */
+.bd-toc-item.active > .bd-toc-link,
+.toc-h2.active > .toc-entry > a {
+  color: var(--pst-color-primary);
+  border-left-color: var(--pst-color-primary);
+}
+
+/* admonitions: keep the default semantics (info/note blue, warning
+ * orange, danger red) — overriding the *primary* colour would
+ * gratuitously repaint them. The "note" block uses the link colour by
+ * default though, so it picks up the green automatically. */
+
+/* Inline code: a faint green-tinted background reads as Camelot-y
+ * without sacrificing legibility of the syntax-highlighted code in
+ * fenced blocks (those keep their default monokai-style palette). */
+:not(pre) > code.literal,
+:not(pre) > code.docutils {
+  background-color: rgba(15, 157, 71, 0.08);
+  border-color: rgba(15, 157, 71, 0.2);
+}
+
+/* The "Edit this page" / "View source" buttons in sphinx-book-theme's
+ * header use the primary colour, which is now green — make sure their
+ * hover state is the darker shade for accessibility contrast. */
+.btn-primary,
+.btn-primary:focus {
+  background-color: var(--pst-color-primary);
+  border-color: var(--pst-color-primary);
+}
+.btn-primary:hover {
+  background-color: var(--pst-color-primary-highlight);
+  border-color: var(--pst-color-primary-highlight);
+}
+
+/* Section anchors that appear on heading hover — green so they read as
+ * a brand element rather than as a stray default. */
+h1 .headerlink,
+h2 .headerlink,
+h3 .headerlink,
+h4 .headerlink,
+h5 .headerlink,
+h6 .headerlink {
+  color: var(--pst-color-primary);
+}
+
+/* The :class: full-width helper used by the comparison-page matrix
+ * (and the v2 features doc). Keeps the table from being scrunched
+ * inside the default content column. */
+table.full-width,
+.full-width table {
+  width: 100% !important;
+  max-width: none !important;
+}

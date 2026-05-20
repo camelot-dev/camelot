@@ -102,6 +102,7 @@ This part of the documentation begins with some background information about why
    user/how-it-works
    user/quickstart
    user/advanced
+   user/comparison
    user/faq
    user/cli
 

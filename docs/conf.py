@@ -176,6 +176,10 @@ html_favicon = "_static/favicon.ico"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+# Brand overlay on top of sphinx-book-theme: paint links / accents the
+# Camelot logo green (sampled from docs/_static/camelot.png).
+html_css_files = ["camelot-theme.css"]
+
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
