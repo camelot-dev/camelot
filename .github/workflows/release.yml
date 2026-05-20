@@ -17,7 +17,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Draft Release
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           publish: false
         env:
@@ -52,7 +52,7 @@ jobs:
         run: python -m build
 
       - name: Sign the dists with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.2.0
+        uses: sigstore/gh-action-sigstore-python@v3.3.0
         with:
           inputs: >-
             ./dist/*.tar.gz
