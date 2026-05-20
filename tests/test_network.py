@@ -155,3 +155,62 @@ def test_network_no_infinite_execution(testdir):
     )
 
     assert len(tables) >= 1
+
+
+# Reported as https://github.com/camelot-dev/camelot/issues/585
+def test_issue_585(testdir):
+    """Test for GitHub issue #585.
+
+    This test checks that Camelot can successfully extract tables when using
+    the 'network' flavor with specified 'table_areas' and 'columns',
+    ensuring that at least one table is detected.
+
+    Parameters
+    ----------
+    testdir : str
+        The path to the test directory.
+
+    """
+    filename = os.path.join(testdir, "multiple_tables.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="network",
+        table_areas=["100,700,500,100"],
+        columns=["150,200,250,300,350,400,450,500"],
+    )
+    assert len(tables) > 0
+
+
+def test_issue_585_network_flavor_with_table_areas(testdir):
+    """Test for GitHub issue #585, focusing on the 'network' flavor.
+
+    This test verifies that Camelot's 'network' flavor can detect and
+    extract a table when a specific 'table_areas' is provided. The issue
+    reported that this scenario was failing, while the 'lattice' flavor
+    worked. This test ensures the 'network' flavor now behaves as expected.
+
+    It checks that exactly one table is found in the specified area.
+
+    Parameters
+    ----------
+    testdir : str
+        The path to the test directory, provided by the testing framework.
+        This directory should contain the 'issue_585.pdf' file.
+
+    """
+    # Use the PDF file mentioned in the GitHub issue
+    filename = os.path.join(testdir, "good_energy.pdf")
+
+    # The table_areas and columns are taken directly from the issue report
+    # to replicate the exact conditions.
+    tables = camelot.read_pdf(
+        filename,
+        flavor="network",
+        table_areas=["46,213,558,180"],
+        columns=["92,159,262,357,454,534"],
+        split_text=True,
+    )
+
+    # The core of the issue was that no tables were being detected.
+    # This assertion now checks that exactly one table is found.
+    assert len(tables) == 1
