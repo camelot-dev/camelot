@@ -10,7 +10,7 @@ from .ghostscript_backend import GhostscriptBackend
 from .pdfium_backend import PdfiumBackend
 from .poppler_backend import PopplerBackend
 
-BACKENDS: Dict[str, Type[ConversionBackend]] = {
+BACKENDS: dict[str, type[ConversionBackend]] = {
     "pdfium": PdfiumBackend,
     "ghostscript": GhostscriptBackend,
     "poppler": PopplerBackend,
@@ -41,7 +41,7 @@ class ImageConversionBackend:
         """
         self.backend: ConversionBackend = self.get_backend(backend)
         self.use_fallback: bool = use_fallback
-        self.fallbacks: List[str] = list(
+        self.fallbacks: list[str] = list(
             filter(lambda x: isinstance(backend, str) and x != backend, BACKENDS.keys())
         )
 

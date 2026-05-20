@@ -6,7 +6,7 @@ from .io import read_pdf
 from .plotting import PlotMethods
 
 
-def get_version() -> Optional[str]:
+def get_version() -> str | None:
     """Retrieve the version number from package metadata."""
     try:
         return importlib.metadata.version("camelot-py")

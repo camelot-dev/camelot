@@ -10,8 +10,8 @@ import tempfile
 import zipfile
 from operator import itemgetter
 from typing import Any
-from typing import Iterable
-from typing import Iterator
+from collections.abc import Iterable
+from collections.abc import Iterator
 
 import cv2
 import numpy as np
