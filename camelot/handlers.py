@@ -225,7 +225,9 @@ class PDFHandler:
         max_cpus = mp.cpu_count()
         if parallel and len(self.pages) > 1 and max_cpus > 1:
             # Clamp the caller's cpu_count to [1, max_cpus]; default to all.
-            cpu_count = max_cpus if cpu_count is None else max(1, min(cpu_count, max_cpus))
+            cpu_count = (
+                max_cpus if cpu_count is None else max(1, min(cpu_count, max_cpus))
+            )
         else:
             cpu_count = 1
         try:
