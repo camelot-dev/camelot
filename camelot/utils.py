@@ -1142,7 +1142,16 @@ def _process_horizontal_cut(
         (c, table.cells[r][c].x2) for c in x_overlap if table.cells[r][c].right
     ] or [(x_overlap[0], table.cells[r][-1].x2)]
 
-    for obj in textline._objs:
+    # Iterate _objs in reading order, not PDF-emission order. The default
+    # _objs sequence comes from playa, which preserves whatever order the
+    # PDF's text-show operators chose — and that order can drift from
+    # reading order around blank lines (#385). Sort LTChars by
+    # (-y, x) so top-to-bottom + left-to-right is restored; resynthesise
+    # newlines by detecting y-coord jumps. LTAnno objects (which carry
+    # no coordinates and whose text is usually whitespace / newlines
+    # from the upstream stream) are dropped — the y-jump synth covers
+    # the actual line breaks at the right positions.
+    for obj in _reading_order_chars(textline._objs):
         row = table.rows[r]
         for cut in x_cuts:
             if (
@@ -1155,6 +1164,39 @@ def _process_horizontal_cut(
             elif isinstance(obj, LTAnno):
                 cut_text.append((r, cut[0], obj))
     return cut_text
+
+
+def _reading_order_chars(objs):
+    """Yield ``LTChar`` objects in horizontal reading order, with synthesised newlines.
+
+    A horizontal-direction LTTextLine's ``_objs`` arrive in the order the
+    PDF's text-show operators emit them — which is whatever the PDF
+    generator decided was convenient (font swaps, justification kerning,
+    soft hyphens, blank-line layout tricks). For cells that contain
+    multiple wrapped lines, this order can put characters far from where
+    a reader sees them; #385 documents a particularly visible case
+    where the first character of the bottom line floats to the start of
+    the cell.
+
+    Restore reading order by sorting LTChar objects descending-y,
+    ascending-x. Detect line breaks by a y-jump larger than half the
+    character height, and emit a synthetic ``LTAnno("\\n")`` there so
+    the caller's grouping still produces a multi-line cell text.
+
+    Falls back to the original order when no LTChars are present
+    (e.g. annotation-only textlines).
+    """
+    chars = [o for o in objs if isinstance(o, LTChar)]
+    if not chars:
+        yield from objs
+        return
+    chars.sort(key=lambda o: (-o.y0, o.x0))
+    prev_y = None
+    for ch in chars:
+        if prev_y is not None and (prev_y - ch.y0) > (ch.y1 - ch.y0) * 0.5:
+            yield LTAnno("\n")
+        yield ch
+        prev_y = ch.y0
 
 
 def _process_vertical_cut(
