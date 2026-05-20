@@ -1139,15 +1139,15 @@ def _vstack_run(run: list["Table"], drop_repeated_header: bool = False) -> "Tabl
 
     out.df = pd.concat(out_dfs, ignore_index=True)
 
-    # Average per-table quality metrics across the run.
+    # Average per-table quality metrics across the run. `confidence` is a
+    # read-only @property derived from accuracy + whitespace (#659/#739),
+    # so it doesn't need explicit assignment — recomputes on next access.
     accs = [t.accuracy for t in run if getattr(t, "accuracy", None) is not None]
     wss = [t.whitespace for t in run if getattr(t, "whitespace", None) is not None]
     if accs:
         out.accuracy = sum(accs) / len(accs)
     if wss:
         out.whitespace = sum(wss) / len(wss)
-    if accs and wss:
-        out.confidence = (out.accuracy / 100.0) * (1 - out.whitespace / 100.0)
 
     return out
 
