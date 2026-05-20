@@ -74,10 +74,65 @@ class PDFHandler:
             self.password = ""  # noqa: S105
         else:
             self.password = password
-        self.pages = self._get_pages(pages)
+        # Defer page resolution until parse() opens the PDF, so that we don't
+        # open the document twice per read_pdf call. The literal default
+        # "1" doesn't need the PDF at all and is resolved eagerly.
+        self._pages_spec = pages
+        self._pages_cache: list[int] | None = [1] if pages == "1" else None
 
+    @property
+    def pages(self) -> list[int]:
+        """Resolved 1-based page numbers, sorted and de-duplicated.
+
+        Lazy: only opens the PDF if the spec is something other than the
+        default ``"1"``. Cached after first access.
+        """
+        if self._pages_cache is None:
+            self._pages_cache = self._resolve_pages(self._pages_spec)
+        return self._pages_cache
+
+    def _resolve_pages(self, pages: str, pdf: Any | None = None) -> list[int]:
+        """Convert the ``pages`` spec to a sorted, de-duplicated list of ints.
+
+        Pass an already-open ``pdf`` to avoid the playa.open() round-trip
+        that would otherwise be needed to read ``len(pdf.pages)``.
+        """
+        if pages == "1":
+            return [1]
+        if pdf is None:
+            with playa.open(
+                self.filepath, space="page", password=self.password
+            ) as pdf:
+                return self._resolve_pages(pages, pdf)
+        return self._expand_pages_spec(pages, len(pdf.pages))
+
+    @staticmethod
+    def _expand_pages_spec(pages: str, page_count: int) -> list[int]:
+        """Expand a pages spec string (``"all"``, ``"1,3,4"``, ``"1,4-end"``)."""
+        page_numbers: list[dict[str, int]] = []
+        if pages == "all":
+            page_numbers.append({"start": 1, "end": page_count})
+        else:
+            for r in pages.split(","):
+                if "-" in r:
+                    a, b = r.split("-")
+                    b_int = page_count if b == "end" else int(b)
+                    page_numbers.append({"start": int(a), "end": b_int})
+                else:
+                    page_numbers.append({"start": int(r), "end": int(r)})
+        result: list[int] = []
+        for p in page_numbers:
+            result.extend(range(p["start"], p["end"] + 1))
+        return sorted(set(result))
+
+    # Kept for backwards-compat with anything that called the old name.
+    # New code should access self.pages or call _resolve_pages directly.
     def _get_pages(self, pages):
         """Convert pages string to list of integers.
+
+        .. deprecated::
+            Use the :attr:`pages` property; this method exists only for
+            backwards-compat with callers that imported it directly.
 
         Parameters
         ----------
@@ -222,9 +277,15 @@ class PDFHandler:
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
 
+        # Compute worker count up-front so we can pass it to playa.open(). The
+        # old code also gated the parallel branch on len(self.pages) > 1, but
+        # touching self.pages here would force a separate playa.open() to
+        # read the page count *before* this one — exactly the redundant open
+        # this change exists to remove. playa.pages[…].map(…) honours
+        # max_workers regardless of page count, and a single-page doc just
+        # uses one worker effectively.
         max_cpus = mp.cpu_count()
-        if parallel and len(self.pages) > 1 and max_cpus > 1:
-            # Clamp the caller's cpu_count to [1, max_cpus]; default to all.
+        if parallel and max_cpus > 1:
             cpu_count = (
                 max_cpus if cpu_count is None else max(1, min(cpu_count, max_cpus))
             )
@@ -241,7 +302,11 @@ class PDFHandler:
                     raise PDFTextExtractionNotAllowed(
                         f"Text extraction is not allowed: {self.filepath}"
                     )
-                pages = [x - 1 for x in self.pages]
+                # Resolve pages using the already-open document instead of
+                # opening it a second time via the .pages property.
+                if self._pages_cache is None:
+                    self._pages_cache = self._resolve_pages(self._pages_spec, pdf)
+                pages = [x - 1 for x in self._pages_cache]
                 tables = pdf.pages[pages].map(
                     partial(
                         self._parse_page, parser=parser, layout_kwargs=layout_kwargs
