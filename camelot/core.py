@@ -942,31 +942,45 @@ class Table:
     def to_json(self, path, **kwargs):
         """Write Table(s) to a JSON file.
 
-        For kwargs, check :meth:`pandas.DataFrame.to_json`.
+        For kwargs, check :meth:`pandas.DataFrame.to_json`. The
+        optional ``mode`` kwarg (``"w"`` to overwrite, ``"a"`` to
+        append) is consumed by the file-open call; the rest are
+        forwarded to ``DataFrame.to_json`` (#317).
 
         Parameters
         ----------
         path : str
             Output filepath.
+        mode : str, optional (default: 'w')
+            File open mode. Pass ``"a"`` to append to an existing file
+            rather than overwrite it.
 
         """
+        mode = kwargs.pop("mode", "w")
         kw = {"orient": "records"}
         kw.update(kwargs)
         json_string = self.df.to_json(**kw)
-        with open(path, "w") as f:
+        with open(path, mode) as f:
             f.write(json_string)
 
     def to_excel(self, path, **kwargs):
         """Write Table(s) to an Excel file.
 
-        For kwargs, check :meth:`pandas.DataFrame.to_excel`.
+        For kwargs, check :meth:`pandas.DataFrame.to_excel`. The
+        optional ``mode`` kwarg is forwarded to
+        :class:`pandas.ExcelWriter` (``"w"`` to overwrite, ``"a"`` to
+        append a new sheet to an existing workbook) — see #317.
 
         Parameters
         ----------
         path : str
             Output filepath.
+        mode : str, optional (default: 'w')
+            ExcelWriter open mode. Use ``"a"`` to add a new sheet to
+            an existing workbook (requires openpyxl).
 
         """
+        mode = kwargs.pop("mode", "w")
         # Mirror to_csv defaults: suppress pandas' auto-generated integer
         # row index and column header. Camelot's DataFrame uses positional
         # indices (0, 1, 2, …) for rows and columns, which leak into the
@@ -975,37 +989,50 @@ class Table:
         kw = {"encoding": "utf-8", "index": False, "header": False}
         sheet_name = f"page-{self.page}-table-{self.order}"
         kw.update(kwargs)
-        writer = pd.ExcelWriter(path)
+        writer = pd.ExcelWriter(path, mode=mode)
         self.df.to_excel(writer, sheet_name=sheet_name, **kw)
 
     def to_html(self, path, **kwargs):
         """Write Table(s) to an HTML file.
 
-        For kwargs, check :meth:`pandas.DataFrame.to_html`.
+        For kwargs, check :meth:`pandas.DataFrame.to_html`. The
+        optional ``mode`` kwarg is consumed by the file-open call
+        (#317).
 
         Parameters
         ----------
         path : str
             Output filepath.
+        mode : str, optional (default: 'w')
+            File open mode. Pass ``"a"`` to append to an existing file
+            rather than overwrite it.
 
         """
+        mode = kwargs.pop("mode", "w")
         html_string = self.df.to_html(**kwargs)
-        with open(path, "w", encoding="utf-8") as f:
+        with open(path, mode, encoding="utf-8") as f:
             f.write(html_string)
 
     def to_markdown(self, path, **kwargs):
         """Write Table(s) to a Markdown file.
 
-        For kwargs, check :meth:`pandas.DataFrame.to_markdown`.
+        For kwargs, check :meth:`pandas.DataFrame.to_markdown`. The
+        optional ``mode`` kwarg is consumed by the file-open call —
+        passing ``mode="a"`` appends every successive call to the
+        same file rather than overwriting (#317).
 
         Parameters
         ----------
         path : str
             Output filepath.
+        mode : str, optional (default: 'w')
+            File open mode. Pass ``"a"`` to append to an existing file
+            rather than overwrite it.
 
         """
+        mode = kwargs.pop("mode", "w")
         md_string = self.df.to_markdown(**kwargs)
-        with open(path, "w", encoding="utf-8") as f:
+        with open(path, mode, encoding="utf-8") as f:
             f.write(md_string)
 
     def to_sqlite(self, path, **kwargs):
