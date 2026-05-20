@@ -1,12 +1,70 @@
 """IO related functions to Read the PDF and returns extracted tables."""
 
+import os
 import warnings
 from pathlib import Path
 from typing import Union
 
 from .handlers import PDFHandler
+from .utils import TemporaryDirectory
 from .utils import remove_extra
 from .utils import validate_input
+
+# Minimum vertical + horizontal segment count for the auto-flavor heuristic
+# to call a page "ruled". Two lines per axis catches even tiny ruled tables
+# (a 2-row 2-col grid produces 3 horizontal + 3 vertical lines including
+# borders) while keeping borderless pages with one stray underline accent
+# from being mis-classified.
+_AUTO_FLAVOR_LINE_THRESHOLD = 2
+
+
+def _detect_flavor(filepath, password=None):
+    """Pick the most appropriate flavor for a PDF.
+
+    Renders the first page, thresholds it, and counts ruled horizontal and
+    vertical line segments. Used when the caller passes ``flavor="auto"``.
+
+    Returns
+    -------
+    str
+        Either ``"lattice"`` (enough ruled lines on the rendered page) or
+        ``"network"`` (else). ``"network"`` is also the fallback when
+        rendering itself fails (e.g. unreadable PDF, missing backend
+        dependencies) — the assumption is that giving the text-based parser
+        a chance is more useful than raising before parsing starts.
+    """
+    # Local imports keep \`camelot.read_pdf\` import-time cheap — cv2/playa
+    # imports already weigh in for the parsers; deferring these for the
+    # default \`flavor="lattice"\` path costs nothing.
+    from .backends import ImageConversionBackend
+    from .image_processing import adaptive_threshold
+    from .image_processing import find_lines
+
+    try:
+        backend = ImageConversionBackend()
+        with TemporaryDirectory() as tmpdir:
+            png_path = os.path.join(tmpdir, "auto_flavor_probe.png")
+            backend.convert(str(filepath), png_path, resolution=300, page=1)
+            if not os.path.exists(png_path):
+                return "network"
+            _, threshold = adaptive_threshold(png_path, process_background=False)
+            # Use the Lattice default line_scale (15) — picking 40 here
+            # excludes legitimate small/medium ruled tables. The same
+            # value the lattice parser itself uses by default.
+            _, v_segments = find_lines(threshold, direction="vertical", line_scale=15)
+            _, h_segments = find_lines(threshold, direction="horizontal", line_scale=15)
+    except Exception:
+        # Any failure on the probe (no usable backend, encrypted page, broken
+        # PDF, OpenCV import surprise) is *not* fatal — the user asked us to
+        # pick, we pick the more forgiving option and let the parser report
+        # the real error if any.
+        return "network"
+
+    has_grid = (
+        len(v_segments) >= _AUTO_FLAVOR_LINE_THRESHOLD
+        and len(h_segments) >= _AUTO_FLAVOR_LINE_THRESHOLD
+    )
+    return "lattice" if has_grid else "network"
 
 
 def read_pdf(
@@ -37,8 +95,16 @@ def read_pdf(
     password : str, optional (default: None)
         Password for decryption.
     flavor : str (default: 'lattice')
-        The parsing method to use ('lattice', 'stream', 'network' or 'hybrid').
-        Lattice is used by default.
+        The parsing method to use. Valid values:
+
+        - ``'lattice'`` (default): line-ruled tables.
+        - ``'stream'``: borderless tables with whitespace-separated columns.
+        - ``'network'``: borderless tables via text-edge alignment connectivity.
+        - ``'hybrid'``: combines layout- and image-based analysis.
+        - ``'auto'``: render the first requested page, count ruled
+          horizontal/vertical lines, and pick ``lattice`` when both axes
+          show at least 2 segments; pick ``network`` otherwise. A
+          ``UserWarning`` is emitted telling you which flavor was selected.
     suppress_stdout : bool, optional (default: False)
         Print all logs and warnings.
     parallel : bool, optional (default: False)
@@ -122,18 +188,25 @@ def read_pdf(
     """
     if layout_kwargs is None:
         layout_kwargs = {}
-    if flavor not in ["lattice", "stream", "network", "hybrid"]:
+    if flavor not in ["lattice", "stream", "network", "hybrid", "auto"]:
         raise NotImplementedError(
             "Unknown flavor specified."
-            " Use either 'lattice', 'stream', 'network' or 'hybrid'"
+            " Use either 'lattice', 'stream', 'network', 'hybrid' or 'auto'"
         )
 
     with warnings.catch_warnings():
         if suppress_stdout:
             warnings.simplefilter("ignore")
 
-        validate_input(kwargs, flavor=flavor)
         with PDFHandler(filepath, pages=pages, password=password, debug=debug) as p:
+            if flavor == "auto":
+                flavor = _detect_flavor(p.filepath, password=p.password or None)
+                warnings.warn(
+                    f"camelot.read_pdf: auto-detected flavor={flavor!r}",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            validate_input(kwargs, flavor=flavor)
             kwargs = remove_extra(kwargs, flavor=flavor)
             tables = p.parse(
                 flavor=flavor,
