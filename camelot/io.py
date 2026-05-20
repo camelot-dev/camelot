@@ -243,10 +243,16 @@ def read_pdf(
         For more information, refer `OpenCV's adaptiveThreshold
         <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
     iterations* : int, optional (default: 0)
-        Number of times for erosion/dilation is applied.
+        Number of dilation passes applied to close small gaps in the
+        line mask.
 
         For more information, refer `OpenCV's dilate
         <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
+    erode_iterations* : int, optional (default: 0)
+        Number of erosion passes applied **after** dilation. Set equal
+        to ``iterations`` for a morphological closing — bridges gaps
+        in ruled lines without thickening the mask overall (which
+        avoids the spurious extra-row artefact reported in #363). (#363)
     backend* : str, optional by default "pdfium"
         The backend to use for converting the PDF to an image so it can be processed by OpenCV.
     use_fallback* : bool, optional

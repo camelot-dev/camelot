@@ -72,9 +72,16 @@ class Lattice(BaseParser):
         For more information, refer `OpenCV's adaptiveThreshold
         <https://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold>`_.
     iterations : int, optional (default: 0)
-        Number of times for erosion/dilation is applied.
+        Number of dilation passes applied to close small gaps in the
+        line mask (useful when a table's ruled lines don't quite meet
+        at corners).
 
         For more information, refer `OpenCV's dilate <https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html#dilate>`_.
+    erode_iterations : int, optional (default: 0)
+        Number of erosion passes applied **after** dilation. Set equal
+        to ``iterations`` for a morphological closing (bridges gaps
+        without thickening the mask, which avoids spurious extra
+        rows above/below the detected table). See #363.
     backend* : str, optional by default "pdfium"
         The backend to use for converting the PDF to an image so it can be processed by OpenCV.
     use_fallback* : bool, optional
@@ -100,6 +107,7 @@ class Lattice(BaseParser):
         threshold_blocksize=15,
         threshold_constant=-2,
         iterations=0,
+        erode_iterations=0,
         resolution=300,
         use_fallback=True,
         backend="pdfium",
@@ -120,6 +128,7 @@ class Lattice(BaseParser):
         self.threshold_blocksize = threshold_blocksize
         self.threshold_constant = threshold_constant
         self.iterations = iterations
+        self.erode_iterations = erode_iterations
         self.resolution = resolution
         self.use_fallback = use_fallback
         self.icb = ImageConversionBackend(use_fallback=use_fallback, backend=backend)
@@ -258,6 +267,7 @@ class Lattice(BaseParser):
                 direction="vertical",
                 line_scale=self.line_scale,
                 iterations=self.iterations,
+                erode_iterations=self.erode_iterations,
             )
             horizontal_mask, horizontal_segments = find_lines(
                 self.threshold,
@@ -265,6 +275,7 @@ class Lattice(BaseParser):
                 direction="horizontal",
                 line_scale=self.line_scale,
                 iterations=self.iterations,
+                erode_iterations=self.erode_iterations,
             )
 
             contours = find_contours(vertical_mask, horizontal_mask)
@@ -275,12 +286,14 @@ class Lattice(BaseParser):
                 direction="vertical",
                 line_scale=self.line_scale,
                 iterations=self.iterations,
+                erode_iterations=self.erode_iterations,
             )
             horizontal_mask, horizontal_segments = find_lines(
                 self.threshold,
                 direction="horizontal",
                 line_scale=self.line_scale,
                 iterations=self.iterations,
+                erode_iterations=self.erode_iterations,
             )
 
             areas = scale_areas(self.table_areas)
