@@ -13,6 +13,7 @@ from ..utils import compute_accuracy
 from ..utils import compute_whitespace
 from ..utils import get_table_index
 from ..utils import text_in_bbox
+from ..utils import text_replace
 
 logger = logging.getLogger("camelot")
 
@@ -28,6 +29,7 @@ class BaseParser:
         copy_text=None,
         split_text=False,
         strip_text="",
+        replace_text=None,
         shift_text=None,
         flag_size=False,
         debug=False,
@@ -41,6 +43,8 @@ class BaseParser:
         self.copy_text = copy_text
         self.split_text = split_text
         self.strip_text = strip_text
+        # See `read_pdf` docstring + #482. None / empty dict = no-op.
+        self.replace_text = replace_text or None
         self.shift_text = shift_text
 
         self.flag_size = flag_size
@@ -203,6 +207,14 @@ class BaseParser:
                             table, indices, shift_text=self.shift_text
                         )
                         for r_idx, c_idx, text in indices:
+                            # replace_text (#482) is applied after the
+                            # split/strip/flag-size pipeline, at the
+                            # last point before the text reaches the
+                            # output cell. Order: strip first (already
+                            # done upstream in get_table_index), then
+                            # replace, then assign.
+                            if self.replace_text:
+                                text = text_replace(text, self.replace_text)
                             table.cells[r_idx][c_idx].text = text
         return pos_errors
 
@@ -303,6 +315,7 @@ class TextBaseParser(BaseParser):
         flag_size=False,
         split_text=False,
         strip_text="",
+        replace_text=None,
         edge_tol=50,
         row_tol=2,
         column_tol=0,
@@ -316,6 +329,7 @@ class TextBaseParser(BaseParser):
             table_areas=table_areas,
             split_text=split_text,
             strip_text=strip_text,
+            replace_text=replace_text,
             flag_size=flag_size,
             debug=debug,
         )

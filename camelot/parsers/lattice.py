@@ -102,6 +102,7 @@ class Lattice(BaseParser):
         split_text=False,
         flag_size=False,
         strip_text="",
+        replace_text=None,
         line_tol=2,
         joint_tol=2,
         threshold_blocksize=15,
@@ -113,7 +114,7 @@ class Lattice(BaseParser):
         backend="pdfium",
         **kwargs,
     ):
-        super().__init__("lattice")
+        super().__init__("lattice", replace_text=replace_text)
         self.table_regions = table_regions
         self.table_areas = table_areas
         self.process_background = process_background

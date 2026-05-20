@@ -51,6 +51,7 @@ class Hybrid(BaseParser):
         flag_size=False,
         split_text=False,
         strip_text="",
+        replace_text=None,
         edge_tol=None,
         row_tol=2,
         column_tol=0,
@@ -64,6 +65,7 @@ class Hybrid(BaseParser):
             flag_size=flag_size,
             split_text=split_text,
             strip_text=strip_text,
+            replace_text=replace_text,
             debug=debug,
         )
         self.columns = columns  # Columns settings impacts the hybrid table
@@ -74,6 +76,7 @@ class Hybrid(BaseParser):
             flag_size=flag_size,
             split_text=split_text,
             strip_text=strip_text,
+            replace_text=replace_text,
             edge_tol=edge_tol,
             row_tol=row_tol,
             column_tol=column_tol,
@@ -85,6 +88,7 @@ class Hybrid(BaseParser):
             flag_size=flag_size,
             split_text=split_text,
             strip_text=strip_text,
+            replace_text=replace_text,
             edge_tol=edge_tol,
             row_tol=row_tol,
             column_tol=column_tol,
