@@ -1,6 +1,6 @@
 """copy_text correctly fills cells spanned in both directions (#349)."""
 
-from camelot.core import Cell, Table
+from camelot.core import Table
 
 
 def _build_table(width=3, height=3):
