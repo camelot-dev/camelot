@@ -4,8 +4,17 @@ from camelot.core import Table
 
 
 def _build_table(width=3, height=3):
-    """Make a width x height grid of cells with neutral default flags."""
-    table = Table([0, 100, 200, 300][: width + 1], [300, 200, 100, 0][: height + 1])
+    """Make a width x height grid of cells with neutral default flags.
+
+    ``Table.__init__`` expects ``cols`` / ``rows`` as lists of
+    (start, end) tuples, not flat coordinate lists — build them
+    explicitly so ``Cell(c[0], r[1], c[1], r[0])`` works.
+    """
+    xs = [0, 100, 200, 300][: width + 1]
+    ys = [300, 200, 100, 0][: height + 1]
+    cols = list(zip(xs[:-1], xs[1:]))
+    rows = list(zip(ys[:-1], ys[1:]))
+    table = Table(cols, rows)
     # Cells already initialised by Table; explicitly set every flag False.
     for row in table.cells:
         for cell in row:
