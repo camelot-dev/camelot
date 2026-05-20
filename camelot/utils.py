@@ -1167,7 +1167,7 @@ def _process_horizontal_cut(
 
 
 def _reading_order_chars(objs):
-    """Yield ``LTChar`` objects in horizontal reading order, with synthesised newlines.
+    r"""Yield ``LTChar`` objects in horizontal reading order, with synthesised newlines.
 
     A horizontal-direction LTTextLine's ``_objs`` arrive in the order the
     PDF's text-show operators emit them — which is whatever the PDF
@@ -1180,7 +1180,7 @@ def _reading_order_chars(objs):
 
     Restore reading order by sorting LTChar objects descending-y,
     ascending-x. Detect line breaks by a y-jump larger than half the
-    character height, and emit a synthetic ``LTAnno("\\n")`` there so
+    character height, and emit a synthetic ``LTAnno("\n")`` there so
     the caller's grouping still produces a multi-line cell text.
 
     Falls back to the original order when no LTChars are present
