@@ -667,7 +667,7 @@ def text_in_bbox(bbox, text):
     discard_any = ((frac > 0.8) & b_longer).any(axis=1)
     keep = ~discard_any
 
-    return [t for t, k in zip(t_bbox, keep.tolist()) if k]
+    return [t for t, k in zip(t_bbox, keep.tolist(), strict=True) if k]
 
 
 def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
