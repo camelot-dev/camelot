@@ -13,47 +13,59 @@ Does Camelot work with image-based PDFs?
 How to reduce memory usage for long PDFs?
 -----------------------------------------
 
-During table extraction from long PDF documents, RAM usage can grow significantly.
+When extracting tables from a long PDF in one call, RAM grows roughly
+with the number of pages held in memory at once: every page's text
+objects, the per-parser caches, and the resulting :class:`TableList` all
+live until ``read_pdf`` returns.
 
-A simple workaround is to divide the extraction into chunks, and save extracted data to disk at the end of every chunk.
-
-For more details, check out this code snippet from `@anakin87 <https://github.com/anakin87>`_:
-
-::
+The simplest mitigation is to process the document in page-range
+chunks, write each chunk's tables to disk, and let Python free the
+intermediate state between calls. The pattern below uses only the
+public API and works on any range of pages — concept originally from
+`#90 <https://github.com/camelot-dev/camelot/pull/90>`_ by
+`@nightwarriorftw <https://github.com/nightwarriorftw>`_ and
+`@anakin87 <https://github.com/anakin87>`_::
 
     import camelot
 
 
-    def chunks(l, n):
-        """Yield successive n-sized chunks from l."""
-        for i in range(0, len(l), n):
-            yield l[i : i + n]
+    def extract_in_chunks(
+        filepath,
+        total_pages,
+        chunk_size=50,
+        export_dir=".",
+        **read_pdf_kwargs,
+    ):
+        """Extract tables a chunk of pages at a time, freeing RAM between chunks.
 
-
-    def extract_tables(filepath, pages, chunks=50, export_path=".", params={}):
-        """
-        Divide the extraction work into n chunks. At the end of every chunk,
-        save data on disk and free RAM.
-
+        Parameters
+        ----------
         filepath : str
-            Filepath or URL of the PDF file.
-        pages : str, optional (default: '1')
-            Comma-separated page numbers.
-            Example: '1,3,4' or '1,4-end' or 'all'.
+            Path to the PDF file.
+        total_pages : int
+            Total page count of the PDF. Get it from any PDF tool, e.g.
+            ``len(playa.parse(open(filepath, "rb").read()).pages)``.
+        chunk_size : int, optional (default: 50)
+            How many pages to process per ``read_pdf`` call.
+        export_dir : str, optional (default: ".")
+            Directory in which per-chunk CSVs are written.
+        **read_pdf_kwargs
+            Any other keyword arguments are forwarded to
+            :meth:`camelot.read_pdf` (e.g. ``flavor="stream"``,
+            ``table_areas=...``).
         """
+        for start in range(1, total_pages + 1, chunk_size):
+            end = min(start + chunk_size - 1, total_pages)
+            tables = camelot.read_pdf(
+                filepath, pages=f"{start}-{end}", **read_pdf_kwargs
+            )
+            tables.export(f"{export_dir}/tables_{start}-{end}.csv")
 
-        # get list of pages from camelot.handlers.PDFHandler
-        handler = camelot.handlers.PDFHandler(filepath)
-        page_list = handler._get_pages(filepath, pages=pages)
-
-        # chunk pages list
-        page_chunks = list(chunks(page_list, chunks))
-
-        # extraction and export
-        for chunk in page_chunks:
-            pages_string = str(chunk).replace("[", "").replace("]", "")
-            tables = camelot.read_pdf(filepath, pages=pages_string, **params)
-            tables.export(f"{export_path}/tables.csv")
+Each iteration's :class:`TableList` becomes unreachable after the
+``tables.export(...)`` call, so the per-chunk PDF parse state is
+released before the next chunk runs. For very long documents, combine
+this with ``flavor="stream"`` or ``flavor="network"`` (cheaper than
+Lattice's image conversion) where the table layouts allow it.
 
 How can I supply my own image conversion backend to Lattice?
 ------------------------------------------------------------
