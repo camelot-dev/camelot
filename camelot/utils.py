@@ -1189,30 +1189,47 @@ def get_table_index(
         |       |
         +-------+
     """
-    r_idx, c_idx = [-1] * 2
-    for r in range(len(table.rows)):  # noqa
-        if (t.y0 + t.y1) / 2.0 < table.rows[r][0] and (t.y0 + t.y1) / 2.0 > table.rows[
-            r
-        ][1]:
-            lt_col_overlap = []
-            for c in table.cols:
-                if c[0] <= t.x1 and c[1] >= t.x0:
-                    left = t.x0 if c[0] <= t.x0 else c[0]
-                    right = t.x1 if c[1] >= t.x1 else c[1]
-                    lt_col_overlap.append(abs(left - right) / abs(c[0] - c[1]))
-                else:
-                    lt_col_overlap.append(-1)
-            if len(list(filter(lambda x: x != -1, lt_col_overlap))) == 0:
-                text = t.get_text().strip("\n")
-                text_range = (t.x0, t.x1)
-                col_range = (table.cols[0][0], table.cols[-1][1])
-                warnings.warn(
-                    f"{text} {text_range} does not lie in column range {col_range}",
-                    stacklevel=1,
-                )
-            r_idx = r
-            c_idx = lt_col_overlap.index(max(lt_col_overlap))
+    # Cache the textline mid-Y once; the old code recomputed it twice per row
+    # iteration. table.rows is sorted descending by y_top, so we can also
+    # stop as soon as we walk past the target row band. Track the best
+    # column overlap inline instead of building a list and doing
+    # `index(max(...))` (two passes). See PERF 2 in the perf report.
+    y_mid = (t.y0 + t.y1) / 2.0
+    t_x0, t_x1 = t.x0, t.x1
+    rows = table.rows
+    cols = table.cols
+
+    r_idx, c_idx = -1, -1
+    for r, (y_top, y_bot) in enumerate(rows):
+        if y_mid >= y_top:
+            # Past the row band (rows are descending by y_top).
             break
+        if y_mid <= y_bot:
+            continue
+        # Row hit — compute per-column overlap, tracking best inline.
+        best_overlap = -1.0
+        best_c = -1
+        any_hit = False
+        for cidx, (c_left, c_right) in enumerate(cols):
+            if c_left <= t_x1 and c_right >= t_x0:
+                left = t_x0 if c_left <= t_x0 else c_left
+                right = t_x1 if c_right >= t_x1 else c_right
+                ov = abs(left - right) / abs(c_left - c_right)
+                any_hit = True
+                if ov > best_overlap:
+                    best_overlap = ov
+                    best_c = cidx
+        if not any_hit:
+            text = t.get_text().strip("\n")
+            text_range = (t_x0, t_x1)
+            col_range = (cols[0][0], cols[-1][1])
+            warnings.warn(
+                f"{text} {text_range} does not lie in column range {col_range}",
+                stacklevel=1,
+            )
+        r_idx = r
+        c_idx = best_c
+        break
     if r_idx == -1:
         return [], 1.0  # Return early if no valid row is found
 
@@ -1305,7 +1322,7 @@ def compute_accuracy(error_weights):
 
 
 def compute_whitespace(d: list[list[str]]) -> float:
-    """Calculates the percentage of empty strings in a two-dimensional list.
+    """Calculate the percentage of empty strings in a two-dimensional list.
 
     Parameters
     ----------
@@ -1317,29 +1334,17 @@ def compute_whitespace(d: list[list[str]]) -> float:
     whitespace : float
         Percentage of empty cells.
     """
-    # Initialize the count of empty strings
-    whitespace = 0
-    total_elements = 0  # Keep track of the total number of elements
-
-    # Iterate through each row in the 2D list
-    for i in d:
-        # Only process if the row is a list
-        if isinstance(i, list):
-            total_elements += len(i)  # Count the number of elements in this row
-            # Iterate through each element in the row
-            for j in i:
-                # Check if the element is an empty string after stripping whitespace
-                if isinstance(j, str) and j.strip() == "":
-                    whitespace += 1  # Increment the count of empty strings
-
-    # Avoid division by zero
+    # Single pass via builtin sum() + generator expressions: same result,
+    # ~10% faster than the old nested-loop accumulator and noticeably easier
+    # to read. See PERF 3 in the perf report.
+    rows = [row for row in d if isinstance(row, list)]
+    total_elements = sum(len(row) for row in rows)
     if total_elements == 0:
-        return 0.0  # If there are no elements, return 0%
-
-    # Calculate the percentage of empty strings
-    whitespace_percentage = 100 * (whitespace / total_elements)
-
-    return whitespace_percentage
+        return 0.0
+    whitespace = sum(
+        1 for row in rows for cell in row if isinstance(cell, str) and not cell.strip()
+    )
+    return 100 * (whitespace / total_elements)
 
 
 def get_page_layout(
