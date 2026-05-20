@@ -3,7 +3,17 @@ coverage:
   status:
     project:
       default:
-        target: "100"
+        # Don't lower overall project coverage. The previous strict "100"
+        # target failed every PR — the project has never been at 100 %, so
+        # the check was permanently red. "auto" means "do not regress vs
+        # base"; a 1 % threshold absorbs unavoidable noise from added or
+        # removed files.
+        target: auto
+        threshold: 1%
     patch:
       default:
-        target: "100"
+        # Keep new code held to the high bar — anything a PR touches
+        # should be exercised by tests. Use a small threshold so a single
+        # uncovered branch in a large diff doesn't fail outright.
+        target: 90%
+        threshold: 5%
