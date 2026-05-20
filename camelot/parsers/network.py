@@ -256,7 +256,8 @@ def search_header_from_body_bbox(
             merged_zones = _merge_zones(zones)
 
             max_spread = max(
-                column_spread(zone[0], zone[1], col_anchors) for zone in merged_zones
+                (column_spread(zone[0], zone[1], col_anchors) for zone in merged_zones),
+                default=0,
             )
 
             # Accept textlines that cross columns boundaries, as long as they
@@ -526,6 +527,9 @@ class TextNetworks(TextAlignments):
             [x0, y0, x1, y1] or None if not enough textlines are found.
         """
         most_aligned_tl = self.most_connected_textline()
+        if most_aligned_tl is None:
+            # No connected textlines — nothing to grow a body bbox from.
+            return None
         max_h_gap, max_v_gap = gaps_hv
 
         parse_details_search: dict[str, Any] | None = None
