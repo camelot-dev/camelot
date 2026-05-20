@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import pytest
 from pandas.testing import assert_frame_equal
 
 import camelot
@@ -155,3 +156,47 @@ def test_network_no_infinite_execution(testdir):
     )
 
     assert len(tables) >= 1
+
+
+# Reported as https://github.com/camelot-dev/camelot/issues/585
+# Both tests are marked xfail(strict=False) until the gap-formula change
+# (#619 split 3/3) lands — they exercise the network parser path that
+# the gap-edge measurement is supposed to fix. When 3/3 merges, the
+# xfails will quietly flip to XPASS; remove the markers in that PR.
+@pytest.mark.xfail(
+    strict=False,
+    reason="Needs the gap-edge formula change planned in #619 split 3/3.",
+)
+def test_issue_585(testdir):
+    """Network flavor + explicit table_areas + columns should return >=1 table."""
+    filename = os.path.join(testdir, "multiple_tables.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="network",
+        table_areas=["100,700,500,100"],
+        columns=["150,200,250,300,350,400,450,500"],
+    )
+    assert len(tables) > 0
+
+
+@pytest.mark.xfail(
+    strict=False,
+    reason="Needs the gap-edge formula change planned in #619 split 3/3.",
+)
+def test_issue_585_network_flavor_with_table_areas(testdir):
+    """Network flavor on good_energy.pdf with explicit area should find exactly one table.
+
+    The reporter on #585 noted that the lattice flavor handled this
+    PDF correctly while network returned zero tables for the same
+    table_areas. This fixture pins the behaviour expected once the
+    network gap-formula correction lands.
+    """
+    filename = os.path.join(testdir, "good_energy.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="network",
+        table_areas=["46,213,558,180"],
+        columns=["92,159,262,357,454,534"],
+        split_text=True,
+    )
+    assert len(tables) == 1
