@@ -125,7 +125,7 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def __enter__(self) -> "PDFHandler":
+    def __enter__(self) -> PDFHandler:
         """Allow ``PDFHandler`` to be used as a context manager.
 
         On ``__exit__`` any temp file created by :func:`download_url` (when
