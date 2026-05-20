@@ -11,6 +11,7 @@ import shutil
 import string
 import tempfile
 import warnings
+from bisect import bisect_left
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
@@ -1198,49 +1199,99 @@ def get_table_index(  # noqa: C901  - cyclomatic complexity is inherent to the r
         |       |
         +-------+
     """
-    # Cache the textline mid-Y once; the old code recomputed it twice per row
-    # iteration. table.rows is sorted descending by y_top, so we can also
-    # stop as soon as we walk past the target row band. Track the best
-    # column overlap inline instead of building a list and doing
-    # `index(max(...))` (two passes). See PERF 2 in the perf report.
-    y_mid = (t.y0 + t.y1) / 2.0
-    t_x0, t_x1 = t.x0, t.x1
+    # Vectorised row/column search. ``table._rows_np`` and
+    # ``table._cols_np`` are built lazily on first access (see
+    # ``core.Table``) so they're available to any caller that needs an
+    # ndarray view of the table geometry, while the hot inner loop uses
+    # the companion ``-y_top`` Python list with :mod:`bisect` to find
+    # the row band in O(log rows) and a tight pre-computed loop over the
+    # columns for the per-column overlap.
+    #
+    # Rationale (see ``bench/bench_get_table_index.py``): at Camelot's
+    # table sizes (~tens of rows, ~tens of columns) the per-call dispatch
+    # overhead of ``np.searchsorted``, ``np.argmax`` etc. is several
+    # hundred ns — comparable to or larger than the actual work —
+    # whereas ``bisect.bisect_left`` is a pure-C builtin on a Python list
+    # with negligible per-call overhead. The numpy arrays remain the
+    # source of truth so callers downstream can lift the bulk-search
+    # work into NumPy when batching many textlines at once.
+    #
+    # Semantics match the previous Python-loop implementation bit-for-bit,
+    # including the "first index with the max overlap" tie-break and the
+    # ``c_idx = -1`` fallback when no column overlaps the textline. See
+    # PERF in the perf report.
+    y_mid = (t.y0 + t.y1) * 0.5
+    t_x0 = t.x0
+    t_x1 = t.x1
     rows = table.rows
     cols = table.cols
 
-    r_idx, c_idx = -1, -1
-    for r, (y_top, y_bot) in enumerate(rows):
-        if y_mid >= y_top:
-            # Past the row band (rows are descending by y_top).
-            break
-        if y_mid <= y_bot:
-            continue
-        # Row hit — compute per-column overlap, tracking best inline.
-        best_overlap = -1.0
-        best_c = -1
-        any_hit = False
-        for cidx, (c_left, c_right) in enumerate(cols):
-            if c_left <= t_x1 and c_right >= t_x0:
-                left = t_x0 if c_left <= t_x0 else c_left
-                right = t_x1 if c_right >= t_x1 else c_right
-                ov = abs(left - right) / abs(c_left - c_right)
-                any_hit = True
-                if ov > best_overlap:
-                    best_overlap = ov
-                    best_c = cidx
-        if not any_hit:
-            text = t.get_text().strip("\n")
-            text_range = (t_x0, t_x1)
-            col_range = (cols[0][0], cols[-1][1])
-            warnings.warn(
-                f"{text} {text_range} does not lie in column range {col_range}",
-                stacklevel=1,
-            )
-        r_idx = r
-        c_idx = best_c
-        break
-    if r_idx == -1:
-        return [], 1.0  # Return early if no valid row is found
+    # Direct attribute access is materially cheaper than the
+    # ``_rows_np``/``_cols_np`` property dance for the 100k-calls-per-page
+    # hot path. Populate on first call only.
+    neg_tops = table._neg_y_tops_list
+    if neg_tops is None:
+        table._build_search_caches()
+        neg_tops = table._neg_y_tops_list
+        if not neg_tops:
+            return [], 1.0
+
+    # Row band lookup. Rows are sorted descending by ``y_top``, so the
+    # previous Python loop ``break``s as soon as ``y_mid >= y_top``. That
+    # means only rows with ``y_top > y_mid`` (equivalently
+    # ``-y_top < -y_mid``) are candidates. ``bisect_left`` on the ascending
+    # ``-y_top`` list gives that candidate count in O(log n).
+    r_end = bisect_left(neg_tops, -y_mid)
+    if r_end == 0:
+        return [], 1.0  # textline mid-Y is at or above every row's top edge
+
+    # Among the ``[0, r_end)`` candidate rows the original loop returns
+    # the *first* one (in iteration order) whose ``y_bot < y_mid`` —
+    # critical for bit-identity when rows overlap. When the table was
+    # built by Camelot's parsers the rows are non-overlapping (verified
+    # in ``_build_search_caches``) and the hit is always ``r_end - 1``,
+    # so we shortcut. Synthetic inputs with overlapping rows fall through
+    # to the original ``for``-scan.
+    if table._rows_disjoint:
+        last = r_end - 1
+        if rows[last][1] < y_mid:
+            r_idx = last
+        else:
+            return [], 1.0
+    else:
+        r_idx = -1
+        for r in range(r_end):
+            if rows[r][1] < y_mid:
+                r_idx = r
+                break
+        if r_idx == -1:
+            return [], 1.0
+
+    # Per-column overlap. The width of each column is pre-computed once
+    # at Table construction (cached on ``table._col_widths_list``), so the
+    # hot loop is a single subtraction + division per column. Tie-break:
+    # first index with the maximum overlap. ``best_c`` doubles as the
+    # "any column hit" flag — it stays ``-1`` iff no column overlapped.
+    widths = table._col_widths_list
+    best_overlap = -1.0
+    best_c = -1
+    for cidx, (c_left, c_right) in enumerate(cols):
+        if c_left <= t_x1 and c_right >= t_x0:
+            left = t_x0 if c_left <= t_x0 else c_left
+            right = t_x1 if c_right >= t_x1 else c_right
+            ov = abs(left - right) / widths[cidx]
+            if ov > best_overlap:
+                best_overlap = ov
+                best_c = cidx
+    if best_c == -1:
+        text = t.get_text().strip("\n")
+        text_range = (t_x0, t_x1)
+        col_range = (cols[0][0], cols[-1][1])
+        warnings.warn(
+            f"{text} {text_range} does not lie in column range {col_range}",
+            stacklevel=1,
+        )
+    c_idx = best_c
 
     error = calculate_assignment_error(t, table, r_idx, c_idx)
 

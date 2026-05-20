@@ -82,3 +82,96 @@ def test_text_in_bbox_filters_and_discards_overlaps():
 
     # Empty input — empty output, no crash.
     assert text_in_bbox((0, 0, 100, 100), []) == []
+
+
+# --- Coverage for #733: get_table_index NumPy / bisect refactor -------------
+
+
+class _TextlineStub:
+    """Minimal stand-in for a PDFMiner LTTextLine sufficient for get_table_index."""
+
+    __slots__ = ("x0", "y0", "x1", "y1", "_objs", "_text")
+
+    def __init__(self, x0, y0, x1, y1, text="x"):
+        self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
+        self._objs = []
+        self._text = text
+
+    def get_text(self):
+        return self._text + "\n"
+
+
+def _make_textline(x0, y0, x1, y1, text="x"):
+    """Build a _TextlineStub — kept as a thin helper for call-site readability."""
+    return _TextlineStub(x0, y0, x1, y1, text)
+
+
+def test_get_table_index_lazy_caches():
+    """Table search caches are populated on first get_table_index call only."""
+    from camelot.core import Table
+    from camelot.utils import get_table_index
+
+    rows = [(100.0, 90.0), (90.0, 80.0), (80.0, 70.0)]
+    cols = [(0.0, 50.0), (50.0, 100.0)]
+    table = Table(cols, rows)
+    # caches empty initially
+    assert table._rows_np_cache is None
+    assert table._cols_np_cache is None
+    assert table._neg_y_tops_list is None
+    assert table._col_widths_list is None
+
+    # Trigger the lookup
+    textline = _make_textline(10.0, 84.0, 40.0, 86.0)
+    indices, _err = get_table_index(table, textline, direction="horizontal")
+    # exactly one (r, c, text) tuple
+    assert len(indices) == 1
+    r_idx, c_idx, text = indices[0]
+    assert r_idx == 1  # row band (90, 80) contains y_mid=85
+    assert c_idx == 0  # x_mid=25 is in column (0, 50)
+
+    # caches now populated
+    assert table._rows_np_cache is not None
+    assert table._cols_np_cache is not None
+    assert table._neg_y_tops_list == [-100.0, -90.0, -80.0]
+    assert table._col_widths_list == [50.0, 50.0]
+    assert table._rows_disjoint is True  # the disjoint fast-path triggered
+
+
+def test_get_table_index_rows_overlap_fallback():
+    """Overlapping rows force the linear-scan fallback (still bit-identical)."""
+    from camelot.core import Table
+    from camelot.utils import get_table_index
+
+    # Deliberately overlap: y_bot of row 0 (85) < y_top of row 1 (90), so the
+    # disjoint invariant rows[i].y_bot >= rows[i+1].y_top fails.
+    rows = [(100.0, 85.0), (90.0, 75.0)]
+    cols = [(0.0, 100.0)]
+    table = Table(cols, rows)
+    # Build caches and confirm we did NOT mark the rows disjoint
+    table._build_search_caches()
+    assert table._rows_disjoint is False
+
+    # Textline mid-Y = 87.5 lies in both rows; the original code returns the
+    # *first* matching row (index 0). The fallback path must do the same.
+    textline = _make_textline(10.0, 86.0, 40.0, 89.0)
+    indices, _err = get_table_index(table, textline, direction="horizontal")
+    assert len(indices) == 1
+    r_idx, c_idx, _text = indices[0]
+    assert r_idx == 0
+    assert c_idx == 0
+
+
+def test_get_table_index_text_outside_any_row():
+    """Textline whose mid-Y is outside every row band returns (empty, 1.0)."""
+    from camelot.core import Table
+    from camelot.utils import get_table_index
+
+    rows = [(100.0, 90.0), (90.0, 80.0)]
+    cols = [(0.0, 100.0)]
+    table = Table(cols, rows)
+
+    # mid-Y = 50 is below every row band
+    textline = _make_textline(10.0, 49.0, 40.0, 51.0)
+    indices, err = get_table_index(table, textline, direction="horizontal")
+    assert indices == []
+    assert err == 1.0

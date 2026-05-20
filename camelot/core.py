@@ -14,6 +14,7 @@ from typing import Iterable
 from typing import Iterator
 
 import cv2
+import numpy as np
 import pandas as pd
 
 if sys.version_info >= (3, 11):
@@ -556,6 +557,79 @@ class Table:
 
         self._image = None
         self._image_path = None  # Temporary file to hold an image of the pdf
+
+        # NumPy / Python-list mirrors of ``rows`` and ``cols`` used by the
+        # hot inner loop in :func:`camelot.utils.get_table_index`. Built
+        # lazily by :meth:`_build_search_caches` on first call so that
+        # constructing a ``Table`` that is never searched (e.g. in
+        # unit-test fixtures) pays nothing for these. All are private and
+        # the public list-of-tuples API (``table.rows[r][0]``) keeps
+        # working unchanged. See PERF in the perf report.
+        self._rows_np_cache = None
+        self._cols_np_cache = None
+        # Ascending ``-y_top`` Python list. ``bisect.bisect_left`` on a
+        # plain Python list is markedly faster than ``np.searchsorted``
+        # for the per-call (scalar) lookup at the table sizes Camelot
+        # typically deals with (tens of rows).
+        self._neg_y_tops_list = None
+        # Pre-computed column widths (``|x_left - x_right|``) as a Python
+        # list, used by the column-overlap loop in ``get_table_index``.
+        self._col_widths_list = None
+        # ``True`` once the row partition has been verified to be
+        # non-overlapping (``rows[i].y_bot >= rows[i+1].y_top``) — the
+        # invariant Camelot's parsers maintain. ``False`` until the cache
+        # has been built or when the rows really do overlap.
+        self._rows_disjoint = False
+
+    def _build_search_caches(self):
+        """Populate the search caches used by ``get_table_index``.
+
+        Idempotent: callers may invoke this every call (it short-circuits
+        on the first attribute that is already populated). The NumPy
+        arrays are part of the private interface and kept available so
+        future call sites can do their own bulk processing.
+        """
+        if self._rows_np_cache is None:
+            rows = self.rows
+            self._rows_np_cache = np.asarray(rows, dtype=np.float64).reshape(-1, 2)
+            # ``-y_top`` is ascending because ``rows`` is descending by
+            # ``y_top``; that's what ``bisect.bisect_left`` needs.
+            self._neg_y_tops_list = [-r[0] for r in rows]
+            # Are the rows non-overlapping? When they are (the only case
+            # produced by Camelot's parsers), ``get_table_index`` can use
+            # a constant-time row lookup; otherwise it falls back to the
+            # full linear scan to preserve bit-identical semantics with
+            # the previous Python-loop implementation.
+            self._rows_disjoint = all(
+                rows[i][1] >= rows[i + 1][0] for i in range(len(rows) - 1)
+            )
+        if self._cols_np_cache is None:
+            cols = self.cols
+            self._cols_np_cache = np.asarray(cols, dtype=np.float64).reshape(-1, 2)
+            self._col_widths_list = [abs(c[0] - c[1]) for c in cols]
+
+    @property
+    def _rows_np(self):
+        """Return rows as an ``(n_rows, 2)`` float64 NumPy array.
+
+        Lazily constructed on first access and cached. Each row is
+        ``(y_top, y_bot)`` and rows preserve their original descending
+        ``y_top`` order.
+        """
+        if self._rows_np_cache is None:
+            self._build_search_caches()
+        return self._rows_np_cache
+
+    @property
+    def _cols_np(self):
+        """Return cols as an ``(n_cols, 2)`` float64 NumPy array.
+
+        Lazily constructed on first access and cached. Each column is
+        ``(x_left, x_right)``.
+        """
+        if self._cols_np_cache is None:
+            self._build_search_caches()
+        return self._cols_np_cache
 
     def __repr__(self):
         """Return a string representation of the class .
