@@ -669,3 +669,72 @@ If you face issues with ``pdfium``, ``ghostscript`` and ``poppler``, you can sup
     >>>         pass
     >>>
     >>> tables = camelot.read_pdf(filename, backend=ConversionBackend())
+
+Working with image-based / scanned PDFs
+---------------------------------------
+
+Camelot extracts tables by reading the PDF's text operators — fonts,
+positions, kerning. For PDFs that are **image-only** (scanned pages
+saved to PDF, faxed forms, photos exported to PDF) there is no text
+to read; every "table" is just pixels and Camelot will report zero
+tables found.
+
+The recommended workflow is to **add a text layer first, then run
+Camelot**. `OCRmyPDF <https://ocrmypdf.readthedocs.io/>`_ is a
+mature, dedicated tool for exactly this — it wraps Tesseract OCR and
+overlays the recognised text on the original page images, so the
+output PDF reads exactly like the input but now has selectable,
+searchable, extractable text underneath.
+
+Install once:
+
+.. code-block:: shell
+
+    $ pipx install ocrmypdf  # or: pip install ocrmypdf
+
+…then run it in front of Camelot:
+
+.. code-block:: shell
+
+    $ ocrmypdf scan.pdf scan-ocr.pdf
+    $ camelot lattice --output tables.csv scan-ocr.pdf
+
+…or as a Python pipeline:
+
+.. code-block:: pycon
+
+    >>> import subprocess
+    >>> import camelot
+    >>> subprocess.run(["ocrmypdf", "scan.pdf", "scan-ocr.pdf"], check=True)
+    >>> tables = camelot.read_pdf("scan-ocr.pdf", flavor="lattice")
+
+A few practical notes:
+
+- **Mixed PDFs** (some pages text, some scanned) are handled by
+  default — ``ocrmypdf`` will skip pages that already have a text
+  layer unless you pass ``--force-ocr``.
+- **Languages other than English** need the corresponding Tesseract
+  language pack installed (e.g. ``apt install tesseract-ocr-deu``
+  for German), then ``ocrmypdf -l deu scan.pdf scan-ocr.pdf``.
+- **Table-friendly OCR** benefits from a higher resolution and from
+  preserving the original image. ``ocrmypdf --image-dpi 300
+  --redo-ocr`` is a reasonable default for documents whose scans are
+  fuzzy.
+- **Quality**: lattice-style ruled tables typically survive OCR well
+  because the ruling lines are pixel-perfect; stream-style borderless
+  tables depend heavily on how well Tesseract aligns the per-cell
+  text — try ``flavor="auto"`` or ``flavor="hybrid"`` and inspect
+  ``Table.parsing_report`` (especially the ``confidence`` field) to
+  pick the better path.
+
+Why isn't OCR built into Camelot? Tesseract is a heavyweight system
+dependency (binary install + language packs, hundreds of MB), and
+OCR quality is non-deterministic across versions — bundling it would
+make the install story much worse for the majority of users who
+already have text PDFs. Keeping OCR as a separate preprocessing step
+lets ``ocrmypdf`` handle the OCR concerns (image preprocessing,
+language detection, page rotation, etc.) and Camelot focus on the
+post-OCR text-to-table conversion.
+
+For a full discussion see `issue #14 <https://github.com/camelot-dev/camelot/issues/14>`_
+and `PR #209 <https://github.com/camelot-dev/camelot/pull/209>`_.
