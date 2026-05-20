@@ -35,6 +35,25 @@ To process background lines, you can pass ``process_background=True``.
   :file: ../_static/csv/background_lines.csv
   :class: full-width
 
+Bridge gaps in ruled lines
+--------------------------
+
+When a Lattice-flavoured PDF's table is drawn with ruled lines that don't quite meet at corners (a common artefact of older scanned-then-redrawn forms), the detected grid drops the affected rows or columns. The ``iterations`` keyword argument dilates the line mask to close those gaps — but dilation alone also *thickens* every line, which in turn pushes the outer ruled lines outward and adds spurious extra rows above and below the real table.
+
+Pair it with the new ``erode_iterations`` keyword to perform a **morphological closing** (dilate then erode of equal count): gaps are bridged without changing the line mask's overall size, so the detected grid stays right.
+
+.. code-block:: pycon
+
+    >>> # Bridges line gaps without thickening
+    >>> tables = camelot.read_pdf(
+    ...     'broken_lines.pdf',
+    ...     flavor='lattice',
+    ...     iterations=1,
+    ...     erode_iterations=1,
+    ... )
+
+``erode_iterations`` defaults to ``0`` (fully backward-compatible with the long-standing dilate-only behaviour). Bump it together with ``iterations`` only when you've confirmed the legacy behaviour leaves phantom rows around your table.
+
 .. _visual_debug:
 Visual debugging
 ----------------
@@ -372,6 +391,84 @@ You can strip unwanted characters like spaces, dots and newlines from a string u
     "Property crime","1,396 .4","338 .7","1,057 .7","875 .9","210 .8","665 .1","608 .2","127 .9","392 .6"
     "Burglary","240.9","60.3","180.6","205.0","53.4","151.7","35.9","6.9","29.0"
     "...","...","...","...","...","...","...","...","...","..."
+
+The ``strip_text`` argument also accepts a **list or tuple of substrings**, in which case each whole substring is removed wherever it appears (rather than each individual character). This is the right mode when you want to strip multi-character markers like footnote references without nicking lone brackets / digits elsewhere in the cell:
+
+.. code-block:: pycon
+
+    >>> # Per-character (long-standing behaviour): strips any of '[', ']', '1', '2'
+    >>> camelot.read_pdf('doc.pdf', strip_text='[12]')
+
+    >>> # Per-substring (new in 2.0): strips only the literal markers '[1]' and '[2]',
+    >>> # leaves stray '[' or ']' alone.
+    >>> camelot.read_pdf('doc.pdf', strip_text=['[1]', '[2]'])
+
+Replace text in cells
+---------------------
+
+Where ``strip_text`` can only **remove** characters or substrings, ``replace_text`` lets you **rewrite** them. It accepts a ``dict`` mapping substrings to their replacements, applied to every cell's text just before assignment.
+
+A common motivating example: words that PDF text extraction has split across a soft line break end up concatenated without a space. Use ``replace_text`` to turn `" \n"` (space + newline) into a single space:
+
+.. code-block:: pycon
+
+    >>> tables = camelot.read_pdf('doc.pdf', replace_text={' \n': ' '})
+
+You can normalise unit names, expand abbreviations, or fix systematic OCR-style mistakes in the same call:
+
+.. code-block:: pycon
+
+    >>> tables = camelot.read_pdf(
+    ...     'doc.pdf',
+    ...     replace_text={'kw': 'kW', 'kva': 'kVA', 'µ': 'micro'},
+    ... )
+
+Keys are matched as literal substrings (regex metacharacters are escaped, so ``"."`` matches a literal dot). When several keys could match at the same position, the longest one wins, so ``{"abc": "X", "ab": "Y"}`` replaces ``"abc"`` with ``"X"`` rather than producing ``"Yc"``. Empty keys are ignored.
+
+``replace_text`` works with every flavor (``lattice``, ``stream``, ``network``, ``hybrid``) and stacks cleanly with ``strip_text`` — stripping runs first, then replacement.
+
+Per-page parameter overrides
+----------------------------
+
+When a single PDF has pages with different table layouts — say a cover page with no table, two body pages with stream-flavour text columns, and an appendix with a ruled lattice table — calling :meth:`read_pdf() <camelot.read_pdf>` once per page-group works but means re-opening the PDF and re-running parser setup each time.
+
+The ``per_page`` keyword argument lets you keep the global kwargs and override just the ones that need to change for specific pages:
+
+.. code-block:: pycon
+
+    >>> tables = camelot.read_pdf(
+    ...     'report.pdf',
+    ...     pages='1-3',
+    ...     flavor='stream',
+    ...     split_text=True,
+    ...     per_page={2: {'table_areas': ['120, 210, 400, 90']}},
+    ... )
+
+Here pages 1 and 3 use ``flavor='stream'`` with ``split_text=True``. Page 2 uses both **and** the page-specific ``table_areas``.
+
+The ``per_page`` keys are 1-indexed page numbers (int or str). The values are dicts of any kwarg otherwise valid for :meth:`read_pdf() <camelot.read_pdf>`, including a per-page ``flavor``. Unknown kwargs and unknown flavors raise the same errors as if they were passed globally, named by their offending page.
+
+Reading PDFs from memory
+------------------------
+
+Beyond filesystem paths and URLs, :meth:`read_pdf() <camelot.read_pdf>` accepts in-memory PDF content directly: ``bytes``, ``bytearray``, an ``io.BytesIO``, or any binary stream with a ``.read()`` method (an open ``"rb"`` file, a ``requests`` response's ``.raw``, etc.):
+
+.. code-block:: pycon
+
+    >>> import io, requests, camelot
+    >>>
+    >>> # Bytes you already have in memory
+    >>> data = open('doc.pdf', 'rb').read()
+    >>> camelot.read_pdf(data)
+    >>>
+    >>> # An io.BytesIO
+    >>> camelot.read_pdf(io.BytesIO(data))
+    >>>
+    >>> # Straight from an HTTP response
+    >>> resp = requests.get('https://example.org/doc.pdf')
+    >>> camelot.read_pdf(io.BytesIO(resp.content))
+
+Camelot writes the bytes to a temporary file once internally (so the Lattice OpenCV image-conversion backend keeps working unchanged) and removes the temp file when the handler is closed. For file-like inputs the read position is preserved so the caller can keep using the same stream afterwards.
 
 Improve guessed table areas
 ---------------------------
