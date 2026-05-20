@@ -1,3 +1,4 @@
+import importlib.metadata
 import os
 import sys
 import warnings
@@ -314,3 +315,13 @@ def test_import_error():
             from camelot.cli import cli
         except ImportError:
             assert cli._HAS_MPL is False
+
+
+def test_version_package_not_found():
+    with mock.patch(
+        "importlib.metadata.version",
+        side_effect=importlib.metadata.PackageNotFoundError,
+    ):
+        from camelot.cli import get_version
+
+        assert get_version() is None
