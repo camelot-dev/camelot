@@ -343,7 +343,7 @@ In this case, the text that `other tools`_ return, will be ``24.912``. This is r
 
 You can solve this by passing ``flag_size=True``, which will enclose the superscripts and subscripts with ``<s></s>``, based on font size, as shown below.
 
-.. _other tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
+.. _other tools: comparison.html
 
 .. code-block:: pycon
 

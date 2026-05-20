@@ -83,9 +83,7 @@ Why Camelot?
 
 .. _ETL and data analysis workflows: https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873
 
-See `comparison with similar libraries and tools`_.
-
-.. _comparison with similar libraries and tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
+See :ref:`comparison with similar libraries and tools <comparison>`.
 
 
 The User Guide
