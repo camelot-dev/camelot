@@ -87,21 +87,23 @@ def test_text_in_bbox_filters_and_discards_overlaps():
 # --- Coverage for #733: get_table_index NumPy / bisect refactor -------------
 
 
-def _make_textline(x0, y0, x1, y1, text="x"):
+class _TextlineStub:
     """Minimal stand-in for a PDFMiner LTTextLine sufficient for get_table_index."""
 
-    class _TL:
-        __slots__ = ("x0", "y0", "x1", "y1", "_objs", "_text")
+    __slots__ = ("x0", "y0", "x1", "y1", "_objs", "_text")
 
-        def __init__(self_, x0, y0, x1, y1, text):
-            self_.x0, self_.y0, self_.x1, self_.y1 = x0, y0, x1, y1
-            self_._objs = []
-            self_._text = text
+    def __init__(self, x0, y0, x1, y1, text="x"):
+        self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
+        self._objs = []
+        self._text = text
 
-        def get_text(self_):
-            return self_._text + "\n"
+    def get_text(self):
+        return self._text + "\n"
 
-    return _TL(x0, y0, x1, y1, text)
+
+def _make_textline(x0, y0, x1, y1, text="x"):
+    """Build a _TextlineStub — kept as a thin helper for call-site readability."""
+    return _TextlineStub(x0, y0, x1, y1, text)
 
 
 def test_get_table_index_lazy_caches():
