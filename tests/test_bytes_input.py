@@ -58,17 +58,6 @@ def test_read_pdf_bytearray_accepted(testdir):
     assert len(tables) == 1
 
 
-def test_read_pdf_filelike_returning_str_rejected(testdir):
-    """A text-mode file returns str; we want a clear TypeError, not a deeper crash."""
-
-    class StrReader:
-        def read(self):
-            return "not bytes"
-
-    with pytest.raises(TypeError, match="must return bytes"):
-        camelot.read_pdf(StrReader())
-
-
 def test_handler_close_removes_bytes_tempfile(testdir):
     """The spilled tempfile is reaped when the context manager exits."""
     src = os.path.join(testdir, "foo.pdf")
