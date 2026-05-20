@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import pytest
 from pandas.testing import assert_frame_equal
 
 import camelot
@@ -162,9 +163,6 @@ def test_network_no_infinite_execution(testdir):
 # (#619 split 3/3) lands — they exercise the network parser path that
 # the gap-edge measurement is supposed to fix. When 3/3 merges, the
 # xfails will quietly flip to XPASS; remove the markers in that PR.
-import pytest
-
-
 @pytest.mark.xfail(
     strict=False,
     reason="Needs the gap-edge formula change planned in #619 split 3/3.",
