@@ -276,7 +276,7 @@ def test_table_list_iter():
 
 
 def test_tablelist_accepts_iterable():
-    """TableList should accept any Iterable[Table], not just Sized (#655)."""
+    """Accept any Iterable[Table] for TableList — not just Sized (#655)."""
     # Empty generator: bool / len must work without consuming-issues.
     empty = TableList(t for t in [])
     assert len(empty) == 0
