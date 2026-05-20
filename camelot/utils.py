@@ -12,11 +12,11 @@ import string
 import tempfile
 import warnings
 from bisect import bisect_left
+from collections.abc import Callable
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 from urllib.parse import urlparse as parse_url
 from urllib.parse import uses_netloc
 from urllib.parse import uses_params
@@ -226,7 +226,6 @@ class TemporaryDirectory:
         traceback : [type]
             [description]
         """
-        pass
 
 
 def build_file_path_in_temp_dir(filename, extension=None):

@@ -13,7 +13,6 @@ else:
     _HAS_MPL = True
 
 import importlib.metadata
-from typing import Optional
 
 from . import plot
 from . import read_pdf
