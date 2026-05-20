@@ -62,6 +62,13 @@ changes. **Heads-up if upgrading from 1.0.x**:
   long-standing per-character `str` form. `strip_text=["[1]", "[2]"]`
   strips those footnote markers as whole substrings;
   `strip_text="[]"` keeps the existing per-character behaviour. (#484)
+- **`replace_text` parameter** on `read_pdf` — dict of substring →
+  replacement applied to every cell's text just before assignment.
+  Unlike `strip_text` (which can only remove), `replace_text` rewrites
+  with arbitrary text — useful for collapsing soft-broken words
+  (`{" \n": " "}`), normalising abbreviations, or rewriting unit
+  names. Keys are matched as literal substrings; when several keys
+  could match at the same position the longest one wins. (#482)
 - **`cpu_count` parameter** on `read_pdf(..., parallel=True, cpu_count=N)`
   and `PDFHandler.parse(...)` — caps the worker count when running in
   parallel. Defaults to all cores; clamped to
