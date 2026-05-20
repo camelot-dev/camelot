@@ -197,9 +197,14 @@ def read_pdf(
     flag_size : bool, optional (default: False)
         Flag text based on font size. Useful to detect
         super/subscripts. Adds <s></s> around flagged text.
-    strip_text : str, optional (default: '')
-        Characters that should be stripped from a string before
-        assigning it to a cell.
+    strip_text : str or sequence of str, optional (default: '')
+        Characters or substrings to strip from each cell before
+        assignment. A ``str`` strips per-character — every character in
+        the string is removed wherever it appears (e.g. ``" \\n"`` drops
+        all spaces and newlines). A list/tuple of ``str`` strips whole
+        substrings (e.g. ``["[1]", "[2]"]`` removes those footnote
+        markers but leaves bare ``[``/``]`` alone). Whole-substring
+        mode requested in #484.
     row_tol^ : int, optional (default: 2)
         Tolerance parameter used to combine text vertically,
         to generate rows.
