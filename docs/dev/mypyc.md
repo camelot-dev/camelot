@@ -46,7 +46,7 @@ annotation coverage in `camelot/` is mixed (most parsers ~50%, utils
        )
    setup(ext_modules=ext_modules)
    ```
-   pyproject.toml stays the source of truth for everything *but* the
+   pyproject.toml stays the source of truth for everything _but_ the
    compile step.
 3. **`cibuildwheel` workflow** that builds + signs pre-compiled wheels
    on push to release tags, for the standard manylinux + macos +
@@ -54,7 +54,7 @@ annotation coverage in `camelot/` is mixed (most parsers ~50%, utils
    sets `CAMELOT_MYPYC=1` before `python -m build`, the `setup.py`
    shim sees the env var and turns on `mypycify`, and the wheel ships
    with `camelot/utils.{so,pyd}` baked in. The sdist published
-   alongside has *no* env var set so it remains pure Python — anyone
+   alongside has _no_ env var set so it remains pure Python — anyone
    on an exotic platform `pip install`-ing the sdist gets a working
    pure-Python install with no build deps. This is the same model
    the Black project uses.
@@ -76,11 +76,11 @@ annotation coverage in `camelot/` is mixed (most parsers ~50%, utils
 
 ## Install matrix (expected steady state)
 
-| install command | result |
-|---|---|
-| `pip install camelot-py` on a supported platform | **pre-built wheel, mypyc-compiled `utils.py`, no build deps** — the default fast path |
-| `pip install camelot-py` on an exotic platform | sdist → pure-Python fallback, no `.so`, no build deps |
-| `CAMELOT_MYPYC=1 pip install --no-binary :all: camelot-py` | force the compile on the sdist (rarely needed) |
+| install command                                            | result                                                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `pip install camelot-py` on a supported platform           | **pre-built wheel, mypyc-compiled `utils.py`, no build deps** — the default fast path |
+| `pip install camelot-py` on an exotic platform             | sdist → pure-Python fallback, no `.so`, no build deps                                 |
+| `CAMELOT_MYPYC=1 pip install --no-binary :all: camelot-py` | force the compile on the sdist (rarely needed)                                        |
 
 Users never type an extra (`[speedup]` etc.) — wheels do the right
 thing by default. The env var is documented for sdist-only installs

@@ -4,7 +4,7 @@ This file documents notable user-visible changes. The day-to-day automatic
 release-notes (grouped by PR) are still produced by
 [release-drafter](https://github.com/release-drafter/release-drafter)
 on `master` — see the GitHub Releases page. This file is the curated
-human-readable summary for *major* releases.
+human-readable summary for _major_ releases.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -21,7 +21,7 @@ changes. **Heads-up if upgrading from 1.0.x**:
   **Python 3.10**. (#740)
 - **`flavor="lattice"` default `line_scale` changed from 40 to 15** to match
   the long-standing implementation (the CLI and `read_pdf` docstring used
-  to *say* 40 but the Lattice parser always defaulted to 15). Tables that
+  to _say_ 40 but the Lattice parser always defaulted to 15). Tables that
   relied on the documented-but-unimplemented `40` will need
   `read_pdf(..., line_scale=40)` explicitly. (#709)
 - **`Table.to_excel` now defaults to `index=False, header=False`** to match
@@ -87,7 +87,7 @@ changes. **Heads-up if upgrading from 1.0.x**:
   small, mostly readability.
 - A `bench/` directory now ships a couple of standalone microbenchmarks
   (`bench_get_table_index.py`) and a negative-result bench
-  (`bench_negative_results.py`) documenting cases where NumPy did *not*
+  (`bench_negative_results.py`) documenting cases where NumPy did _not_
   help — useful regression net against well-meaning future rewrites.
 
 ### Fixed
@@ -106,7 +106,7 @@ changes. **Heads-up if upgrading from 1.0.x**:
   (see Breaking). (#709, closes #657)
 - **`Table.to_excel` no longer emits the meaningless integer-index row
   and integer-header column**. (#711, closes #634)
-- **CLI options are position-independent** (they can sit before *or*
+- **CLI options are position-independent** (they can sit before _or_
   after the file argument on any subcommand). (#614, closes #587)
 - **Documentation no longer references `pdfminer`/`pypdf` as the
   backend**; the `playa-pdf` migration is reflected throughout. (#719)
@@ -127,7 +127,7 @@ changes. **Heads-up if upgrading from 1.0.x**:
   the previous architecture (split-into-per-page-temp-PDFs via pypdf)
   silently dropped the encryption metadata after decryption, so the
   check was effectively a no-op. The playa-based parse path keeps the
-  document handle open with permissions intact. Note: for *unencrypted*
+  document handle open with permissions intact. Note: for _unencrypted_
   PDFs that claim "no extraction" via `/Perms`, no mechanism in the PDF
   spec actually enforces the flag and Camelot extracts. (closes #590)
 
