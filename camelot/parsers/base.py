@@ -230,12 +230,22 @@ class BaseParser:
         _tables = []
         # sort tables based on y-coord
         for table_idx, bbox in enumerate(self.table_bboxes()):
-            if self.columns is not None and self.columns[table_idx] != "":
+            # Re-use the last user-supplied column spec when more tables are
+            # discovered than column specs were supplied (#112). The previous
+            # behaviour raised IndexError on the second extra table, which
+            # is the wrong failure mode when the columns are meant to apply
+            # to "however many tables match this layout".
+            if self.columns is not None and self.columns:
+                col_idx = table_idx if table_idx < len(self.columns) else -1
+                col_spec = self.columns[col_idx]
+            else:
+                col_spec = ""
+            if col_spec != "":
                 # user has to input boundary columns too
                 # take (0, pdf_width) by default
                 # similar to else condition
                 # len can't be 1
-                user_cols = self.columns[table_idx].split(",")
+                user_cols = col_spec.split(",")
                 user_cols = [float(c) for c in user_cols]
             else:
                 user_cols = None
