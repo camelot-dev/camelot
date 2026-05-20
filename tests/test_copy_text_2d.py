@@ -12,8 +12,8 @@ def _build_table(width=3, height=3):
     """
     xs = [0, 100, 200, 300][: width + 1]
     ys = [300, 200, 100, 0][: height + 1]
-    cols = list(zip(xs[:-1], xs[1:]))
-    rows = list(zip(ys[:-1], ys[1:]))
+    cols = list(zip(xs[:-1], xs[1:], strict=True))
+    rows = list(zip(ys[:-1], ys[1:], strict=True))
     table = Table(cols, rows)
     # Cells already initialised by Table; explicitly set every flag False.
     for row in table.cells:
