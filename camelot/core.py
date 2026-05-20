@@ -8,10 +8,10 @@ import sqlite3
 import sys
 import tempfile
 import zipfile
-from operator import itemgetter
-from typing import Any
 from collections.abc import Iterable
 from collections.abc import Iterator
+from operator import itemgetter
+from typing import Any
 
 import cv2
 import numpy as np

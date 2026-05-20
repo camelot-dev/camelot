@@ -2,7 +2,6 @@
 
 import warnings
 from pathlib import Path
-from typing import Union
 
 from .handlers import PDFHandler
 from .utils import remove_extra
