@@ -2,10 +2,10 @@
 
 This file documents how Camelot intends to use [mypyc](https://mypyc.readthedocs.io)
 to ship compiled hot-path modules in pre-built wheels. **Nothing in this
-plan is shipped yet** — the `[speedup]` extra in `pyproject.toml` is a
-contract placeholder, not a working build. The doc exists so future
-contributors don't relitigate the design decisions every time perf work
-comes up.
+plan is shipped yet** — when it is, the model is "on by default via
+the released wheel, pure-Python fallback in the sdist". The doc exists
+so future contributors don't relitigate the design decisions every
+time perf work comes up.
 
 ## Why mypyc
 
@@ -48,14 +48,16 @@ annotation coverage in `camelot/` is mixed (most parsers ~50%, utils
    ```
    pyproject.toml stays the source of truth for everything *but* the
    compile step.
-3. **`camelot-py[speedup]` extra in `pyproject.toml`** that pulls in
-   `mypy` + a working C compiler at install time. Most users won't
-   need this — they'll get pre-built wheels from PyPI.
-4. **`cibuildwheel` workflow** that builds + signs pre-compiled wheels
+3. **`cibuildwheel` workflow** that builds + signs pre-compiled wheels
    on push to release tags, for the standard manylinux + macos +
-   windows × Python 3.10 / 3.11 / 3.12 / 3.13 / 3.14 matrix. Wheels
-   carry the compiled `.so` / `.pyd`; the sdist remains pure Python so
-   anyone unable to build the compiled extension still works.
+   windows × Python 3.10 / 3.11 / 3.12 / 3.13 / 3.14 matrix. The job
+   sets `CAMELOT_MYPYC=1` before `python -m build`, the `setup.py`
+   shim sees the env var and turns on `mypycify`, and the wheel ships
+   with `camelot/utils.{so,pyd}` baked in. The sdist published
+   alongside has *no* env var set so it remains pure Python — anyone
+   on an exotic platform `pip install`-ing the sdist gets a working
+   pure-Python install with no build deps. This is the same model
+   the Black project uses.
 
 ## Non-goals
 
@@ -72,21 +74,18 @@ annotation coverage in `camelot/` is mixed (most parsers ~50%, utils
   ahead-of-time model is what lets us ship compiled wheels; runtime
   JIT would re-introduce the build dep at every camelot install.
 
-## Constraints inherited
-
-The C compiler requirement at install time (`pip install camelot-py[speedup]`
-*without* a pre-built wheel) puts manylinux/wheels users in a different
-class from source-installers. The expected steady state:
+## Install matrix (expected steady state)
 
 | install command | result |
 |---|---|
-| `pip install camelot-py` on a supported platform | pre-built wheel, mypyc-compiled `utils.py`, no build deps needed |
-| `pip install camelot-py` on an exotic platform | sdist → pure-Python fallback, no `.so` |
-| `pip install camelot-py[speedup]` | sdist + build, requires `mypy` + C toolchain |
+| `pip install camelot-py` on a supported platform | **pre-built wheel, mypyc-compiled `utils.py`, no build deps** — the default fast path |
+| `pip install camelot-py` on an exotic platform | sdist → pure-Python fallback, no `.so`, no build deps |
+| `CAMELOT_MYPYC=1 pip install --no-binary :all: camelot-py` | force the compile on the sdist (rarely needed) |
 
-This matches the [Black project's](https://github.com/psf/black) mypyc
-rollout: pre-built wheels are the happy path, sdist fallback is the
-escape valve.
+Users never type an extra (`[speedup]` etc.) — wheels do the right
+thing by default. The env var is documented for sdist-only installs
+that want the compile, but it's not part of the public install
+surface.
 
 ## When this PR will look "done"
 

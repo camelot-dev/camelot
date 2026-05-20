@@ -56,16 +56,6 @@ plot = [
 ghostscript = [
     "ghostscript>=0.7",
 ]
-speedup = [
-    # Opt-in compile of the hot-path module camelot/utils.py via mypyc.
-    # See docs/dev/mypyc.md for the staged plan. Today this extra only
-    # documents the intent — there is no setup.py shim yet and the
-    # default `pip install camelot-py` install is still pure Python.
-    # When the cibuildwheel pipeline is in place, pre-built wheels will
-    # carry the compiled .so and `[speedup]` becomes the fallback path
-    # for source installs that want the compile.
-    "mypy>=1.10.0",
-]
 dev = [
     "Pygments>=2.10.0",
     "black>=23.1.0",
