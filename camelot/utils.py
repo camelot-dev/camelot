@@ -1151,7 +1151,7 @@ def _group_and_process_chars(
     return grouped_chars
 
 
-def get_table_index(
+def get_table_index(  # noqa: C901  - cyclomatic complexity is inherent to the row/col scan
     table, t, direction, split_text=False, flag_size=False, strip_text=""
 ):
     """
