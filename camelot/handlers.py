@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import multiprocessing as mp
+import os
 from functools import partial
 from itertools import chain
 from pathlib import Path
