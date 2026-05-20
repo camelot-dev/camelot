@@ -3440,7 +3440,22 @@ data_stream_columns = [
 ]
 
 data_stream_split_text = [
-    ["FEB", "RUAR", "Y 2014 M27 (BUS)", "", "", "", "", "", "", ""],
+    # Row 0: with the TEXTEDGE_REQUIRED_ELEMENTS off-by-one fixed (#342, #345)
+    # the stream parser now detects the same row-0 textedges the network
+    # parser already did — so the row-0 expected matches network's, with
+    # "ALPHABETIC LISTING BY T" / "YPE" / "ABLPDM27" no longer dropped.
+    [
+        "FEB",
+        "RUAR",
+        "Y 2014 M27 (BUS)",
+        "",
+        "ALPHABETIC LISTING BY T",
+        "YPE",
+        "",
+        "",
+        "",
+        "ABLPDM27",
+    ],
     ["", "", "", "", "OF ACTIVE LICENSES", "", "", "", "", "3/19/2014"],
     ["", "", "", "", "OKLAHOMA ABLE COMMIS", "SION", "", "", "", ""],
     ["LICENSE", "", "", "", "PREMISE", "", "", "", "", ""],
@@ -3775,21 +3790,12 @@ data_stream_split_text = [
 ]
 
 
-# The stream algorithm excludes the string "Alphabetic Listing by type"
-data_network_split_text = []
-data_network_split_text.extend(data_stream_split_text)
-data_network_split_text[0] = [
-    "FEB",
-    "RUAR",
-    "Y 2014 M27 (BUS)",
-    "",
-    "ALPHABETIC LISTING BY T",
-    "YPE",
-    "",
-    "",
-    "",
-    "ABLPDM27",
-]
+# Pre-#345, the stream parser dropped the "Alphabetic Listing by Type"
+# header because TextEdge.is_valid required *more than* (not at least)
+# TEXTEDGE_REQUIRED_ELEMENTS textlines — the strict-> off-by-one. With
+# #345 fixed, stream and network produce the same row 0, so this
+# explicit override is now a copy of data_stream_split_text[0].
+data_network_split_text = list(data_stream_split_text)
 
 data_stream_flag_size = [
     [
