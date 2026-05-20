@@ -24,88 +24,119 @@ your PDFs.
 At a glance
 -----------
 
-.. list-table:: Capability matrix
-   :header-rows: 1
-   :widths: 18 12 14 14 14 14 14
-   :class: full-width
+Click any column header to sort. The Camelot column is highlighted; ✓
+means "supported out of the box", ✗ "not supported", ◐ "partial /
+workaround required".
 
-   * - Capability
-     - **Camelot**
-     - Tabula
-     - pdfplumber
-     - PyMuPDF
-     - gmft
-     - unstructured.io
-   * - License
-     - MIT
-     - MIT
-     - MIT
-     - AGPL / commercial
-     - MIT
-     - Apache 2.0
-   * - Runtime
-     - pure Python
-     - Java + Python wrapper
-     - pure Python
-     - C / Python binding
-     - PyTorch model
-     - Python (pluggable backends)
-   * - Ruled-grid tables (lattice)
-     - yes (``flavor='lattice'``)
-     - yes
-     - yes
-     - yes
-     - yes (model-based)
-     - via backend
-   * - Borderless / whitespace-separated tables
-     - yes (``flavor='stream'``, ``'network'``, ``'hybrid'``)
-     - yes
-     - partial
-     - yes
-     - yes
-     - yes
-   * - Per-page parameter overrides
-     - yes (``per_page=``, #41)
-     - no
-     - manual loop
-     - manual loop
-     - no
-     - no
-   * - Scanned PDFs (image-only)
-     - no — preprocess with ocrmypdf
-     - no
-     - no
-     - via OCR plugin
-     - **yes** (vision model)
-     - **yes** (Tesseract / OCR plugin)
-   * - Confidence score per table
-     - yes (``Table.confidence``)
-     - no
-     - no
-     - heuristic
-     - model score
-     - no
-   * - In-process bytes / file-like input
-     - yes (#270)
-     - no — needs path
-     - yes
-     - yes
-     - yes
-     - yes
-   * - Multi-page table stitching
-     - yes (``TableList.stack_contiguous``, #628)
-     - manual
-     - manual
-     - manual
-     - model-aware
-     - manual
-   * - Heavy native deps
-     - opencv-python-headless, pdfium
-     - JRE
-     - none
-     - mupdf C lib (vendored)
-     - PyTorch + CUDA optional
-     - varies by backend
+.. container:: full-width
+
+  .. raw:: html
+
+        <table class="comparison-matrix sortable">
+        <thead>
+          <tr>
+            <th scope="col">Capability</th>
+            <th scope="col">Camelot</th>
+            <th scope="col">Tabula</th>
+            <th scope="col">pdfplumber</th>
+            <th scope="col">PyMuPDF</th>
+            <th scope="col">gmft</th>
+            <th scope="col">unstructured.io</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">License</th>
+            <td>MIT</td>
+            <td>MIT</td>
+            <td>MIT</td>
+            <td>AGPL / commercial</td>
+            <td>MIT</td>
+            <td>Apache 2.0</td>
+          </tr>
+          <tr>
+            <th scope="row">Runtime</th>
+            <td>pure Python</td>
+            <td>Java + wrapper</td>
+            <td>pure Python</td>
+            <td>C binding</td>
+            <td>PyTorch model</td>
+            <td>Python + plugins</td>
+          </tr>
+          <tr>
+            <th scope="row">Ruled-grid tables</th>
+            <td><span class="cm-yes" title="flavor='lattice'">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes" title="model-based">&#10003;</span></td>
+            <td><span class="cm-partial" title="via backend">&#9680;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Borderless / whitespace tables</th>
+            <td><span class="cm-yes" title="stream / network / hybrid">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-partial">&#9680;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Per-page kwarg overrides</th>
+            <td><span class="cm-yes" title="per_page= (#41)">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-partial" title="manual loop">&#9680;</span></td>
+            <td><span class="cm-partial">&#9680;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Scanned PDFs (no text layer)</th>
+            <td><span class="cm-no" title="preprocess with ocrmypdf">&#10007;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-partial" title="via OCR plugin">&#9680;</span></td>
+            <td><span class="cm-yes" title="vision model">&#10003;</span></td>
+            <td><span class="cm-yes" title="Tesseract plugin">&#10003;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Confidence score per table</th>
+            <td><span class="cm-yes" title="Table.confidence">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-partial" title="heuristic">&#9680;</span></td>
+            <td><span class="cm-yes" title="model score">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">In-memory bytes / file-like input</th>
+            <td><span class="cm-yes" title="#270">&#10003;</span></td>
+            <td><span class="cm-no" title="needs path">&#10007;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-yes">&#10003;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Multi-page table stitching</th>
+            <td><span class="cm-yes" title="TableList.stack_contiguous (#628)">&#10003;</span></td>
+            <td><span class="cm-partial" title="manual">&#9680;</span></td>
+            <td><span class="cm-partial">&#9680;</span></td>
+            <td><span class="cm-partial">&#9680;</span></td>
+            <td><span class="cm-yes" title="model-aware">&#10003;</span></td>
+            <td><span class="cm-partial">&#9680;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Heavy native deps</th>
+            <td>opencv-headless, pdfium</td>
+            <td>JRE</td>
+            <td>none</td>
+            <td>mupdf (vendored)</td>
+            <td>PyTorch (+ GPU)</td>
+            <td>varies</td>
+          </tr>
+        </tbody>
+      </table>
 
 Side-by-side example
 --------------------

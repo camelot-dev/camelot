@@ -27,7 +27,7 @@ Here is a `comparison`_ of Camelot's output with outputs from other open-source 
 .. _pdf-table-extract: https://github.com/ashima/pdf-table-extract
 .. _PDFTables: https://pdftables.com/
 .. _Smallpdf: https://smallpdf.com
-.. _comparison: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
+.. _comparison: comparison.html
 
 What's in a name?
 -----------------

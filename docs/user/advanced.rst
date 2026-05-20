@@ -226,11 +226,12 @@ In cases such as `these <../_static/pdf/table_areas.pdf>`__, it can be useful to
 
 Table areas that you want camelot to analyze can be passed as a list of comma-separated strings to :meth:`read_pdf() <camelot.read_pdf>`, using the ``table_areas`` keyword argument.
 
-.. code-block:: pycon
-  :class: full-width
+.. container:: full-width
 
-    >>> tables = camelot.read_pdf('table_areas.pdf', flavor='stream', table_areas=['316,499,566,337'])
-    >>> tables[0].df
+   .. code-block:: pycon
+
+       >>> tables = camelot.read_pdf('table_areas.pdf', flavor='stream', table_areas=['316,499,566,337'])
+       >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -281,11 +282,12 @@ For example, if you have specified two table areas, ``table_areas=['12,54,43,23'
 
 Let's get back to the *x* coordinates we got from plotting the text that exists on this `PDF <../_static/pdf/column_separators.pdf>`__, and get the table out!
 
-.. code-block:: pycon
-  :class: full-width
+.. container:: full-width
 
-    >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'])
-    >>> tables[0].df
+   .. code-block:: pycon
+
+       >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'])
+       >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -309,11 +311,12 @@ Split text along separators
 
 To deal with cases like the output from the previous section, you can pass ``split_text=True`` to :meth:`read_pdf() <camelot.read_pdf>`, which will split any strings that lie in different cells but have been assigned to a single cell (as a result of being merged together by `playa <https://pypi.org/project/playa-pdf/>`_, the PDFMiner-compatible layout engine).
 
-.. code-block:: pycon
-  :class: full-width
+.. container:: full-width
 
-    >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'], split_text=True)
-    >>> tables[0].df
+   .. code-block:: pycon
+
+       >>> tables = camelot.read_pdf('column_separators.pdf', flavor='stream', columns=['72,95,209,327,442,529,566,606,683'], split_text=True)
+       >>> tables[0].df
 
 .. tip::
     Here's how you can do the same with the :ref:`command-line interface <cli>`.
@@ -343,7 +346,7 @@ In this case, the text that `other tools`_ return, will be ``24.912``. This is r
 
 You can solve this by passing ``flag_size=True``, which will enclose the superscripts and subscripts with ``<s></s>``, based on font size, as shown below.
 
-.. _other tools: https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools
+.. _other tools: comparison.html
 
 .. code-block:: pycon
 

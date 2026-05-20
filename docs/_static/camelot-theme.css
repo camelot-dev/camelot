@@ -1,42 +1,40 @@
 /*
  * Camelot brand theme overlay on top of sphinx-book-theme.
  *
- * The base theme (pydata-sphinx-theme under the hood) exposes a small
- * set of CSS custom properties for colour control; we rewire them to
+ * sphinx-book-theme inherits from pydata-sphinx-theme. Both expose CSS
+ * custom properties for accent colours; this file rewires them to
  * match the Camelot logo's saturated green.
  *
- * Logo green sampled from docs/_static/camelot.png: #0F9D47.
- * Darker shade for hover/active: #0B7A38.
- * Light tint for backgrounds: #E6F4EB.
+ * Logo green (sampled from docs/_static/camelot.png): #0F9D47
+ * Darker for hover/active:                            #0B7A38
+ * Light tint for hovered backgrounds:                 #E6F4EB
  */
 
 :root,
 html[data-theme="light"] {
+  /* pydata-sphinx-theme custom properties */
   --pst-color-primary: #0f9d47;
   --pst-color-primary-text: #ffffff;
   --pst-color-primary-highlight: #0b7a38;
+  --pst-color-primary-bg: #e6f4eb;
   --pst-color-secondary: #0b7a38;
+  --pst-color-secondary-text: #ffffff;
   --pst-color-secondary-highlight: #0f9d47;
   --pst-color-link: #0b7a38;
   --pst-color-link-hover: #0f9d47;
   --pst-color-accent: #0f9d47;
-}
-
-/* sphinx-book-theme has its own variable namespace too; mirror them so
- * the sidebar / TOC / next-prev navigation pick up the new accent. */
-:root,
-html[data-theme="light"] {
+  /* sphinx-book-theme aliases */
   --sbt-color-link: var(--pst-color-link);
   --sbt-color-link-hover: var(--pst-color-link-hover);
 }
 
-/* Dark mode — keep the green but with a slightly lighter shade so it
- * carries enough contrast against the dark background. */
 html[data-theme="dark"] {
   --pst-color-primary: #2cc36b;
   --pst-color-primary-text: #0a1f12;
   --pst-color-primary-highlight: #5bd98f;
+  --pst-color-primary-bg: #0e2418;
   --pst-color-secondary: #5bd98f;
+  --pst-color-secondary-text: #0a1f12;
   --pst-color-secondary-highlight: #2cc36b;
   --pst-color-link: #5bd98f;
   --pst-color-link-hover: #8be6ad;
@@ -45,49 +43,55 @@ html[data-theme="dark"] {
   --sbt-color-link-hover: var(--pst-color-link-hover);
 }
 
-/* Brand the page header underline + section anchors. */
-.bd-header.navbar-light .navbar-nav .nav-link:hover,
-.bd-header.navbar-light .navbar-nav .nav-link.active {
-  color: var(--pst-color-primary-highlight);
+/* Force in-text links to use the green even where the theme falls back
+ * to a per-element default. Some pages (how-it-works, quickstart, cli)
+ * were rendering pre-2.0 blue because pydata-sphinx-theme has
+ * hard-coded link colours in places the variable doesn't reach.
+ * High-specificity selector covers article body, sidebars, and TOC. */
+.bd-content a:not(.btn):not(.headerlink):not(.tag):not(.sd-btn),
+.bd-sidebar-primary a:not(.btn),
+.bd-toc-link,
+.bd-toc-item a,
+.toc-tree a,
+article a:not(.btn):not(.headerlink) {
+  color: var(--pst-color-link);
 }
 
-/* The "On this page" right sidebar uses a coloured accent bar — paint
- * it Camelot green rather than the default blue. */
-.bd-toc-item.active > .bd-toc-link,
-.toc-h2.active > .toc-entry > a {
+.bd-content a:not(.btn):not(.headerlink):not(.tag):not(.sd-btn):hover,
+.bd-sidebar-primary a:not(.btn):hover,
+.bd-toc-link:hover,
+.bd-toc-item a:hover,
+.toc-tree a:hover,
+article a:not(.btn):not(.headerlink):hover {
+  color: var(--pst-color-link-hover);
+}
+
+/* Left sidebar — active page indicator + TOC tree current-section. */
+.bd-sidebar-primary .nav-link.active,
+.bd-sidebar-primary .current > a,
+.bd-sidebar-primary li.toctree-l1.current > a,
+.bd-sidebar-primary li.toctree-l2.current > a,
+.bd-sidebar-primary li.toctree-l3.current > a {
   color: var(--pst-color-primary);
   border-left-color: var(--pst-color-primary);
 }
 
-/* admonitions: keep the default semantics (info/note blue, warning
- * orange, danger red) — overriding the *primary* colour would
- * gratuitously repaint them. The "note" block uses the link colour by
- * default though, so it picks up the green automatically. */
-
-/* Inline code: a faint green-tinted background reads as Camelot-y
- * without sacrificing legibility of the syntax-highlighted code in
- * fenced blocks (those keep their default monokai-style palette). */
-:not(pre) > code.literal,
-:not(pre) > code.docutils {
-  background-color: rgba(15, 157, 71, 0.08);
-  border-color: rgba(15, 157, 71, 0.2);
+/* Top navbar (when sphinx-book-theme renders one). */
+.bd-header .navbar-nav .nav-link:hover,
+.bd-header .navbar-nav .nav-link.active {
+  color: var(--pst-color-primary-highlight);
 }
 
-/* The "Edit this page" / "View source" buttons in sphinx-book-theme's
- * header use the primary colour, which is now green — make sure their
- * hover state is the darker shade for accessibility contrast. */
-.btn-primary,
-.btn-primary:focus {
-  background-color: var(--pst-color-primary);
-  border-color: var(--pst-color-primary);
-}
-.btn-primary:hover {
-  background-color: var(--pst-color-primary-highlight);
-  border-color: var(--pst-color-primary-highlight);
+/* Right "On this page" sidebar — active TOC entry highlight. */
+.bd-toc-item.active > .bd-toc-link,
+.bd-toc-item.active > a,
+.toc-h2.active > .toc-entry > a,
+.toc-entry a.active {
+  color: var(--pst-color-primary);
+  border-left-color: var(--pst-color-primary);
 }
 
-/* Section anchors that appear on heading hover — green so they read as
- * a brand element rather than as a stray default. */
+/* Heading anchors that appear on hover. */
 h1 .headerlink,
 h2 .headerlink,
 h3 .headerlink,
@@ -97,11 +101,113 @@ h6 .headerlink {
   color: var(--pst-color-primary);
 }
 
-/* The :class: full-width helper used by the comparison-page matrix
- * (and the v2 features doc). Keeps the table from being scrunched
- * inside the default content column. */
+/* Inline code — faint green-tinted background reads as Camelot-y
+ * without sacrificing legibility of syntax-highlighted code in fenced
+ * blocks (those keep their default palette). */
+:not(pre) > code.literal,
+:not(pre) > code.docutils {
+  background-color: rgba(15, 157, 71, 0.08);
+  border-color: rgba(15, 157, 71, 0.2);
+}
+
+html[data-theme="dark"] :not(pre) > code.literal,
+html[data-theme="dark"] :not(pre) > code.docutils {
+  background-color: rgba(44, 195, 107, 0.15);
+  border-color: rgba(44, 195, 107, 0.3);
+}
+
+/* Primary buttons (e.g. "Edit this page"). */
+.btn-primary,
+.btn-primary:focus,
+.sd-btn-primary {
+  background-color: var(--pst-color-primary) !important;
+  border-color: var(--pst-color-primary) !important;
+}
+.btn-primary:hover,
+.sd-btn-primary:hover {
+  background-color: var(--pst-color-primary-highlight) !important;
+  border-color: var(--pst-color-primary-highlight) !important;
+}
+
+/* Wide tables — `:class: full-width` is used throughout advanced.rst
+ * for csv-tables that overflow the default content column. Same rule
+ * applies to list-tables in the comparison page. */
 table.full-width,
 .full-width table {
   width: 100% !important;
   max-width: none !important;
+}
+
+/* ==========================================================================
+ * Comparison-matrix specific (docs/user/comparison.rst)
+ * Visual yes/no markers + alternating row shading + sortable affordance.
+ * ========================================================================== */
+
+table.comparison-matrix th,
+table.comparison-matrix td {
+  vertical-align: middle;
+  text-align: center;
+  font-size: 0.92em;
+}
+
+table.comparison-matrix th:first-child,
+table.comparison-matrix td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+/* Camelot column emphasis */
+table.comparison-matrix th:nth-child(2),
+table.comparison-matrix td:nth-child(2) {
+  background-color: rgba(15, 157, 71, 0.06);
+  font-weight: 500;
+}
+
+/* Yes / No / partial visual tokens */
+table.comparison-matrix .cm-yes {
+  color: #0f9d47;
+  font-weight: 600;
+}
+table.comparison-matrix .cm-no {
+  color: #b85c5c;
+}
+table.comparison-matrix .cm-partial {
+  color: #c98a23;
+}
+
+/* Sortable affordance — header arrow hint */
+table.comparison-matrix.sortable thead th {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 18px;
+}
+table.comparison-matrix.sortable thead th::after {
+  content: "\25BE"; /* ▾ */
+  position: absolute;
+  right: 6px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+table.comparison-matrix.sortable thead th:hover::after {
+  opacity: 0.85;
+}
+table.comparison-matrix.sortable thead th[aria-sort="ascending"]::after {
+  content: "\25B2"; /* ▲ */
+  opacity: 1;
+  color: var(--pst-color-primary);
+}
+table.comparison-matrix.sortable thead th[aria-sort="descending"]::after {
+  content: "\25BC"; /* ▼ */
+  opacity: 1;
+  color: var(--pst-color-primary);
+}
+
+/* Alternating row shading for readability — pydata-sphinx-theme has
+ * its own striping but it's too subtle on the matrix; bump contrast. */
+table.comparison-matrix tbody tr:nth-child(even) {
+  background-color: rgba(15, 157, 71, 0.03);
+}
+html[data-theme="dark"] table.comparison-matrix tbody tr:nth-child(even) {
+  background-color: rgba(44, 195, 107, 0.06);
 }

@@ -180,6 +180,11 @@ html_static_path = ["_static"]
 # Camelot logo green (sampled from docs/_static/camelot.png).
 html_css_files = ["camelot-theme.css"]
 
+# Tiny dependency-free helper that wires click-to-sort onto any
+# <table class="sortable">. Currently used by the comparison-matrix
+# on docs/user/comparison.rst.
+html_js_files = ["sortable-table.js"]
+
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
