@@ -548,6 +548,38 @@ def textlines_overlapping_bbox(bbox, textlines):
     return t_bbox
 
 
+# Threshold above which the NumPy NxN intersection matrix in text_in_bbox
+# would use too much memory. n=600 needs ~3MB (float64); n=2000 ~32MB.
+# For larger inputs we fall back to the Python loop.
+_TEXT_IN_BBOX_NUMPY_MAX = 1500
+
+
+def _text_in_bbox_loop(t_bbox):
+    """Reference Python implementation of the >80%-contained discard pass.
+
+    Used as a fallback when ``len(t_bbox)`` is large enough that the
+    NumPy NxN intersection matrix would exceed comfortable memory.
+    """
+    n = len(t_bbox)
+    discarded: set[int] = set()
+    for i in range(n):
+        if i in discarded:
+            continue
+        ba = t_bbox[i]
+        ba_area = bbox_area(ba)
+        for j in range(n):
+            if i == j or j in discarded:
+                continue
+            bb = t_bbox[j]
+            if not bbox_intersect(ba, bb):
+                continue
+            if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
+                if bbox_longer(bb, ba):
+                    discarded.add(i)
+                    break
+    return [t_bbox[i] for i in range(n) if i not in discarded]
+
+
 def text_in_bbox(bbox, text):
     """Return all text objects in a bounding box.
 
@@ -565,40 +597,77 @@ def text_in_bbox(bbox, text):
     Returns
     -------
     t_bbox : list
-        List of PDFMiner text objects that lie inside table, discarding the overlapping ones
+        List of PDFMiner text objects that lie inside table, discarding
+        the overlapping ones.
 
     """
+    if not text:
+        return []
+
+    # Pull coordinates into parallel float arrays in one pass.
+    n_in = len(text)
+    x0 = np.empty(n_in, dtype=np.float64)
+    y0 = np.empty(n_in, dtype=np.float64)
+    x1 = np.empty(n_in, dtype=np.float64)
+    y1 = np.empty(n_in, dtype=np.float64)
+    for i, t in enumerate(text):
+        x0[i] = t.x0
+        y0[i] = t.y0
+        x1[i] = t.x1
+        y1[i] = t.y1
+
+    # Filter: centre inside bbox (+/- 2 pad), vectorised.
     x_lo, y_lo, x_hi, y_hi = bbox[0] - 2, bbox[1] - 2, bbox[2] + 2, bbox[3] + 2
-    t_bbox = [
-        t
-        for t in text
-        if x_lo <= (t.x0 + t.x1) / 2.0 <= x_hi and y_lo <= (t.y0 + t.y1) / 2.0 <= y_hi
-    ]
+    xm = (x0 + x1) * 0.5
+    ym = (y0 + y1) * 0.5
+    in_bbox = (xm >= x_lo) & (xm <= x_hi) & (ym >= y_lo) & (ym <= y_hi)
+    idx_in = np.flatnonzero(in_bbox)
+    n = idx_in.size
+    if n == 0:
+        return []
+    if n == 1:
+        return [text[int(idx_in[0])]]
 
-    # Discard text bounding boxes that are >80% contained inside a longer
-    # neighbour. The old version copied the working set on every iteration
-    # of the outer loop, which made the discard pass O(n³) in the size of
-    # t_bbox. Track discards in a side set instead — same result, O(n²).
-    discarded: set[int] = set()
-    n = len(t_bbox)
-    for i in range(n):
-        if i in discarded:
-            continue
-        ba = t_bbox[i]
-        ba_area = bbox_area(ba)
-        for j in range(n):
-            if i == j or j in discarded:
-                continue
-            bb = t_bbox[j]
-            if not bbox_intersect(ba, bb):
-                continue
-            # Intersection covers >80% of ba; drop ba if bb is the longer box.
-            if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
-                if bbox_longer(bb, ba):
-                    discarded.add(i)
-                    break
+    t_bbox = [text[i] for i in idx_in.tolist()]
 
-    return [t_bbox[i] for i in range(n) if i not in discarded]
+    # For very large bbox populations the NxN pairwise matrix would blow the
+    # memory budget — fall back to the side-set Python loop.
+    if n > _TEXT_IN_BBOX_NUMPY_MAX:
+        return _text_in_bbox_loop(t_bbox)
+
+    # Vectorised >80%-contained-in-longer-sibling discard.
+    sx0 = x0[idx_in]
+    sy0 = y0[idx_in]
+    sx1 = x1[idx_in]
+    sy1 = y1[idx_in]
+
+    # Pairwise AABB intersection area (axis-aligned), broadcasting nxn.
+    x_left = np.maximum(sx0[:, None], sx0[None, :])
+    y_bot = np.maximum(sy0[:, None], sy0[None, :])
+    x_right = np.minimum(sx1[:, None], sx1[None, :])
+    y_top = np.minimum(sy1[:, None], sy1[None, :])
+    inter_w = np.clip(x_right - x_left, 0.0, None)
+    inter_h = np.clip(y_top - y_bot, 0.0, None)
+    inter_area = inter_w * inter_h
+
+    # Per-row "ba" area. inter_area / ba_area is the fraction of A
+    # contained in B. Treat degenerate (zero-area) boxes as fully
+    # contained, matching the original behaviour.
+    widths = sx1 - sx0
+    heights = sy1 - sy0
+    ba_areas = widths * heights
+    with np.errstate(divide="ignore", invalid="ignore"):
+        frac = np.where(ba_areas[:, None] > 0, inter_area / ba_areas[:, None], 1.0)
+    np.fill_diagonal(frac, 0.0)
+
+    # B is longer than A: widths[j] > widths[i]  (rows = i, cols = j).
+    b_longer = widths[None, :] > widths[:, None]
+
+    # Drop any A for which some longer B overlaps it >80 %.
+    discard_any = ((frac > 0.8) & b_longer).any(axis=1)
+    keep = ~discard_any
+
+    return [t for t, k in zip(t_bbox, keep.tolist()) if k]
 
 
 def text_in_bbox_per_axis(bbox, horizontal_text, vertical_text):
