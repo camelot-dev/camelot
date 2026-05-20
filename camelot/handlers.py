@@ -59,6 +59,68 @@ def _spill_bytes_to_tempfile(data: bytes) -> str:
         return f.name
 
 
+def _consume_filelike_to_bytes(filepath: IO[bytes]) -> bytes:
+    """Read a binary stream from the start, preserve the caller's cursor.
+
+    Always reads from position 0 — a PDF mid-stream isn't useful — and
+    seeks back to whatever position the caller had before the call so
+    they can keep using the same handle. Non-seekable streams (sockets,
+    pipes) silently fall through: ``read()`` returns whatever's left,
+    and the seek-back is best-effort.
+
+    Raises ``TypeError`` when ``read()`` returns text rather than bytes,
+    which catches accidental text-mode opens before the bad data reaches
+    pdfium and produces a clearer error.
+    """
+    tell = getattr(filepath, "tell", None)
+    seek = getattr(filepath, "seek", None)
+    pos = tell() if callable(tell) else None
+    if callable(seek):
+        try:
+            seek(0)
+        except (OSError, ValueError):
+            pass
+    data = filepath.read()
+    if pos is not None and callable(seek):
+        try:
+            seek(pos)
+        except (OSError, ValueError):
+            pass
+    if not isinstance(data, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            "file-like 'filepath' must return bytes from .read(),"
+            f" got {type(data).__name__}"
+        )
+    return bytes(data)
+
+
+def _resolve_filepath(filepath: FilepathOrBuffer) -> tuple[str | Path, bool]:
+    """Normalise read_pdf's polymorphic filepath argument to a real path.
+
+    Returns ``(path, is_temp)``. ``is_temp`` is True when the returned
+    path points to a tempfile we created (and therefore own — the
+    caller's :meth:`PDFHandler.close` should reap it).
+
+    Three branches:
+
+    * ``bytes`` / ``bytearray`` / ``memoryview``: spill to a tempfile.
+    * binary file-like (``.read()`` returning bytes): read once,
+      preserve the caller's cursor, spill to a tempfile.
+    * everything else (path / URL): URL → download to tempfile; path
+      → pass through untouched.
+    """
+    if isinstance(filepath, (bytes, bytearray, memoryview)):
+        return _spill_bytes_to_tempfile(bytes(filepath)), True
+    if hasattr(filepath, "read") and callable(filepath.read):
+        data = _consume_filelike_to_bytes(filepath)  # type: ignore[arg-type]
+        return _spill_bytes_to_tempfile(data), True
+    if is_url(filepath):
+        return download_url(str(filepath)), True
+    # mypy: filepath is the str | Path | os.PathLike subset of
+    # FilepathOrBuffer (we've ruled out bytes / file-like / URL).
+    return filepath, False  # type: ignore[return-value]
+
+
 class PDFHandler:
     """Handles all operations on the PDF's.
 
@@ -93,53 +155,7 @@ class PDFHandler:
         debug=False,
     ):
         self.debug = debug
-        self.is_temp_file = False
-        # Resolved by one of the branches below; always a real path-like.
-        resolved: str | Path
-
-        if isinstance(filepath, (bytes, bytearray, memoryview)):
-            # Raw bytes input — spill to a tempfile and treat as a path.
-            resolved = _spill_bytes_to_tempfile(bytes(filepath))
-            self.is_temp_file = True
-        elif hasattr(filepath, "read") and callable(filepath.read):
-            # Binary file-like (BytesIO, open('rb', ...), urlopen response,
-            # requests Response.raw, etc). Always read from the start of
-            # the stream — a PDF mid-stream isn't useful — and preserve
-            # the caller's cursor afterwards so they can keep using the
-            # same handle.
-            tell = getattr(filepath, "tell", None)
-            seek = getattr(filepath, "seek", None)
-            pos = tell() if callable(tell) else None
-            if callable(seek):
-                try:
-                    seek(0)
-                except (OSError, ValueError):
-                    # Non-seekable stream — `.read()` will return whatever
-                    # is left from the current position; nothing else we
-                    # can do.
-                    pass
-            data = filepath.read()
-            if pos is not None and callable(seek):
-                try:
-                    seek(pos)
-                except (OSError, ValueError):
-                    pass
-            if not isinstance(data, (bytes, bytearray, memoryview)):
-                raise TypeError(
-                    "file-like 'filepath' must return bytes from .read(),"
-                    f" got {type(data).__name__}"
-                )
-            resolved = _spill_bytes_to_tempfile(bytes(data))
-            self.is_temp_file = True
-        else:
-            # Path or URL (existing behaviour).
-            self.is_temp_file = is_url(filepath)
-            if is_url(filepath):
-                resolved = download_url(str(filepath))
-            else:
-                # mypy: at this branch filepath is the str | Path | os.PathLike
-                # subset of FilepathOrBuffer (we've ruled out bytes / file-like).
-                resolved = filepath  # type: ignore[assignment]
+        resolved, self.is_temp_file = _resolve_filepath(filepath)
         self.filepath: str | Path = resolved
 
         if password is None:
