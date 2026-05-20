@@ -130,7 +130,7 @@ def cli(ctx, *args, **kwargs):
 @click.option(
     "-scale",
     "--line_scale",
-    default=40,
+    default=15,
     help="Line size scaling factor. The larger the value,"
     " the smaller the detected lines.",
 )
