@@ -148,7 +148,16 @@ class PDFHandler:
             return
         path = self.filepath
         if isinstance(path, (str, Path)) and os.path.exists(path):
-            os.remove(path)
+            try:
+                os.remove(path)
+            except OSError:
+                # On Windows (issue #678) pdfium / playa can still hold
+                # an open handle to the temp file when close() runs,
+                # giving WinError 32 ("being used by another process").
+                # Leave the file behind and let the OS reap it later
+                # (NamedTemporaryFile's default tempdir is wiped at
+                # reboot) — losing a few KB beats raising mid-cleanup.
+                pass
             # Mark cleaned so a second close() doesn't re-stat-and-remove.
             self.is_temp_file = False
 
