@@ -9,6 +9,9 @@ jobs:
   tests:
     name: ${{ matrix.session }} ${{ matrix.python }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    # Allow the experimental (pre-release) Python entries to fail without
+    # failing the workflow as a whole.
+    continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +30,13 @@ jobs:
           - { python: "3.10", os: "ubuntu-latest", session: "tests" }
           - { python: "3.9", os: "ubuntu-latest", session: "tests" }
           - { python: "3.13", os: "ubuntu-latest", session: "tests" }
+          - { python: "3.14", os: "ubuntu-latest", session: "tests" }
+          - {
+              python: "3.15",
+              os: "ubuntu-latest",
+              session: "tests",
+              experimental: true,
+            }
           - { python: "3.10", os: "windows-latest", session: "tests" }
           - { python: "3.10", os: "macos-latest", session: "tests" }
           - { python: "3.10", os: "ubuntu-latest", session: "typeguard" }
@@ -46,12 +56,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
+          # Needed for the 3.15 experimental entry (pre-release); harmless for stable.
+          allow-prereleases: true
 
       - name: Upgrade pip
-        # The constraint pins pip>=26 which dropped Python 3.9 support, so
-        # installing it on the 3.9 runner crashes on import. Skip the
-        # upgrade there and rely on the pip shipped by setup-python.
-        if: matrix.python != '3.9'
+        # The pip pin in constraints.txt does not work on every Python
+        # version in the matrix: pip>=26 dropped Python 3.9, and the
+        # earlier pip==25.0.1 relied on `typing.no_type_check_decorator`
+        # which Python 3.15 removed. Skip the explicit upgrade on those
+        # rows and rely on the pip shipped by setup-python.
+        if: matrix.python != '3.9' && matrix.python != '3.15'
         run: |
           pip install --constraint=${PWD}/.github/workflows/constraints.txt pip
           pip --version
@@ -77,7 +91,11 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
-          sudo apt install ghostscript
+          # libjpeg-dev + zlib1g-dev are needed when uv builds Pillow from
+          # source on the Python 3.15 row (no Pillow wheel ships for 3.15
+          # pre-releases yet). They're harmless / idempotent on the other
+          # Python rows where Pillow installs from a wheel directly.
+          sudo apt install -y ghostscript libjpeg-dev zlib1g-dev
 
       - name: Install ghostscript (macos-latest)
         if: matrix.os == 'macos-latest'
