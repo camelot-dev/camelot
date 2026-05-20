@@ -135,6 +135,7 @@ lattice_kwargs = common_kwargs + [
     "threshold_blocksize",
     "threshold_constant",
     "iterations",
+    "erode_iterations",
     "resolution",
     "use_fallback",
 ]

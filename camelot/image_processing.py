@@ -71,7 +71,12 @@ def adaptive_threshold(
 
 
 def find_lines(
-    threshold, regions=None, direction="horizontal", line_scale=40, iterations=0
+    threshold,
+    regions=None,
+    direction="horizontal",
+    line_scale=40,
+    iterations=0,
+    erode_iterations=0,
 ):
     """
     Finds horizontal and vertical lines by applying morphological transformations on an image.
@@ -90,7 +95,16 @@ def find_lines(
         Factor by which the page dimensions will be divided to get
         smallest length of lines that should be detected.
     iterations : int, optional (default: 0)
-        Number of times for erosion/dilation is applied.
+        Number of dilation passes applied to close small gaps in the
+        line mask. Useful for tables whose ruled lines don't quite
+        meet at corners.
+    erode_iterations : int, optional (default: 0)
+        Number of erosion passes applied **after** dilation. Set equal
+        to ``iterations`` to perform morphological *closing* (dilate
+        then erode of equal count): gaps are closed without enlarging
+        the line mask overall. Requested in #363 — previously the
+        erode step was missing, so ``iterations>=1`` widened every
+        line and added phantom top/bottom lines around tables.
 
     Returns
     -------
@@ -108,7 +122,7 @@ def find_lines(
     el, size = create_structuring_element(threshold, direction, line_scale)
     threshold = apply_region_mask(threshold, regions)
 
-    processed_threshold = process_image(threshold, el, iterations)
+    processed_threshold = process_image(threshold, el, iterations, erode_iterations)
     contours, _ = cv2.findContours(
         processed_threshold.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
@@ -172,7 +186,7 @@ def apply_region_mask(threshold, regions):
     return threshold
 
 
-def process_image(threshold, el, iterations):
+def process_image(threshold, el, iterations, erode_iterations=0):
     """
     Apply morphological operations to the threshold image.
 
@@ -183,7 +197,13 @@ def process_image(threshold, el, iterations):
     el : object
         Structuring element for morphological operations.
     iterations : int
-        Number of iterations for dilation.
+        Number of dilation passes applied to close small gaps in the
+        line mask.
+    erode_iterations : int, optional (default: 0)
+        Number of erosion passes applied *after* the dilation. When
+        equal to ``iterations`` this is a morphological closing —
+        gaps in the lines are bridged without thickening the mask
+        overall. See #363.
 
     Returns
     -------
@@ -193,6 +213,8 @@ def process_image(threshold, el, iterations):
     threshold = cv2.erode(threshold, el)
     threshold = cv2.dilate(threshold, el)
     dmask = cv2.dilate(threshold, el, iterations=iterations)
+    if erode_iterations:
+        dmask = cv2.erode(dmask, el, iterations=erode_iterations)
 
     return dmask
 
