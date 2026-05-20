@@ -89,6 +89,9 @@ dev = [
 
 [project.scripts]
 camelot = "camelot.__main__:main"
+# Alias matching the PyPI package name so `uvx camelot-py …` works without
+# the `--from camelot-py` prefix. See #639.
+camelot-py = "camelot.__main__:main"
 
 [tool.coverage.paths]
 source = ["camelot", "*\\camelot", "*/site-packages"]

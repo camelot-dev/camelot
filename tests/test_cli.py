@@ -42,9 +42,17 @@ def test_cli_lattice(testdir):
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
+        # #639: with --format omitted but --output carrying a known extension
+        # (.csv here), the format is inferred — the run succeeds rather than
+        # bailing out with "Please specify output file format using --format".
         result = runner.invoke(cli, ["lattice", "--output", outfile, infile])
-        format_error = "Please specify output file format using --format"
-        assert format_error in result.output
+        assert result.exit_code == 0, result.output
+        assert "Found 1 tables" in result.output
+
+        # When the --output extension is unknown, the format error still fires.
+        unknown_out = os.path.join(tempdir, "foo")
+        result = runner.invoke(cli, ["lattice", "--output", unknown_out, infile])
+        assert "Please specify output file format using --format" in result.output
 
 
 def test_cli_stream(testdir):
@@ -62,9 +70,10 @@ def test_cli_stream(testdir):
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
+        # #639: --format inferred from .csv extension when --output is given.
         result = runner.invoke(cli, ["stream", "--output", outfile, infile])
-        format_error = "Please specify output file format using --format"
-        assert format_error in result.output
+        assert result.exit_code == 0, result.output
+        assert "Found 1 tables" in result.output
 
         result = runner.invoke(
             cli,
@@ -141,9 +150,10 @@ def test_cli_hybrid(testdir):
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
 
+        # #639: --format inferred from .csv extension when --output is given.
         result = runner.invoke(cli, ["hybrid", "--output", outfile, infile])
-        format_error = "Please specify output file format using --format"
-        assert format_error in result.output
+        assert result.exit_code == 0, result.output
+        assert "Found 1 tables" in result.output
 
 
 def test_cli_network(testdir):
@@ -159,9 +169,10 @@ def test_cli_network(testdir):
         result = runner.invoke(cli, ["network", "--format", "csv", infile])
         output_error = "Error: Please specify output file path using --output"
         assert output_error in result.output
+        # #639: --format inferred from .csv extension when --output is given.
         result = runner.invoke(cli, ["network", "--output", outfile, infile])
-        format_error = "Please specify output file format using --format"
-        assert format_error in result.output
+        assert result.exit_code == 0, result.output
+        assert "Found 1 tables" in result.output
 
 
 def test_cli_password(testdir):
