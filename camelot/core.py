@@ -1070,7 +1070,7 @@ class Table:
         conn.close()
 
 
-def _vstack_run(run: list["Table"], drop_repeated_header: bool = False) -> "Table":
+def _vstack_run(run: list[Table], drop_repeated_header: bool = False) -> Table:
     """Vertically concatenate a run of contiguous Tables (#628 POC).
 
     All tables in ``run`` must share the same column count — the caller
@@ -1217,7 +1217,7 @@ class TableList:
         self,
         match: str = "column_count",
         keep_first_header: bool = False,
-    ) -> "TableList":
+    ) -> TableList:
         """Vertically stack tables that look like continuations across pages.
 
         Many PDF reports break a single logical table over several pages
