@@ -478,7 +478,17 @@ class TextNetworks(TextAlignments):
         h_textlines = sorted(ref_h_textlines, key=lambda textline: textline.x0)
         v_textlines = sorted(ref_v_textlines, key=lambda textline: textline.y0)
 
-        # Calculate gaps between textlines
+        # Calculate gaps between textlines (left-edge-to-left-edge stride).
+        #
+        # NB(#770): do NOT naively change ``.x0 - .x0`` to ``.x0 - .x1``
+        # (whitespace gap) to fix #585. It was validated to fix #585 but
+        # regress 12 network/hybrid fixtures — every downstream gap
+        # consumer (the percentile logic below, the column-spread cutoffs
+        # in ``search_header_from_body_bbox``) is calibrated to *stride*
+        # values, so the swap under-splits columns elsewhere. The two
+        # xfailed #585 tests in ``tests/test_network.py`` document the
+        # limitation. A real fix needs a full gap-consumer re-tune — see
+        # #770 for the analysis.
         h_gaps = np.array(
             [
                 h_textlines[i].x0 - h_textlines[i - 1].x0
