@@ -89,7 +89,7 @@ def test_auto_engine_runs(foo_pdf):
 
 
 def test_combined_engine_matches_raster_on_vector_ruled_pdf(foo_pdf):
-    """combined == raster on foo.pdf.
+    """Combined output equals raster on a crisp vector-ruled PDF.
 
     foo.pdf's ruled lines are crisp vector strokes that the raster
     engine already finds, so unioning the same vector lines in must not

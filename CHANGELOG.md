@@ -45,7 +45,7 @@ changes. **Heads-up if upgrading from 1.0.x**:
 ### Added
 
 - **`engine="combined"`** for `flavor="lattice"` (and the lattice half of
-  `flavor="hybrid"`): unions the PDF's *native vector* ruled lines into the
+  `flavor="hybrid"`): unions the PDF's _native vector_ ruled lines into the
   rasterised OpenCV line masks before contour/joint detection, so tables
   whose rules render faintly (vector strokes, anti-aliasing) are still
   found. Safe by construction — raster always runs, vector lines can only
