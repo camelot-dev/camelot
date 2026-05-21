@@ -22,7 +22,7 @@ Design notes
   *not* score extraction *quality* — that needs ground-truth dataframes
   per PDF and is a separate, larger effort. Table-count + timing is the
   cheap, objective, auto-refreshable signal.
-* **CI wiring (follow-up).** A release-time job that ``pip install``\\s the
+* **CI wiring (follow-up).** A release-time job that pip-installs the
   heavyweight comparators (tabula-py + a JRE, gmft + torch, unstructured)
   and runs this script is the remaining piece; until then the bench runs
   with the pure-Python comparators that are cheap to install
