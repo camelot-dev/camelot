@@ -188,34 +188,53 @@ class BaseParser:
             Parse errors
         """
         pos_errors = []
-        # TODO: have a single list in place of two directional ones?
-        # sorted on x-coordinate based on reading order i.e. LTR or RTL
-        for direction in ["vertical", "horizontal"]:
-            for t in self.t_bbox[direction]:
-                indices, error = get_table_index(
-                    table,
-                    t,
-                    direction,
-                    split_text=self.split_text,
-                    flag_size=self.flag_size,
-                    strip_text=self.strip_text,
-                )
-                if len(indices) > 0:
-                    if indices[0][:2] != (-1, -1):
-                        pos_errors.append(error)
-                        indices = type(self)._reduce_index(
-                            table, indices, shift_text=self.shift_text
-                        )
-                        for r_idx, c_idx, text in indices:
-                            # replace_text (#482) is applied after the
-                            # split/strip/flag-size pipeline, at the
-                            # last point before the text reaches the
-                            # output cell. Order: strip first (already
-                            # done upstream in get_table_index), then
-                            # replace, then assign.
-                            if self.replace_text:
-                                text = text_replace(text, self.replace_text)
-                            table.cells[r_idx][c_idx].text = text
+        # Process textlines from both orientations in a single global
+        # reading-order stream (-y0 top-first, then x0 left-first) rather
+        # than the previous vertical-pass-then-horizontal-pass loop.
+        #
+        # Cell.text is an *appending* setter, so the order textlines are
+        # visited determines the order their fragments concatenate in a
+        # cell. The old "all vertical, then all horizontal" order meant a
+        # glyph that playa happened to classify as a vertical textline
+        # (e.g. a lone single character split off from a word) was
+        # appended *before* the horizontal textlines of the same cell —
+        # floating it to the front of the cell text. Reported as #385
+        # ('d' of 'dihydroclorid' jumping to the start of the cell).
+        #
+        # Sorting both orientations together by reading order places each
+        # textline by its own position, so the cell accumulates
+        # top-to-bottom, left-to-right regardless of orientation tag.
+        textlines = [
+            (t, direction)
+            for direction in ("vertical", "horizontal")
+            for t in self.t_bbox[direction]
+        ]
+        textlines.sort(key=lambda td: (-td[0].y0, td[0].x0))
+        for t, direction in textlines:
+            indices, error = get_table_index(
+                table,
+                t,
+                direction,
+                split_text=self.split_text,
+                flag_size=self.flag_size,
+                strip_text=self.strip_text,
+            )
+            if len(indices) > 0:
+                if indices[0][:2] != (-1, -1):
+                    pos_errors.append(error)
+                    indices = type(self)._reduce_index(
+                        table, indices, shift_text=self.shift_text
+                    )
+                    for r_idx, c_idx, text in indices:
+                        # replace_text (#482) is applied after the
+                        # split/strip/flag-size pipeline, at the
+                        # last point before the text reaches the
+                        # output cell. Order: strip first (already
+                        # done upstream in get_table_index), then
+                        # replace, then assign.
+                        if self.replace_text:
+                            text = text_replace(text, self.replace_text)
+                        table.cells[r_idx][c_idx].text = text
         return pos_errors
 
     def _generate_columns_and_rows(self, bbox, user_cols):
