@@ -340,6 +340,22 @@ def test_version_package_not_found():
         assert get_version() is None
 
 
+@pytest.mark.parametrize("flavor", ["lattice", "stream", "network", "hybrid"])
+def test_cli_plot_without_matplotlib_raises(flavor, testdir, monkeypatch):
+    # When matplotlib isn't available, asking any flavor for a --plot_type
+    # must raise ImportError before parsing. Covers the
+    # `if not _HAS_MPL: raise ImportError` branch in each flavor command —
+    # no existing test reaches it, since matplotlib is installed in CI.
+    import camelot.cli
+
+    monkeypatch.setattr(camelot.cli, "_HAS_MPL", False)
+    infile = os.path.join(testdir, "foo.pdf")
+    runner = CliRunner()
+    result = runner.invoke(cli, [flavor, "--plot_type", "text", infile])
+    assert result.exit_code != 0
+    assert isinstance(result.exception, ImportError)
+
+
 def test_config_set_config():
     """Config.set_config stores values for the cli group's kwargs handoff (#614).
 
