@@ -123,6 +123,47 @@ The same scale-and-flip converts any PDF-space coordinate (a cell, a
 joint) into the image, and inverting it converts an image-space
 coordinate back into PDF space.
 
+I have table coordinates from an image — how do I pass them to ``table_areas``?
+-------------------------------------------------------------------------------
+
+A common workflow is to detect a table's region with an external,
+image-based tool (an ML layout detector such as table-transformers, or
+manual annotation on a rendered page) and then have Camelot extract just
+that region via ``table_areas``. Because ``table_areas`` is in **PDF
+coordinate space** (origin bottom-left, points), you have to convert your
+**image** coordinates the other way — the inverse of the section above.
+
+The key detail: use the DPI of *your own* render. If you rasterised the
+page yourself (e.g. with ``pdf2image`` at ``dpi=D``), then
+``image_width = pdf_width * D / 72``, so the per-axis scale back to PDF
+points is ``72 / D`` — **not** Camelot's internal 300 dpi.
+
+::
+
+    import camelot
+
+    # Box from an image-based detector: (left, top, right, bottom) in
+    # pixels, origin top-left, on a page you rendered at `dpi`.
+    x0_img, y0_img, x1_img, y1_img = detected_box
+    dpi = 200  # whatever you passed to pdf2image / your renderer
+
+    # image px -> PDF points
+    s = 72.0 / dpi
+    pdf_w_x0, pdf_w_x1 = x0_img * s, x1_img * s
+    # flip y: image top-left origin -> PDF bottom-left origin.
+    # page height in points = image_height_px * 72 / dpi
+    page_h_pts = image_height_px * s
+    pdf_top = page_h_pts - y0_img * s        # image top  -> larger PDF y
+    pdf_bottom = page_h_pts - y1_img * s     # image bot  -> smaller PDF y
+
+    # table_areas wants "x1,y1,x2,y2" = top-left, bottom-right (PDF space)
+    area = f"{pdf_w_x0},{pdf_top},{pdf_w_x1},{pdf_bottom}"
+    tables = camelot.read_pdf("doc.pdf", flavor="lattice", table_areas=[area])
+
+If your detector ran on an image Camelot itself produced (rather than your
+own ``pdf2image`` render), use ``table.pdf_size`` and the rendered image
+size to get the scale, exactly as in the previous answer but inverted.
+
 I get ``AttributeError: module 'camelot' has no attribute 'read_pdf'``
 ----------------------------------------------------------------------
 
