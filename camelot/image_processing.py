@@ -455,3 +455,136 @@ def find_lines_from_layout(layout, direction="horizontal"):
         elif direction == "vertical" and dx <= _LINE_ORTHOGONAL_TOL and dy > 0:
             result.append((x0, min(y0, y1), x0, max(y0, y1)))
     return result
+
+
+#: Default tolerance (PDF units) for deciding whether a horizontal and a
+#: vertical ruled line "cross" — accounts for lines that stop a hair short
+#: of each other at a corner.
+_JOINT_TOL = 2.0
+
+#: A line cluster must have more than this many intersection points to be
+#: considered a table, mirroring the raster ``find_joints`` ``len(jc) <= 4``
+#: filter (a real grid has at least a 2x2 of joints).
+_MIN_JOINTS = 4
+
+
+def _line_crossing(h_line, v_line, tol=_JOINT_TOL):
+    """Return the (x, y) crossing of a horizontal and vertical line, or None.
+
+    ``h_line`` is ``(x0, y, x1, y)`` (constant y), ``v_line`` is
+    ``(x, y0, x, y1)`` (constant x), both in PDF coords as produced by
+    :func:`find_lines_from_layout`. They cross when the vertical line's x
+    falls within the horizontal line's x-span and the horizontal line's y
+    falls within the vertical line's y-span, each within ``tol``.
+    """
+    hx0, hy, hx1, _ = h_line
+    vx, vy0, _, vy1 = v_line
+    x_lo, x_hi = (hx0, hx1) if hx0 <= hx1 else (hx1, hx0)
+    y_lo, y_hi = (vy0, vy1) if vy0 <= vy1 else (vy1, vy0)
+    if (x_lo - tol) <= vx <= (x_hi + tol) and (y_lo - tol) <= hy <= (y_hi + tol):
+        return (vx, hy)
+    return None
+
+
+def _cluster_lines(horizontal_lines, vertical_lines, tol=_JOINT_TOL):
+    """Group mutually-intersecting lines into table clusters (union-find).
+
+    Returns a list of ``(bbox, joints)`` tuples — one per connected
+    component of crossing lines — where ``bbox`` is ``(x0, y0, x1, y1)``
+    (left, bottom, right, top in PDF coords) and ``joints`` is the list of
+    ``(x, y)`` crossing points within that component. Clusters with
+    ``<= _MIN_JOINTS`` crossings are dropped (noise / stray L-corners),
+    matching the raster pipeline's joint-count filter.
+
+    This is the vector-native replacement for the raster
+    ``find_contours`` + ``find_joints`` pair: instead of one bbox over the
+    union of every line (the Stage-1 prototype's flaw, which merged
+    separate tables), it isolates each grid as its own component, so
+    multi-table pages yield multiple bboxes.
+    """
+    n_h = len(horizontal_lines)
+    n_v = len(vertical_lines)
+    parent = list(range(n_h + n_v))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    # Edge = a crossing. Record the crossing point keyed by the (h, v) pair
+    # so each component can recover its joints.
+    crossings = {}  # (h_idx, v_idx) -> (x, y)
+    for hi, h in enumerate(horizontal_lines):
+        for vi, v in enumerate(vertical_lines):
+            pt = _line_crossing(h, v, tol)
+            if pt is not None:
+                union(hi, n_h + vi)
+                crossings[(hi, vi)] = pt
+
+    # Gather members + joints per component root.
+    comp_h = {}
+    comp_v = {}
+    comp_joints = {}
+    for hi in range(n_h):
+        comp_h.setdefault(find(hi), []).append(horizontal_lines[hi])
+    for vi in range(n_v):
+        comp_v.setdefault(find(n_h + vi), []).append(vertical_lines[vi])
+    for (hi, vi), pt in crossings.items():
+        comp_joints.setdefault(find(hi), []).append(pt)
+
+    clusters = []
+    for root, joints in comp_joints.items():
+        if len(joints) <= _MIN_JOINTS:
+            continue
+        hs = comp_h.get(root, [])
+        vs = comp_v.get(root, [])
+        xs = [c for ln in hs for c in (ln[0], ln[2])] + [ln[0] for ln in vs]
+        ys = [c for ln in vs for c in (ln[1], ln[3])] + [ln[1] for ln in hs]
+        if not xs or not ys:
+            continue
+        bbox = (min(xs), min(ys), max(xs), max(ys))
+        clusters.append((bbox, joints))
+    return clusters
+
+
+def find_contours_from_lines(horizontal_lines, vertical_lines, tol=_JOINT_TOL):
+    """Vector-native table-bbox detection (Stage 2 of #763).
+
+    Companion to the raster :func:`find_contours`. Given ruled lines in
+    PDF coords (from :func:`find_lines_from_layout`), returns a list of
+    ``(x0, y0, x1, y1)`` table bounding boxes — one per connected cluster
+    of mutually-intersecting lines — so a page with two separate tables
+    yields two bboxes (the Stage-1 prototype merged them).
+
+    Returns
+    -------
+    list[tuple[float, float, float, float]]
+        ``(x0, y0, x1, y1)`` = (left, bottom, right, top) in PDF coords,
+        sorted top-to-bottom (descending y0) to match reading order.
+    """
+    clusters = _cluster_lines(horizontal_lines, vertical_lines, tol)
+    bboxes = [bbox for bbox, _ in clusters]
+    bboxes.sort(key=lambda b: -b[1])  # top table first
+    return bboxes
+
+
+def find_joints_from_lines(horizontal_lines, vertical_lines, tol=_JOINT_TOL):
+    """Vector-native joint detection (Stage 2 of #763).
+
+    Companion to the raster :func:`find_joints`. Returns a dict keyed by
+    table bbox ``(x0, y0, x1, y1)`` (left, bottom, right, top in PDF
+    coords) whose value is the list of ``(x, y)`` line intersections in
+    that table — the same shape the raster pipeline feeds into cell
+    construction, but computed exactly from vector geometry instead of
+    ``np.multiply`` of two rasterised masks.
+    """
+    return {
+        bbox: joints
+        for bbox, joints in _cluster_lines(horizontal_lines, vertical_lines, tol)
+    }
