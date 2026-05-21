@@ -104,6 +104,9 @@ line-length = 88  # Black's default, which the codebase was formatted to.
 # Notebooks were never linted/formatted by the old black/flake8 (types: [python]);
 # keep that behaviour. Vendored Flask theme is third-party.
 extend-exclude = ["*.ipynb", "docs/_themes/*"]
+# pre-commit passes file paths explicitly; force-exclude makes Ruff honour
+# the excludes above even then (otherwise excluded files still get linted).
+force-exclude = true
 
 [tool.ruff.lint]
 # Ruff replaces flake8 + its plugins + isort + pyupgrade. Mapping of the
