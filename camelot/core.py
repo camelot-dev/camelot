@@ -1179,6 +1179,15 @@ class TableList:
     n : int
         Number of tables in the list.
 
+    Examples
+    --------
+    >>> from camelot.core import TableList
+    >>> tables = TableList([])
+    >>> tables.n
+    0
+    >>> tables
+    <TableList n=0>
+
     """
 
     def __init__(self, tables: Iterable[Table]) -> None:  # noqa D105
