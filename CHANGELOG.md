@@ -44,6 +44,10 @@ changes. **Heads-up if upgrading from 1.0.x**:
 
 ### Added
 
+- **`TableList.filter(...)`** — post-extraction convenience to drop noise /
+  low-quality tables by `min_rows`, `min_columns`, `min_accuracy`,
+  `max_whitespace`. Returns a new `TableList` (composable); all thresholds
+  default to a no-op so nothing is dropped unless asked.
 - **`engine="combined"`** for `flavor="lattice"` (and the lattice half of
   `flavor="hybrid"`): unions the PDF's _native vector_ ruled lines into the
   rasterised OpenCV line masks before contour/joint detection, so tables

@@ -1227,6 +1227,53 @@ class TableList:
         """The number of tables in the list."""
         return len(self)
 
+    def filter(
+        self,
+        min_rows: int = 1,
+        min_columns: int = 1,
+        min_accuracy: float = 0.0,
+        max_whitespace: float = 100.0,
+    ) -> TableList:
+        """Return a new TableList keeping only tables that pass all thresholds.
+
+        A post-extraction convenience for dropping noise / low-quality
+        tables (single stray cells, mostly-empty regions, …). Parsing is
+        unchanged — everything is still detected; this just selects from
+        the result. Every threshold defaults to a no-op, so calling
+        ``filter()`` with no arguments returns an equivalent list and a
+        legitimate single-row or single-column table is never dropped
+        unless you ask for it.
+
+        Parameters
+        ----------
+        min_rows : int, optional (default: 1)
+            Drop tables with fewer than this many rows.
+        min_columns : int, optional (default: 1)
+            Drop tables with fewer than this many columns.
+        min_accuracy : float, optional (default: 0.0)
+            Drop tables whose ``parsing_report`` accuracy (0-100) is below
+            this value.
+        max_whitespace : float, optional (default: 100.0)
+            Drop tables whose ``parsing_report`` whitespace (0-100) is
+            above this value.
+
+        Returns
+        -------
+        camelot.core.TableList
+            A new list (the original is left untouched), so calls compose:
+            ``tables.filter(min_rows=2).filter(min_accuracy=90)``.
+
+        """
+        kept = [
+            table
+            for table in self._tables
+            if table.shape[0] >= min_rows
+            and table.shape[1] >= min_columns
+            and table.accuracy >= min_accuracy
+            and table.whitespace <= max_whitespace
+        ]
+        return TableList(kept)
+
     def stack_contiguous(
         self,
         match: str = "column_count",

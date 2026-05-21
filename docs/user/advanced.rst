@@ -89,6 +89,28 @@ The same keyword works with ``flavor='hybrid'``, where it drives the lattice hal
     ...     engine='combined',
     ... )
 
+.. _filter_tables:
+
+Filter out noise tables
+-----------------------
+
+Detection sometimes returns small or low-quality "tables" — a stray single
+cell, a mostly-empty region, a heading mistaken for a 1x1 grid. :meth:`TableList.filter() <camelot.core.TableList.filter>` keeps only the tables that pass the thresholds you give and returns a new :class:`~camelot.core.TableList`; extraction itself is unchanged.
+
+.. code-block:: pycon
+
+    >>> tables = camelot.read_pdf('noisy.pdf')
+    >>> # keep tables with at least 2 rows and 2 columns
+    >>> real = tables.filter(min_rows=2, min_columns=2)
+    >>> # …or filter on parsing quality, and compose freely
+    >>> good = tables.filter(min_accuracy=90).filter(max_whitespace=50)
+
+Every threshold defaults to a no-op (``min_rows=1``, ``min_columns=1``,
+``min_accuracy=0``, ``max_whitespace=100``), so a legitimate single-row or
+single-column table is never dropped unless you ask for it. ``accuracy`` and
+``whitespace`` are the same 0–100 values reported in
+:attr:`Table.parsing_report <camelot.core.Table.parsing_report>`.
+
 .. _visual_debug:
 Visual debugging
 ----------------
