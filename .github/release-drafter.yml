@@ -27,3 +27,28 @@ template: |
   ## Changes
 
   $CHANGES
+autolabeler:
+  - label: "breaking"
+    title:
+      - "/(^|\\s)\\w+(\\(.*\\))?!:/" # conventional "type!:" breaking marker
+      - "/breaking change/i"
+  - label: "enhancement"
+    title: ["/^feat([(!:]|ure)/i"]
+  - label: "bug"
+    title: ["/^fix[(!:]/i"]
+  - label: "documentation"
+    title: ["/^docs[(:]/i"]
+  - label: "testing"
+    title: ["/^test[(:]/i"]
+  - label: "performance"
+    title: ["/^perf[(:]/i"]
+  - label: "ci"
+    title: ["/^ci[(:]/i"]
+  - label: "style"
+    title: ["/^style[(:]/i"]
+  - label: "refactoring"
+    title: ["/^refactor[(:]/i"]
+  - label: "dependencies"
+    title:
+      - "/^build[(:]/i"
+      - "/^chore\\(deps\\)/i"
