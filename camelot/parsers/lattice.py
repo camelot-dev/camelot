@@ -382,10 +382,13 @@ class Lattice(BaseParser):
         def scale_areas(areas):
             scaled_areas = []
             for area in areas:
-                # bbox_from_str validates the coordinates (clear error on a
-                # malformed / zero-area box instead of a later ZeroDivision,
-                # #63) and normalises corner order.
-                x1, y1, x2, y2 = bbox_from_str(area)
+                # Validate (clear error on a malformed / zero-area box instead
+                # of a later ZeroDivision, #63) but keep the caller's raw
+                # corner order: scale_pdf + the (x, y, w, h) form below expect
+                # y1 to be the *top* edge, so bbox_from_str's min/max
+                # normalisation must NOT be applied here.
+                bbox_from_str(area)
+                x1, y1, x2, y2 = (float(v) for v in area.split(","))
                 x1, y1, x2, y2 = scale_pdf((x1, y1, x2, y2), image_scalers)
                 scaled_areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
             return scaled_areas
