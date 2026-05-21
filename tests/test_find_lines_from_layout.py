@@ -10,12 +10,10 @@ import os
 
 import pytest
 
-from camelot.image_processing import (
-    _LINE_AS_THIN_RECT_TOL,
-    _LINE_ORTHOGONAL_TOL,
-    _ruled_lines_from_layout,
-    find_lines_from_layout,
-)
+from camelot.image_processing import _LINE_AS_THIN_RECT_TOL
+from camelot.image_processing import _LINE_ORTHOGONAL_TOL
+from camelot.image_processing import _ruled_lines_from_layout
+from camelot.image_processing import find_lines_from_layout
 
 
 class _MockLTLine:
@@ -56,7 +54,8 @@ def test_isinstance_check_uses_real_classes():
     isinstance(...) calls don't accept duck types alone. We construct
     real playa objects below where needed for the integration test.
     """
-    from playa.miner import LTLine, LTRect
+    from playa.miner import LTLine
+    from playa.miner import LTRect
 
     assert LTLine is not None
     assert LTRect is not None
@@ -158,7 +157,7 @@ def test_stroked_ltrect_yields_four_edges(monkeypatch):
 
 
 def test_thin_filled_rect_treated_as_line(monkeypatch):
-    """PDFs that draw rules as 0.5pt filled rects are recovered."""
+    """Rule lines drawn as 0.5pt filled rects are recovered."""
     from camelot import image_processing as ip
 
     monkeypatch.setattr(ip, "LTLine", _MockLTLine)
