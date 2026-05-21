@@ -7,7 +7,8 @@ tables that look like continuations across page breaks.
 import pandas as pd
 import pytest
 
-from camelot.core import Table, TableList
+from camelot.core import Table
+from camelot.core import TableList
 
 
 def _make_table(df, page=1, order=1, cols_x=(0, 100, 200), rows_y=(300, 200, 100)):
@@ -16,8 +17,8 @@ def _make_table(df, page=1, order=1, cols_x=(0, 100, 200), rows_y=(300, 200, 100
     The exact y-coords of rows/cells don't matter for stacking semantics;
     we just need them to round-trip through the shift logic.
     """
-    cols = list(zip(cols_x[:-1], cols_x[1:]))
-    rows = list(zip(rows_y[:-1], rows_y[1:]))
+    cols = list(zip(cols_x[:-1], cols_x[1:], strict=False))
+    rows = list(zip(rows_y[:-1], rows_y[1:], strict=False))
     t = Table(cols=cols, rows=rows)
     t.df = df.reset_index(drop=True)
     t.page = page
