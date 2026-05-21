@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
+import tempfile
 from functools import partial
 from itertools import chain
 from pathlib import Path
+from typing import IO
 from typing import Any
+from typing import Union
 
 import playa
 from playa.exceptions import PDFPasswordIncorrect
@@ -36,6 +39,88 @@ PARSERS = {
 }
 
 
+FilepathOrBuffer = Union[str, Path, bytes, bytearray, memoryview, IO[bytes]]
+
+
+def _spill_bytes_to_tempfile(data: bytes) -> str:
+    """Write `data` to a NamedTemporaryFile and return its path.
+
+    Used by ``PDFHandler`` when the caller passes a ``bytes``-like object
+    or a file-like stream rather than a filesystem path — the Lattice
+    flavor's OpenCV image-conversion backend needs a real on-disk file,
+    so the simplest contract is "always spill once, treat as a path from
+    here on, clean up on close()". The file is created with ``delete=False``
+    and reaped in :meth:`PDFHandler.close`.
+    """
+    with tempfile.NamedTemporaryFile(
+        prefix="camelot-", suffix=".pdf", delete=False
+    ) as f:
+        f.write(data)
+        return f.name
+
+
+def _consume_filelike_to_bytes(filepath: IO[bytes]) -> bytes:
+    """Read a binary stream from the start, preserve the caller's cursor.
+
+    Always reads from position 0 — a PDF mid-stream isn't useful — and
+    seeks back to whatever position the caller had before the call so
+    they can keep using the same handle. Non-seekable streams (sockets,
+    pipes) silently fall through: ``read()`` returns whatever's left,
+    and the seek-back is best-effort.
+
+    Raises ``TypeError`` when ``read()`` returns text rather than bytes,
+    which catches accidental text-mode opens before the bad data reaches
+    pdfium and produces a clearer error.
+    """
+    tell = getattr(filepath, "tell", None)
+    seek = getattr(filepath, "seek", None)
+    pos = tell() if callable(tell) else None
+    if callable(seek):
+        try:
+            seek(0)
+        except (OSError, ValueError):
+            pass
+    data = filepath.read()
+    if pos is not None and callable(seek):
+        try:
+            seek(pos)
+        except (OSError, ValueError):
+            pass
+    if not isinstance(data, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            "file-like 'filepath' must return bytes from .read(),"
+            f" got {type(data).__name__}"
+        )
+    return bytes(data)
+
+
+def _resolve_filepath(filepath: FilepathOrBuffer) -> tuple[str | Path, bool]:
+    """Normalise read_pdf's polymorphic filepath argument to a real path.
+
+    Returns ``(path, is_temp)``. ``is_temp`` is True when the returned
+    path points to a tempfile we created (and therefore own — the
+    caller's :meth:`PDFHandler.close` should reap it).
+
+    Three branches:
+
+    * ``bytes`` / ``bytearray`` / ``memoryview``: spill to a tempfile.
+    * binary file-like (``.read()`` returning bytes): read once,
+      preserve the caller's cursor, spill to a tempfile.
+    * everything else (path / URL): URL → download to tempfile; path
+      → pass through untouched.
+    """
+    if isinstance(filepath, (bytes, bytearray, memoryview)):
+        return _spill_bytes_to_tempfile(bytes(filepath)), True
+    if hasattr(filepath, "read") and callable(filepath.read):
+        data = _consume_filelike_to_bytes(filepath)  # type: ignore[arg-type]
+        return _spill_bytes_to_tempfile(data), True
+    if is_url(filepath):
+        return download_url(str(filepath)), True
+    # mypy: filepath is the str | Path | os.PathLike subset of
+    # FilepathOrBuffer (we've ruled out bytes / file-like / URL).
+    return filepath, False  # type: ignore[return-value]
+
+
 class PDFHandler:
     """Handles all operations on the PDF's.
 
@@ -45,8 +130,14 @@ class PDFHandler:
 
     Parameters
     ----------
-    filepath : str
-        Filepath or URL of the PDF file.
+    filepath : str, Path, bytes, or binary file-like
+        Source PDF. Accepts a filesystem path / URL, or — since #270 —
+        a ``bytes``-like object or any binary stream with a ``.read()``
+        method (``io.BytesIO``, an open ``"rb"`` file, ``requests``
+        response ``.raw``, etc). In the in-memory cases the bytes are
+        spilled to a temporary file once and cleaned up when the handler
+        is closed; this keeps the rest of the pipeline (in particular
+        the Lattice OpenCV image-conversion backend) unchanged.
     pages : str, optional (default: '1')
         Comma-separated page numbers.
         Example: '1,3,4' or '1,4-end' or 'all'.
@@ -58,16 +149,14 @@ class PDFHandler:
 
     def __init__(
         self,
-        filepath: Path | str,
+        filepath: FilepathOrBuffer,
         pages="1",
         password=None,
         debug=False,
     ):
         self.debug = debug
-        self.is_temp_file = is_url(filepath)
-        if is_url(filepath):
-            filepath = download_url(str(filepath))
-        self.filepath: Path | str = filepath
+        resolved, self.is_temp_file = _resolve_filepath(filepath)
+        self.filepath: str | Path = resolved
 
         if password is None:
             self.password = ""  # noqa: S105
