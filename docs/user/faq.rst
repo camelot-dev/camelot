@@ -124,7 +124,7 @@ joint) into the image, and inverting it converts an image-space
 coordinate back into PDF space.
 
 I have table coordinates from an image — how do I pass them to ``table_areas``?
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 A common workflow is to detect a table's region with an external,
 image-based tool (an ML layout detector such as table-transformers, or
