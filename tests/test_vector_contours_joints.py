@@ -14,8 +14,10 @@ from camelot.image_processing import find_joints_from_lines
 
 
 def _grid(x_left, x_right, y_bot, y_top, xs, ys):
-    """Build a ruled grid: horizontal lines at each y in ys spanning
-    [x_left, x_right]; vertical lines at each x in xs spanning [y_bot, y_top].
+    """Build a ruled grid of horizontal + vertical lines.
+
+    Horizontal lines at each y in ``ys`` span ``[x_left, x_right]``;
+    vertical lines at each x in ``xs`` span ``[y_bot, y_top]``.
     """
     h = [(x_left, y, x_right, y) for y in ys]
     v = [(x, y_bot, x, y_top) for x in xs]
