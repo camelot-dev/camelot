@@ -256,7 +256,13 @@ class Lattice(BaseParser):
             return "raster"
         return "raster"
 
-    def _generate_table_bbox(self):
+    def _check_engine_supported(self):
+        """Raise if the resolved engine has no implementation yet.
+
+        Keeps the not-yet-wired ``engine='vector'`` guard out of
+        :meth:`_generate_table_bbox`'s body (a method call, not an inline
+        branch, so it doesn't inflate that method's complexity).
+        """
         if self._resolve_engine() == "vector":
             raise NotImplementedError(
                 "engine='vector' for flavor='lattice' is not wired yet"
@@ -265,6 +271,9 @@ class Lattice(BaseParser):
                 " pending). Use engine='raster' (default) or engine='auto'"
                 " for now. Tracked in #763."
             )
+
+    def _generate_table_bbox(self):
+        self._check_engine_supported()
 
         def scale_areas(areas):
             scaled_areas = []
