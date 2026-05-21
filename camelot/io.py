@@ -312,6 +312,21 @@ def read_pdf(
     Supplying the document owner password through ``password=`` bypasses
     the user-password permission set (matches every other PDF tool).
 
+    Examples
+    --------
+    >>> import camelot
+    >>> tables = camelot.read_pdf("foo.pdf")  # xdoctest: +SKIP
+    >>> tables.n  # xdoctest: +SKIP
+    1
+    >>> tables[0].df  # xdoctest: +SKIP
+    >>> tables[0].to_csv("foo.csv")  # xdoctest: +SKIP
+
+    Select a parser and restrict extraction to a page range:
+
+    >>> tables = camelot.read_pdf(  # xdoctest: +SKIP
+    ...     "foo.pdf", flavor="lattice", pages="1-3"
+    ... )
+
     """
     if layout_kwargs is None:
         layout_kwargs = {}
