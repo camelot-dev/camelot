@@ -301,10 +301,23 @@ Each per-tool section ends with a ``Last verified: YYYY-MM-DD``
 marker so drift is visible without having to dig through commit
 history. The intent is for one of these to fall out of date — that's
 expected — and for a contributor to refresh it via PR when they
-notice. A future iteration of this page may add a ``bench/`` script
-that runs each comparator on a canonical PDF corpus and emits a
-machine-readable matrix; until then, the matrix above is hand-
-maintained.
+notice. The per-tool prose + capability matrix above are
+hand-maintained.
+
+The objective numbers — does each tool run on a given PDF, how many
+tables it returns, and how long it takes — are produced by a script,
+so they can be refreshed without editing prose::
+
+    $ python bench/comparison.py
+
+That runs Camelot plus every peer extractor that's importable in the
+environment (missing ones are skipped, not errored) against a small
+canonical corpus, and writes ``docs/_static/comparison_bench.csv``.
+The script measures table-count + timing only, not extraction
+*quality* (which needs per-PDF ground truth — a separate effort).
+Wiring it into a release-time CI job that installs the heavyweight
+comparators (a JRE for Tabula, PyTorch for gmft, …) so the CSV
+refreshes automatically is the remaining follow-up.
 
 ----
 
