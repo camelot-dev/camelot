@@ -55,21 +55,14 @@ ghostscript = [
 ]
 dev = [
     "Pygments>=2.10.0",
-    "black>=23.1.0",
     "coverage[toml]>=6.2",
-    "flake8>=4.0.1",
-    "flake8-bandit>=2.1.2",
-    "flake8-bugbear>=21.9.2",
-    "flake8-rst-docstrings>=0.2.5",
+    "ruff>=0.12.10",
     "sphinx-book-theme>=1.0.1",
-    "isort>=5.10.1",
     "mypy>=0.930",
-    "pep8-naming>=0.12.1",
     "pre-commit>=2.16.0",
     "pre-commit-hooks>=4.1.0",
     "pytest>=6.2.5",
     "pytest-mpl>=0.17.0",
-    "pyupgrade>=2.29.1",
     "safety>=2.2.3",
     "sphinx>=4.3.2",
     "sphinx-autobuild>=2021.3.14",
@@ -102,16 +95,68 @@ source = ["camelot", "tests"]
 show_missing = true
 fail_under = 90
 
-[tool.black]
-# Match `requires-python = ">=3.10"`. Without this, modern Black auto-detects a
-# higher target and emits "Python 3.10 cannot parse code formatted for Python
-# 3.15" in the CI pre-commit job, because its AST safety check can't parse
-# newer syntax under the 3.10 runner.
-target-version = ["py310"]
+[tool.ruff]
+# Ruff replaces Black (formatter) and isort (import sorting). Match
+# `requires-python = ">=3.10"` so the formatter targets the floor version
+# (also keeps formatting stable across the 3.10–3.15 CI matrix).
+target-version = "py310"
+line-length = 88  # Black's default, which the codebase was formatted to.
+# Notebooks were never linted/formatted by the old black/flake8 (types: [python]);
+# keep that behaviour. Vendored Flask theme is third-party.
+extend-exclude = ["*.ipynb", "docs/_themes/*"]
+# pre-commit passes file paths explicitly; force-exclude makes Ruff honour
+# the excludes above even then (otherwise excluded files still get linted).
+force-exclude = true
 
-[tool.isort]
-profile = "black"
-force_single_line = true
+[tool.ruff.lint]
+# Ruff replaces flake8 + its plugins + isort + pyupgrade. Mapping of the
+# old `.flake8` select (B,B9,C,D,DAR,E,F,N,RST,S,W):
+#   B   -> flake8-bugbear        S   -> flake8-bandit
+#   C   -> mccabe (C90)          W/E -> pycodestyle
+#   D   -> pydocstyle            F   -> pyflakes
+#   N   -> pep8-naming           I   -> isort (was a separate tool)
+#   UP  -> pyupgrade (was a separate hook)
+# Not ported: RST (flake8-rst-docstrings) and DAR (darglint) have no Ruff
+# equivalent. DAR was inert (darglint wasn't installed); RST docstring
+# linting is dropped — the one capability lost in the move.
+select = ["B", "C90", "D", "E", "F", "I", "N", "S", "UP", "W"]
+ignore = [
+    "D401", # imperative-mood first line (was ignored under flake8)
+    "E203", # whitespace before ':' — Ruff-format/Black compatibility
+    "E501", # line too long — the formatter owns wrapping
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.isort]
+# Mirror the previous `isort` config (profile = "black", one import per line).
+force-single-line = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D200",
+    "D401",
+    "S101",
+    "S106",
+    "F403",
+    "F405",
+    "F841",
+]
+"__init__.py" = ["D100", "D103", "D104", "F401"]
+"__version__.py" = ["D100"]
+"__main__.py" = ["D100", "D103"]
+# Benchmark scripts are dev-only (not shipped); docstrings optional and some
+# deliberately copy legacy complex code for apples-to-apples timing.
+"bench/*" = ["C901", "D100", "D101", "D102", "D103", "S101"]
 
 [tool.mypy]
 warn_unreachable = true

@@ -81,7 +81,7 @@ def test_bad_password(testdir):
 
 
 def test_stream_equal_length(foo_pdf):
-    message = "Length of table_areas and columns" " should be equal"
+    message = "Length of table_areas and columns should be equal"
     with pytest.raises(ValueError, match=message):
         camelot.read_pdf(
             foo_pdf,
