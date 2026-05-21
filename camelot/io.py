@@ -274,6 +274,17 @@ def read_pdf(
         Fallback to another backend if unavailable, by default True
     resolution* : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
+    engine* : str, optional (default: 'raster')
+        Line-detection engine for ``flavor='lattice'``:
+
+        - ``'raster'`` (default): render the page and detect ruled lines
+          with OpenCV — the long-standing behaviour.
+        - ``'auto'``: use the vector engine when the PDF carries native
+          ruled lines, else fall back to raster. (Currently resolves to
+          raster pending the vector pipeline; #763.)
+        - ``'vector'``: read ruled lines straight from the PDF's vector
+          graphics, skipping rasterisation. **Not yet wired** — raises
+          ``NotImplementedError`` for now (#763).
 
     Returns
     -------
