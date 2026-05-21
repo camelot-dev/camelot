@@ -42,6 +42,7 @@ workaround required".
             <th scope="col">PyMuPDF</th>
             <th scope="col">gmft</th>
             <th scope="col">unstructured.io</th>
+            <th scope="col">tablers</th>
           </tr>
         </thead>
         <tbody>
@@ -53,6 +54,7 @@ workaround required".
             <td>AGPL / commercial</td>
             <td>MIT</td>
             <td>Apache 2.0</td>
+            <td>MIT</td>
           </tr>
           <tr>
             <th scope="row">Runtime</th>
@@ -62,6 +64,7 @@ workaround required".
             <td>C binding</td>
             <td>PyTorch model</td>
             <td>Python + plugins</td>
+            <td>Rust + Python</td>
           </tr>
           <tr>
             <th scope="row">Ruled-grid tables</th>
@@ -71,6 +74,7 @@ workaround required".
             <td><span class="cm-yes">&#10003;</span></td>
             <td><span class="cm-yes" title="model-based">&#10003;</span></td>
             <td><span class="cm-partial" title="via backend">&#9680;</span></td>
+            <td><span class="cm-yes" title="line/rect edge detection">&#10003;</span></td>
           </tr>
           <tr>
             <th scope="row">Borderless / whitespace tables</th>
@@ -80,6 +84,7 @@ workaround required".
             <td><span class="cm-yes">&#10003;</span></td>
             <td><span class="cm-yes">&#10003;</span></td>
             <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-no" title="edge-based detection">&#10007;</span></td>
           </tr>
           <tr>
             <th scope="row">Per-page kwarg overrides</th>
@@ -87,6 +92,7 @@ workaround required".
             <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-partial" title="manual loop">&#9680;</span></td>
             <td><span class="cm-partial">&#9680;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-no">&#10007;</span></td>
           </tr>
@@ -98,6 +104,7 @@ workaround required".
             <td><span class="cm-partial" title="via OCR plugin">&#9680;</span></td>
             <td><span class="cm-yes" title="vision model">&#10003;</span></td>
             <td><span class="cm-yes" title="Tesseract plugin">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
           </tr>
           <tr>
             <th scope="row">Confidence score per table</th>
@@ -106,6 +113,7 @@ workaround required".
             <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-partial" title="heuristic">&#9680;</span></td>
             <td><span class="cm-yes" title="model score">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-no">&#10007;</span></td>
           </tr>
           <tr>
@@ -116,6 +124,7 @@ workaround required".
             <td><span class="cm-yes">&#10003;</span></td>
             <td><span class="cm-yes">&#10003;</span></td>
             <td><span class="cm-yes">&#10003;</span></td>
+            <td><span class="cm-no" title="not documented">&#10007;</span></td>
           </tr>
           <tr>
             <th scope="row">Multi-page table stitching</th>
@@ -125,6 +134,7 @@ workaround required".
             <td><span class="cm-partial">&#9680;</span></td>
             <td><span class="cm-yes" title="model-aware">&#10003;</span></td>
             <td><span class="cm-partial">&#9680;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
           </tr>
           <tr>
             <th scope="row">Heavy native deps</th>
@@ -134,6 +144,7 @@ workaround required".
             <td>mupdf (vendored)</td>
             <td>PyTorch (+ GPU)</td>
             <td>varies</td>
+            <td>none (Rust/pdfium bundled)</td>
           </tr>
         </tbody>
       </table>
@@ -275,6 +286,28 @@ elements (Title, NarrativeText, Table, …).
   JSON / SQLite / Markdown.
 
 *Last verified: 2026-05-21 against unstructured 0.16.x.*
+
+tablers
+-------
+
+`tablers <https://github.com/monchin/tablers>`_ is a young, MIT-licensed
+extractor with its core algorithms written in **Rust** (exposed to Python
+via PyO3) and PDF handling through pdfium — so it installs with no external
+Python dependencies and is built for speed.
+
+* **When tablers wins.** Throughput on **ruled** tables — it detects
+  tables from line/rectangle edges and is designed to be very fast, with
+  lazy page loading for large files. If your PDFs are consistently
+  ruled and speed matters, it's worth a look.
+* **When Camelot wins.** Breadth: borderless / whitespace tables
+  (``stream`` / ``network`` / ``hybrid``), the vector+raster
+  ``engine="combined"``, per-table ``accuracy`` / ``whitespace`` /
+  ``confidence`` metrics with :meth:`TableList.filter`, multi-page
+  stitching, and pandas-DataFrame output. tablers currently focuses on
+  edge-detected tables and exports to CSV / Markdown / HTML.
+
+*Last verified: 2026-05-21 against the tablers README (project is new;
+assessed from its documented features rather than a benchmark run).*
 
 Tools we no longer compare against
 -----------------------------------
