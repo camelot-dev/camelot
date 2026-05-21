@@ -11,6 +11,19 @@
 
 **Camelot** is a Python library that can help you extract tables from PDFs.
 
+## Features
+
+- 📊 **Four parsers** — `lattice` (ruled tables), `stream` (whitespace), and the text-alignment `network` / `hybrid`, plus `flavor="auto"` to pick one for you.
+- 🧠 **Vector + raster line detection** — `engine="combined"` unions the PDF's native vector ruled lines with OpenCV detection, so faintly-ruled tables are still found.
+- 🐼 **pandas output** — every table is a `DataFrame`, ready for analysis.
+- 📤 **Many export formats** — CSV, JSON, Excel, HTML, Markdown, and SQLite.
+- 📐 **Quality metrics** — accuracy, whitespace, and a confidence score per table; drop noise with `TableList.filter(...)`.
+- 🧩 **Multi-page tables** — stitch continuations across pages with `stack_contiguous()`.
+- 🎛️ **Highly configurable** — table areas/regions, column separators, text processing, and more.
+- 🔌 **Flexible input** — a file path, URL, raw `bytes`, or any binary file-like object.
+- 🖥️ **CLI included** — `camelot lattice file.pdf`, etc.
+- 📦 **Light install** — the default pdfium backend is bundled, with no system dependencies.
+
 ---
 
 **Extract tables from PDFs in just a few lines of code:**
@@ -63,42 +76,47 @@ You can check out some frequently asked questions [here](https://camelot-py.read
 - **Metrics**: You can discard bad tables based on metrics like accuracy and whitespace, without having to manually look at each table.
 - **Output**: Each table is extracted into a **pandas DataFrame**, which seamlessly integrates into [ETL and data analysis workflows](https://gist.github.com/vinayak-mehta/e5949f7c2410a0e12f25d3682dc9e873). You can also export tables to multiple formats, which include CSV, JSON, Excel, HTML, Markdown, and Sqlite.
 
-See [comparison with similar libraries and tools](https://github.com/camelot-dev/camelot/wiki/Comparison-with-other-PDF-Table-Extraction-libraries-and-tools).
+See [comparison with similar libraries and tools](https://camelot-py.readthedocs.io/en/latest/user/comparison.html).
 
 ## Installation
 
-### Using conda
+Camelot's default image-conversion backend is [pdfium](https://pypi.org/project/pypdfium2/), which ships as a wheel — so a plain install needs **no system dependencies**. The optional [ghostscript](https://www.ghostscript.com/) and poppler backends require [additional dependencies](https://camelot-py.readthedocs.io/en/latest/user/install-deps.html).
 
-The easiest way to install Camelot is with [conda](https://conda.io/docs/), which is a package manager and environment management system for the [Anaconda](http://docs.continuum.io/anaconda/) distribution.
+### Using uv
+
+[uv](https://docs.astral.sh/uv/) is a fast Python package and project manager. To add Camelot to a project:
 
 ```bash
-conda install -c conda-forge camelot-py
+uv add camelot-py
+```
+
+Or to install it into the current environment:
+
+```bash
+uv pip install camelot-py
 ```
 
 ### Using pip
-
-You can also use pip to install Camelot:
 
 ```bash
 pip install "camelot-py"
 ```
 
-Note that [additional dependencies](https://camelot-py.readthedocs.io/en/latest/user/install-deps.html) may be required if you want to use the non-default backend [ghostscript](https://www.ghostscript.com/).
+### Using conda
+
+[conda](https://conda.io/docs/) is the package manager for the [Anaconda](http://docs.continuum.io/anaconda/) distribution:
+
+```bash
+conda install -c conda-forge camelot-py
+```
 
 ### From the source code
 
 ```bash
 git clone https://github.com/camelot-dev/camelot.git
-```
-
-and install using pip:
-
-```
 cd camelot
-pip install "."
+uv pip install "."  # or: pip install "."
 ```
-
-Note that [additional dependencies](https://camelot-py.readthedocs.io/en/latest/user/install-deps.html) may be required if you want to use the non-default backend [ghostscript](https://www.ghostscript.com/).
 
 ## Documentation
 
@@ -107,10 +125,6 @@ The documentation is available at [http://camelot-py.readthedocs.io/](http://cam
 ## Wrappers
 
 - [camelot-php](https://github.com/randomstate/camelot-php) provides a [PHP](https://www.php.net/) wrapper on Camelot.
-
-## Related projects
-
-- [camelot-sharp](https://github.com/BobLd/camelot-sharp) provides a C sharp implementation of Camelot.
 
 ## Contributing
 
