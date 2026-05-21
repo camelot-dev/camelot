@@ -10,6 +10,7 @@ from ..image_processing import adaptive_threshold
 from ..image_processing import find_contours
 from ..image_processing import find_joints
 from ..image_processing import find_lines
+from ..image_processing import layout_has_ruled_lines
 from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
 from ..utils import scale_image
@@ -112,8 +113,14 @@ class Lattice(BaseParser):
         resolution=300,
         use_fallback=True,
         backend="pdfium",
+        engine="raster",
         **kwargs,
     ):
+        if engine not in ("raster", "vector", "auto"):
+            raise ValueError(
+                f"engine must be 'raster', 'vector' or 'auto', got {engine!r}"
+            )
+        self.engine = engine
         super().__init__("lattice", replace_text=replace_text)
         self.table_regions = table_regions
         self.table_areas = table_areas
@@ -222,7 +229,52 @@ class Lattice(BaseParser):
         # for plotting
         table._segments = (self.vertical_segments, self.horizontal_segments)
 
+    def _resolve_engine(self):
+        """Resolve the effective line-detection engine for this page.
+
+        * ``'raster'`` → ``'raster'`` (the OpenCV pipeline).
+        * ``'vector'`` → ``'vector'`` (explicit; not yet wired — see
+          :meth:`_generate_table_bbox`).
+        * ``'auto'``  → ``'vector'`` when the page layout carries enough
+          ruled lines to attempt vector detection, else ``'raster'``.
+
+        Note: until the vector ``_generate_table_bbox`` path is wired
+        (#763 Stage 2b), ``'auto'`` deliberately resolves to ``'raster'``
+        even when vector lines are present — the probe result is computed
+        for forward-compatibility and diagnostics but the only
+        implemented path is raster. Explicit ``engine='vector'`` is the
+        single value that surfaces the not-yet-implemented state.
+        """
+        if self.engine == "vector":
+            return "vector"
+        if self.engine == "auto":
+            # Diagnostic: record whether the vector path *would* apply.
+            self._vector_lines_available = layout_has_ruled_lines(
+                getattr(self, "layout", None)
+            )
+            # TODO(#763): return "vector" here once 2b is wired.
+            return "raster"
+        return "raster"
+
+    def _check_engine_supported(self):
+        """Raise if the resolved engine has no implementation yet.
+
+        Keeps the not-yet-wired ``engine='vector'`` guard out of
+        :meth:`_generate_table_bbox`'s body (a method call, not an inline
+        branch, so it doesn't inflate that method's complexity).
+        """
+        if self._resolve_engine() == "vector":
+            raise NotImplementedError(
+                "engine='vector' for flavor='lattice' is not wired yet"
+                " (the vector find_lines_from_layout / find_contours_from_lines"
+                " helpers exist, but the _generate_table_bbox integration is"
+                " pending). Use engine='raster' (default) or engine='auto'"
+                " for now. Tracked in #763."
+            )
+
     def _generate_table_bbox(self):
+        self._check_engine_supported()
+
         def scale_areas(areas):
             scaled_areas = []
             for area in areas:

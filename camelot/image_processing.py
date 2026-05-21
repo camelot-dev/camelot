@@ -607,3 +607,26 @@ def find_joints_from_lines(horizontal_lines, vertical_lines, tol=_JOINT_TOL):
         bbox: joints
         for bbox, joints in _cluster_lines(horizontal_lines, vertical_lines, tol)
     }
+
+
+#: Minimum number of ruled lines a layout must carry for the vector engine
+#: to be worth attempting. A genuine ruled table has at least a handful of
+#: edges; fewer than this is likely a stray rule or page border, where the
+#: raster engine (which also reads text-region heuristics) is the safer bet.
+_VECTOR_ENGINE_MIN_LINES = 4
+
+
+def layout_has_ruled_lines(layout, min_lines=_VECTOR_ENGINE_MIN_LINES):
+    """Probe whether a layout carries enough vector ruled lines.
+
+    Used by ``flavor='lattice'``'s ``engine='auto'`` to decide between the
+    vector and raster line-detection paths (#763). Returns ``True`` when
+    the layout tree contains at least ``min_lines`` stroked ``LTLine`` /
+    ``LTRect`` edges (via :func:`_ruled_lines_from_layout`).
+
+    A ``None`` layout (e.g. probed before page preparation) returns
+    ``False`` — the caller should fall back to raster.
+    """
+    if layout is None:
+        return False
+    return len(_ruled_lines_from_layout(layout)) >= min_lines
