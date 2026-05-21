@@ -40,6 +40,19 @@ Lattice is more deterministic in nature, and it does not rely on guesses. It can
 
 It starts by converting the PDF page to an image using an image conversion backend (default pdfium), and then processes it to get horizontal and vertical line segments by applying a set of morphological transformations (erosion and dilation) using OpenCV.
 
+.. note::
+
+   That image-based (*raster*) line detection is the default. When a PDF
+   draws its rules as native vector graphics, those exact line
+   coordinates are already in the document — and they sometimes render
+   too faintly for the rasteriser to pick up. The ``engine='combined'``
+   option (see :ref:`line_detection_engine`) reads those vector lines
+   directly and **unions** them into the rasterised line masks before the
+   grid below is reconstructed, so faintly-ruled vector tables are still
+   found. Because raster detection always runs first, the vector lines
+   can only add to the result — ``'combined'`` is never worse than the
+   default ``'raster'``.
+
 Let's see how Lattice processes the second page of `this PDF`_, step-by-step.
 
 .. _this PDF: ../_static/pdf/us-030.pdf
