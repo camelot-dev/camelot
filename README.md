@@ -122,10 +122,6 @@ uv pip install "."  # or: pip install "."
 
 The documentation is available at [http://camelot-py.readthedocs.io/](http://camelot-py.readthedocs.io/).
 
-## Wrappers
-
-- [camelot-php](https://github.com/randomstate/camelot-php) provides a [PHP](https://www.php.net/) wrapper on Camelot.
-
 ## Contributing
 
 The [Contributor's Guide](https://camelot-py.readthedocs.io/en/latest/dev/contributing.html) has detailed information about contributing issues, documentation, code, and tests.
