@@ -495,12 +495,37 @@ def bbox_from_str(bbox_str):
     bbox : tuple
         Tuple (x1, y1, x2, y2).
 
+    Raises
+    ------
+    ValueError
+        If the string isn't four numbers, or describes a zero-area box.
+        The latter is the usual cause of the otherwise cryptic
+        ``ZeroDivisionError`` downstream (#63), commonly because the
+        coordinates came from a top-left-origin tool — PDF space has its
+        origin at the bottom-left, so ``y1`` must be greater than ``y2``.
+
     """
-    x1, y1, x2, y2 = bbox_str.split(",")
-    x1 = float(x1)
-    y1 = float(y1)
-    x2 = float(x2)
-    y2 = float(y2)
+    parts = bbox_str.split(",")
+    if len(parts) != 4:
+        raise ValueError(
+            f"Invalid table area/region {bbox_str!r}: expected four "
+            "comma-separated numbers in the form 'x1,y1,x2,y2'."
+        )
+    try:
+        x1, y1, x2, y2 = (float(p) for p in parts)
+    except ValueError:
+        raise ValueError(
+            f"Invalid table area/region {bbox_str!r}: coordinates must be "
+            "numbers, in the form 'x1,y1,x2,y2'."
+        ) from None
+    if x1 == x2 or y1 == y2:
+        raise ValueError(
+            f"Invalid table area/region {bbox_str!r}: it has zero width or "
+            "height. Use 'x1,y1,x2,y2' where (x1, y1) is the top-left and "
+            "(x2, y2) the bottom-right corner in PDF coordinate space — the "
+            "origin is the bottom-left of the page, so y1 must be greater "
+            "than y2."
+        )
     return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
 
 

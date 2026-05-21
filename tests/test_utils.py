@@ -3,9 +3,11 @@
 import os
 
 import playa.miner as pm
+import pytest
 from playa.miner import LAParams
 from playa.miner import LTTextBoxHorizontal
 
+from camelot.utils import bbox_from_str
 from camelot.utils import bbox_intersection_area
 
 
@@ -175,3 +177,25 @@ def test_get_table_index_text_outside_any_row():
     indices, err = get_table_index(table, textline, direction="horizontal")
     assert indices == []
     assert err == 1.0
+
+
+def test_bbox_from_str_normalises_corner_order():
+    # top-left/bottom-right and the inverted-y form both normalise to
+    # (xmin, ymin, xmax, ymax) — no error for a valid, non-degenerate box.
+    assert bbox_from_str("49,403,568,217") == (49, 217, 568, 403)
+    assert bbox_from_str("49,217,568,403") == (49, 217, 568, 403)
+
+
+def test_bbox_from_str_rejects_zero_area():
+    # Zero width or height is the usual cause of the cryptic downstream
+    # ZeroDivisionError (#63); it must raise a clear, hint-bearing error.
+    for bad in ("49,217,568,217", "100,100,100,400"):
+        with pytest.raises(ValueError, match="zero width or height"):
+            bbox_from_str(bad)
+
+
+def test_bbox_from_str_rejects_malformed():
+    with pytest.raises(ValueError, match="four"):
+        bbox_from_str("1,2,3")
+    with pytest.raises(ValueError, match="must be numbers"):
+        bbox_from_str("a,b,c,d")

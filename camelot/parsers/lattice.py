@@ -14,6 +14,7 @@ from ..image_processing import find_joints
 from ..image_processing import find_lines
 from ..image_processing import find_lines_from_layout
 from ..image_processing import layout_has_ruled_lines
+from ..utils import bbox_from_str
 from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
 from ..utils import scale_image
@@ -381,11 +382,13 @@ class Lattice(BaseParser):
         def scale_areas(areas):
             scaled_areas = []
             for area in areas:
-                x1, y1, x2, y2 = area.split(",")
-                x1 = float(x1)
-                y1 = float(y1)
-                x2 = float(x2)
-                y2 = float(y2)
+                # Validate (clear error on a malformed / zero-area box instead
+                # of a later ZeroDivision, #63) but keep the caller's raw
+                # corner order: scale_pdf + the (x, y, w, h) form below expect
+                # y1 to be the *top* edge, so bbox_from_str's min/max
+                # normalisation must NOT be applied here.
+                bbox_from_str(area)
+                x1, y1, x2, y2 = (float(v) for v in area.split(","))
                 x1, y1, x2, y2 = scale_pdf((x1, y1, x2, y2), image_scalers)
                 scaled_areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
             return scaled_areas
