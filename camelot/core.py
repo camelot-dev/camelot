@@ -1002,11 +1002,15 @@ class Table:
         # indices (0, 1, 2, …) for rows and columns, which leak into the
         # Excel output as a meaningless extra row and column. See #634.
         # Users can override by passing index=True / header=True.
-        kw = {"encoding": "utf-8", "index": False, "header": False}
+        # NB: no "encoding" key — pandas >= 2 removed it from to_excel and
+        # passing it raises TypeError.
+        kw = {"index": False, "header": False}
         sheet_name = f"page-{self.page}-table-{self.order}"
         kw.update(kwargs)
-        writer = pd.ExcelWriter(path, mode=mode)
-        self.df.to_excel(writer, sheet_name=sheet_name, **kw)
+        # Context-manage the writer: a bare ExcelWriter that is never closed
+        # leaves the workbook unflushed (empty file) on pandas >= 2.
+        with pd.ExcelWriter(path, mode=mode) as writer:
+            self.df.to_excel(writer, sheet_name=sheet_name, **kw)
 
     def to_html(self, path, **kwargs):
         """Write Table(s) to an HTML file.
