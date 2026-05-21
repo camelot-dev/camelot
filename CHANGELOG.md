@@ -51,7 +51,11 @@ changes. **Heads-up if upgrading from 1.0.x**:
   found. Safe by construction — raster always runs, vector lines can only
   add, so output is never worse than `engine="raster"`. `engine="auto"`
   now resolves to `combined` when the page carries vector ruled lines,
-  else `raster`. `engine="vector"` (render-free) remains reserved. (#763)
+  else `raster`. (#763)
+- **`engine="vector"`** for `flavor="lattice"`: detects tables purely from
+  the PDF's native vector ruled lines, **skipping page rasterisation and
+  OpenCV entirely** — the fastest path for PDFs whose tables are drawn
+  with real vector strokes. (#763)
 - **`flavor="auto"`**: render the first requested page, count ruled
   horizontal/vertical lines, pick `lattice` when ruled and `network`
   otherwise. Emits a `UserWarning` naming the chosen flavor. (#737)

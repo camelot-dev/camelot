@@ -8,12 +8,15 @@ from typing import Any
 import cv2
 
 from ..backends import ImageConversionBackend
+from ..image_processing import _line_crossing
 from ..image_processing import adaptive_threshold
 from ..image_processing import find_contours
 from ..image_processing import find_joints
+from ..image_processing import find_joints_from_lines
 from ..image_processing import find_lines
 from ..image_processing import find_lines_from_layout
 from ..image_processing import layout_has_ruled_lines
+from ..utils import bbox_from_str
 from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
 from ..utils import scale_image
@@ -21,6 +24,40 @@ from ..utils import scale_pdf
 from ..utils import segments_in_bbox
 from ..utils import text_in_bbox_per_axis
 from .base import BaseParser
+
+
+def _line_in_any_bbox(line, bboxes):
+    """True if a ruled line's extent overlaps any of the given bboxes.
+
+    Used by the vector engine to keep only lines relevant to the
+    user-supplied ``table_regions``. ``line`` is ``(x0, y0, x1, y1)`` and
+    each bbox is ``(x0, y0, x1, y1)`` = (left, bottom, right, top), both in
+    PDF coords.
+    """
+    lx0, ly0, lx1, ly1 = line
+    lxmin, lxmax = (lx0, lx1) if lx0 <= lx1 else (lx1, lx0)
+    lymin, lymax = (ly0, ly1) if ly0 <= ly1 else (ly1, ly0)
+    for x0, y0, x1, y1 in bboxes:
+        if lxmax >= x0 and lxmin <= x1 and lymax >= y0 and lymin <= y1:
+            return True
+    return False
+
+
+def _joints_in_bbox(h_lines, v_lines, bbox):
+    """Line crossings (joints) that fall inside ``bbox`` (PDF coords).
+
+    The vector engine's equivalent of the raster ``find_joints`` over a
+    user-supplied ``table_areas`` box: every h/v line intersection within
+    the box becomes a joint.
+    """
+    x0, y0, x1, y1 = bbox
+    joints = []
+    for h in h_lines:
+        for v in v_lines:
+            pt = _line_crossing(h, v)
+            if pt is not None and x0 <= pt[0] <= x1 and y0 <= pt[1] <= y1:
+                joints.append(pt)
+    return joints
 
 
 class Lattice(BaseParser):
@@ -100,7 +137,9 @@ class Lattice(BaseParser):
         render faintly; it is safe by construction (raster always runs,
         vector lines can only add). ``'auto'`` picks ``'combined'`` when
         the page carries vector ruled lines, else ``'raster'``.
-        ``'vector'`` (render-free) is reserved and not yet wired (#763).
+        ``'vector'`` detects tables purely from the PDF's vector ruled
+        lines, skipping rasterisation entirely — fastest, for PDFs whose
+        tables are drawn with real vector strokes (#763).
 
     """
 
@@ -252,8 +291,9 @@ class Lattice(BaseParser):
         * ``'raster'``   → ``'raster'`` (the OpenCV pipeline only).
         * ``'combined'`` → ``'combined'`` (raster **plus** the PDF's
           vector ruled lines unioned into the line masks — #763 Stage 2b).
-        * ``'vector'``   → ``'vector'`` (explicit; the render-free path is
-          not yet wired — see :meth:`_check_engine_supported`).
+        * ``'vector'``   → ``'vector'`` (render-free: detect tables from
+          the PDF's vector ruled lines without rasterising the page — see
+          :meth:`_generate_table_bbox_vector`).
         * ``'auto'``     → ``'combined'`` when the page layout carries
           enough ruled lines for the vector union to help, else
           ``'raster'``.
@@ -273,24 +313,6 @@ class Lattice(BaseParser):
             )
             return "combined" if self._vector_lines_available else "raster"
         return "raster"
-
-    def _check_engine_supported(self):
-        """Raise if the resolved engine has no implementation yet.
-
-        Only ``engine='vector'`` (the render-free path) is unimplemented;
-        ``'raster'``, ``'combined'`` and ``'auto'`` are all wired. Keeping
-        the guard in a helper (a call, not an inline branch) keeps
-        :meth:`_generate_table_bbox`'s complexity down.
-        """
-        if self._resolve_engine() == "vector":
-            raise NotImplementedError(
-                "engine='vector' for flavor='lattice' is not wired yet"
-                " (the render-free path is pending). Use engine='combined'"
-                " to union the PDF's vector ruled lines into the raster"
-                " detection, engine='auto' to do that only when vector"
-                " lines are present, or engine='raster' (default) for the"
-                " OpenCV-only pipeline. Tracked in #763."
-            )
 
     def _augment_masks_with_vector_lines(
         self,
@@ -375,8 +397,10 @@ class Lattice(BaseParser):
         return vertical_mask, horizontal_mask, vertical_segments, horizontal_segments
 
     def _generate_table_bbox(self):
-        self._check_engine_supported()
         engine = self._resolve_engine()
+        if engine == "vector":
+            self._generate_table_bbox_vector()
+            return
 
         def scale_areas(areas):
             scaled_areas = []
@@ -435,12 +459,60 @@ class Lattice(BaseParser):
             scale_image(table_bbox, vertical_segments, horizontal_segments, pdf_scalers)
         )
 
+        self._compute_table_anchors()
+
+    def _generate_table_bbox_vector(self):
+        """Detect tables from the PDF's vector ruled lines — no rasterisation.
+
+        The render-free ``engine='vector'`` path (#763): read ruled lines
+        from the page layout (already in PDF coordinate space), cluster
+        them into table bounding boxes + joints with the vector-native
+        :func:`find_joints_from_lines`, and build the same
+        ``table_bbox_parses`` structure the raster path produces — but
+        skipping the page render, adaptive threshold, and OpenCV
+        morphology entirely. ``pdf_image`` / ``threshold`` stay ``None``
+        (extraction never needs them; only the debug plots do).
+        """
+        layout = getattr(self, "layout", None)
+        h_lines = find_lines_from_layout(layout, "horizontal") if layout else []
+        v_lines = find_lines_from_layout(layout, "vertical") if layout else []
+
+        if self.table_regions is not None:
+            regions = [bbox_from_str(r) for r in self.table_regions]
+            h_lines = [ln for ln in h_lines if _line_in_any_bbox(ln, regions)]
+            v_lines = [ln for ln in v_lines if _line_in_any_bbox(ln, regions)]
+
+        self.pdf_image = None
+        self.threshold = None
+        self.vertical_segments = v_lines
+        self.horizontal_segments = h_lines
+
+        if self.table_areas is not None:
+            areas = [bbox_from_str(a) for a in self.table_areas]
+            joints_by_bbox = {
+                area: _joints_in_bbox(h_lines, v_lines, area) for area in areas
+            }
+        else:
+            joints_by_bbox = find_joints_from_lines(h_lines, v_lines)
+
+        self.table_bbox_parses = {
+            bbox: {"joints": joints} for bbox, joints in joints_by_bbox.items()
+        }
+        self._compute_table_anchors()
+
+    def _compute_table_anchors(self):
+        """Derive col/row anchors from each table's joints (raster + vector).
+
+        Operates in place on ``self.table_bbox_parses`` — shared by both
+        the raster/combined and the vector paths, which differ only in how
+        the ``{bbox: {"joints": [...]}}`` mapping is built.
+        """
+        line_tol = self.line_tol
         for bbox, parse in self.table_bbox_parses.items():
             joints = parse["joints"]
 
-            # Merge x coordinates that are close together
-            line_tol = self.line_tol
-            # Sort the joints, make them a list of lists (instead of sets)
+            # Merge x coordinates that are close together. Sort the joints,
+            # make them a list of lists (instead of sets).
             joints_normalized = list(
                 map(lambda x: list(x), sorted(joints, key=lambda j: -j[0]))
             )
@@ -462,8 +534,6 @@ class Lattice(BaseParser):
                 if y_bottom - line_tol <= y_top <= y_bottom + line_tol:
                     joints_normalized[idx][1] = y_bottom
 
-            # TODO: check this is useful, otherwise get rid of the code
-            # above
             parse["joints_normalized"] = joints_normalized
 
             cols = list(map(lambda coords: coords[0], joints))

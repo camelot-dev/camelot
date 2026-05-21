@@ -66,7 +66,7 @@ The ``engine`` keyword lets you choose how lines are detected:
 - ``'raster'`` *(default)* — OpenCV on the rendered page. The long-standing behaviour.
 - ``'combined'`` — run raster detection **and** union in the ruled lines read straight from the PDF's vector graphics before the grid is reconstructed. A table whose rules are vector strokes is then found even when it renders faintly.
 - ``'auto'`` — use ``'combined'`` when the page actually carries vector ruled lines, otherwise fall back to ``'raster'``.
-- ``'vector'`` — *(reserved)* read lines only from the vector graphics, skipping rasterisation entirely. Not yet wired; raises ``NotImplementedError`` for now.
+- ``'vector'`` — detect tables purely from the PDF's vector ruled lines, skipping rasterisation entirely. The fastest engine (no page render, no OpenCV), for PDFs whose tables are drawn with real vector strokes. A page with no vector ruled lines yields no tables, so prefer ``'auto'`` / ``'combined'`` for mixed documents.
 
 .. code-block:: pycon
 

@@ -72,12 +72,29 @@ def test_lattice_default_engine_is_raster():
     assert Lattice().engine == "raster"
 
 
-def test_explicit_vector_engine_not_yet_implemented(testdir, foo_pdf):
-    """engine='vector' surfaces a clear NotImplementedError pointing at #763."""
+def test_vector_engine_extracts_without_rendering(foo_pdf):
+    """engine='vector' parses foo.pdf and never rasterises the page."""
     import camelot
 
-    with pytest.raises(NotImplementedError, match="#763"):
-        camelot.read_pdf(foo_pdf, flavor="lattice", engine="vector")
+    tables = camelot.read_pdf(foo_pdf, flavor="lattice", engine="vector")
+    assert len(tables) == 1
+    assert tables[0].shape[0] >= 2 and tables[0].shape[1] >= 2
+
+
+def test_vector_engine_matches_raster_on_vector_ruled_pdf(foo_pdf):
+    """Vector output equals raster on a crisp vector-ruled PDF.
+
+    foo.pdf's rules are real vector strokes, so detecting from them
+    directly (no render) should reconstruct the same grid the raster
+    pipeline finds — the strict oracle for the render-free path.
+    """
+    import camelot
+
+    raster = camelot.read_pdf(foo_pdf, flavor="lattice", engine="raster")
+    vector = camelot.read_pdf(foo_pdf, flavor="lattice", engine="vector")
+    assert len(vector) == len(raster) == 1
+    assert vector[0].shape == raster[0].shape
+    assert vector[0].df.equals(raster[0].df)
 
 
 def test_auto_engine_runs(foo_pdf):
