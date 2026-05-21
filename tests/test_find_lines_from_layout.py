@@ -54,7 +54,8 @@ def test_isinstance_check_uses_real_classes():
     isinstance(...) calls don't accept duck types alone. We construct
     real playa objects below where needed for the integration test.
     """
-    from playa.miner import LTLine, LTRect
+    from playa.miner import LTLine
+    from playa.miner import LTRect
 
     assert LTLine is not None
     assert LTRect is not None
