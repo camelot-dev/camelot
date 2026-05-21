@@ -44,6 +44,14 @@ changes. **Heads-up if upgrading from 1.0.x**:
 
 ### Added
 
+- **`engine="combined"`** for `flavor="lattice"` (and the lattice half of
+  `flavor="hybrid"`): unions the PDF's *native vector* ruled lines into the
+  rasterised OpenCV line masks before contour/joint detection, so tables
+  whose rules render faintly (vector strokes, anti-aliasing) are still
+  found. Safe by construction — raster always runs, vector lines can only
+  add, so output is never worse than `engine="raster"`. `engine="auto"`
+  now resolves to `combined` when the page carries vector ruled lines,
+  else `raster`. `engine="vector"` (render-free) remains reserved. (#763)
 - **`flavor="auto"`**: render the first requested page, count ruled
   horizontal/vertical lines, pick `lattice` when ruled and `network`
   otherwise. Emits a `UserWarning` naming the chosen flavor. (#737)

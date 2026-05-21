@@ -275,16 +275,22 @@ def read_pdf(
     resolution* : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
     engine* : str, optional (default: 'raster')
-        Line-detection engine for ``flavor='lattice'``:
+        Line-detection engine for ``flavor='lattice'`` (and the lattice
+        half of ``flavor='hybrid'``):
 
         - ``'raster'`` (default): render the page and detect ruled lines
           with OpenCV — the long-standing behaviour.
-        - ``'auto'``: use the vector engine when the PDF carries native
-          ruled lines, else fall back to raster. (Currently resolves to
-          raster pending the vector pipeline; #763.)
+        - ``'combined'``: run raster detection **and** union in the ruled
+          lines read from the PDF's native vector graphics, so tables
+          whose rules render faintly (vector strokes, anti-aliasing) are
+          still found. Safe by construction — raster always runs, vector
+          lines can only add, so the result is never worse than
+          ``'raster'`` (#763).
+        - ``'auto'``: use ``'combined'`` when the PDF carries native ruled
+          lines, else fall back to ``'raster'`` (#763).
         - ``'vector'``: read ruled lines straight from the PDF's vector
-          graphics, skipping rasterisation. **Not yet wired** — raises
-          ``NotImplementedError`` for now (#763).
+          graphics, skipping rasterisation entirely. **Not yet wired** —
+          raises ``NotImplementedError`` for now (#763).
 
     Returns
     -------
