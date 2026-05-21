@@ -486,6 +486,53 @@ def _line_crossing(h_line, v_line, tol=_JOINT_TOL):
     return None
 
 
+class _UnionFind:
+    """Minimal union-find with path-halving, for clustering crossing lines."""
+
+    def __init__(self, n):
+        self.parent = list(range(n))
+
+    def find(self, i):
+        while self.parent[i] != i:
+            self.parent[i] = self.parent[self.parent[i]]
+            i = self.parent[i]
+        return i
+
+    def union(self, a, b):
+        ra, rb = self.find(a), self.find(b)
+        if ra != rb:
+            self.parent[ra] = rb
+
+
+def _line_crossings(horizontal_lines, vertical_lines, tol):
+    """Union-find over crossing h/v lines.
+
+    Returns ``(uf, crossings)`` where ``uf`` is a :class:`_UnionFind`
+    spanning ``[0, n_h)`` horizontal + ``[n_h, n_h+n_v)`` vertical line
+    indices, joined wherever an h-line crosses a v-line, and
+    ``crossings`` maps ``(h_idx, v_idx)`` to the ``(x, y)`` crossing.
+    """
+    n_h = len(horizontal_lines)
+    uf = _UnionFind(n_h + len(vertical_lines))
+    crossings = {}
+    for hi, h in enumerate(horizontal_lines):
+        for vi, v in enumerate(vertical_lines):
+            pt = _line_crossing(h, v, tol)
+            if pt is not None:
+                uf.union(hi, n_h + vi)
+                crossings[(hi, vi)] = pt
+    return uf, crossings
+
+
+def _cluster_bbox(hs, vs, joints):
+    """Bounding box ``((x0, y0, x1, y1), joints)`` over a cluster, or None."""
+    xs = [c for ln in hs for c in (ln[0], ln[2])] + [ln[0] for ln in vs]
+    ys = [c for ln in vs for c in (ln[1], ln[3])] + [ln[1] for ln in hs]
+    if not xs or not ys:
+        return None
+    return ((min(xs), min(ys), max(xs), max(ys)), joints)
+
+
 def _cluster_lines(horizontal_lines, vertical_lines, tol=_JOINT_TOL):
     """Group mutually-intersecting lines into table clusters (union-find).
 
@@ -503,53 +550,25 @@ def _cluster_lines(horizontal_lines, vertical_lines, tol=_JOINT_TOL):
     multi-table pages yield multiple bboxes.
     """
     n_h = len(horizontal_lines)
-    n_v = len(vertical_lines)
-    parent = list(range(n_h + n_v))
+    uf, crossings = _line_crossings(horizontal_lines, vertical_lines, tol)
 
-    def find(i):
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    def union(a, b):
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[ra] = rb
-
-    # Edge = a crossing. Record the crossing point keyed by the (h, v) pair
-    # so each component can recover its joints.
-    crossings = {}  # (h_idx, v_idx) -> (x, y)
-    for hi, h in enumerate(horizontal_lines):
-        for vi, v in enumerate(vertical_lines):
-            pt = _line_crossing(h, v, tol)
-            if pt is not None:
-                union(hi, n_h + vi)
-                crossings[(hi, vi)] = pt
-
-    # Gather members + joints per component root.
     comp_h = {}
     comp_v = {}
     comp_joints = {}
     for hi in range(n_h):
-        comp_h.setdefault(find(hi), []).append(horizontal_lines[hi])
-    for vi in range(n_v):
-        comp_v.setdefault(find(n_h + vi), []).append(vertical_lines[vi])
-    for (hi, vi), pt in crossings.items():
-        comp_joints.setdefault(find(hi), []).append(pt)
+        comp_h.setdefault(uf.find(hi), []).append(horizontal_lines[hi])
+    for vi in range(len(vertical_lines)):
+        comp_v.setdefault(uf.find(n_h + vi), []).append(vertical_lines[vi])
+    for (hi, _vi), pt in crossings.items():
+        comp_joints.setdefault(uf.find(hi), []).append(pt)
 
     clusters = []
     for root, joints in comp_joints.items():
         if len(joints) <= _MIN_JOINTS:
             continue
-        hs = comp_h.get(root, [])
-        vs = comp_v.get(root, [])
-        xs = [c for ln in hs for c in (ln[0], ln[2])] + [ln[0] for ln in vs]
-        ys = [c for ln in vs for c in (ln[1], ln[3])] + [ln[1] for ln in hs]
-        if not xs or not ys:
-            continue
-        bbox = (min(xs), min(ys), max(xs), max(ys))
-        clusters.append((bbox, joints))
+        cluster = _cluster_bbox(comp_h.get(root, []), comp_v.get(root, []), joints)
+        if cluster is not None:
+            clusters.append(cluster)
     return clusters
 
 
