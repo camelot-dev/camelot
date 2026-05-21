@@ -10,12 +10,10 @@ import os
 
 import pytest
 
-from camelot.image_processing import (
-    _LINE_AS_THIN_RECT_TOL,
-    _LINE_ORTHOGONAL_TOL,
-    _ruled_lines_from_layout,
-    find_lines_from_layout,
-)
+from camelot.image_processing import _LINE_AS_THIN_RECT_TOL
+from camelot.image_processing import _LINE_ORTHOGONAL_TOL
+from camelot.image_processing import _ruled_lines_from_layout
+from camelot.image_processing import find_lines_from_layout
 
 
 class _MockLTLine:
