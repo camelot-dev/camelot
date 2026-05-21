@@ -19,7 +19,9 @@ def test_help_output():
     output = result.output
 
     assert prog_name == "camelot"
-    assert result.output.startswith("Usage: %(prog_name)s [OPTIONS] COMMAND" % locals())
+    assert result.output.startswith(
+        "Usage: {prog_name} [OPTIONS] COMMAND".format(**locals())
+    )
     assert all(
         v in result.output
         for v in ["Options:", "--version", "--help", "Commands:", "lattice", "stream"]

@@ -10,7 +10,6 @@ from itertools import chain
 from pathlib import Path
 from typing import IO
 from typing import Any
-from typing import Union
 
 import playa
 from playa.exceptions import PDFPasswordIncorrect
@@ -39,7 +38,7 @@ PARSERS = {
 }
 
 
-FilepathOrBuffer = Union[str, Path, bytes, bytearray, memoryview, IO[bytes]]
+FilepathOrBuffer = str | Path | bytes | bytearray | memoryview | IO[bytes]
 
 
 def _spill_bytes_to_tempfile(data: bytes) -> str:
@@ -294,7 +293,9 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         return sorted(set(result))
 
-    def _get_layout(self, page: playa.Page, **layout_kwargs) -> tuple[
+    def _get_layout(
+        self, page: playa.Page, **layout_kwargs
+    ) -> tuple[
         Any,
         tuple[float, float],
         list[LTImage],

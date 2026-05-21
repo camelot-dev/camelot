@@ -25,7 +25,8 @@ else:
     # 3.10 is the floor (requires-python = ">=3.10"); typing_extensions
     # remains the source of TypedDict/Unpack on 3.10 because Unpack only
     # entered typing in 3.11.
-    from typing_extensions import TypedDict, Unpack
+    from typing_extensions import TypedDict
+    from typing_extensions import Unpack
 
 from .backends import ImageConversionBackend
 from .image_processing import undo_rotation

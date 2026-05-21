@@ -94,7 +94,7 @@ def cli(ctx, *args, **kwargs):
     "-p",
     "--pages",
     default="1",
-    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+    help="Comma-separated page numbers. Example: 1,3,4 or 1,4-end or all.",
 )
 @click.option(
     "--parallel",
@@ -128,7 +128,7 @@ def cli(ctx, *args, **kwargs):
     "-flag",
     "--flag_size",
     is_flag=True,
-    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+    help="Flag text based on font size. Useful to detect super/subscripts.",
 )
 @click.option(
     "-strip",
@@ -175,7 +175,7 @@ def cli(ctx, *args, **kwargs):
     default=[],
     type=click.Choice(["h", "v"]),
     multiple=True,
-    help="Direction in which text in a spanning cell" " will be copied over.",
+    help="Direction in which text in a spanning cell will be copied over.",
 )
 @click.option(
     "-shift",
@@ -189,7 +189,7 @@ def cli(ctx, *args, **kwargs):
     "-l",
     "--line_tol",
     default=2,
-    help="Tolerance parameter used to merge close vertical" " and horizontal lines.",
+    help="Tolerance parameter used to merge close vertical and horizontal lines.",
 )
 @click.option(
     "-j",
@@ -281,7 +281,7 @@ def lattice(c, *args, **kwargs):
     "-p",
     "--pages",
     default="1",
-    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+    help="Comma-separated page numbers. Example: 1,3,4 or 1,4-end or all.",
 )
 @click.option(
     "--parallel",
@@ -315,7 +315,7 @@ def lattice(c, *args, **kwargs):
     "-flag",
     "--flag_size",
     is_flag=True,
-    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+    help="Flag text based on font size. Useful to detect super/subscripts.",
 )
 @click.option(
     "-strip",
@@ -357,20 +357,19 @@ def lattice(c, *args, **kwargs):
     "-e",
     "--edge_tol",
     default=50,
-    help="Tolerance parameter" " for extending textedges vertically.",
+    help="Tolerance parameter for extending textedges vertically.",
 )
 @click.option(
     "-r",
     "--row_tol",
     default=2,
-    help="Tolerance parameter" " used to combine text vertically, to generate rows.",
+    help="Tolerance parameter used to combine text vertically, to generate rows.",
 )
 @click.option(
     "-c",
     "--column_tol",
     default=0,
-    help="Tolerance parameter"
-    " used to combine text horizontally, to generate columns.",
+    help="Tolerance parameter used to combine text horizontally, to generate columns.",
 )
 @click.option(
     "-plot",
@@ -442,7 +441,7 @@ def stream(c, *args, **kwargs):
     "-p",
     "--pages",
     default="1",
-    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+    help="Comma-separated page numbers. Example: 1,3,4 or 1,4-end or all.",
 )
 @click.option(
     "--parallel",
@@ -476,7 +475,7 @@ def stream(c, *args, **kwargs):
     "-flag",
     "--flag_size",
     is_flag=True,
-    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+    help="Flag text based on font size. Useful to detect super/subscripts.",
 )
 @click.option(
     "-strip",
@@ -518,20 +517,19 @@ def stream(c, *args, **kwargs):
     "-e",
     "--edge_tol",
     default=50,
-    help="Tolerance parameter" " for extending textedges vertically.",
+    help="Tolerance parameter for extending textedges vertically.",
 )
 @click.option(
     "-r",
     "--row_tol",
     default=2,
-    help="Tolerance parameter" " used to combine text vertically, to generate rows.",
+    help="Tolerance parameter used to combine text vertically, to generate rows.",
 )
 @click.option(
     "-c",
     "--column_tol",
     default=0,
-    help="Tolerance parameter"
-    " used to combine text horizontally, to generate columns.",
+    help="Tolerance parameter used to combine text horizontally, to generate columns.",
 )
 @click.option(
     "-plot",
@@ -587,7 +585,7 @@ def hybrid(c, *args, **kwargs):
     "-p",
     "--pages",
     default="1",
-    help="Comma-separated page numbers." " Example: 1,3,4 or 1,4-end or all.",
+    help="Comma-separated page numbers. Example: 1,3,4 or 1,4-end or all.",
 )
 @click.option(
     "--parallel",
@@ -621,7 +619,7 @@ def hybrid(c, *args, **kwargs):
     "-flag",
     "--flag_size",
     is_flag=True,
-    help="Flag text based on" " font size. Useful to detect super/subscripts.",
+    help="Flag text based on font size. Useful to detect super/subscripts.",
 )
 @click.option(
     "-strip",
@@ -663,20 +661,19 @@ def hybrid(c, *args, **kwargs):
     "-e",
     "--edge_tol",
     default=50,
-    help="Tolerance parameter" " for extending textedges vertically.",
+    help="Tolerance parameter for extending textedges vertically.",
 )
 @click.option(
     "-r",
     "--row_tol",
     default=2,
-    help="Tolerance parameter" " used to combine text vertically, to generate rows.",
+    help="Tolerance parameter used to combine text vertically, to generate rows.",
 )
 @click.option(
     "-c",
     "--column_tol",
     default=0,
-    help="Tolerance parameter"
-    " used to combine text horizontally, to generate columns.",
+    help="Tolerance parameter used to combine text horizontally, to generate columns.",
 )
 @click.option(
     "-plot",

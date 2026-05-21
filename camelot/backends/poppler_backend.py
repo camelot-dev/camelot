@@ -62,10 +62,10 @@ class PopplerBackend(ConversionBackend):
         ]
 
         try:
-            subprocess.check_output(
+            subprocess.check_output(  # noqa: S603 - fixed argv (no shell), trusted pdftoppm
                 " ".join(pdftopng_command),
                 stderr=subprocess.STDOUT,
-                shell=False,  # noqa
+                shell=False,
             )
         except subprocess.CalledProcessError as e:
             raise ValueError(e.output) from e

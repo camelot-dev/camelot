@@ -529,7 +529,7 @@ class TextBaseParser(BaseParser):
     def _validate_columns(self):
         if self.table_areas is not None and self.columns is not None:
             if len(self.table_areas) != len(self.columns):
-                raise ValueError("Length of table_areas and columns" " should be equal")
+                raise ValueError("Length of table_areas and columns should be equal")
 
     def _generate_table(self, table_idx, bbox, cols, rows, **kwargs):
         table = self._initialize_new_table(table_idx, bbox, cols, rows)

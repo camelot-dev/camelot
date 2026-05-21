@@ -104,8 +104,8 @@ def download_url(url: str) -> str | Path:
             "User-Agent": "Mozilla/5.0",
             "Accept-Encoding": "gzip;q=1.0, deflate;q=0.9, br;q=0.8, compress;q=0.7, *;q=0.1",
         }
-        request = Request(url, None, headers)
-        obj = urlopen(request)  # noqa S310
+        request = Request(url, None, headers)  # noqa: S310 - documented URL feature
+        obj = urlopen(request)  # noqa: S310 - user-supplied PDF URL; documented feature
         content_type = obj.info().get_content_type()
         if content_type != "application/pdf":
             raise NotImplementedError("File format not supported")

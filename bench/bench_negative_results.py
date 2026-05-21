@@ -244,7 +244,7 @@ def _group_rows_np(text, row_tol=2):
             anchor = y0[i]
     starts.append(n)
     rows = []
-    for a, b in zip(starts[:-1], starts[1:]):
+    for a, b in zip(starts[:-1], starts[1:], strict=False):
         rows.append(sorted(non_empty_text[a:b], key=lambda t: t.x0))
     return rows
 
@@ -300,7 +300,9 @@ def _merge_columns_np(cl, column_tol=0):
             else:
                 merged_lows.append(lows[i])
                 merged_highs.append(highs[i])
-    return [(float(a), float(b)) for a, b in zip(merged_lows, merged_highs)]
+    return [
+        (float(a), float(b)) for a, b in zip(merged_lows, merged_highs, strict=False)
+    ]
 
 
 def _join_rows_np(rows_grouped, text_y_max, text_y_min):
@@ -436,7 +438,7 @@ def check_group_rows(n_runs=20):
                     f"_group_rows row counts mismatch n={n} tol={tol}\n  "
                     f"old={[len(r) for r in old]}\n  new={[len(r) for r in new]}"
                 )
-            for ro, rn in zip(old, new):
+            for ro, rn in zip(old, new, strict=False):
                 if [(t.x0, t.y0) for t in ro] != [(t.x0, t.y0) for t in rn]:
                     raise AssertionError(
                         f"_group_rows ordering mismatch n={n} tol={tol}"
@@ -471,7 +473,7 @@ def check_join_rows(n_runs=10):
         new = _join_rows_np([list(r) for r in rg], text_y_max=900.0, text_y_min=-50.0)
         if old != new:
             raise AssertionError(
-                f"_join_rows mismatch n={n}\n  " f"old={old[:5]}...\n  new={new[:5]}..."
+                f"_join_rows mismatch n={n}\n  old={old[:5]}...\n  new={new[:5]}..."
             )
     print(f"correctness: _join_rows OK ({n_runs} runs)")
 
@@ -486,8 +488,7 @@ def check_join_columns(n_runs=50):
         new = _join_columns_np(list(cols), text_x_min=-10.0, text_x_max=700.0)
         if old != new:
             raise AssertionError(
-                f"_join_columns mismatch n={n}\n  "
-                f"old={old[:5]}...\n  new={new[:5]}..."
+                f"_join_columns mismatch n={n}\n  old={old[:5]}...\n  new={new[:5]}..."
             )
     print(f"correctness: _join_columns OK ({n_runs} runs)")
 

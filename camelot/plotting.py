@@ -126,9 +126,7 @@ def draw_parse_constraints(table, ax):
                 draw_labeled_bbox(
                     ax,
                     bbox_from_str(zone_str),
-                    "{zone_name}: ({zone_str})".format(
-                        zone_name=zone_name, zone_str=zone_str
-                    ),
+                    f"{zone_name}: ({zone_str})",
                     color="purple",
                     linestyle="dotted",
                     linewidth=1,

@@ -85,7 +85,7 @@ def _normalize_per_page(per_page):
             raise ValueError(f"per_page keys must be page numbers, got {k!r}") from exc
         if not isinstance(v, dict):
             raise ValueError(
-                f"per_page[{k!r}] must be a dict of kwargs," f" got {type(v).__name__}"
+                f"per_page[{k!r}] must be a dict of kwargs, got {type(v).__name__}"
             )
         per_page_norm[page_no] = dict(v)
     return per_page_norm
