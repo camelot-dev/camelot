@@ -5,11 +5,14 @@ from __future__ import annotations
 import os
 from typing import Any
 
+import cv2
+
 from ..backends import ImageConversionBackend
 from ..image_processing import adaptive_threshold
 from ..image_processing import find_contours
 from ..image_processing import find_joints
 from ..image_processing import find_lines
+from ..image_processing import find_lines_from_layout
 from ..image_processing import layout_has_ruled_lines
 from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
@@ -89,6 +92,15 @@ class Lattice(BaseParser):
         Fallback to another backend if unavailable, by default True
     resolution : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
+    engine : str, optional (default: 'raster')
+        Line-detection engine. ``'raster'`` uses OpenCV on the rendered
+        page (the long-standing behaviour). ``'combined'`` additionally
+        unions the PDF's native vector ruled lines into the line masks
+        before contour/joint detection, recovering tables whose rules
+        render faintly; it is safe by construction (raster always runs,
+        vector lines can only add). ``'auto'`` picks ``'combined'`` when
+        the page carries vector ruled lines, else ``'raster'``.
+        ``'vector'`` (render-free) is reserved and not yet wired (#763).
 
     """
 
@@ -116,11 +128,16 @@ class Lattice(BaseParser):
         engine="raster",
         **kwargs,
     ):
-        if engine not in ("raster", "vector", "auto"):
+        if engine not in ("raster", "vector", "combined", "auto"):
             raise ValueError(
-                f"engine must be 'raster', 'vector' or 'auto', got {engine!r}"
+                "engine must be 'raster', 'vector', 'combined' or 'auto',"
+                f" got {engine!r}"
             )
         self.engine = engine
+        #: Vector ruled lines drawn onto the raster line masks, in image
+        #: coords, accumulated by the 'combined' engine for diagnostics /
+        #: plotting. Populated per page in :meth:`_detect_line_masks`.
+        self._vector_segments: list[tuple[int, int, int, int]] = []
         super().__init__("lattice", replace_text=replace_text)
         self.table_regions = table_regions
         self.table_areas = table_areas
@@ -232,48 +249,134 @@ class Lattice(BaseParser):
     def _resolve_engine(self):
         """Resolve the effective line-detection engine for this page.
 
-        * ``'raster'`` → ``'raster'`` (the OpenCV pipeline).
-        * ``'vector'`` → ``'vector'`` (explicit; not yet wired — see
-          :meth:`_generate_table_bbox`).
-        * ``'auto'``  → ``'vector'`` when the page layout carries enough
-          ruled lines to attempt vector detection, else ``'raster'``.
+        * ``'raster'``   → ``'raster'`` (the OpenCV pipeline only).
+        * ``'combined'`` → ``'combined'`` (raster **plus** the PDF's
+          vector ruled lines unioned into the line masks — #763 Stage 2b).
+        * ``'vector'``   → ``'vector'`` (explicit; the render-free path is
+          not yet wired — see :meth:`_check_engine_supported`).
+        * ``'auto'``     → ``'combined'`` when the page layout carries
+          enough ruled lines for the vector union to help, else
+          ``'raster'``.
 
-        Note: until the vector ``_generate_table_bbox`` path is wired
-        (#763 Stage 2b), ``'auto'`` deliberately resolves to ``'raster'``
-        even when vector lines are present — the probe result is computed
-        for forward-compatibility and diagnostics but the only
-        implemented path is raster. Explicit ``engine='vector'`` is the
-        single value that surfaces the not-yet-implemented state.
+        ``'combined'`` is safe by construction: raster always runs first,
+        so vector lines can only *add* to the detected masks, never
+        remove — a page with no usable vector lines (or a mis-scaled one)
+        yields the same result as ``'raster'``.
         """
         if self.engine == "vector":
             return "vector"
+        if self.engine == "combined":
+            return "combined"
         if self.engine == "auto":
-            # Diagnostic: record whether the vector path *would* apply.
             self._vector_lines_available = layout_has_ruled_lines(
                 getattr(self, "layout", None)
             )
-            # TODO(#763): return "vector" here once 2b is wired.
-            return "raster"
+            return "combined" if self._vector_lines_available else "raster"
         return "raster"
 
     def _check_engine_supported(self):
         """Raise if the resolved engine has no implementation yet.
 
-        Keeps the not-yet-wired ``engine='vector'`` guard out of
-        :meth:`_generate_table_bbox`'s body (a method call, not an inline
-        branch, so it doesn't inflate that method's complexity).
+        Only ``engine='vector'`` (the render-free path) is unimplemented;
+        ``'raster'``, ``'combined'`` and ``'auto'`` are all wired. Keeping
+        the guard in a helper (a call, not an inline branch) keeps
+        :meth:`_generate_table_bbox`'s complexity down.
         """
         if self._resolve_engine() == "vector":
             raise NotImplementedError(
                 "engine='vector' for flavor='lattice' is not wired yet"
-                " (the vector find_lines_from_layout / find_contours_from_lines"
-                " helpers exist, but the _generate_table_bbox integration is"
-                " pending). Use engine='raster' (default) or engine='auto'"
-                " for now. Tracked in #763."
+                " (the render-free path is pending). Use engine='combined'"
+                " to union the PDF's vector ruled lines into the raster"
+                " detection, engine='auto' to do that only when vector"
+                " lines are present, or engine='raster' (default) for the"
+                " OpenCV-only pipeline. Tracked in #763."
             )
+
+    def _augment_masks_with_vector_lines(
+        self,
+        vertical_mask,
+        horizontal_mask,
+        image_scalers,
+    ):
+        """Union the PDF's vector ruled lines into the raster line masks.
+
+        The ``'combined'`` engine (#763) draws the layout's vector ruled
+        lines — converted from PDF to image coords with the same
+        :func:`scale_pdf` the rest of this method uses — onto the OpenCV
+        line masks *before* :func:`find_contours` / :func:`find_joints`.
+        A table whose rules are PDF vector strokes (and therefore render
+        faintly / anti-aliased in the raster) is then found just like a
+        crisply-printed one. The masks are mutated in place; the
+        image-coord vector segments are returned so the caller can append
+        them to the segment lists fed to :func:`scale_image`.
+
+        A ``None`` layout (no vector graphics available) is a no-op.
+        """
+        layout = getattr(self, "layout", None)
+        if layout is None:
+            return [], []
+        v_segments = self._stamp_vector_lines(
+            find_lines_from_layout(layout, direction="vertical"),
+            vertical_mask,
+            image_scalers,
+        )
+        h_segments = self._stamp_vector_lines(
+            find_lines_from_layout(layout, direction="horizontal"),
+            horizontal_mask,
+            image_scalers,
+        )
+        return v_segments, h_segments
+
+    @staticmethod
+    def _stamp_vector_lines(pdf_lines, mask, image_scalers):
+        """Draw PDF-coord lines onto ``mask`` (image coords); return segments."""
+        segments = []
+        for line in pdf_lines:
+            ix0, iy0, ix1, iy1 = scale_pdf(line, image_scalers)
+            # 2px so a crossing v/h pair shares pixels and np.multiply in
+            # find_joints registers the intersection.
+            cv2.line(mask, (ix0, iy0), (ix1, iy1), 255, 2)
+            segments.append((ix0, iy0, ix1, iy1))
+        return segments
+
+    def _detect_line_masks(self, regions, image_scalers, engine):
+        """find_lines for both directions, plus optional vector union.
+
+        Extracted from :meth:`_generate_table_bbox` so the raster +
+        ``'combined'`` mask-building is shared between the table-areas and
+        auto-detect branches (and to keep that method under the
+        complexity limit). Returns
+        ``(vertical_mask, horizontal_mask, vertical_segments,
+        horizontal_segments)`` in image coords.
+        """
+        vertical_mask, vertical_segments = find_lines(
+            self.threshold,
+            regions=regions,
+            direction="vertical",
+            line_scale=self.line_scale,
+            iterations=self.iterations,
+            erode_iterations=self.erode_iterations,
+        )
+        horizontal_mask, horizontal_segments = find_lines(
+            self.threshold,
+            regions=regions,
+            direction="horizontal",
+            line_scale=self.line_scale,
+            iterations=self.iterations,
+            erode_iterations=self.erode_iterations,
+        )
+        if engine == "combined":
+            v_vec, h_vec = self._augment_masks_with_vector_lines(
+                vertical_mask, horizontal_mask, image_scalers
+            )
+            self._vector_segments = v_vec + h_vec
+            vertical_segments = vertical_segments + v_vec
+            horizontal_segments = horizontal_segments + h_vec
+        return vertical_mask, horizontal_mask, vertical_segments, horizontal_segments
 
     def _generate_table_bbox(self):
         self._check_engine_supported()
+        engine = self._resolve_engine()
 
         def scale_areas(areas):
             scaled_areas = []
@@ -314,39 +417,15 @@ class Lattice(BaseParser):
             if self.table_regions is not None:
                 regions = scale_areas(self.table_regions)
 
-            vertical_mask, vertical_segments = find_lines(
-                self.threshold,
-                regions=regions,
-                direction="vertical",
-                line_scale=self.line_scale,
-                iterations=self.iterations,
-                erode_iterations=self.erode_iterations,
-            )
-            horizontal_mask, horizontal_segments = find_lines(
-                self.threshold,
-                regions=regions,
-                direction="horizontal",
-                line_scale=self.line_scale,
-                iterations=self.iterations,
-                erode_iterations=self.erode_iterations,
+            vertical_mask, horizontal_mask, vertical_segments, horizontal_segments = (
+                self._detect_line_masks(regions, image_scalers, engine)
             )
 
             contours = find_contours(vertical_mask, horizontal_mask)
             table_bbox = find_joints(contours, vertical_mask, horizontal_mask)
         else:
-            vertical_mask, vertical_segments = find_lines(
-                self.threshold,
-                direction="vertical",
-                line_scale=self.line_scale,
-                iterations=self.iterations,
-                erode_iterations=self.erode_iterations,
-            )
-            horizontal_mask, horizontal_segments = find_lines(
-                self.threshold,
-                direction="horizontal",
-                line_scale=self.line_scale,
-                iterations=self.iterations,
-                erode_iterations=self.erode_iterations,
+            vertical_mask, horizontal_mask, vertical_segments, horizontal_segments = (
+                self._detect_line_masks(None, image_scalers, engine)
             )
 
             areas = scale_areas(self.table_areas)

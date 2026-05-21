@@ -56,6 +56,7 @@ class Hybrid(BaseParser):
         row_tol=2,
         column_tol=0,
         debug=False,
+        engine="raster",
         **kwargs,
     ):
         super().__init__(
@@ -93,6 +94,10 @@ class Hybrid(BaseParser):
             row_tol=row_tol,
             column_tol=column_tol,
             debug=debug,
+            # Forward the line-detection engine so flavor='hybrid' can use
+            # the 'combined' (raster + PDF vector lines) engine for its
+            # lattice half — #763.
+            engine=engine,
         )
 
     def prepare_page_parse(

@@ -54,6 +54,41 @@ Pair it with the new ``erode_iterations`` keyword to perform a **morphological c
 
 ``erode_iterations`` defaults to ``0`` (fully backward-compatible with the long-standing dilate-only behaviour). Bump it together with ``iterations`` only when you've confirmed the legacy behaviour leaves phantom rows around your table.
 
+.. _line_detection_engine:
+
+Line-detection engine: raster, combined, auto
+---------------------------------------------
+
+By default :ref:`Lattice <lattice>` finds a table's ruled lines by **rasterising** the page (rendering it to an image) and detecting lines with OpenCV. That works well for scanned or image-based tables, but a PDF that draws its rules as *native vector graphics* carries the exact line coordinates already — and those rules sometimes render faintly or anti-aliased, so the rasteriser misses them.
+
+The ``engine`` keyword lets you choose how lines are detected:
+
+- ``'raster'`` *(default)* — OpenCV on the rendered page. The long-standing behaviour.
+- ``'combined'`` — run raster detection **and** union in the ruled lines read straight from the PDF's vector graphics before the grid is reconstructed. A table whose rules are vector strokes is then found even when it renders faintly.
+- ``'auto'`` — use ``'combined'`` when the page actually carries vector ruled lines, otherwise fall back to ``'raster'``.
+- ``'vector'`` — *(reserved)* read lines only from the vector graphics, skipping rasterisation entirely. Not yet wired; raises ``NotImplementedError`` for now.
+
+.. code-block:: pycon
+
+    >>> # Recover a faintly-ruled vector table that 'raster' misses
+    >>> tables = camelot.read_pdf(
+    ...     'vector_ruled.pdf',
+    ...     flavor='lattice',
+    ...     engine='combined',
+    ... )
+
+``'combined'`` is **safe to try on any lattice PDF**: raster detection always runs first, so the vector lines can only *add* to what was found, never remove it. On a PDF whose rules the rasteriser already detects cleanly, ``engine='combined'`` returns exactly the same tables as ``engine='raster'``.
+
+The same keyword works with ``flavor='hybrid'``, where it drives the lattice half of the hybrid parser:
+
+.. code-block:: pycon
+
+    >>> tables = camelot.read_pdf(
+    ...     'mixed_layout.pdf',
+    ...     flavor='hybrid',
+    ...     engine='combined',
+    ... )
+
 .. _visual_debug:
 Visual debugging
 ----------------

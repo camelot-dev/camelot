@@ -59,7 +59,7 @@ def test_lattice_engine_validation():
     from camelot.parsers.lattice import Lattice
 
     # Valid values construct fine.
-    for eng in ("raster", "vector", "auto"):
+    for eng in ("raster", "vector", "combined", "auto"):
         assert Lattice(engine=eng).engine == eng
     # Invalid value rejected at construction.
     with pytest.raises(ValueError, match="engine must be"):
@@ -80,9 +80,45 @@ def test_explicit_vector_engine_not_yet_implemented(testdir, foo_pdf):
         camelot.read_pdf(foo_pdf, flavor="lattice", engine="vector")
 
 
-def test_auto_engine_falls_back_to_raster(foo_pdf):
-    """engine='auto' must not raise — it resolves to raster until 2b lands."""
+def test_auto_engine_runs(foo_pdf):
+    """engine='auto' must not raise — resolves to combined/raster (#763)."""
     import camelot
 
     tables = camelot.read_pdf(foo_pdf, flavor="lattice", engine="auto")
     assert len(tables) == 1
+
+
+def test_combined_engine_matches_raster_on_vector_ruled_pdf(foo_pdf):
+    """Combined output equals raster on a crisp vector-ruled PDF.
+
+    foo.pdf's ruled lines are crisp vector strokes that the raster
+    engine already finds, so unioning the same vector lines in must not
+    change the result — this is the strict oracle for the 'combined'
+    integration: if the PDF->image transform or mask drawing were wrong,
+    the cell grid (and thus the DataFrame) would differ.
+    """
+    import camelot
+
+    raster = camelot.read_pdf(foo_pdf, flavor="lattice", engine="raster")
+    combined = camelot.read_pdf(foo_pdf, flavor="lattice", engine="combined")
+    assert len(combined) == len(raster) == 1
+    assert combined[0].df.equals(raster[0].df)
+    assert combined[0].shape == raster[0].shape
+
+
+def test_combined_engine_through_hybrid(foo_pdf):
+    """flavor='hybrid' forwards engine='combined' to its lattice half."""
+    import camelot
+
+    tables = camelot.read_pdf(foo_pdf, flavor="hybrid", engine="combined")
+    assert len(tables) >= 1
+
+
+def test_hybrid_forwards_engine_to_lattice():
+    """Hybrid constructs its Lattice sub-parser with the requested engine."""
+    from camelot.parsers.hybrid import Hybrid
+
+    h = Hybrid(engine="combined")
+    assert h.lattice_parser.engine == "combined"
+    # default stays raster
+    assert Hybrid().lattice_parser.engine == "raster"
