@@ -25,6 +25,10 @@ def _make_table(df, page=1, order=1, cols_x=(0, 100, 200), rows_y=(300, 200, 100
     t.order = order
     t.accuracy = 95.0
     t.whitespace = 5.0
+    # Real parser-built Tables carry a _bbox; synthetic ones default to
+    # None, which the geometry-shift in _vstack_run would index into.
+    # Set it from the cols/rows extent so the stacking math runs.
+    t._bbox = (min(cols_x), min(rows_y), max(cols_x), max(rows_y))
     # `confidence` is a read-only @property on Table; it recomputes
     # from accuracy + whitespace on access.
     return t

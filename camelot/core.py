@@ -1101,36 +1101,43 @@ def _vstack_run(run: list["Table"], drop_repeated_header: bool = False) -> "Tabl
         # current bottom of `out`. PDF coords: y0 = bottom, y1 = top
         # within each table (rows are stored as (top_y, bottom_y) tuples
         # within Table.rows; bbox is (x0, y0, x1, y1)).
-        out_bottom = out._bbox[1]
-        nxt_top = nxt_copy._bbox[3]
-        dy = out_bottom - nxt_top
-        nxt_copy.rows = [(r0 + dy, r1 + dy) for (r0, r1) in nxt_copy.rows]
-        for row in nxt_copy.cells:
-            for cell in row:
-                cell.y1 += dy
-                cell.y2 += dy
-                # lb/lt/rb/rt are snapshot tuples set in Cell.__init__;
-                # rebuild them so plotting and any other downstream
-                # geometry consumer sees the shifted coords.
-                cell.lb = (cell.x1, cell.y1)
-                cell.lt = (cell.x1, cell.y2)
-                cell.rb = (cell.x2, cell.y1)
-                cell.rt = (cell.x2, cell.y2)
-        nxt_copy._bbox = (
-            nxt_copy._bbox[0],
-            nxt_copy._bbox[1] + dy,
-            nxt_copy._bbox[2],
-            nxt_copy._bbox[3] + dy,
-        )
-
-        out.rows = out.rows + nxt_copy.rows
-        out.cells = out.cells + nxt_copy.cells
-        out._bbox = (
-            min(out._bbox[0], nxt_copy._bbox[0]),
-            nxt_copy._bbox[1],  # new bottom
-            max(out._bbox[2], nxt_copy._bbox[2]),
-            out._bbox[3],  # original top
-        )
+        #
+        # Geometry shifting needs both tables to carry a _bbox. Parser-
+        # built Tables always do; if either is missing one (a Table
+        # constructed without going through a parser), skip the geometry
+        # merge and just concatenate the DataFrames — the df is what
+        # callers of stack_contiguous overwhelmingly want, and a missing
+        # bbox means there's no meaningful page geometry to stitch.
+        if out._bbox is not None and nxt_copy._bbox is not None:
+            out_bottom = out._bbox[1]
+            nxt_top = nxt_copy._bbox[3]
+            dy = out_bottom - nxt_top
+            nxt_copy.rows = [(r0 + dy, r1 + dy) for (r0, r1) in nxt_copy.rows]
+            for row in nxt_copy.cells:
+                for cell in row:
+                    cell.y1 += dy
+                    cell.y2 += dy
+                    # lb/lt/rb/rt are snapshot tuples set in Cell.__init__;
+                    # rebuild them so plotting and any other downstream
+                    # geometry consumer sees the shifted coords.
+                    cell.lb = (cell.x1, cell.y1)
+                    cell.lt = (cell.x1, cell.y2)
+                    cell.rb = (cell.x2, cell.y1)
+                    cell.rt = (cell.x2, cell.y2)
+            nxt_copy._bbox = (
+                nxt_copy._bbox[0],
+                nxt_copy._bbox[1] + dy,
+                nxt_copy._bbox[2],
+                nxt_copy._bbox[3] + dy,
+            )
+            out.rows = out.rows + nxt_copy.rows
+            out.cells = out.cells + nxt_copy.cells
+            out._bbox = (
+                min(out._bbox[0], nxt_copy._bbox[0]),
+                nxt_copy._bbox[1],  # new bottom
+                max(out._bbox[2], nxt_copy._bbox[2]),
+                out._bbox[3],  # original top
+            )
 
         nxt_df = nxt_copy.df
         if drop_repeated_header and not nxt_df.empty:
