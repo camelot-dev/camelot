@@ -19,3 +19,21 @@ def test_auto_flavor_extracts_ruled_table(foo_pdf):
     tables = camelot.read_pdf(foo_pdf, flavor="auto")
     assert len(tables) == 1
     assert tables[0].shape[0] >= 2 and tables[0].shape[1] >= 2
+
+
+def test_auto_routes_lattice_pages_through_combined_engine(foo_pdf, monkeypatch):
+    # (#763) auto must parse ruled pages with lattice + engine='combined',
+    # the strongest detector.
+    import camelot.handlers as handlers_mod
+
+    seen = {}
+    original = handlers_mod.PDFHandler.parse
+
+    def spy(self, *args, **kwargs):
+        if kwargs.get("flavor") == "lattice":
+            seen["engine"] = kwargs.get("engine")
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(handlers_mod.PDFHandler, "parse", spy)
+    camelot.read_pdf(foo_pdf, flavor="auto")
+    assert seen.get("engine") == "combined"
