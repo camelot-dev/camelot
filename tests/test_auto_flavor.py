@@ -37,3 +37,20 @@ def test_auto_routes_lattice_pages_through_combined_engine(foo_pdf, monkeypatch)
     monkeypatch.setattr(handlers_mod.PDFHandler, "parse", spy)
     camelot.read_pdf(foo_pdf, flavor="auto")
     assert seen.get("engine") == "combined"
+
+
+def test_auto_render_cache_avoids_double_render(foo_pdf, monkeypatch):
+    # The page rendered for the auto probe is reused by the lattice parse,
+    # so a ruled page is rasterised exactly once, not twice.
+    import camelot.backends.image_conversion as ic
+
+    rendered_pages = []
+    original = ic.ImageConversionBackend.convert
+
+    def spy(self, pdf_path, png_path, page=1):
+        rendered_pages.append(page)
+        return original(self, pdf_path, png_path, page=page)
+
+    monkeypatch.setattr(ic.ImageConversionBackend, "convert", spy)
+    camelot.read_pdf(foo_pdf, flavor="auto")  # foo.pdf: 1 ruled page
+    assert rendered_pages.count(1) == 1

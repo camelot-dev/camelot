@@ -177,6 +177,9 @@ class Lattice(BaseParser):
         #: coords, accumulated by the 'combined' engine for diagnostics /
         #: plotting. Populated per page in :meth:`_detect_line_masks`.
         self._vector_segments: list[tuple[int, int, int, int]] = []
+        #: Optional {page_no: png_path} of pages already rendered elsewhere
+        #: (e.g. the flavor='auto' probe), reused to skip re-rasterising.
+        self._render_cache: dict[int, str] = {}
         super().__init__("lattice", replace_text=replace_text)
         self.table_regions = table_regions
         self.table_areas = table_areas
@@ -416,10 +419,16 @@ class Lattice(BaseParser):
                 scaled_areas.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
             return scaled_areas
 
-        self.image_path = build_file_path_in_temp_dir(
-            f"{os.path.basename(self.filename)}-page{self.page}", ".png"
-        )
-        self.icb.convert(self.filename, self.image_path, self.page)
+        cached_image = self._render_cache.get(self.page)
+        if cached_image and os.path.exists(cached_image):
+            # Reuse a page already rendered upstream (flavor='auto' probe) —
+            # skip the second, redundant rasterisation.
+            self.image_path = cached_image
+        else:
+            self.image_path = build_file_path_in_temp_dir(
+                f"{os.path.basename(self.filename)}-page{self.page}", ".png"
+            )
+            self.icb.convert(self.filename, self.image_path, self.page)
 
         self.pdf_image, self.threshold = adaptive_threshold(
             self.image_path,

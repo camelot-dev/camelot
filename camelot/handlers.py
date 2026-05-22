@@ -366,6 +366,7 @@ class PDFHandler:
         layout_kwargs: dict[str, Any] | None = None,
         per_page: dict[int, dict[str, Any]] | None = None,
         pages: list[int] | None = None,
+        render_cache: dict[int, str] | None = None,
         **kwargs,
     ):
         """Extract tables by calling parser.get_tables on all single page PDFs.
@@ -403,6 +404,10 @@ class PDFHandler:
         # Default parser used by any page without a per_page override.
         parser_obj = PARSERS[flavor]
         parser = parser_obj(debug=self.debug, **kwargs)
+        if render_cache and hasattr(parser, "_render_cache"):
+            # Pre-rendered page images (page_no -> png path) from the
+            # flavor='auto' probe, so the parser skips re-rasterising them.
+            parser._render_cache = render_cache
 
         # Compute worker count up-front so we can pass it to playa.open(). The
         # old code also gated the parallel branch on len(self.pages) > 1, but
