@@ -288,9 +288,9 @@ def read_pdf(
           ``'raster'`` (#763).
         - ``'auto'``: use ``'combined'`` when the PDF carries native ruled
           lines, else fall back to ``'raster'`` (#763).
-        - ``'vector'``: read ruled lines straight from the PDF's vector
-          graphics, skipping rasterisation entirely. **Not yet wired** —
-          raises ``NotImplementedError`` for now (#763).
+        - ``'vector'``: detect tables straight from the PDF's vector ruled
+          lines, skipping rasterisation entirely — the fastest path, for
+          PDFs whose tables are drawn with real vector strokes (#763).
 
     Returns
     -------
