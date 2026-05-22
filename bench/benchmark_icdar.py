@@ -85,7 +85,7 @@ def _seq(grid):
 
 
 def simple_teds(pred, gt) -> float:
-    """difflib ratio over the row-major cell-text sequence, shape-penalised."""
+    """Edit-distance ratio over the row-major cell-text sequence, shape-penalised."""
     p, g = _seq(pred), _seq(gt)
     if not p and not g:
         return 1.0
