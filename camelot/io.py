@@ -19,7 +19,7 @@ from .utils import validate_input
 _AUTO_FLAVOR_LINE_THRESHOLD = 2
 
 
-def _detect_flavor(filepath, password=None, page=1):
+def _detect_flavor(filepath, password=None, page=1, png_path=None):
     """Pick the most appropriate flavor for a single PDF page.
 
     Renders ``page``, thresholds it, and counts ruled horizontal and
@@ -43,23 +43,30 @@ def _detect_flavor(filepath, password=None, page=1):
     from .image_processing import adaptive_threshold
     from .image_processing import find_lines
 
+    def _probe(target_png):
+        # ImageConversionBackend.convert takes (pdf_path, png_path, page); it
+        # has no `resolution` kwarg — passing one raised TypeError that the
+        # except below silently swallowed, so 'auto' always fell back to
+        # 'network'. (#auto-flavor regression)
+        ImageConversionBackend().convert(str(filepath), target_png, page=page)
+        if not os.path.exists(target_png):
+            return None
+        _, threshold = adaptive_threshold(target_png, process_background=False)
+        # Use the Lattice default line_scale (15) — picking 40 here excludes
+        # legitimate small/medium ruled tables.
+        _, v = find_lines(threshold, direction="vertical", line_scale=15)
+        _, h = find_lines(threshold, direction="horizontal", line_scale=15)
+        return len(v), len(h)
+
     try:
-        backend = ImageConversionBackend()
-        with TemporaryDirectory() as tmpdir:
-            png_path = os.path.join(tmpdir, "auto_flavor_probe.png")
-            # ImageConversionBackend.convert takes (pdf_path, png_path, page);
-            # it has no `resolution` kwarg — passing one raised TypeError that
-            # the except below silently swallowed, so 'auto' always fell back
-            # to 'network'. (#auto-flavor regression)
-            backend.convert(str(filepath), png_path, page=page)
-            if not os.path.exists(png_path):
-                return "network"
-            _, threshold = adaptive_threshold(png_path, process_background=False)
-            # Use the Lattice default line_scale (15) — picking 40 here
-            # excludes legitimate small/medium ruled tables. The same
-            # value the lattice parser itself uses by default.
-            _, v_segments = find_lines(threshold, direction="vertical", line_scale=15)
-            _, h_segments = find_lines(threshold, direction="horizontal", line_scale=15)
+        if png_path is None:
+            # No reuse requested: render to a throwaway temp file.
+            with TemporaryDirectory() as tmpdir:
+                counts = _probe(os.path.join(tmpdir, "auto_flavor_probe.png"))
+        else:
+            # Render to the caller-owned path so the rendered page can be
+            # reused by the parser (avoids a second render — see _parse_auto).
+            counts = _probe(png_path)
     except Exception:
         # Any failure on the probe (no usable backend, encrypted page, broken
         # PDF, OpenCV import surprise) is *not* fatal — the user asked us to
@@ -67,9 +74,12 @@ def _detect_flavor(filepath, password=None, page=1):
         # the real error if any.
         return "network"
 
+    if counts is None:
+        return "network"
+    v_count, h_count = counts
     has_grid = (
-        len(v_segments) >= _AUTO_FLAVOR_LINE_THRESHOLD
-        and len(h_segments) >= _AUTO_FLAVOR_LINE_THRESHOLD
+        v_count >= _AUTO_FLAVOR_LINE_THRESHOLD
+        and h_count >= _AUTO_FLAVOR_LINE_THRESHOLD
     )
     return "lattice" if has_grid else "network"
 
@@ -398,40 +408,55 @@ def _parse_auto(
     ruled pages via ``lattice`` with ``engine='combined'`` (the most
     accurate detector), the rest via ``network``. Results are merged into a
     single page/order-sorted :class:`~camelot.core.TableList`.
-    """
-    page_flavor = {
-        pg: _detect_flavor(handler.filepath, password=handler.password or None, page=pg)
-        for pg in handler.pages
-    }
-    warnings.warn(
-        f"camelot.read_pdf: auto-detected per-page flavors {page_flavor}",
-        UserWarning,
-        stacklevel=3,
-    )
 
-    collected = []
-    for fl in ("lattice", "network"):
-        group_pages = sorted(pg for pg, f in page_flavor.items() if f == fl)
-        if not group_pages:
-            continue
-        group_kwargs = remove_extra(dict(kwargs), flavor=fl)
-        if fl == "lattice":
-            # Use the combined raster+vector engine — the strongest lattice
-            # detector — for the ruled pages auto routes here.
-            group_kwargs.setdefault("engine", "combined")
-        _validate_per_page(per_page_norm, fl)
-        collected.extend(
-            handler.parse(
-                flavor=fl,
-                suppress_stdout=suppress_stdout,
-                parallel=parallel,
-                cpu_count=cpu_count,
-                layout_kwargs=layout_kwargs,
-                per_page=per_page_norm,
-                pages=group_pages,
-                **group_kwargs,
+    The page rendered for each lattice page's probe is kept and handed to
+    the parser via ``render_cache``, so that page isn't rasterised a second
+    time during parsing.
+    """
+    with TemporaryDirectory() as cache_dir:
+        page_flavor = {}
+        render_cache: dict[int, str] = {}
+        for pg in handler.pages:
+            probe_png = os.path.join(cache_dir, f"auto-probe-page-{pg}.png")
+            fl = _detect_flavor(
+                handler.filepath,
+                password=handler.password or None,
+                page=pg,
+                png_path=probe_png,
             )
+            page_flavor[pg] = fl
+            if fl == "lattice" and os.path.exists(probe_png):
+                render_cache[pg] = probe_png
+        warnings.warn(
+            f"camelot.read_pdf: auto-detected per-page flavors {page_flavor}",
+            UserWarning,
+            stacklevel=3,
         )
 
-    collected.sort(key=lambda t: (t.page, t.order))
-    return TableList(collected)
+        collected = []
+        for fl in ("lattice", "network"):
+            group_pages = sorted(pg for pg, f in page_flavor.items() if f == fl)
+            if not group_pages:
+                continue
+            group_kwargs = remove_extra(dict(kwargs), flavor=fl)
+            if fl == "lattice":
+                # Use the combined raster+vector engine — the strongest
+                # lattice detector — for the ruled pages auto routes here.
+                group_kwargs.setdefault("engine", "combined")
+            _validate_per_page(per_page_norm, fl)
+            collected.extend(
+                handler.parse(
+                    flavor=fl,
+                    suppress_stdout=suppress_stdout,
+                    parallel=parallel,
+                    cpu_count=cpu_count,
+                    layout_kwargs=layout_kwargs,
+                    per_page=per_page_norm,
+                    pages=group_pages,
+                    render_cache=render_cache if fl == "lattice" else None,
+                    **group_kwargs,
+                )
+            )
+
+        collected.sort(key=lambda t: (t.page, t.order))
+        return TableList(collected)
