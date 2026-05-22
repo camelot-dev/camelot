@@ -44,7 +44,11 @@ def _detect_flavor(filepath, password=None):
         backend = ImageConversionBackend()
         with TemporaryDirectory() as tmpdir:
             png_path = os.path.join(tmpdir, "auto_flavor_probe.png")
-            backend.convert(str(filepath), png_path, resolution=300, page=1)
+            # ImageConversionBackend.convert takes (pdf_path, png_path, page);
+            # it has no `resolution` kwarg — passing one raised TypeError that
+            # the except below silently swallowed, so 'auto' always fell back
+            # to 'network'. (#auto-flavor regression)
+            backend.convert(str(filepath), png_path, page=1)
             if not os.path.exists(png_path):
                 return "network"
             _, threshold = adaptive_threshold(png_path, process_background=False)
