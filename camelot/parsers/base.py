@@ -258,6 +258,15 @@ class BaseParser:
         """
         return False
 
+    def _postprocess_tables(self, tables):
+        """Hook: transform the per-page table list before it's returned.
+
+        Default returns it unchanged. Parsers override this to apply
+        cross-table cleanups (e.g. Network suppresses nested/overlapping
+        duplicate detections of the same table).
+        """
+        return tables
+
     def extract_tables(self):
         """Extract tables from the document."""
         if self._document_has_no_text():
@@ -295,7 +304,7 @@ class BaseParser:
             if not self._reject_table(table):
                 _tables.append(table)
 
-        return _tables
+        return self._postprocess_tables(_tables)
 
     def record_parse_metadata(self, table):
         """Record data about the origin of the table."""

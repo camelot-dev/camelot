@@ -759,6 +759,29 @@ class TextNetworks(TextAlignments):
         self._compute_alignment_counts()
 
 
+#: Suppress a Network table whose bbox is at least this fraction covered by a
+#: larger detected table. The connectivity search sometimes emits a *partial*
+#: copy nested inside the full table (same columns, same top, fewer rows),
+#: which both inflates the table count (false positive) and mismatches row
+#: structure when matched against ground truth. (#35)
+_OVERLAP_SUPPRESS = 0.6
+
+
+def _bbox_area(bbox):
+    x1, y1, x2, y2 = bbox
+    return max(0.0, x2 - x1) * max(0.0, y2 - y1)
+
+
+def _overlap_fraction(inner, outer):
+    """Fraction of ``inner``'s area that lies within ``outer`` (x1,y1,x2,y2)."""
+    ix1, iy1 = max(inner[0], outer[0]), max(inner[1], outer[1])
+    ix2, iy2 = min(inner[2], outer[2]), min(inner[3], outer[3])
+    if ix2 <= ix1 or iy2 <= iy1:
+        return 0.0
+    area = _bbox_area(inner)
+    return (ix2 - ix1) * (iy2 - iy1) / area if area else 0.0
+
+
 class Network(TextBaseParser):
     """Network method looks for spaces between text to parse the table.
 
@@ -954,6 +977,27 @@ class Network(TextBaseParser):
         if self.table_areas is not None:
             return [bbox_from_str(area_str) for area_str in self.table_areas]
         return None
+
+    def _postprocess_tables(self, tables):
+        """Suppress nested/overlapping duplicate detections of one table.
+
+        Keeps the larger of any two tables whose smaller member is mostly
+        (>= ``_OVERLAP_SUPPRESS``) covered by it, preserving reading order.
+        """
+        if len(tables) < 2 or any(t._bbox is None for t in tables):
+            return tables
+        by_size = sorted(tables, key=lambda t: _bbox_area(t._bbox), reverse=True)
+        kept = []
+        for t in by_size:
+            if any(
+                _overlap_fraction(t._bbox, k._bbox) >= _OVERLAP_SUPPRESS for k in kept
+            ):
+                continue
+            kept.append(t)
+        if len(kept) == len(tables):
+            return tables
+        kept_ids = {id(t) for t in kept}
+        return [t for t in tables if id(t) in kept_ids]
 
     def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
