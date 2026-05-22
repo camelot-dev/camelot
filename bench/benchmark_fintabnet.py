@@ -1,76 +1,107 @@
-"""Benchmark Camelot on FinTabNet — a born-digital, borderless-heavy corpus.
+"""Benchmark camelot on FinTabNet — born-digital, borderless-heavy.
 
 Not a pytest test — run directly with ``python bench/benchmark_fintabnet.py``.
 
 Why this exists
 ---------------
-Our ICDAR-2013 runs are *ruled*-heavy, so they barely exercise the
-``network`` / ``stream`` (borderless) parsers and can't size changes that
-live in that path (e.g. the #619/3 gap-edge formula, ``LAParams``
-word-spacing). FinTabNet is born-digital **financial** PDFs whose tables
-are overwhelmingly borderless / whitespace-separated — exactly the
-network parser's home turf — with per-table HTML structure ground truth,
-so it's the right place to measure those.
+ICDAR-2013 (``benchmark_icdar.py``) is ruled-heavy, so it barely exercises
+the ``network`` / ``stream`` (borderless) parsers. FinTabNet is born-digital
+**financial** PDFs whose tables are overwhelmingly borderless — the network
+parser's home turf — with per-table cell-structure ground truth, so it's the
+right place to measure those.
 
-This is an independent, MIT implementation (Camelot is MIT). It does **not**
-reuse code from the AGPL ``tablers-benchmark``; the simple TEDS below is a
-small from-scratch difflib approximation of the PubTabNet TEDS idea.
+Independent MIT implementation (no AGPL ``tablers-benchmark`` code); metrics
+come from ``bench/_metrics.py``.
 
-Dataset (one-time, ~ a few GB — NOT committed)
-----------------------------------------------
-The original IBM FinTabNet bundles the PDFs *and* PubTabNet-style HTML
-annotations::
+Two ground-truth formats (the dataset is NOT committed — multi-hundred-MB)
+----------------------------------------------------------------------------
+**Primary — FinTabNet.c** (the format actually obtainable today). The IBM
+source below is currently unreachable, so GT + PDFs come from two HF repos:
 
-    curl -L -o fintabnet.tar.gz \
-      https://dax-cdn.cdn.appdomain.cloud/dax-fintabnet/1.0.0/fintabnet.tar.gz
-    tar xf fintabnet.tar.gz          # -> fintabnet/  (pdf/  + *.jsonl)
+    # GT: per-page cell annotations (row/col spans + text)
+    curl -L -o fintabnet_c_anno.tar.gz \
+      https://huggingface.co/datasets/bsmock/FinTabNet.c/resolve/main/FinTabNet.c-PDF_Annotations.tar.gz
+    # PDFs: born-digital pages (paired by filename stem company_year_page_N)
+    python -c "from huggingface_hub import snapshot_download as s; \
+      s('corvicai/FinTabNet_ComTQA', repo_type='dataset', \
+        allow_patterns=['pdfs/*.pdf'], local_dir='comtqa')"
 
-Then point this script at it::
+    python bench/benchmark_fintabnet.py \
+        --annotations fintabnet_c_anno.tar.gz --pdf-dir comtqa \
+        --flavor network --limit 250
 
-    python bench/benchmark_fintabnet.py --data-dir /path/to/fintabnet \
-        --split test --limit 200 --flavor network
+**Shim — original IBM FinTabNet JSONL** (``dax-cdn`` source; PubTabNet-style
+``html`` per table). Kept for if/when that source returns::
 
-Each JSONL row carries ``filename`` (page PDF, relative to the dataset
-root) and a PubTabNet-style ``html`` block (``structure.tokens`` +
-``cells[].tokens``) which we render to a ground-truth cell grid.
+    python bench/benchmark_fintabnet.py --jsonl FinTabNet_1.0.0_table_test.jsonl \
+        --data-dir fintabnet/ --flavor network
 """
 
 from __future__ import annotations
 
 import argparse
+import glob
 import json
+import os
 import sys
+import tarfile
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))  # for `import _metrics`
+sys.path.insert(0, str(ROOT.parent))  # for `import camelot`
+
+from _metrics import score  # noqa: E402
 
 
 # --------------------------------------------------------------------------
-# Ground truth: PubTabNet/FinTabNet HTML -> 2-D cell grid
+# Ground-truth builders
 # --------------------------------------------------------------------------
+def _gt_cells_to_grid(tables_json) -> list[list[list[str]]]:
+    """FinTabNet.c per-page JSON -> one cell-text grid per table.
+
+    Each table's ``cells`` carry ``row_nums`` / ``column_nums`` (lists, so
+    spans are explicit) and ``json_text_content``. Cell text is placed at
+    the span's top-left; spanned positions stay blank (a stable proxy).
+    """
+    grids = []
+    for tbl in tables_json:
+        cells = tbl.get("cells", [])
+        rs = [c["row_nums"] for c in cells if c.get("row_nums")]
+        cs = [c["column_nums"] for c in cells if c.get("column_nums")]
+        if not rs or not cs:
+            continue
+        mr = max(max(r) for r in rs)
+        mc = max(max(c) for c in cs)
+        grid = [["" for _ in range(mc + 1)] for _ in range(mr + 1)]
+        for c in cells:
+            if c.get("row_nums") and c.get("column_nums"):
+                grid[min(c["row_nums"])][min(c["column_nums"])] = (
+                    c.get("json_text_content", "") or ""
+                )
+        grids.append(grid)
+    return grids
+
+
 def _gt_html_to_grid(html_obj: dict) -> list[list[str]]:
-    """Render a FinTabNet ``html`` annotation to a dense 2-D text grid.
+    """Original-FinTabNet PubTabNet-style ``html`` -> single cell grid (shim).
 
-    ``html_obj`` has ``structure.tokens`` — PubTabNet-style HTML tokens
-    where a cell is either the single token ``<td>`` (no attributes) or
-    the split form ``<td`` … ``colspan="2"`` … ``>`` — and ``cells`` (text
-    tokens per ``<td>`` in document order). ``colspan`` is expanded so the
-    grid has one entry per column. ``rowspan`` is **not** expanded
-    vertically (this proxy GT is row-major); that's a known simplification,
-    acceptable for relative comparisons.
+    ``structure.tokens`` is HTML where a cell is the single token ``<td>``
+    or the split form ``<td`` … ``colspan="2"`` … ``>``; ``cells`` holds
+    text tokens per ``<td>``. ``colspan`` is expanded; ``rowspan`` is kept
+    flat (documented simplification).
     """
     tokens = html_obj.get("structure", {}).get("tokens", [])
     cells = html_obj.get("cells", [])
     rows: list[list[str]] = []
     row: list[str] = []
-    state = {"cell_i": 0}
+    state = {"i": 0}
 
     def emit(colspan):
-        i = state["cell_i"]
+        i = state["i"]
         text = "".join(cells[i].get("tokens", [])) if i < len(cells) else ""
-        state["cell_i"] = i + 1
+        state["i"] = i + 1
         row.extend([text] * colspan)
 
     in_attr_td = False
@@ -80,11 +111,10 @@ def _gt_html_to_grid(html_obj: dict) -> list[list[str]]:
             row = []
         elif tok == "</tr>":
             rows.append(row)
-        elif tok == "<td>":  # complete, attribute-less opening tag
+        elif tok == "<td>":
             emit(1)
-        elif tok == "<td":  # opening tag with attributes to follow
-            in_attr_td = True
-            colspan = 1
+        elif tok == "<td":
+            in_attr_td, colspan = True, 1
         elif in_attr_td and tok.startswith(' colspan="'):
             colspan = int(tok.split('"')[1])
         elif in_attr_td and tok in (">", "/>"):
@@ -95,89 +125,86 @@ def _gt_html_to_grid(html_obj: dict) -> list[list[str]]:
 
 
 # --------------------------------------------------------------------------
-# Metrics (independent, MIT)
+# Dataset iteration
 # --------------------------------------------------------------------------
-def _norm(s) -> str:
-    return " ".join(str(s or "").split()).lower()
+def _iter_fintabnet_c(annotations: Path, pdf_dir: Path, limit):
+    """Yield ``(pdf_path, [gt_grid, ...])`` pairing corvicai PDFs to FinTabNet.c GT.
 
-
-def simple_teds(pred: list[list[str]], gt: list[list[str]]) -> float:
-    """Cheap TEDS-like score over the row-major cell-text sequence.
-
-    1 - normalised edit distance of the normalised cell texts, times a
-    table-shape penalty. This is *not* the exact tree-edit TEDS (which
-    needs ``apted``); it's a
-    fast, monotonic proxy good enough for relative comparisons between
-    Camelot configurations — the same role the field plays in our ICDAR
-    runs. Returns a value in ``[0, 1]``.
+    ``annotations`` is the ``*-PDF_Annotations`` directory or its ``.tar.gz``.
+    PDFs are matched by filename stem (``company_year_page_N``).
     """
-    import difflib
+    pdfs = sorted(glob.glob(str(pdf_dir / "**" / "*.pdf"), recursive=True))
+    tar = members = anno_dir = prefix = None
+    if str(annotations).endswith((".tar.gz", ".tgz")):
+        tar = tarfile.open(annotations)
+        members = set(tar.getnames())
+        prefix = next((m.split("/")[0] for m in members if m.endswith(".json")), "")
+    else:
+        anno_dir = annotations
 
-    pred_seq = [_norm(c) for r in pred for c in r]
-    gt_seq = [_norm(c) for r in gt for c in r]
-    if not gt_seq and not pred_seq:
-        return 1.0
-    content = difflib.SequenceMatcher(None, pred_seq, gt_seq).ratio()
-    pr, pc = (len(pred), max((len(r) for r in pred), default=0))
-    gr, gc = (len(gt), max((len(r) for r in gt), default=0))
-    shape = 1.0
-    if gr or gc:
-        shape = 1.0 - (abs(pr - gr) + abs(pc - gc)) / (gr + gc + pr + pc + 1)
-    return content * shape
-
-
-# --------------------------------------------------------------------------
-# Dataset loading
-# --------------------------------------------------------------------------
-def load_fintabnet(data_dir: Path, split: str, limit: int | None):
-    """Yield ``(pdf_path, gt_grid)`` for up to ``limit`` ``split`` tables."""
-    jsonls = sorted(data_dir.glob("*.jsonl"))
-    if not jsonls:
-        raise SystemExit(
-            f"No *.jsonl found in {data_dir} — see this file's docstring for "
-            "the FinTabNet download steps."
-        )
     n = 0
-    for jl in jsonls:
-        with open(jl, encoding="utf-8") as f:
-            for line in f:
-                rec = json.loads(line)
-                if split and rec.get("split") not in (None, split):
-                    continue
-                pdf = data_dir / rec["filename"]
-                if not pdf.exists():
-                    continue
-                grid = _gt_html_to_grid(rec.get("html", {}))
-                if not grid:
-                    continue
-                yield pdf, grid
-                n += 1
-                if limit and n >= limit:
-                    return
+    for pdf in pdfs:
+        stem = os.path.splitext(os.path.basename(pdf))[0]
+        name = f"{stem}_tables.json"
+        if tar is not None:
+            member = f"{prefix}/{name}"
+            if member not in members:
+                continue
+            data = json.load(tar.extractfile(member))
+        else:
+            path = anno_dir / name
+            if not path.exists():
+                continue
+            data = json.loads(path.read_text())
+        grids = _gt_cells_to_grid(data)
+        if not grids:
+            continue
+        yield Path(pdf), grids
+        n += 1
+        if limit and n >= limit:
+            return
+
+
+def _iter_fintabnet_jsonl(jsonl: Path, data_dir: Path, split, limit):
+    """Yield ``(pdf_path, [gt_grid])`` from the original IBM JSONL (shim)."""
+    n = 0
+    with open(jsonl, encoding="utf-8") as f:
+        for line in f:
+            rec = json.loads(line)
+            if split and rec.get("split") not in (None, split):
+                continue
+            pdf = data_dir / rec["filename"]
+            if not pdf.exists():
+                continue
+            grid = _gt_html_to_grid(rec.get("html", {}))
+            if not grid:
+                continue
+            yield pdf, [grid]
+            n += 1
+            if limit and n >= limit:
+                return
 
 
 # --------------------------------------------------------------------------
 # Runner
 # --------------------------------------------------------------------------
-def _camelot_grid(pdf_path, flavor, engine):
+def _camelot_grids(pdf_path, flavor, engine):
     import camelot
 
-    kwargs = {"flavor": flavor, "suppress_stdout": True}
+    kwargs = {"pages": "1", "flavor": flavor, "suppress_stdout": True}
     if flavor == "lattice" and engine:
         kwargs["engine"] = engine
-    tables = camelot.read_pdf(str(pdf_path), pages="1", **kwargs)
-    if not tables:
-        return []
-    # FinTabNet pages are cropped to a single table; take the first/largest.
-    best = max(tables, key=lambda t: t.shape[0] * t.shape[1])
-    return [[c for c in row] for row in best.df.values.tolist()]
+    return [t.df.values.tolist() for t in camelot.read_pdf(str(pdf_path), **kwargs)]
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--data-dir", required=True, type=Path)
+    ap = argparse.ArgumentParser(description="FinTabNet borderless benchmark")
+    ap.add_argument("--annotations", type=Path, help="FinTabNet.c dir or .tar.gz")
+    ap.add_argument("--pdf-dir", type=Path, help="dir of born-digital PDFs (corvicai)")
+    ap.add_argument("--jsonl", type=Path, help="original IBM FinTabNet JSONL (shim)")
+    ap.add_argument("--data-dir", type=Path, help="root for --jsonl PDFs (shim)")
     ap.add_argument("--split", default="test")
-    ap.add_argument("--limit", type=int, default=200)
+    ap.add_argument("--limit", type=int, default=250)
     ap.add_argument(
         "--flavor",
         default="network",
@@ -186,27 +213,40 @@ def main(argv=None):
     ap.add_argument("--engine", default="combined", help="lattice engine")
     args = ap.parse_args(argv)
 
-    scores, times, n = [], 0.0, 0
-    for pdf, gt in load_fintabnet(args.data_dir, args.split, args.limit):
+    if args.jsonl:
+        pairs = _iter_fintabnet_jsonl(
+            args.jsonl, args.data_dir or args.jsonl.parent, args.split, args.limit
+        )
+    elif args.annotations and args.pdf_dir:
+        pairs = _iter_fintabnet_c(args.annotations, args.pdf_dir, args.limit)
+    else:
+        ap.error("pass --annotations + --pdf-dir (FinTabNet.c) or --jsonl (IBM shim)")
+
+    gt_per, pred_per, total, n = {}, {}, 0.0, 0
+    for pdf, gt_grids in pairs:
+        key = str(pdf)
+        gt_per[key] = {1: gt_grids}
         tic = time.perf_counter()
         try:
-            pred = _camelot_grid(pdf, args.flavor, args.engine)
+            pred_per[key] = {1: _camelot_grids(pdf, args.flavor, args.engine)}
         except Exception as exc:  # noqa: BLE001 - bench records, never crashes
-            pred = []
+            pred_per[key] = {1: []}
             print(f"  [warn] {pdf.name}: {exc}")
-        times += time.perf_counter() - tic
-        scores.append(simple_teds(pred, gt))
+        total += time.perf_counter() - tic
         n += 1
 
     if not n:
-        raise SystemExit("No tables evaluated — check --data-dir / --split.")
+        raise SystemExit("No (pdf, gt) pairs — check --annotations / --pdf-dir paths.")
+    m = score(pred_per, gt_per)
+    tag = f"{args.flavor}{'/' + args.engine if args.flavor == 'lattice' else ''}"
     print(
-        f"FinTabNet [{args.flavor}"
-        f"{'/' + args.engine if args.flavor == 'lattice' else ''}] "
-        f"n={n} split={args.split}: simple_TEDS={sum(scores) / n:.3f} "
-        f"time={times:.1f}s ({times / n * 1000:.0f} ms/table)"
+        f"FinTabNet [{tag}] n={n} time={total:.0f}s "
+        f"F1={m['f1']:.3f} TEDS={m['teds']:.3f} row={m['row']:.3f} col={m['col']:.3f}"
     )
     return 0
+
+
+__all__ = ["_gt_html_to_grid", "_gt_cells_to_grid", "main"]
 
 
 if __name__ == "__main__":

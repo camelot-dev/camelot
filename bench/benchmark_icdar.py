@@ -20,14 +20,17 @@ for relative comparison between Camelot configurations.
 from __future__ import annotations
 
 import argparse
-import difflib
 import sys
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+sys.path.insert(0, str(HERE))  # for `import _metrics`
+sys.path.insert(0, str(ROOT))  # for `import camelot`
+
+from _metrics import score  # noqa: E402
 
 DEFAULT_DATA = ROOT / "tests" / "files" / "tabula" / "icdar2013-dataset"
 
@@ -77,54 +80,9 @@ def load_icdar(data_dir: Path, limit: int | None):
             return
 
 
-# --------------------------------------------------------------------------
-# Metrics (independent, MIT)
-# --------------------------------------------------------------------------
-def _seq(grid):
-    return [" ".join(str(c or "").split()).lower() for row in grid for c in row]
-
-
-def simple_teds(pred, gt) -> float:
-    """Edit-distance ratio over the row-major cell-text sequence, shape-penalised."""
-    p, g = _seq(pred), _seq(gt)
-    if not p and not g:
-        return 1.0
-    content = difflib.SequenceMatcher(None, p, g).ratio()
-    pr, pc = len(pred), max((len(r) for r in pred), default=0)
-    gr, gc = len(gt), max((len(r) for r in gt), default=0)
-    shape = 1.0 - (abs(pr - gr) + abs(pc - gc)) / (pr + pc + gr + gc + 1)
-    return content * shape
-
-
-def score(pred_per_doc, gt_per_doc):
-    """Aggregate detection-F1, TEDS, and exact row/col-count accuracy."""
-    tp = fp = fn = 0
-    teds, rows_ok, cols_ok, matched = [], 0, 0, 0
-    for key, gt_pages in gt_per_doc.items():
-        pred_pages = pred_per_doc.get(key, {})
-        pages = set(gt_pages) | set(pred_pages)
-        for pg in pages:
-            gts = gt_pages.get(pg, [])
-            preds = pred_pages.get(pg, [])
-            tp += min(len(gts), len(preds))
-            fp += max(0, len(preds) - len(gts))
-            fn += max(0, len(gts) - len(preds))
-            for gtab, ptab in zip(gts, preds, strict=False):  # match by order
-                matched += 1
-                teds.append(simple_teds(ptab, gtab))
-                rows_ok += len(ptab) == len(gtab)
-                cols_ok += max((len(r) for r in ptab), default=0) == max(
-                    (len(r) for r in gtab), default=0
-                )
-    prec = tp / (tp + fp) if (tp + fp) else 0.0
-    rec = tp / (tp + fn) if (tp + fn) else 0.0
-    f1 = 2 * prec * rec / (prec + rec) if (prec + rec) else 0.0
-    return {
-        "f1": f1,
-        "teds": sum(teds) / len(teds) if teds else 0.0,
-        "row": rows_ok / matched if matched else 0.0,
-        "col": cols_ok / matched if matched else 0.0,
-    }
+# Metrics (detection-F1 / TEDS proxy / row-col accuracy) come from
+# bench/_metrics.py, shared with benchmark_fintabnet.py — see `simple_teds`
+# / `score` imported above.
 
 
 # --------------------------------------------------------------------------
