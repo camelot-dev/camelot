@@ -357,6 +357,12 @@ def find_joints(contours, vertical, horizontal):
 #: don't want to drop a 0.0001-unit-off line just because of rounding.
 _LINE_ORTHOGONAL_TOL = 0.5
 
+#: Tolerance (PDF units) for merging near-collinear ruled-line segments.
+#: PDFs routinely draw one logical rule as many short, abutting sub-segments;
+#: segments whose constant axis agrees within this tolerance and whose extents
+#: overlap or sit within it of each other are fused into a single line.
+_LINE_COALESCE_TOL = 2.0
+
 #: A "filled" rectangle whose narrower side is below this width is treated
 #: as a stroked line (some PDF generators draw ruled lines as 0.5pt-wide
 #: filled rectangles rather than as stroked LTLines).
@@ -454,7 +460,87 @@ def find_lines_from_layout(layout, direction="horizontal"):
             result.append((min(x0, x1), y0, max(x0, x1), y0))
         elif direction == "vertical" and dx <= _LINE_ORTHOGONAL_TOL and dy > 0:
             result.append((x0, min(y0, y1), x0, max(y0, y1)))
-    return result
+    return coalesce_collinear_lines(result, direction)
+
+
+def coalesce_collinear_lines(lines, direction, tol=_LINE_COALESCE_TOL):
+    """Merge near-collinear ruled-line segments into single lines.
+
+    PDFs frequently draw one logical rule as a chain of short sub-segments;
+    left unmerged they make :func:`find_joints_from_lines` under-count
+    joints and miss grids. Segments are grouped by their constant axis
+    (within ``tol``) and, within a group, those whose extents overlap or
+    sit within ``tol`` of each other are fused.
+
+    Parameters
+    ----------
+    lines : list[tuple[float, float, float, float]]
+        ``(x0, y0, x1, y1)`` segments, as produced by
+        :func:`find_lines_from_layout`.
+    direction : str
+        ``'horizontal'`` (segments share a constant ``y``, merge along
+        ``x``) or ``'vertical'`` (constant ``x``, merge along ``y``).
+    tol : float, optional
+        Merge tolerance in PDF units (default :data:`_LINE_COALESCE_TOL`).
+
+    Returns
+    -------
+    list[tuple[float, float, float, float]]
+        The merged segments, same tuple shape as the input.
+    """
+    if direction not in ("horizontal", "vertical"):
+        raise ValueError("direction must be 'horizontal' or 'vertical'")
+    if not lines:
+        return []
+
+    norm = _coalesce_normalise(lines, direction)
+
+    # Chain into clusters of (nearly) equal constant axis.
+    clusters: list[dict] = []
+    for const, lo, hi in norm:
+        if clusters and const - clusters[-1]["last"] <= tol:
+            clusters[-1]["consts"].append(const)
+            clusters[-1]["intervals"].append((lo, hi))
+            clusters[-1]["last"] = const
+        else:
+            clusters.append({"consts": [const], "intervals": [(lo, hi)], "last": const})
+
+    out = []
+    for cluster in clusters:
+        const = sum(cluster["consts"]) / len(cluster["consts"])
+        for lo, hi in _merge_spans(sorted(cluster["intervals"]), tol):
+            out.append(
+                (lo, const, hi, const)
+                if direction == "horizontal"
+                else (const, lo, const, hi)
+            )
+    return out
+
+
+def _coalesce_normalise(lines, direction):
+    """Reduce each segment to ``(const_axis, span_lo, span_hi)``, sorted."""
+    norm = []
+    for x0, y0, x1, y1 in lines:
+        if direction == "horizontal":
+            const = (y0 + y1) / 2.0
+            lo, hi = (x0, x1) if x0 <= x1 else (x1, x0)
+        else:
+            const = (x0 + x1) / 2.0
+            lo, hi = (y0, y1) if y0 <= y1 else (y1, y0)
+        norm.append((const, lo, hi))
+    norm.sort()
+    return norm
+
+
+def _merge_spans(intervals, tol):
+    """Merge overlapping / within-``tol`` ``(lo, hi)`` intervals."""
+    merged = [list(intervals[0])]
+    for lo, hi in intervals[1:]:
+        if lo <= merged[-1][1] + tol:
+            merged[-1][1] = max(merged[-1][1], hi)
+        else:
+            merged.append([lo, hi])
+    return merged
 
 
 #: Default tolerance (PDF units) for deciding whether a horizontal and a
