@@ -353,9 +353,12 @@ def test_auto_flavor_warns_and_extracts(testdir):
     # produced at least one table on foo.pdf.
     auto_warns = [w for w in caught if "auto-detected" in str(w.message)]
     assert auto_warns, f"expected an auto-detection UserWarning, got: {caught!r}"
-    match = re.search(r"auto-detected flavor='(\w+)'", str(auto_warns[-1].message))
-    assert match, f"unexpected warning text: {auto_warns[-1].message!r}"
-    assert match.group(1) in {"lattice", "stream", "network", "hybrid"}
+    msg = str(auto_warns[-1].message)
+    # auto now reports its choice(s) per page, e.g.
+    # "auto-detected per-page flavors {1: 'lattice'}".
+    flavors = set(re.findall(r"'(lattice|stream|network|hybrid)'", msg))
+    assert flavors, f"unexpected warning text: {msg!r}"
+    assert flavors <= {"lattice", "stream", "network", "hybrid"}
     assert len(tables) >= 1
 
 
