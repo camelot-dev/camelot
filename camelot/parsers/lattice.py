@@ -25,6 +25,14 @@ from ..utils import segments_in_bbox
 from ..utils import text_in_bbox_per_axis
 from .base import BaseParser
 
+#: Reject a detected ruled grid whose cells are at least this percent empty.
+#: Real data tables are mostly filled; a near-empty grid (whitespace in the
+#: 90s) is almost always ruled *noise* — page borders, form rules, header
+#: separators — that the contour/joint pipeline mistook for a table. Chosen
+#: above the observed real-table whitespace range and below the spurious one
+#: (the false positives measured on the ICDAR set sit at 91-95 %).
+_GRID_WHITESPACE_REJECT = 90.0
+
 
 def _line_in_any_bbox(line, bboxes):
     """True if a ruled line's extent overlaps any of the given bboxes.
@@ -287,6 +295,17 @@ class Lattice(BaseParser):
         super().record_parse_metadata(table)
         # for plotting
         table._segments = (self.vertical_segments, self.horizontal_segments)
+
+    def _reject_table(self, table) -> bool:
+        """Drop near-empty ruled grids — detection noise, not real tables.
+
+        A genuine ruled table is mostly filled; a grid whose cells are
+        ~all empty (whitespace in the 90s) is page borders / form rules /
+        header separators the contour-joint pipeline mistook for a table.
+        Rejecting these is a precision gate that cuts false positives on
+        pages with no real table (#36).
+        """
+        return table.whitespace >= _GRID_WHITESPACE_REJECT
 
     def _resolve_engine(self):
         """Resolve the effective line-detection engine for this page.
