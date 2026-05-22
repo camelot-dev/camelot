@@ -249,6 +249,15 @@ class BaseParser:
         # Pure virtual, must be defined by the derived parser
         raise NotImplementedError()
 
+    def _reject_table(self, table) -> bool:
+        """Hook: return True to drop a freshly built table before it's kept.
+
+        Default keeps everything. Parsers override this to apply a
+        precision gate (e.g. Lattice drops mostly-empty ruled grids that
+        are detection noise rather than real tables).
+        """
+        return False
+
     def extract_tables(self):
         """Extract tables from the document."""
         if self._document_has_no_text():
@@ -283,7 +292,8 @@ class BaseParser:
 
             cols, rows, v_s, h_s = self._generate_columns_and_rows(bbox, user_cols)
             table = self._generate_table(table_idx, bbox, cols, rows, v_s=v_s, h_s=h_s)
-            _tables.append(table)
+            if not self._reject_table(table):
+                _tables.append(table)
 
         return _tables
 

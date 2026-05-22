@@ -104,3 +104,25 @@ def test_lattice_split_text(testdir):
     tables = camelot.read_pdf(filename, line_scale=60, split_text=True)
 
     assert_frame_equal(df, tables[0].df)
+
+
+def test_lattice_rejects_mostly_empty_grid():
+    # #36 precision gate: a near-empty ruled grid is detection noise, not a
+    # table, and must be dropped; a normally-filled table is kept.
+    from types import SimpleNamespace
+
+    from camelot.parsers.lattice import _GRID_WHITESPACE_REJECT
+    from camelot.parsers.lattice import Lattice
+
+    parser = Lattice()
+    assert parser._reject_table(SimpleNamespace(whitespace=_GRID_WHITESPACE_REJECT + 1))
+    assert not parser._reject_table(SimpleNamespace(whitespace=40.0))
+
+
+def test_network_keeps_sparse_tables():
+    # The gate is lattice-only — text-based parsers must not inherit it.
+    from types import SimpleNamespace
+
+    from camelot.parsers import Network
+
+    assert not Network()._reject_table(SimpleNamespace(whitespace=99.0))

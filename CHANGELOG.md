@@ -130,6 +130,13 @@ changes. **Heads-up if upgrading from 1.0.x**:
 
 ### Fixed
 
+- **Precision gate for the lattice/combined engine.** Near-empty ruled
+  grids (page borders, form rules, header separators — whitespace ≥ 90 %)
+  are no longer emitted as tables; they were detection noise that
+  false-positived on pages with no real table. On the in-repo ICDAR-2013
+  benchmark this lifts combined detection F1 0.665 → 0.778 with TEDS /
+  row / col all improving too. (#36)
+
 - **`flavor="auto"` was silently broken** — `_detect_flavor` passed a
   non-existent `resolution=` kwarg to the image backend, so the `TypeError`
   was swallowed and _every_ PDF fell back to `network` (never `lattice`).
