@@ -58,18 +58,19 @@ def test_probe_custom_threshold(monkeypatch):
 def test_lattice_engine_validation():
     from camelot.parsers.lattice import Lattice
 
-    # Valid values construct fine.
-    for eng in ("raster", "vector", "combined", "auto"):
+    # Valid values construct fine ('auto' was dropped — item-2 cleanup).
+    for eng in ("raster", "vector", "combined"):
         assert Lattice(engine=eng).engine == eng
-    # Invalid value rejected at construction.
-    with pytest.raises(ValueError, match="engine must be"):
-        Lattice(engine="opencv")
+    # Invalid values rejected at construction.
+    for bad in ("opencv", "auto"):
+        with pytest.raises(ValueError, match="engine must be"):
+            Lattice(engine=bad)
 
 
-def test_lattice_default_engine_is_raster():
+def test_lattice_default_engine_is_combined():
     from camelot.parsers.lattice import Lattice
 
-    assert Lattice().engine == "raster"
+    assert Lattice().engine == "combined"
 
 
 def test_vector_engine_extracts_without_rendering(foo_pdf):
@@ -97,12 +98,12 @@ def test_vector_engine_matches_raster_on_vector_ruled_pdf(foo_pdf):
     assert vector[0].df.equals(raster[0].df)
 
 
-def test_auto_engine_runs(foo_pdf):
-    """engine='auto' must not raise — resolves to combined/raster (#763)."""
+def test_auto_engine_removed(foo_pdf):
+    """engine='auto' was dropped; 'combined' is now the default (item-2)."""
     import camelot
 
-    tables = camelot.read_pdf(foo_pdf, flavor="lattice", engine="auto")
-    assert len(tables) == 1
+    with pytest.raises(ValueError, match="engine must be"):
+        camelot.read_pdf(foo_pdf, flavor="lattice", engine="auto")
 
 
 def test_combined_engine_matches_raster_on_vector_ruled_pdf(foo_pdf):

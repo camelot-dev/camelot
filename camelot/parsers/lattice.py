@@ -15,7 +15,6 @@ from ..image_processing import find_joints
 from ..image_processing import find_joints_from_lines
 from ..image_processing import find_lines
 from ..image_processing import find_lines_from_layout
-from ..image_processing import layout_has_ruled_lines
 from ..utils import bbox_from_str
 from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
@@ -137,17 +136,20 @@ class Lattice(BaseParser):
         Fallback to another backend if unavailable, by default True
     resolution : int, optional (default: 300)
         Resolution used for PDF to PNG conversion.
-    engine : str, optional (default: 'raster')
-        Line-detection engine. ``'raster'`` uses OpenCV on the rendered
-        page (the long-standing behaviour). ``'combined'`` additionally
-        unions the PDF's native vector ruled lines into the line masks
-        before contour/joint detection, recovering tables whose rules
-        render faintly; it is safe by construction (raster always runs,
-        vector lines can only add). ``'auto'`` picks ``'combined'`` when
-        the page carries vector ruled lines, else ``'raster'``.
-        ``'vector'`` detects tables purely from the PDF's vector ruled
-        lines, skipping rasterisation entirely — fastest, for PDFs whose
-        tables are drawn with real vector strokes (#763).
+    engine : str, optional (default: 'combined')
+        Line-detection engine (lattice only):
+
+        - ``'combined'`` (default): OpenCV on the rendered page **plus**
+          the PDF's native vector ruled lines unioned into the line masks
+          before contour/joint detection — recovers tables whose rules
+          render faintly. Safe by construction (raster always runs first,
+          vector lines can only add; vector lines are clipped to
+          ``table_regions`` so it never expands a table past the region).
+        - ``'raster'``: OpenCV on the rendered page only (the pre-#763
+          behaviour).
+        - ``'vector'``: detect tables purely from the PDF's vector ruled
+          lines, skipping rasterisation entirely — fastest, for PDFs whose
+          tables are drawn with real vector strokes (#763).
 
     """
 
@@ -172,13 +174,12 @@ class Lattice(BaseParser):
         resolution=300,
         use_fallback=True,
         backend="pdfium",
-        engine="raster",
+        engine="combined",
         **kwargs,
     ):
-        if engine not in ("raster", "vector", "combined", "auto"):
+        if engine not in ("raster", "vector", "combined"):
             raise ValueError(
-                "engine must be 'raster', 'vector', 'combined' or 'auto',"
-                f" got {engine!r}"
+                f"engine must be 'raster', 'vector' or 'combined', got {engine!r}"
             )
         self.engine = engine
         #: Vector ruled lines drawn onto the raster line masks, in image
@@ -308,33 +309,20 @@ class Lattice(BaseParser):
         return table.whitespace >= _GRID_WHITESPACE_REJECT
 
     def _resolve_engine(self):
-        """Resolve the effective line-detection engine for this page.
+        """Return the effective line-detection engine for this page.
 
-        * ``'raster'``   → ``'raster'`` (the OpenCV pipeline only).
-        * ``'combined'`` → ``'combined'`` (raster **plus** the PDF's
-          vector ruled lines unioned into the line masks — #763 Stage 2b).
-        * ``'vector'``   → ``'vector'`` (render-free: detect tables from
-          the PDF's vector ruled lines without rasterising the page — see
-          :meth:`_generate_table_bbox_vector`).
-        * ``'auto'``     → ``'combined'`` when the page layout carries
-          enough ruled lines for the vector union to help, else
-          ``'raster'``.
-
-        ``'combined'`` is safe by construction: raster always runs first,
-        so vector lines can only *add* to the detected masks, never
-        remove — a page with no usable vector lines (or a mis-scaled one)
-        yields the same result as ``'raster'``.
+        * ``'combined'`` (default) → raster OpenCV pipeline **plus** the
+          PDF's vector ruled lines unioned into the line masks (#763). Safe
+          by construction: raster always runs first, so vector lines can
+          only *add* to the detected masks, never remove — a page with no
+          usable vector lines yields the same result as ``'raster'``. The
+          strongest detector, hence the default.
+        * ``'raster'`` → the OpenCV pipeline only (the pre-#763 behaviour).
+        * ``'vector'`` → render-free: detect tables from the PDF's vector
+          ruled lines without rasterising the page (fastest) — see
+          :meth:`_generate_table_bbox_vector`.
         """
-        if self.engine == "vector":
-            return "vector"
-        if self.engine == "combined":
-            return "combined"
-        if self.engine == "auto":
-            self._vector_lines_available = layout_has_ruled_lines(
-                getattr(self, "layout", None)
-            )
-            return "combined" if self._vector_lines_available else "raster"
-        return "raster"
+        return self.engine
 
     def _augment_masks_with_vector_lines(
         self,
@@ -355,20 +343,23 @@ class Lattice(BaseParser):
         them to the segment lists fed to :func:`scale_image`.
 
         A ``None`` layout (no vector graphics available) is a no-op.
+
+        When ``table_regions`` are supplied, the vector lines are clipped to
+        them — mirroring the raster ``find_lines(regions=...)`` mask — so
+        combined never expands a table beyond the user's region (the raster
+        path already respects it; the vector path must too).
         """
         layout = getattr(self, "layout", None)
         if layout is None:
             return [], []
-        v_segments = self._stamp_vector_lines(
-            find_lines_from_layout(layout, direction="vertical"),
-            vertical_mask,
-            image_scalers,
-        )
-        h_segments = self._stamp_vector_lines(
-            find_lines_from_layout(layout, direction="horizontal"),
-            horizontal_mask,
-            image_scalers,
-        )
+        v_lines = find_lines_from_layout(layout, direction="vertical")
+        h_lines = find_lines_from_layout(layout, direction="horizontal")
+        if self.table_regions is not None:
+            region_bboxes = [bbox_from_str(r) for r in self.table_regions]
+            v_lines = [ln for ln in v_lines if _line_in_any_bbox(ln, region_bboxes)]
+            h_lines = [ln for ln in h_lines if _line_in_any_bbox(ln, region_bboxes)]
+        v_segments = self._stamp_vector_lines(v_lines, vertical_mask, image_scalers)
+        h_segments = self._stamp_vector_lines(h_lines, horizontal_mask, image_scalers)
         return v_segments, h_segments
 
     @staticmethod
