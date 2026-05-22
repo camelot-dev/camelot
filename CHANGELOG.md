@@ -130,6 +130,13 @@ changes. **Heads-up if upgrading from 1.0.x**:
 
 ### Fixed
 
+- **`flavor="auto"` was silently broken** — `_detect_flavor` passed a
+  non-existent `resolution=` kwarg to the image backend, so the `TypeError`
+  was swallowed and _every_ PDF fell back to `network` (never `lattice`).
+  Fixed; `auto` now also detects the flavor **per page** and routes ruled
+  pages through `engine="combined"`, so mixed cover-page/table documents
+  parse correctly. (#763)
+
 - **Windows `PermissionError` when parsing multiple PDFs.** The URL-
   downloaded temp file is now removed on `PDFHandler.__exit__` /
   `close()`; the `os.remove` is wrapped in `try/except OSError` so the

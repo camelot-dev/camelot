@@ -4,6 +4,7 @@ import os
 import warnings
 from typing import Any
 
+from .core import TableList
 from .handlers import FilepathOrBuffer
 from .handlers import PDFHandler
 from .utils import TemporaryDirectory
@@ -18,11 +19,13 @@ from .utils import validate_input
 _AUTO_FLAVOR_LINE_THRESHOLD = 2
 
 
-def _detect_flavor(filepath, password=None):
-    """Pick the most appropriate flavor for a PDF.
+def _detect_flavor(filepath, password=None, page=1):
+    """Pick the most appropriate flavor for a single PDF page.
 
-    Renders the first page, thresholds it, and counts ruled horizontal and
-    vertical line segments. Used when the caller passes ``flavor="auto"``.
+    Renders ``page``, thresholds it, and counts ruled horizontal and
+    vertical line segments. Used when the caller passes ``flavor="auto"``
+    (once per requested page, so a document with text-only cover pages and
+    ruled tables deeper in is routed correctly per page).
 
     Returns
     -------
@@ -48,7 +51,7 @@ def _detect_flavor(filepath, password=None):
             # it has no `resolution` kwarg — passing one raised TypeError that
             # the except below silently swallowed, so 'auto' always fell back
             # to 'network'. (#auto-flavor regression)
-            backend.convert(str(filepath), png_path, page=1)
+            backend.convert(str(filepath), png_path, page=page)
             if not os.path.exists(png_path):
                 return "network"
             _, threshold = adaptive_threshold(png_path, process_background=False)
@@ -157,10 +160,13 @@ def read_pdf(
         - ``'stream'``: borderless tables with whitespace-separated columns.
         - ``'network'``: borderless tables via text-edge alignment connectivity.
         - ``'hybrid'``: combines layout- and image-based analysis.
-        - ``'auto'``: render the first requested page, count ruled
-          horizontal/vertical lines, and pick ``lattice`` when both axes
-          show at least 2 segments; pick ``network`` otherwise. A
-          ``UserWarning`` is emitted telling you which flavor was selected.
+        - ``'auto'``: detect the flavor **per page** (count ruled lines on
+          each rendered page) and parse each group accordingly — ruled
+          pages via ``lattice`` with ``engine='combined'``, the rest via
+          ``network`` — then merge. Handles documents that mix text-only
+          cover pages with ruled tables deeper in. A ``UserWarning`` reports
+          the per-page choices. (More accurate but slower, since it renders
+          every page for the probe.)
     suppress_stdout : bool, optional (default: False)
         Print all logs and warnings.
     parallel : bool, optional (default: False)
@@ -348,11 +354,14 @@ def read_pdf(
 
         with PDFHandler(filepath, pages=pages, password=password, debug=debug) as p:
             if flavor == "auto":
-                flavor = _detect_flavor(p.filepath, password=p.password or None)
-                warnings.warn(
-                    f"camelot.read_pdf: auto-detected flavor={flavor!r}",
-                    UserWarning,
-                    stacklevel=2,
+                return _parse_auto(
+                    p,
+                    kwargs,
+                    suppress_stdout=suppress_stdout,
+                    parallel=parallel,
+                    cpu_count=cpu_count,
+                    layout_kwargs=layout_kwargs,
+                    per_page_norm=per_page_norm,
                 )
             validate_input(kwargs, flavor=flavor)
             kwargs = remove_extra(kwargs, flavor=flavor)
@@ -369,3 +378,60 @@ def read_pdf(
                 **kwargs,
             )
         return tables
+
+
+def _parse_auto(
+    handler,
+    kwargs,
+    *,
+    suppress_stdout,
+    parallel,
+    cpu_count,
+    layout_kwargs,
+    per_page_norm,
+):
+    """Parse with ``flavor='auto'`` — flavor detected **per page**.
+
+    Each requested page is probed independently (so a document with a
+    text-only cover and ruled tables deeper in is routed correctly), then
+    pages are grouped by detected flavor and parsed in one pass per group:
+    ruled pages via ``lattice`` with ``engine='combined'`` (the most
+    accurate detector), the rest via ``network``. Results are merged into a
+    single page/order-sorted :class:`~camelot.core.TableList`.
+    """
+    page_flavor = {
+        pg: _detect_flavor(handler.filepath, password=handler.password or None, page=pg)
+        for pg in handler.pages
+    }
+    warnings.warn(
+        f"camelot.read_pdf: auto-detected per-page flavors {page_flavor}",
+        UserWarning,
+        stacklevel=3,
+    )
+
+    collected = []
+    for fl in ("lattice", "network"):
+        group_pages = sorted(pg for pg, f in page_flavor.items() if f == fl)
+        if not group_pages:
+            continue
+        group_kwargs = remove_extra(dict(kwargs), flavor=fl)
+        if fl == "lattice":
+            # Use the combined raster+vector engine — the strongest lattice
+            # detector — for the ruled pages auto routes here.
+            group_kwargs.setdefault("engine", "combined")
+        _validate_per_page(per_page_norm, fl)
+        collected.extend(
+            handler.parse(
+                flavor=fl,
+                suppress_stdout=suppress_stdout,
+                parallel=parallel,
+                cpu_count=cpu_count,
+                layout_kwargs=layout_kwargs,
+                per_page=per_page_norm,
+                pages=group_pages,
+                **group_kwargs,
+            )
+        )
+
+    collected.sort(key=lambda t: (t.page, t.order))
+    return TableList(collected)

@@ -365,6 +365,7 @@ class PDFHandler:
         cpu_count: int | None = None,
         layout_kwargs: dict[str, Any] | None = None,
         per_page: dict[int, dict[str, Any]] | None = None,
+        pages: list[int] | None = None,
         **kwargs,
     ):
         """Extract tables by calling parser.get_tables on all single page PDFs.
@@ -429,10 +430,14 @@ class PDFHandler:
                         f"Text extraction is not allowed: {self.filepath}"
                     )
                 # Resolve pages using the already-open document instead of
-                # opening it a second time via the .pages property.
-                if self._pages_cache is None:
-                    self._pages_cache = self._resolve_pages(self._pages_spec, pdf)
-                pages = [x - 1 for x in self._pages_cache]
+                # opening it a second time via the .pages property. A caller
+                # may pass an explicit ``pages`` subset (used by flavor='auto'
+                # to parse each per-page-detected flavor group separately).
+                if pages is None:
+                    if self._pages_cache is None:
+                        self._pages_cache = self._resolve_pages(self._pages_spec, pdf)
+                    pages = self._pages_cache
+                pages = [x - 1 for x in pages]
                 tables = pdf.pages[pages].map(
                     partial(
                         self._parse_page,
