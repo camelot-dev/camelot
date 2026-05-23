@@ -1,3 +1,12 @@
+### Changed
+
+- **`engine='combined'` is now the default lattice engine** (was
+  `'raster'`), and **`engine='auto'` was removed**. Combined is the
+  strongest detector and safe by construction; its vector ruled lines are
+  now clipped to `table_regions` so it never expands a table beyond a
+  user-supplied region (previously it could). `engine` remains lattice-only
+  and is rejected for text-based flavors. (#763, flavor x engine cleanup)
+
 # Changelog
 
 This file documents notable user-visible changes. The day-to-day automatic
