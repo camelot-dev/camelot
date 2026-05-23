@@ -136,6 +136,13 @@ changes. **Heads-up if upgrading from 1.0.x**:
   false-positived on pages with no real table. On the in-repo ICDAR-2013
   benchmark this lifts combined detection F1 0.665 → 0.778 with TEDS /
   row / col all improving too. (#36)
+- **Network parser: suppress nested/overlapping duplicate tables.** The
+  connectivity search sometimes emitted a partial copy of a table nested
+  inside the full detection (same columns, fewer rows), inflating the
+  table count and mangling row structure. These are now suppressed
+  (keep the larger). On the in-repo ICDAR-2013 benchmark this lifts
+  flavor='auto' across the board — F1 0.742→0.765, TEDS 0.744→0.763,
+  row 0.517→0.540 — and ~20 % faster. (#35)
 
 - **`flavor="auto"` was silently broken** — `_detect_flavor` passed a
   non-existent `resolution=` kwarg to the image backend, so the `TypeError`
