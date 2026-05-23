@@ -149,3 +149,47 @@ def test_hybrid_multipage(testdir):
     filename = os.path.join(testdir, "hybrid_multipage.pdf")
     tables = camelot.read_pdf(filename, flavor="hybrid", pages="1-2")
     assert len(tables) == 2  # not 3
+
+
+_ICDAR = "tabula/icdar2013-dataset"
+
+
+def test_hybrid_gates_complete_ruled_grid_to_lattice(testdir):
+    """A complete ruled grid is parsed by lattice, not over-split by network.
+
+    Regression for the #38 over-split: hybrid used to *union* network's
+    text-derived column splits onto an already-complete lattice grid and
+    then parse the merged bbox with the network parser (text-grouped rows),
+    wrecking fully-ruled tables (row accuracy collapsed). The completeness
+    gate now routes a complete grid to the lattice parser untouched.
+    """
+    filename = os.path.join(testdir, _ICDAR, "competition-dataset-eu/eu-009a.pdf")
+    hybrid = camelot.read_pdf(filename, flavor="hybrid")
+    lattice = camelot.read_pdf(filename, flavor="lattice")
+    network = camelot.read_pdf(filename, flavor="network")
+
+    ruled_shape = lattice[0].df.shape  # (9, 4): the clean ruled grid
+    hybrid_shapes = {t.df.shape for t in hybrid}
+    # hybrid reproduces lattice's clean grid ...
+    assert ruled_shape in hybrid_shapes
+    # ... and that grid is not something the network parser produced on its
+    # own, so the gate genuinely re-routed this table.
+    assert ruled_shape not in {t.df.shape for t in network}
+
+
+def test_hybrid_keeps_partial_ruled_grid_on_network(testdir):
+    """A partially-ruled table stays on the network-augmented path.
+
+    Here lattice only finds a small ruled fragment (the top rows); routing
+    the whole table to it would silently drop the unruled rows. The
+    completeness gate rejects such fragments, so hybrid keeps network's
+    full-table extent — and must not regress this niche win.
+    """
+    filename = os.path.join(testdir, _ICDAR, "competition-dataset-us/us-008.pdf")
+    hybrid = camelot.read_pdf(filename, flavor="hybrid")
+    lattice = camelot.read_pdf(filename, flavor="lattice")
+    network = camelot.read_pdf(filename, flavor="network")
+
+    # hybrid keeps network's full table, not lattice's smaller fragment.
+    assert hybrid[0].df.shape == network[0].df.shape
+    assert hybrid[0].df.shape != lattice[0].df.shape

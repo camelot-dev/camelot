@@ -160,6 +160,18 @@ changes. **Heads-up if upgrading from 1.0.x**:
   (keep the larger). On the in-repo ICDAR-2013 benchmark this lifts
   flavor='auto' across the board — F1 0.742→0.765, TEDS 0.744→0.763,
   row 0.517→0.540 — and ~20 % faster. (#35)
+- **`flavor="hybrid"`: gate the network-split augmentation by lattice
+  completeness.** Hybrid used to _union_ network's text-derived column
+  splits onto lattice's boundaries and parse the merged table with the
+  network parser (text-grouped rows) — which over-segmented and wrecked the
+  row structure of fully-ruled tables. Now, when lattice already resolved a
+  complete ruled grid (interior rules in both directions, joints covering
+  the grid, and a row count commensurate with the table's column-aligned
+  text rows), that grid is routed to the lattice parser untouched;
+  partially-ruled / borderless tables still take the network-augmented path,
+  so hybrid's niche wins are preserved. On the in-repo ICDAR-2013 benchmark
+  this lifts hybrid TEDS 0.654→0.724 and **row 0.172→0.417** (ruled-doc
+  subset row 0.19→0.60) with F1 unchanged. (#805, mitigates #38 for hybrid)
 
 - **`flavor="auto"` was silently broken** — `_detect_flavor` passed a
   non-existent `resolution=` kwarg to the image backend, so the `TypeError`
