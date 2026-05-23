@@ -192,7 +192,7 @@ def _camelot_grids(pdf_path, flavor, engine):
     import camelot
 
     kwargs = {"pages": "1", "flavor": flavor, "suppress_stdout": True}
-    if flavor == "lattice" and engine:
+    if flavor in ("lattice", "hybrid") and engine:
         kwargs["engine"] = engine
     return [t.df.values.tolist() for t in camelot.read_pdf(str(pdf_path), **kwargs)]
 
@@ -238,7 +238,9 @@ def main(argv=None):
     if not n:
         raise SystemExit("No (pdf, gt) pairs — check --annotations / --pdf-dir paths.")
     m = score(pred_per, gt_per)
-    tag = f"{args.flavor}{'/' + args.engine if args.flavor == 'lattice' else ''}"
+    tag = f"{args.flavor}"
+    if args.flavor in ("lattice", "hybrid"):
+        tag += f"/{args.engine}"
     print(
         f"FinTabNet [{tag}] n={n} time={total:.0f}s "
         f"F1={m['f1']:.3f} TEDS={m['teds']:.3f} row={m['row']:.3f} col={m['col']:.3f}"

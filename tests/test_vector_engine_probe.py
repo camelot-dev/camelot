@@ -138,5 +138,21 @@ def test_hybrid_forwards_engine_to_lattice():
 
     h = Hybrid(engine="combined")
     assert h.lattice_parser.engine == "combined"
+    # vector half: the render-free hybrid (#39)
+    assert Hybrid(engine="vector").lattice_parser.engine == "vector"
     # default stays raster
     assert Hybrid().lattice_parser.engine == "raster"
+
+
+def test_vector_engine_through_hybrid(foo_pdf):
+    """flavor='hybrid', engine='vector' is the render-free hybrid (#39).
+
+    The lattice half detects ruled lines straight from the PDF's vector
+    graphics (no rasterisation), merged with the network text-edge
+    alignment. On a crisp vector-ruled PDF it still finds the table.
+    """
+    import camelot
+
+    tables = camelot.read_pdf(foo_pdf, flavor="hybrid", engine="vector")
+    assert len(tables) >= 1
+    assert tables[0].shape[0] >= 2 and tables[0].shape[1] >= 2

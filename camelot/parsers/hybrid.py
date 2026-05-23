@@ -64,6 +64,19 @@ class Hybrid(BaseParser):
     column_tol : int, optional (default: 0)
         Tolerance parameter used to combine text horizontally,
         to generate columns.
+    engine : str, optional (default: 'raster')
+        Line-detection engine for hybrid's **lattice half** (the network
+        half is text-based and unaffected):
+
+        - ``'raster'`` (default): detect ruled lines with OpenCV on the
+          rendered page.
+        - ``'combined'``: OpenCV **plus** the PDF's native vector ruled
+          lines unioned in — recovers faintly-rendered rules.
+        - ``'vector'``: detect ruled lines **straight from the PDF's vector
+          graphics, skipping rasterisation and OpenCV entirely** — the
+          render-free hybrid (network text-edge alignment merged with vector
+          ruled lines) for partial-ruled / borderless tables at roughly an
+          order of magnitude less time than the raster path. (#39)
 
     """
 
@@ -118,9 +131,9 @@ class Hybrid(BaseParser):
             row_tol=row_tol,
             column_tol=column_tol,
             debug=debug,
-            # Forward the line-detection engine so flavor='hybrid' can use
-            # the 'combined' (raster + PDF vector lines) engine for its
-            # lattice half — #763.
+            # Forward the line-detection engine so flavor='hybrid' can drive
+            # its lattice half with 'raster', 'combined' (raster + PDF vector
+            # lines, #763) or the render-free 'vector' engine (#39).
             engine=engine,
         )
 
@@ -200,6 +213,20 @@ class Hybrid(BaseParser):
         table.df = table.df.loc[:, ~(table.df == "").all(axis=0)]
         table.shape = table.df.shape
         return table
+
+    def _reject_table(self, table) -> bool:
+        """Drop tables left empty after the empty-row/col purge.
+
+        The render-free ``engine='vector'`` half reads ruled lines straight
+        from the PDF's vector graphics, which include decorative page borders
+        and form rules. Those can raise a "grid" with no text inside; once
+        :meth:`_generate_table` strips its all-empty rows and columns nothing
+        is left, and an empty table would otherwise leak out as a spurious
+        detection. (The rendered raster/combined halves don't hit this — the
+        OpenCV pipeline doesn't pick those rules up — so their output is
+        unchanged.)
+        """
+        return table.df.empty or table.shape[0] == 0 or table.shape[1] == 0
 
     @staticmethod
     def _augment_boundaries_with_splits(boundaries, splits, tolerance=0):

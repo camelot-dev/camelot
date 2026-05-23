@@ -69,6 +69,18 @@ changes. **Heads-up if upgrading from 1.0.x**:
   the PDF's native vector ruled lines, **skipping page rasterisation and
   OpenCV entirely** — the fastest path for PDFs whose tables are drawn
   with real vector strokes. (#763)
+- **`engine="vector"` for `flavor="hybrid"` — the render-free hybrid.**
+  Hybrid's lattice half now also accepts `engine="vector"`, so the network
+  text-edge alignment is merged (via the completeness-gated combine) with
+  ruled lines read straight from the PDF's vector graphics — **no page
+  render, no OpenCV**. On the in-repo ICDAR-2013 benchmark it matches or
+  beats `engine="raster"` hybrid on every metric (F1 0.702→0.726, TEDS
+  0.724→0.755, row 0.417→0.464, col 0.689→0.715) at **~6× less time**
+  (113s→19s); on FinTabNet.c (borderless) it matches raster hybrid's
+  quality at ~2.4× less time. Hybrid also now drops empty tables the vector
+  ruled-line set can raise from decorative page borders / form rules (which
+  in turn lifts `engine="raster"` hybrid F1 from removing those spurious
+  detections). (#39)
 - **`flavor="auto"`**: render the first requested page, count ruled
   horizontal/vertical lines, pick `lattice` when ruled and `network`
   otherwise. Emits a `UserWarning` naming the chosen flavor. (#737)

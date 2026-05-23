@@ -193,3 +193,16 @@ def test_hybrid_keeps_partial_ruled_grid_on_network(testdir):
     # hybrid keeps network's full table, not lattice's smaller fragment.
     assert hybrid[0].df.shape == network[0].df.shape
     assert hybrid[0].df.shape != lattice[0].df.shape
+
+
+def test_hybrid_vector_engine_drops_empty_tables(testdir):
+    """The render-free vector engine must not leak empty tables (#39).
+
+    Vector ruled lines include decorative page borders / form rules that can
+    raise a grid with no text inside it. eu-016's first page has such rules
+    but no real table there; the empty grid must be rejected, not emitted.
+    """
+    filename = os.path.join(testdir, _ICDAR, "competition-dataset-eu/eu-016.pdf")
+    tables = camelot.read_pdf(filename, flavor="hybrid", engine="vector")
+    # no empty / degenerate tables leak out
+    assert all(t.df.shape[0] > 0 and t.df.shape[1] > 0 for t in tables)
