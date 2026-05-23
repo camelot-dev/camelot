@@ -135,3 +135,30 @@ class ImageConversionBackend:
             else:
                 msg = f"Image conversion failed with image conversion backend {self.backend!r}\n error: {f}"
                 raise ImageConversionError(msg) from f
+
+    def to_array(self, pdf_path: str, page: int = 1):
+        """Render a page to an in-memory BGR ndarray, skipping the PNG file.
+
+        Uses the backend's native in-memory render (``to_array``) when it
+        has one — pdfium does, which avoids the PNG encode+decode that
+        ``convert`` + ``cv2.imread`` would otherwise pay. Backends that can
+        only write files (ghostscript/poppler) transparently fall back to
+        ``convert`` into a temp PNG and read it back, so behaviour is
+        identical, just without the speed-up.
+        """
+        if hasattr(self.backend, "to_array"):
+            try:
+                return self.backend.to_array(pdf_path, page=page)
+            except Exception as f:
+                if not self.use_fallback:
+                    msg = f"Image conversion failed with backend {self.backend!r}\n error: {f}"
+                    raise ImageConversionError(msg) from f
+        # Fallback: write a temp PNG (with convert's own fallback chain) and
+        # read it back. Local imports keep these off the hot import path.
+        import cv2
+
+        from ..utils import build_file_path_in_temp_dir
+
+        png_path = build_file_path_in_temp_dir("icb_to_array", ".png")
+        self.convert(pdf_path, png_path, page=page)
+        return cv2.imread(png_path)

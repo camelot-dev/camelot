@@ -44,8 +44,9 @@ def adaptive_threshold(
 
     Parameters
     ----------
-    imagename : string
-        Path to image file.
+    imagename : str or numpy.ndarray
+        Path to an image file, or an already-decoded BGR image array (the
+        latter lets callers skip the PNG round-trip — see #40).
     process_background : bool, optional (default: False)
         Whether or not to process lines that are in background.
     blocksize : int, optional (default: 15)
@@ -71,7 +72,7 @@ def adaptive_threshold(
     threshold : object
         numpy.ndarray representing the thresholded image.
     """
-    img = cv2.imread(imagename)
+    img = imagename if isinstance(imagename, np.ndarray) else cv2.imread(imagename)
     img = undo_rotation(img, rotation)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if not process_background:

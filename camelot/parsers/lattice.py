@@ -16,7 +16,6 @@ from ..image_processing import find_joints_from_lines
 from ..image_processing import find_lines
 from ..image_processing import find_lines_from_layout
 from ..utils import bbox_from_str
-from ..utils import build_file_path_in_temp_dir
 from ..utils import merge_close_lines
 from ..utils import scale_image
 from ..utils import scale_pdf
@@ -432,16 +431,18 @@ class Lattice(BaseParser):
         cached_image = self._render_cache.get(self.page)
         if cached_image and os.path.exists(cached_image):
             # Reuse a page already rendered upstream (flavor='auto' probe) —
-            # skip the second, redundant rasterisation.
+            # skip the second, redundant rasterisation. (#797)
             self.image_path = cached_image
+            image_input = cached_image
         else:
-            self.image_path = build_file_path_in_temp_dir(
-                f"{os.path.basename(self.filename)}-page{self.page}", ".png"
-            )
-            self.icb.convert(self.filename, self.image_path, self.page)
+            # Render straight to an in-memory BGR array — no PNG encode/decode
+            # round-trip (#40). Plotting renders its own image separately, so
+            # nothing downstream needs this on disk.
+            self.image_path = None
+            image_input = self.icb.to_array(self.filename, self.page)
 
         self.pdf_image, self.threshold = adaptive_threshold(
-            self.image_path,
+            image_input,
             process_background=self.process_background,
             blocksize=self.threshold_blocksize,
             c=self.threshold_constant,
