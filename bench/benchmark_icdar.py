@@ -92,7 +92,7 @@ def _camelot_grids(pdf_path, flavor, engine):
     import camelot
 
     kwargs = {"pages": "all", "flavor": flavor, "suppress_stdout": True}
-    if flavor == "lattice" and engine:
+    if flavor in ("lattice", "hybrid") and engine:
         kwargs["engine"] = engine
     per_page: dict[int, list] = {}
     for t in camelot.read_pdf(str(pdf_path), **kwargs):
@@ -129,7 +129,9 @@ def main(argv=None):
     if not n:
         raise SystemExit(f"No ICDAR docs found under {args.data_dir}")
     m = score(pred_per_doc, gt_per_doc)
-    tag = f"{args.flavor}{'/' + args.engine if args.flavor == 'lattice' else ''}"
+    tag = f"{args.flavor}"
+    if args.flavor in ("lattice", "hybrid"):
+        tag += f"/{args.engine}"
     print(
         f"ICDAR-2013 [{tag}] docs={n} time={total:.1f}s "
         f"F1={m['f1']:.3f} TEDS={m['teds']:.3f} "

@@ -311,6 +311,12 @@ def read_pdf(
           lines, skipping rasterisation entirely — the fastest path, for
           PDFs whose tables are drawn with real vector strokes (#763).
 
+        With ``flavor='hybrid'`` the same choices select how its lattice
+        half finds ruled lines; ``engine='vector'`` there is the
+        **render-free hybrid** — vector ruled lines merged with the network
+        text-edge alignment — for partial-ruled / borderless tables at
+        roughly an order of magnitude less time than the raster path (#39).
+
     Returns
     -------
     tables : camelot.core.TableList
