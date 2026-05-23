@@ -50,3 +50,27 @@ class PdfiumBackend(ConversionBackend):
                 image.close()
         finally:
             doc.close()
+
+    def to_array(self, pdf_path: str, resolution: int = 300, page: int = 1):
+        """Render a page straight to a BGR uint8 ndarray — no PNG round-trip.
+
+        Same pixels as :meth:`convert` would have written, returned in
+        memory in OpenCV's BGR channel order (so it's a drop-in for
+        ``cv2.imread`` of that PNG). Skips the PNG encode+decode, which is
+        ~a quarter of the lattice raster time.
+        """
+        import numpy as np
+
+        if not self.installed():
+            raise OSError(f"pypdfium2 is not available: {PDFIUM_EXC!r}")
+        doc = pdfium.PdfDocument(pdf_path)
+        try:
+            doc.init_forms()
+            image = doc[page - 1].render(scale=resolution / 72).to_pil()
+            try:
+                rgb = np.asarray(image.convert("RGB"))
+                return np.ascontiguousarray(rgb[:, :, ::-1])  # RGB -> BGR
+            finally:
+                image.close()
+        finally:
+            doc.close()

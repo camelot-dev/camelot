@@ -109,6 +109,14 @@ changes. **Heads-up if upgrading from 1.0.x**:
 
 ### Changed (performance)
 
+- **Lattice raster render skips the PNG round-trip (~20-26% faster).** The
+  page was rendered to a PIL image, **saved to a PNG, then immediately
+  `cv2.imread`-ed back** — the encode alone was ~a quarter of the raster
+  time. The Lattice engine now renders straight to an in-memory BGR array
+  (`ImageConversionBackend.to_array`, pdfium-native; other backends fall
+  back to convert+imread). Output is byte-identical (PNG was lossless).
+  (#40)
+
 - **`text_in_bbox` ≈ 30× faster on busy lattice pages.** The original
   O(n³) duplicate-discard pass became O(n²) in #718, then the whole
   function was NumPy-vectorised in #731 — a 3-4× win on top of #718 on
