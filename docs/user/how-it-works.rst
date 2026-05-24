@@ -118,6 +118,11 @@ The network parser is text-based: it relies on the bounding boxes of the text el
 
 The parser starts by enumerating the bounding boxes of every text element on the page — typically horizontal-running boxes (the bulk of the text) and occasional vertical-running boxes (rare in most documents).
 
+The plot below shows the bounding boxes of all the text elements found on the page (here the ``network`` parser running on a public-health table):
+
+.. image:: ../_static/png/plot_network_text.png
+    :align: center
+
 1. The network parser starts by identifying common horizontal or vertical coordinate alignments across these text elements. In other words it looks for bounding box rectangles which either share the same top, center, or bottom coordinates (horizontal axis), or the same left, right, or middle coordinates (vertical axis). See the generate method.
 
 Once the parser found these alignments, it performs some pruning to only keep text elements that are part of a network - they have connections along both axis The idea is that it's not enough for two elements to be aligned to belong to a table, for instance the lines of text in this paragraph are all left-aligned, but they do not form a network. The pruning is done iteratively, see "remove_unconnected_edges" method.
