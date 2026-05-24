@@ -402,10 +402,29 @@ class MachineLearning(BaseParser):
             .to(self.device)
             .eval()
         )
+        self._normalize_processor_size(det_processor)
+        self._normalize_processor_size(str_processor)
         self._models = _LoadedModels(
             torch, det_processor, det_model, str_processor, str_model
         )
         return self._models
+
+    @staticmethod
+    def _normalize_processor_size(processor):
+        """Make a ``longest_edge``-only resize config transformers accepts.
+
+        The TATR structure checkpoint ships ``size={'longest_edge': 800}`` (a
+        max-longest-edge resize), but DETR's image processor in transformers
+        >= 4.x requires ``{height, width}`` or ``{shortest_edge,
+        longest_edge}``. Setting both edges to the same value reproduces a
+        longest-edge cap exactly — the scale that makes the shortest edge that
+        big would push the longest past the cap, so it falls back to capping
+        the longest edge, aspect ratio preserved. No-op for valid configs.
+        """
+        size = getattr(processor, "size", None)
+        if isinstance(size, dict) and set(size) == {"longest_edge"}:
+            edge = size["longest_edge"]
+            processor.size = {"shortest_edge": edge, "longest_edge": edge}
 
     # ------------------------------------------------------------------ #
     # Text source seam — born-digital today, OCR-pluggable later

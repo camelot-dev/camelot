@@ -56,7 +56,10 @@ plot = [
 # the other flavors never load torch.
 ml = [
     "torch>=2.0",
-    "transformers>=4.40",
+    # <5: transformers v5 strict-validates configs and rejects the TATR
+    # checkpoints (published for v4, e.g. `dilation: None`). The whole TATR
+    # ecosystem pins to v4; revisit when the checkpoints are v5-clean.
+    "transformers>=4.40,<5",
     "timm>=0.9",
     "pillow>=10.4.0",
 ]
