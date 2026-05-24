@@ -136,12 +136,12 @@ def test_hybrid_forwards_engine_to_lattice():
     """Hybrid constructs its Lattice sub-parser with the requested engine."""
     from camelot.parsers.hybrid import Hybrid
 
-    h = Hybrid(engine="combined")
-    assert h.lattice_parser.engine == "combined"
+    h = Hybrid(engine="raster")
+    assert h.lattice_parser.engine == "raster"
     # vector half: the render-free hybrid (#39)
     assert Hybrid(engine="vector").lattice_parser.engine == "vector"
-    # default stays raster
-    assert Hybrid().lattice_parser.engine == "raster"
+    # default is 'combined', matching flavor='lattice'
+    assert Hybrid().lattice_parser.engine == "combined"
 
 
 def test_vector_engine_through_hybrid(foo_pdf):

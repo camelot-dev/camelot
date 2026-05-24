@@ -1,5 +1,11 @@
 ### Changed
 
+- **`flavor='hybrid'` now defaults its lattice half to `engine='combined'`**
+  (was `'raster'`), matching `flavor='lattice'` and the documented behaviour.
+  Combined detects ruled grids better, so the completeness gating routes
+  more complete grids to the lattice parser — on the in-repo ICDAR-2013
+  benchmark hybrid TEDS 0.724→0.806, row 0.417→0.659, col 0.689→0.868.
+
 - **`engine='combined'` is now the default lattice engine** (was
   `'raster'`), and **`engine='auto'` was removed**. Combined is the
   strongest detector and safe by construction; its vector ruled lines are

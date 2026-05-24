@@ -45,8 +45,11 @@ def test_hybrid_vertical_header(testdir):
     df = pd.DataFrame(data_hybrid_vertical_headers)
 
     filename = os.path.join(testdir, "vertical_header.pdf")
+    # engine='raster' pins this fixture to the engine it was recorded under;
+    # the hybrid default is now 'combined' (covered by the benchmark + the
+    # other hybrid tests).
     tables = camelot.read_pdf(
-        filename, flavor="hybrid", backend="pdfium", use_fallback=False
+        filename, flavor="hybrid", backend="pdfium", use_fallback=False, engine="raster"
     )
     assert len(tables) == 1
     assert_frame_equal(df, tables[0].df)
@@ -56,7 +59,9 @@ def test_hybrid_process_background(testdir):
     df = pd.DataFrame(data_hybrid_process_background)
 
     filename = os.path.join(testdir, "background_lines_1.pdf")
-    tables = camelot.read_pdf(filename, flavor="hybrid", process_background=True)
+    tables = camelot.read_pdf(
+        filename, flavor="hybrid", process_background=True, engine="raster"
+    )
     assert_frame_equal(df, tables[1].df)
 
 
