@@ -280,6 +280,13 @@ class _LoadedModels:
     str_model: object
 
 
+#: Process-level cache of loaded models, keyed by
+#: ``(detection_model, structure_model, device)``. ``read_pdf`` builds a fresh
+#: parser per call, so without this every call (and every PDF in a benchmark)
+#: would reload the checkpoints. Lives for the life of the process.
+_MODEL_CACHE: dict[tuple[str, str, str], _LoadedModels] = {}
+
+
 class MachineLearning(BaseParser):
     """Neural table-structure parser (Table Transformer / TATR).
 
@@ -380,6 +387,11 @@ class MachineLearning(BaseParser):
         """
         if self._models is not None:
             return self._models
+        cache_key = (self.detection_model, self.structure_model, self.device)
+        cached = _MODEL_CACHE.get(cache_key)
+        if cached is not None:
+            self._models = cached
+            return self._models
         try:
             import torch
             from transformers import AutoImageProcessor
@@ -407,6 +419,7 @@ class MachineLearning(BaseParser):
         self._models = _LoadedModels(
             torch, det_processor, det_model, str_processor, str_model
         )
+        _MODEL_CACHE[cache_key] = self._models
         return self._models
 
     @staticmethod

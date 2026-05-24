@@ -188,12 +188,14 @@ def _iter_fintabnet_jsonl(jsonl: Path, data_dir: Path, split, limit):
 # --------------------------------------------------------------------------
 # Runner
 # --------------------------------------------------------------------------
-def _camelot_grids(pdf_path, flavor, engine):
+def _camelot_grids(pdf_path, flavor, engine, device="cpu"):
     import camelot
 
     kwargs = {"pages": "1", "flavor": flavor, "suppress_stdout": True}
     if flavor in ("lattice", "hybrid") and engine:
         kwargs["engine"] = engine
+    if flavor == "ml":
+        kwargs["device"] = device
     return [t.df.values.tolist() for t in camelot.read_pdf(str(pdf_path), **kwargs)]
 
 
@@ -208,9 +210,12 @@ def main(argv=None):
     ap.add_argument(
         "--flavor",
         default="network",
-        choices=["lattice", "stream", "network", "hybrid", "auto"],
+        choices=["lattice", "stream", "network", "hybrid", "ml", "auto"],
     )
     ap.add_argument("--engine", default="combined", help="lattice engine")
+    ap.add_argument(
+        "--device", default="cpu", help="torch device for flavor='ml' (cpu/xpu/cuda)"
+    )
     args = ap.parse_args(argv)
 
     if args.jsonl:
@@ -228,7 +233,9 @@ def main(argv=None):
         gt_per[key] = {1: gt_grids}
         tic = time.perf_counter()
         try:
-            pred_per[key] = {1: _camelot_grids(pdf, args.flavor, args.engine)}
+            pred_per[key] = {
+                1: _camelot_grids(pdf, args.flavor, args.engine, args.device)
+            }
         except Exception as exc:  # noqa: BLE001 - bench records, never crashes
             pred_per[key] = {1: []}
             print(f"  [warn] {pdf.name}: {exc}")
@@ -241,6 +248,8 @@ def main(argv=None):
     tag = f"{args.flavor}"
     if args.flavor in ("lattice", "hybrid"):
         tag += f"/{args.engine}"
+    elif args.flavor == "ml":
+        tag += f"/{args.device}"
     print(
         f"FinTabNet [{tag}] n={n} time={total:.0f}s "
         f"F1={m['f1']:.3f} TEDS={m['teds']:.3f} row={m['row']:.3f} col={m['col']:.3f}"
