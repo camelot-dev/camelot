@@ -64,14 +64,14 @@ class Hybrid(BaseParser):
     column_tol : int, optional (default: 0)
         Tolerance parameter used to combine text horizontally,
         to generate columns.
-    engine : str, optional (default: 'raster')
+    engine : str, optional (default: 'combined')
         Line-detection engine for hybrid's **lattice half** (the network
         half is text-based and unaffected):
 
-        - ``'raster'`` (default): detect ruled lines with OpenCV on the
-          rendered page.
-        - ``'combined'``: OpenCV **plus** the PDF's native vector ruled
-          lines unioned in — recovers faintly-rendered rules.
+        - ``'combined'`` (default): OpenCV on the rendered page **plus** the
+          PDF's native vector ruled lines unioned in — recovers
+          faintly-rendered rules. Matches the ``flavor='lattice'`` default.
+        - ``'raster'``: detect ruled lines with OpenCV only (pre-#763).
         - ``'vector'``: detect ruled lines **straight from the PDF's vector
           graphics, skipping rasterisation and OpenCV entirely** — the
           render-free hybrid (network text-edge alignment merged with vector
@@ -93,7 +93,7 @@ class Hybrid(BaseParser):
         row_tol=2,
         column_tol=0,
         debug=False,
-        engine="raster",
+        engine="combined",
         **kwargs,
     ):
         super().__init__(
