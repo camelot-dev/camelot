@@ -50,6 +50,16 @@ plot = [
     "matplotlib>=3.7.5; python_version < '3.12'",
     "matplotlib>=3.8.0; python_version >= '3.12'",
 ]
+# Optional neural backend for flavor='ml' (Table Transformer / TATR via
+# HuggingFace transformers). Heavy (pulls torch); opt in explicitly with
+# `pip install 'camelot-py[ml]'`. Imported lazily so the core install and
+# the other flavors never load torch.
+ml = [
+    "torch>=2.0",
+    "transformers>=4.40",
+    "timm>=0.9",
+    "pillow>=10.4.0",
+]
 ghostscript = [
     "ghostscript>=0.7",
 ]

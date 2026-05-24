@@ -1,3 +1,14 @@
+### Added
+
+- **New optional `flavor='ml'` backend (Table Transformer / TATR).** A neural
+  table-structure model supplies the row/column/spanning-cell structure while
+  cell text is filled from the PDF's own text layer — the model never emits
+  cell text, so it cannot hallucinate or alter a value. Aimed at borderless
+  tables, where the heuristic parsers plateau. Heavy dependencies are optional
+  and imported lazily: `pip install 'camelot-py[ml]'`. The box→grid
+  post-processing and image→PDF coordinate mapping are pure (torch-free) and
+  unit-tested.
+
 ### Changed
 
 - **`flavor='hybrid'` now defaults its lattice half to `engine='combined'`**

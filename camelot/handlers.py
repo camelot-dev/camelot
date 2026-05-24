@@ -22,6 +22,7 @@ from playa.miner import LTTextLineVertical
 from .core import TableList
 from .parsers import Hybrid
 from .parsers import Lattice
+from .parsers import MachineLearning
 from .parsers import Network
 from .parsers import Stream
 from .utils import download_url
@@ -35,6 +36,7 @@ PARSERS = {
     "stream": Stream,
     "network": Network,
     "hybrid": Hybrid,
+    "ml": MachineLearning,
 }
 
 
