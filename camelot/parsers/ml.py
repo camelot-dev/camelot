@@ -323,6 +323,10 @@ class MachineLearning(BaseParser):
         Score threshold for the detection model.
     structure_threshold : float, optional (default: 0.5)
         Score threshold for the structure model.
+    crop_padding : int, optional (default: 10)
+        Pixels of margin added around each detected table before structure
+        recognition. TATR is trained on padded crops; the margin keeps the
+        outermost rows/columns from being clipped.
     resolution : int, optional (default: 300)
         DPI for rendering the page to an image.
     """
@@ -342,6 +346,7 @@ class MachineLearning(BaseParser):
         device="cpu",
         detection_threshold=0.5,
         structure_threshold=0.5,
+        crop_padding=10,
         resolution=300,
         use_fallback=True,
         backend="pdfium",
@@ -365,6 +370,7 @@ class MachineLearning(BaseParser):
         self.device = device
         self.detection_threshold = detection_threshold
         self.structure_threshold = structure_threshold
+        self.crop_padding = crop_padding
         self.resolution = resolution
         self.icb = ImageConversionBackend(use_fallback=use_fallback, backend=backend)
         self._models: _LoadedModels | None = None
@@ -521,10 +527,18 @@ class MachineLearning(BaseParser):
     def _recognize_structure(self, region):
         """Run structure recognition on one table crop.
 
-        Returns DetectedObjects in *full-page* image coordinates (the crop
+        The crop is padded by ``crop_padding`` px (clamped to the image) —
+        TATR's structure model was trained on padded table crops, and without
+        the margin the outermost rows/columns get clipped. Returns
+        DetectedObjects in *full-page* image coordinates (the padded-crop
         offset is added back), so downstream geometry is page-consistent.
         """
-        x0, y0, x1, y1 = (int(v) for v in region)
+        pad = self.crop_padding
+        width, height = self._image_rgb.size
+        x0 = max(0, int(region[0]) - pad)
+        y0 = max(0, int(region[1]) - pad)
+        x1 = min(width, int(region[2]) + pad)
+        y1 = min(height, int(region[3]) + pad)
         crop = self._image_rgb.crop((x0, y0, x1, y1))
         objects = self._infer(
             crop,

@@ -154,6 +154,7 @@ ml_kwargs = common_kwargs + [
     "detection_model",
     "detection_threshold",
     "structure_threshold",
+    "crop_padding",
 ]
 flavor_to_kwargs = {
     "stream": text_kwargs,
