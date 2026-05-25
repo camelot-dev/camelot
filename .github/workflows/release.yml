@@ -61,10 +61,14 @@ jobs:
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        # --clobber: the Sigstore action above already attaches the signed
+        # dists to the release, so a plain upload errors with "asset already
+        # exists" and skips the PyPI publish below. Overwrite instead.
         run: >-
           gh release upload
           "${{ github.event.release.tag_name }}" ./dist/*
           --repo "$GITHUB_REPOSITORY"
+          --clobber
 
       - name: Remove Sigstore files
         run: rm -f dist/*.sig dist/*.crt dist/*.sigstore.json
