@@ -288,8 +288,9 @@ class _LoadedModels:
 _MODEL_CACHE: dict[tuple[str, str, str], _LoadedModels] = {}
 
 #: Process-level OCR engine singleton (lazy). Building a RapidOCR instance
-#: loads ONNX models, so reuse it across pages/calls.
-_OCR_ENGINE: list = []
+#: loads ONNX models, so reuse it across pages/calls. ``list[object]`` because
+#: the concrete RapidOCR type is only importable with the [ocr] extra.
+_OCR_ENGINE: list[object] = []
 
 
 class _OCRWord:
