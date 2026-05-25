@@ -78,7 +78,7 @@ workaround required".
           </tr>
           <tr>
             <th scope="row">Borderless / whitespace tables</th>
-            <td><span class="cm-yes" title="stream / network / hybrid">&#10003;</span></td>
+            <td><span class="cm-yes" title="stream / network / hybrid; flavor='ml' for the hardest">&#10003;</span></td>
             <td><span class="cm-yes">&#10003;</span></td>
             <td><span class="cm-partial">&#9680;</span></td>
             <td><span class="cm-yes">&#10003;</span></td>
@@ -98,12 +98,22 @@ workaround required".
           </tr>
           <tr>
             <th scope="row">Scanned PDFs (no text layer)</th>
-            <td><span class="cm-no" title="preprocess with ocrmypdf">&#10007;</span></td>
+            <td><span class="cm-yes" title="flavor='ml' + [ocr] extra">&#10003;</span></td>
             <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-no">&#10007;</span></td>
             <td><span class="cm-partial" title="via OCR plugin">&#9680;</span></td>
             <td><span class="cm-yes" title="vision model">&#10003;</span></td>
             <td><span class="cm-yes" title="Tesseract plugin">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Neural / model-based structure</th>
+            <td><span class="cm-yes" title="optional flavor='ml' (Table Transformer)">&#10003;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-no">&#10007;</span></td>
+            <td><span class="cm-yes" title="Table Transformer">&#10003;</span></td>
+            <td><span class="cm-partial" title="via model backends">&#9680;</span></td>
             <td><span class="cm-no">&#10007;</span></td>
           </tr>
           <tr>
@@ -252,17 +262,19 @@ Tables" — is a 2024-era tool that runs Microsoft's Table Transformer
 neural network for table detection plus structure recognition. A
 different shape from the rule-based tools above.
 
-* **When gmft wins.** Visually-complex tables where a human would
-  agree "the cell boundaries are kinda fuzzy" — bank statements,
-  forms, OCR'd scans. The vision model handles whitespace, merged
-  cells, and even some skew. Works on scanned PDFs unchanged.
-* **When Camelot wins.** Predictable per-cell behaviour and
-  per-extraction kwargs; no GPU / no half-gigabyte model download;
-  stable output for typesetter-generated tables (where the vision
-  model is sometimes weirdly creative).
-* **Resource cost.** First call downloads a Table Transformer
-  checkpoint (~400 MB); inference benefits from a GPU. Camelot runs
-  on CPU with no model weights.
+* **When gmft wins.** A pure model-first workflow on visually-complex
+  tables — bank statements, forms — where you want the neural network
+  to drive the whole extraction.
+* **When Camelot wins.** Heuristic-first by default (predictable,
+  CPU-only, no model weights) — and when you *do* want a model,
+  Camelot's optional ``flavor='ml'`` runs the same Table Transformer
+  family but fills cell **text from the PDF's own text layer** (or OCR
+  for scans) instead of letting the model emit it, so it can't
+  hallucinate or alter a value. Plus per-extraction kwargs and a
+  per-table ``confidence`` score.
+* **Resource cost.** gmft always pulls a Table Transformer checkpoint
+  (~hundreds of MB) and benefits from a GPU. Camelot's core needs
+  neither; that cost applies only if you opt into ``camelot-py[ml]``.
 
 *Last verified: 2026-05-21 against gmft 0.4.x.*
 

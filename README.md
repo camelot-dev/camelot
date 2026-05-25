@@ -13,7 +13,8 @@
 
 ## Features
 
-- 📊 **Four parsers** — `lattice` (ruled tables), `stream` (whitespace), and the text-alignment `network` / `hybrid`, plus `flavor="auto"` to pick one for you.
+- 📊 **Five parsers** — `lattice` (ruled tables), `stream` (whitespace), the text-alignment `network` / `hybrid`, and the optional neural `ml` (Table Transformer) for hard borderless tables — plus `flavor="auto"` to pick one for you.
+- 🤖 **Borderless & scanned** — the optional `ml` backend (`pip install "camelot-py[ml]"`) recovers structure that the heuristic parsers can't on borderless tables; add `[ocr]` to read **scanned / image-only PDFs** with no text layer.
 - 🧠 **Vector + raster line detection** — `engine="combined"` unions the PDF's native vector ruled lines with OpenCV detection, so faintly-ruled tables are still found.
 - 🐼 **pandas output** — every table is a `DataFrame`, ready for analysis.
 - 📤 **Many export formats** — CSV, JSON, Excel, HTML, Markdown, and SQLite.
@@ -66,9 +67,23 @@ Refer to the [QuickStart Guide](https://github.com/camelot-dev/camelot/blob/mast
 
 **Tip:** Visit the `parser-comparison-notebook` to get an overview of all the packed parsers and their features. [![image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camelot-dev/camelot/blob/master/examples/parser-comparison-notebook.ipynb)
 
-**Note:** Camelot only works with text-based PDFs and not scanned documents. (As Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based".)
+**Note:** The built-in parsers need a text-based PDF (as Tabula [explains](https://github.com/tabulapdf/tabula#why-tabula), "If you can click and drag to select text in your table in a PDF viewer, then your PDF is text-based"). For **scanned / image-only** PDFs, install the neural backend with OCR — `pip install "camelot-py[ml,ocr]"` — and use `camelot.read_pdf(..., flavor="ml")`: the model reads the structure from the page image and OCR supplies the text.
 
 You can check out some frequently asked questions [here](https://camelot-py.readthedocs.io/en/latest/user/faq.html).
+
+## Which parser should I use?
+
+| Your PDF                                      | Use                                                | Why                                                                                                                                                               |
+| --------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ruled tables** (lines between cells)        | `flavor="lattice"` (default)                       | Deterministic; detects the grid from the ruled lines. `engine="combined"` also catches faint vector rules.                                                        |
+| **Borderless tables** (whitespace-separated)  | `flavor="network"` or `"stream"`                   | Text-alignment / whitespace heuristics — fast, no extra dependencies.                                                                                             |
+| **Borderless tables, best quality**           | `flavor="ml"` (`pip install "camelot-py[ml]"`)     | A Table Transformer model recovers structure heuristics can't — on FinTabNet it roughly doubles borderless TEDS vs `network`/`hybrid`. Heavier (PyTorch); opt-in. |
+| **Scanned / image-only PDFs** (no text layer) | `flavor="ml"` + `pip install "camelot-py[ml,ocr]"` | Structure from the model, text from OCR.                                                                                                                          |
+| **Mixed / not sure**                          | `flavor="auto"`                                    | Picks `lattice` or `network` per page.                                                                                                                            |
+
+The `ml` backend keeps Camelot honest: the model only supplies the table
+**structure**, while cell **text** comes from the PDF's own text layer (or OCR
+for scans) — so it never invents or alters a value.
 
 ## Why Camelot?
 
@@ -117,6 +132,18 @@ git clone https://github.com/camelot-dev/camelot.git
 cd camelot
 uv pip install "."  # or: pip install "."
 ```
+
+### Optional extras
+
+```bash
+pip install "camelot-py[ml]"      # neural flavor='ml' (Table Transformer; pulls PyTorch)
+pip install "camelot-py[ocr]"     # OCR text source for scanned PDFs (use with [ml])
+pip install "camelot-py[ml,ocr]"  # both — borderless + scanned
+pip install "camelot-py[plot]"    # matplotlib debug plots
+```
+
+The core install stays light: `[ml]`/`[ocr]` are imported lazily, so a plain
+`import camelot` never loads PyTorch or OCR.
 
 ## Documentation
 

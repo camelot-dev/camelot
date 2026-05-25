@@ -152,3 +152,70 @@ The hybrid parser aims to combine the strengths of the Network parser (identifyi
 1. Hybrid calls both parsers, to get a) the standard table parse, b) the coordinates of the rows and columns boundaries, and c) the table boundaries (or contour).
 
 2. If there are areas in the document where both lattice and network found a table, the hybrid parser uses the results from network, but enhances them based on the rows/columns boundaries identified by lattice in the area. Because lattice uses the solid lines detected on the document, the coordinates for b) and c) detected by Lattice are generally more precise. See the "_merge_bbox_analysis" method.
+
+.. _ml:
+
+ML (Table Transformer)
+----------------------
+
+``flavor='ml'`` is an **optional** neural backend for the tables the
+heuristic parsers find hardest — dense **borderless** tables — and, with
+OCR, for **scanned / image-only** PDFs. It is opt-in because it pulls
+PyTorch: ``pip install 'camelot-py[ml]'`` (add ``[ocr]`` for scans).
+
+Its guiding rule is **the model supplies the structure, the page supplies
+the text**:
+
+1. The page is rendered to an image. A `Table Transformer (TATR)
+   <https://github.com/microsoft/table-transformer>`_ detection model finds
+   the table region(s); a second TATR model recognises the **structure** —
+   rows, columns and spanning cells — as bounding boxes.
+2. Those boxes are turned into the same column/row/spanning grid the other
+   parsers build, then mapped from image space back to PDF coordinates.
+3. Each cell's **text** is filled from the PDF's own text layer (the exact
+   characters), reusing the same assignment step as every other flavor — so
+   the model never emits a character of cell text and **cannot hallucinate
+   or alter a value**. For scanned pages with no text layer, ``ocr='auto'``
+   reads the text from the rendered image instead (still geometry +
+   recognised text, never invented cells).
+
+Because the structure half runs on the page image, ``flavor='ml'`` is the
+only parser that works without a text layer at all.
+
+Borderless accuracy
+~~~~~~~~~~~~~~~~~~~~~
+
+On the borderless `FinTabNet.c <https://github.com/ibm-aur-nlp/PubTabNet>`_
+benchmark (545 financial PDFs, ``bench/benchmark_fintabnet.py``), the model
+backend clears the ceiling the heuristic parsers plateau at:
+
+.. list-table::
+   :header-rows: 1
+
+   * - flavor
+     - F1
+     - TEDS
+     - row
+     - col
+   * - **ml**
+     - 0.750
+     - 0.371
+     - 0.235
+     - 0.570
+   * - network
+     - 0.725
+     - 0.200
+     - 0.109
+     - 0.220
+   * - hybrid (combined)
+     - 0.658
+     - 0.198
+     - 0.109
+     - 0.217
+
+(``TEDS``/``row``/``col`` from ``bench/_metrics.py``; ``TEDS`` here is a
+difflib cell-text proxy, not exact tree-edit distance, so the absolute
+values are conservative — the point is the **relative** gap: ``ml`` roughly
+doubles borderless ``TEDS`` over ``network``/``hybrid``.) The trade-off is
+speed (~1 s/page with a GPU vs tens of ms for ``network``) and the optional
+PyTorch dependency, which is why it is opt-in rather than the default.
