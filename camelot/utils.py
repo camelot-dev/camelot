@@ -141,11 +141,28 @@ lattice_kwargs = common_kwargs + [
     "use_fallback",
     "engine",
 ]
+# The ML parser (flavor='ml', optional [ml] extra) gets its structure from a
+# neural model, so it shares the common text-handling kwargs (split/strip/flag/
+# regions/areas) + the spanning-text controls, plus a few model-specific knobs.
+ml_kwargs = common_kwargs + [
+    "copy_text",
+    "shift_text",
+    "resolution",
+    "use_fallback",
+    "device",
+    "structure_model",
+    "detection_model",
+    "detection_threshold",
+    "structure_threshold",
+    "crop_padding",
+    "ocr",
+]
 flavor_to_kwargs = {
     "stream": text_kwargs,
     "network": text_kwargs,
     "lattice": lattice_kwargs,
     "hybrid": text_kwargs + lattice_kwargs,
+    "ml": ml_kwargs,
 }
 
 

@@ -50,6 +50,25 @@ plot = [
     "matplotlib>=3.7.5; python_version < '3.12'",
     "matplotlib>=3.8.0; python_version >= '3.12'",
 ]
+# Optional neural backend for flavor='ml' (Table Transformer / TATR via
+# HuggingFace transformers). Heavy (pulls torch); opt in explicitly with
+# `pip install 'camelot-py[ml]'`. Imported lazily so the core install and
+# the other flavors never load torch.
+ml = [
+    "torch>=2.0",
+    # <5: transformers v5 strict-validates configs and rejects the TATR
+    # checkpoints (published for v4, e.g. `dilation: None`). The whole TATR
+    # ecosystem pins to v4; revisit when the checkpoints are v5-clean.
+    "transformers>=4.40,<5",
+    "timm>=0.9",
+    "pillow>=10.4.0",
+]
+# Optional OCR text source for flavor='ml' on scanned / image-only PDFs
+# (structure still from TATR; text from OCR instead of the PDF text layer).
+# Pip-only, no system tesseract binary. `pip install 'camelot-py[ocr]'`.
+ocr = [
+    "rapidocr-onnxruntime>=1.3",
+]
 ghostscript = [
     "ghostscript>=0.7",
 ]

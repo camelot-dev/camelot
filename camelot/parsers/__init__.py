@@ -2,5 +2,6 @@
 
 from .hybrid import Hybrid
 from .lattice import Lattice
+from .ml import MachineLearning
 from .network import Network
 from .stream import Stream

@@ -119,10 +119,10 @@ def _validate_per_page(per_page_norm, global_flavor):
     """
     for page_no, overrides in per_page_norm.items():
         page_flavor = overrides.get("flavor", global_flavor)
-        if page_flavor not in ("lattice", "stream", "network", "hybrid"):
+        if page_flavor not in ("lattice", "stream", "network", "hybrid", "ml"):
             raise NotImplementedError(
                 f"per_page[{page_no}] flavor={page_flavor!r} is not"
-                " one of: 'lattice', 'stream', 'network', 'hybrid'."
+                " one of: 'lattice', 'stream', 'network', 'hybrid', 'ml'."
                 " ('auto' is only valid as the global flavor.)"
             )
         page_kwargs = {k: v for k, v in overrides.items() if k != "flavor"}
@@ -170,6 +170,11 @@ def read_pdf(
         - ``'stream'``: borderless tables with whitespace-separated columns.
         - ``'network'``: borderless tables via text-edge alignment connectivity.
         - ``'hybrid'``: combines layout- and image-based analysis.
+        - ``'ml'``: neural table-structure recognition (Table Transformer)
+          for the structure, with cell text filled from the PDF's own text
+          layer (no hallucinated values). Requires the optional ML
+          dependencies: ``pip install 'camelot-py[ml]'``. Best for
+          borderless tables where the heuristic parsers plateau.
         - ``'auto'``: detect the flavor **per page** (count ruled lines on
           each rendered page) and parse each group accordingly — ruled
           pages via ``lattice`` with ``engine='combined'``, the rest via
@@ -355,10 +360,10 @@ def read_pdf(
     """
     if layout_kwargs is None:
         layout_kwargs = {}
-    if flavor not in ["lattice", "stream", "network", "hybrid", "auto"]:
+    if flavor not in ["lattice", "stream", "network", "hybrid", "ml", "auto"]:
         raise NotImplementedError(
             "Unknown flavor specified."
-            " Use either 'lattice', 'stream', 'network', 'hybrid' or 'auto'"
+            " Use either 'lattice', 'stream', 'network', 'hybrid', 'ml' or 'auto'"
         )
 
     per_page_norm = _normalize_per_page(per_page)
