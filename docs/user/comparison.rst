@@ -307,19 +307,64 @@ extractor with its core algorithms written in **Rust** (exposed to Python
 via PyO3) and PDF handling through pdfium — so it installs with no external
 Python dependencies and is built for speed.
 
-* **When tablers wins.** Throughput on **ruled** tables — it detects
-  tables from line/rectangle edges and is designed to be very fast, with
-  lazy page loading for large files. If your PDFs are consistently
-  ruled and speed matters, it's worth a look.
-* **When Camelot wins.** Breadth: borderless / whitespace tables
-  (``stream`` / ``network`` / ``hybrid``), the vector+raster
-  ``engine="combined"``, per-table ``accuracy`` / ``whitespace`` /
-  ``confidence`` metrics with :meth:`TableList.filter`, multi-page
-  stitching, and pandas-DataFrame output. tablers currently focuses on
-  edge-detected tables and exports to CSV / Markdown / HTML.
+* **When tablers wins.** Raw speed on **ruled** tables — being Rust it is
+  dramatically faster (see below), with lazy page loading for large files.
+  If your PDFs are consistently ruled and throughput is the priority, it's
+  worth a look.
+* **When Camelot wins.** Extraction **quality** on ruled tables (numbers
+  below), plus breadth Camelot has and tablers doesn't: borderless /
+  whitespace tables (``stream`` / ``network`` / ``hybrid``), the optional
+  neural ``flavor="ml"`` (incl. scanned PDFs), per-table ``accuracy`` /
+  ``whitespace`` / ``confidence`` with :meth:`TableList.filter`, multi-page
+  stitching, and pandas-DataFrame output. tablers focuses on edge-detected
+  tables and exports to CSV / Markdown / HTML.
 
-*Last verified: 2026-05-21 against the tablers README (project is new;
-assessed from its documented features rather than a benchmark run).*
+Head-to-head on ruled tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On the in-repo ICDAR-2013 set (67 born-digital, ruled-heavy PDFs), scored
+with Camelot's own metrics (``bench/benchmark_icdar.py`` — an independent
+MIT implementation; the ``TEDS`` here is a difflib cell-text proxy, so read
+the columns relatively):
+
+.. list-table::
+   :header-rows: 1
+
+   * - tool / config
+     - F1
+     - TEDS
+     - row
+     - col
+     - time
+   * - camelot ``lattice`` (``engine="combined"``)
+     - **0.778**
+     - **0.789**
+     - **0.762**
+     - **0.829**
+     - 101 s
+   * - camelot ``lattice`` (``engine="vector"``)
+     - 0.766
+     - 0.784
+     - 0.748
+     - 0.806
+     - 13 s
+   * - tablers
+     - 0.750
+     - 0.724
+     - 0.657
+     - 0.741
+     - 1.5 s
+
+So on ruled tables Camelot's lattice parser leads tablers on **every**
+quality metric — most notably row/col structure (row 0.762 vs 0.657, col
+0.829 vs 0.741). tablers is the speed champion (Rust): ~67× faster than the
+``combined`` engine here. Camelot's render-free ``engine="vector"`` narrows
+that to ~9× while keeping essentially all of combined's quality — a good
+middle ground when throughput matters but you still want Camelot's accuracy
+and breadth.
+
+*Last verified: 2026-05-25 against tablers 0.7.3, via the in-repo
+``bench/benchmark_icdar.py`` harness.*
 
 Tools we no longer compare against
 -----------------------------------
