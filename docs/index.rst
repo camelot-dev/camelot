@@ -101,6 +101,7 @@ This part of the documentation begins with some background information about why
    user/quickstart
    user/advanced
    user/comparison
+   user/migration
    user/faq
    user/cli
 
