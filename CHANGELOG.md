@@ -1,36 +1,3 @@
-### Added
-
-- **New optional `flavor='ml'` backend (Table Transformer / TATR).** A neural
-  table-structure model supplies the row/column/spanning-cell structure while
-  cell text is filled from the PDF's own text layer — the model never emits
-  cell text, so it cannot hallucinate or alter a value. Aimed at borderless
-  tables, where the heuristic parsers plateau (on FinTabNet it lifts TEDS from
-  ~0.20 to ~0.37 vs `network`/`hybrid`). Heavy dependencies are optional and
-  imported lazily: `pip install 'camelot-py[ml]'`. The box→grid post-processing
-  and image→PDF coordinate mapping are pure (torch-free) and unit-tested.
-- **`flavor='ml'` works on scanned / image-only PDFs via optional OCR.** When a
-  page has no text layer (`ocr='auto'`, the default) — or always with
-  `ocr=True` — cell text comes from OCR of the rendered page instead of the PDF
-  text layer; structure still comes from the model. This lifts camelot's
-  long-standing "needs a text layer" limitation. Opt in with
-  `pip install 'camelot-py[ocr]'`. Still geometry + recognised text (no
-  invented cells); `split_text`/`flag_size` aren't supported in OCR mode.
-
-### Changed
-
-- **`flavor='hybrid'` now defaults its lattice half to `engine='combined'`**
-  (was `'raster'`), matching `flavor='lattice'` and the documented behaviour.
-  Combined detects ruled grids better, so the completeness gating routes
-  more complete grids to the lattice parser — on the in-repo ICDAR-2013
-  benchmark hybrid TEDS 0.724→0.806, row 0.417→0.659, col 0.689→0.868.
-
-- **`engine='combined'` is now the default lattice engine** (was
-  `'raster'`), and **`engine='auto'` was removed**. Combined is the
-  strongest detector and safe by construction; its vector ruled lines are
-  now clipped to `table_regions` so it never expands a table beyond a
-  user-supplied region (previously it could). `engine` remains lattice-only
-  and is rejected for text-based flavors. (#763, flavor x engine cleanup)
-
 # Changelog
 
 This file documents notable user-visible changes. The day-to-day automatic
@@ -42,11 +9,13 @@ human-readable summary for _major_ releases.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2.0.0 (planned)
+## [2.0.0rc1] — 2026-05-25
 
 The 2.0 release rolls up a substantial backend migration, the resulting
-performance work, and a handful of small but user-visible breaking
-changes. **Heads-up if upgrading from 1.0.x**:
+performance work, an optional neural (Table Transformer) backend for
+borderless and scanned tables, and a handful of small but user-visible
+breaking changes. **Heads-up if upgrading from 1.0.x** — see the
+[migration guide](user/migration.rst):
 
 ### Breaking
 
@@ -77,6 +46,23 @@ changes. **Heads-up if upgrading from 1.0.x**:
 
 ### Added
 
+- **Optional neural `flavor="ml"` backend (Table Transformer / TATR).** A
+  neural model supplies the row/column/spanning-cell **structure** while cell
+  **text** is filled from the PDF's own text layer — the model never emits cell
+  text, so it cannot hallucinate or alter a value. Aimed at borderless tables,
+  where the heuristic parsers plateau: on the FinTabNet borderless benchmark it
+  roughly doubles TEDS (~0.20 → ~0.37) over `network`/`hybrid`. Heavy
+  dependencies are optional and imported lazily — `pip install "camelot-py[ml]"`
+  — so `import camelot` and the other flavors never load PyTorch. The box→grid
+  post-processing and image→PDF mapping are pure (torch-free) and unit-tested.
+  (#809)
+- **`flavor="ml"` reads scanned / image-only PDFs via optional OCR.** With no
+  text layer (`ocr="auto"`, the default) — or always with `ocr=True` — cell
+  text comes from OCR of the rendered page instead of the PDF text layer;
+  structure still comes from the model. This lifts Camelot's long-standing
+  "needs a text layer" limitation. Opt in with `pip install "camelot-py[ocr]"`.
+  Still geometry + recognised text (no invented cells); `split_text` /
+  `flag_size` aren't supported in OCR mode. (#809)
 - **`TableList.filter(...)`** — post-extraction convenience to drop noise /
   low-quality tables by `min_rows`, `min_columns`, `min_accuracy`,
   `max_whitespace`. Returns a new `TableList` (composable); all thresholds
@@ -86,9 +72,9 @@ changes. **Heads-up if upgrading from 1.0.x**:
   rasterised OpenCV line masks before contour/joint detection, so tables
   whose rules render faintly (vector strokes, anti-aliasing) are still
   found. Safe by construction — raster always runs, vector lines can only
-  add, so output is never worse than `engine="raster"`. `engine="auto"`
-  now resolves to `combined` when the page carries vector ruled lines,
-  else `raster`. (#763)
+  add, so output is never worse than `engine="raster"`. It is now the
+  **default** lattice engine and vector lines are clipped to
+  `table_regions`. (#763)
 - **`engine="vector"`** for `flavor="lattice"`: detects tables purely from
   the PDF's native vector ruled lines, **skipping page rasterisation and
   OpenCV entirely** — the fastest path for PDFs whose tables are drawn
@@ -151,6 +137,18 @@ changes. **Heads-up if upgrading from 1.0.x**:
   prefer the new shape).
 - **Python 3.14 stable + 3.15 experimental** rows added to the CI matrix.
   Wheels for both Pythons install correctly on Linux/macOS/Windows. (#706)
+
+### Changed
+
+- **Default lattice `engine` is now `"combined"`** (was `"raster"`); the
+  transient `engine="auto"` introduced earlier in the 2.0 cycle was removed.
+  Existing `flavor="lattice"` calls pick up combined automatically and it is
+  never worse than raster. `engine` stays lattice-only and is rejected for the
+  text-based flavors. (#803)
+- **`flavor="hybrid"` runs its lattice half with `engine="combined"` too**
+  (was `"raster"`). With the completeness gating this lifts hybrid on ruled
+  documents — in-repo ICDAR-2013 TEDS 0.724→0.806, row 0.417→0.659,
+  col 0.689→0.868. (#807)
 
 ### Changed (performance)
 
