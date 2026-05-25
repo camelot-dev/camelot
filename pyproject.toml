@@ -63,6 +63,12 @@ ml = [
     "timm>=0.9",
     "pillow>=10.4.0",
 ]
+# Optional OCR text source for flavor='ml' on scanned / image-only PDFs
+# (structure still from TATR; text from OCR instead of the PDF text layer).
+# Pip-only, no system tesseract binary. `pip install 'camelot-py[ocr]'`.
+ocr = [
+    "rapidocr-onnxruntime>=1.3",
+]
 ghostscript = [
     "ghostscript>=0.7",
 ]

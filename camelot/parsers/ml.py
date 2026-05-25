@@ -28,6 +28,7 @@ roadmap in the ``[ml]`` tier task.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from dataclasses import field
 
@@ -286,6 +287,31 @@ class _LoadedModels:
 #: would reload the checkpoints. Lives for the life of the process.
 _MODEL_CACHE: dict[tuple[str, str, str], _LoadedModels] = {}
 
+#: Process-level OCR engine singleton (lazy). Building a RapidOCR instance
+#: loads ONNX models, so reuse it across pages/calls.
+_OCR_ENGINE: list = []
+
+
+class _OCRWord:
+    """A textline-like wrapper around one OCR word, in PDF coordinate space.
+
+    Exposes just what :func:`camelot.utils.get_table_index` /
+    :func:`text_in_bbox_per_axis` need (``x0/y0/y1/x1`` with a bottom-left
+    origin and ``get_text``). ``split_text`` / ``flag_size`` are *not*
+    supported through OCR (they need per-glyph data), so no ``_objs``.
+    """
+
+    def __init__(self, text, x0, y0, x1, y1):
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
+        self._text = text
+
+    def get_text(self):
+        """Return the recognised word text."""
+        return self._text
+
 
 class MachineLearning(BaseParser):
     """Neural table-structure parser (Table Transformer / TATR).
@@ -327,6 +353,13 @@ class MachineLearning(BaseParser):
         Pixels of margin added around each detected table before structure
         recognition. TATR is trained on padded crops; the margin keeps the
         outermost rows/columns from being clipped.
+    ocr : {'auto', True, False}, optional (default: 'auto')
+        Where cell text comes from. ``'auto'`` uses the PDF's born-digital
+        text layer when present and falls back to OCR on the rendered page
+        when the page has none (scanned / image-only PDFs); ``True`` always
+        OCRs; ``False`` never does. OCR needs the optional OCR dependencies
+        (``pip install 'camelot-py[ocr]'``) and does not support
+        ``split_text`` / ``flag_size`` (no per-glyph data).
     resolution : int, optional (default: 300)
         DPI for rendering the page to an image.
     """
@@ -347,6 +380,7 @@ class MachineLearning(BaseParser):
         detection_threshold=0.5,
         structure_threshold=0.5,
         crop_padding=10,
+        ocr="auto",
         resolution=300,
         use_fallback=True,
         backend="pdfium",
@@ -371,11 +405,14 @@ class MachineLearning(BaseParser):
         self.detection_threshold = detection_threshold
         self.structure_threshold = structure_threshold
         self.crop_padding = crop_padding
+        self.ocr = ocr
         self.resolution = resolution
         self.icb = ImageConversionBackend(use_fallback=use_fallback, backend=backend)
         self._models: _LoadedModels | None = None
-        # Per-page render state (set in _render).
+        self._ocr_engine = None
+        # Per-page render state (set in _render); _ocr_cache reset per page.
         self._image_rgb = None
+        self._ocr_cache: list[_OCRWord] | None = None
         self._pdf_scalers: tuple[float, float, float] | None = None
         self._image_scalers: tuple[float, float, float] | None = None
 
@@ -451,11 +488,80 @@ class MachineLearning(BaseParser):
     def _text_source(self, bbox):
         """Return ``{direction: [textlines]}`` for the cell-fill pass.
 
-        The born-digital implementation: the PDF's own text layer clipped to
-        ``bbox``. An OCR backend would override this to return recognised
-        words+boxes in the same shape (scanned-PDF roadmap).
+        Two sources behind one seam:
+
+        * **born-digital** — the PDF's own text layer clipped to ``bbox``
+          (exact characters, the default).
+        * **OCR** — words recognised from the page image (scanned / image-only
+          PDFs), used when :meth:`_use_ocr` resolves true. OCR words are
+          horizontal-only; the vertical axis is empty.
         """
+        if self._use_ocr():
+            return text_in_bbox_per_axis(bbox, self._ocr_words(), [])
         return text_in_bbox_per_axis(bbox, self.horizontal_text, self.vertical_text)
+
+    def _use_ocr(self) -> bool:
+        """Resolve whether this page's cells are filled from OCR.
+
+        ``ocr=True`` always; ``ocr='auto'`` only when the page has no
+        born-digital text layer (the scanned case); ``ocr=False`` never.
+        """
+        if self.ocr is True:
+            return True
+        if self.ocr == "auto":
+            return not self.horizontal_text
+        return False
+
+    def _document_has_no_text(self):
+        """Don't bail on a text-less page when OCR can supply the text.
+
+        BaseParser short-circuits ``extract_tables`` when the page has no
+        text layer; with OCR enabled a scanned page is exactly what we want
+        to process, so override that for the OCR case.
+        """
+        if self._use_ocr():
+            return False
+        return super()._document_has_no_text()
+
+    def _get_ocr_engine(self):
+        """Lazily build (and process-cache) the OCR engine."""
+        if self._ocr_engine is not None:
+            return self._ocr_engine
+        if _OCR_ENGINE:
+            self._ocr_engine = _OCR_ENGINE[0]
+            return self._ocr_engine
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError as exc:
+            raise ImportError(
+                "flavor='ml' with OCR (scanned PDFs) requires the optional OCR "
+                "dependencies. Install them with: pip install 'camelot-py[ocr]'"
+            ) from exc
+        self._ocr_engine = RapidOCR()
+        _OCR_ENGINE.append(self._ocr_engine)
+        return self._ocr_engine
+
+    def _ocr_words(self):
+        """OCR the page image once; return words as PDF-coord :class:`_OCRWord`s."""
+        if self._ocr_cache is not None:
+            return self._ocr_cache
+        import numpy as np
+
+        engine = self._get_ocr_engine()
+        result, _ = engine(np.asarray(self._image_rgb))
+        words: list[_OCRWord] = []
+        sx, sy, img_h = self._pdf_scalers
+        for box, text, _score in result or []:
+            xs = [pt[0] for pt in box]
+            ys = [pt[1] for pt in box]
+            # image px (top-left origin) -> PDF coords (bottom-left), y flipped.
+            x0 = scale(min(xs), sx)
+            x1 = scale(max(xs), sx)
+            y_top = scale(abs(translate(-img_h, min(ys))), sy)
+            y_bottom = scale(abs(translate(-img_h, max(ys))), sy)
+            words.append(_OCRWord(text, x0, y_bottom, x1, y_top))
+        self._ocr_cache = words
+        return words
 
     # ------------------------------------------------------------------ #
     # Rendering + coordinate scalers (torch-free)
@@ -468,6 +574,7 @@ class MachineLearning(BaseParser):
         image_bgr = self.icb.to_array(self.filename, self.page)
         img_h, img_w = image_bgr.shape[0], image_bgr.shape[1]
         self._image_rgb = Image.fromarray(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB))
+        self._ocr_cache = None  # OCR is per-page; clear any previous page's words
         self._pdf_scalers = (
             self.pdf_width / float(img_w),
             self.pdf_height / float(img_h),
@@ -562,6 +669,16 @@ class MachineLearning(BaseParser):
         """Detect tables, recognise structure, store each grid in PDF coords."""
         self._load_models()
         self._render()
+        if self._use_ocr() and (self.split_text or self.flag_size):
+            # OCR words carry no per-glyph data, so split_text / flag_size
+            # can't apply; disable them for this page rather than crash.
+            warnings.warn(
+                "flavor='ml' OCR mode does not support split_text / flag_size "
+                "(no per-glyph data); ignoring them for this page.",
+                stacklevel=2,
+            )
+            self.split_text = False
+            self.flag_size = False
         self.table_bbox_parses = {}
         for region in self._detect_table_regions():
             grid = objects_to_grid(

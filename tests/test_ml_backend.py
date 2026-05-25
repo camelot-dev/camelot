@@ -14,6 +14,7 @@ import pytest
 from camelot.core import Table
 from camelot.parsers.ml import DetectedObject
 from camelot.parsers.ml import MachineLearning
+from camelot.parsers.ml import _OCRWord
 from camelot.parsers.ml import apply_spans
 from camelot.parsers.ml import grid_to_pdf_cols_rows
 from camelot.parsers.ml import objects_to_grid
@@ -151,3 +152,48 @@ def test_ml_read_pdf_surfaces_install_hint(foo_pdf):
 
     with pytest.raises(ImportError, match=r"camelot-py\[ml\]"):
         camelot.read_pdf(foo_pdf, flavor="ml")
+
+
+# --------------------------------------------------------------------------- #
+# OCR text-source plumbing (torch-free; engine not required)
+# --------------------------------------------------------------------------- #
+def test_ocrword_exposes_textline_interface():
+    w = _OCRWord("hi", 1.0, 2.0, 3.0, 4.0)
+    assert (w.x0, w.y0, w.x1, w.y1) == (1.0, 2.0, 3.0, 4.0)
+    assert w.get_text() == "hi"
+
+
+def test_ml_use_ocr_modes():
+    # ocr=True -> always; ocr=False -> never (regardless of text layer).
+    always = MachineLearning(ocr=True)
+    always.horizontal_text = []
+    assert always._use_ocr() is True
+    never = MachineLearning(ocr=False)
+    never.horizontal_text = []
+    assert never._use_ocr() is False
+    # ocr='auto' -> only when the page has no born-digital text layer.
+    auto = MachineLearning(ocr="auto")
+    auto.horizontal_text = []
+    assert auto._use_ocr() is True
+    auto.horizontal_text = ["a textline"]
+    assert auto._use_ocr() is False
+
+
+def test_ml_document_has_no_text_defers_to_ocr():
+    # With OCR available a text-less page is processed, not skipped.
+    ocr_on = MachineLearning(ocr=True)
+    ocr_on.horizontal_text, ocr_on.images, ocr_on.page = [], [], 1
+    assert ocr_on._document_has_no_text() is False
+    # Without OCR, a text-less page still short-circuits (base behaviour).
+    ocr_off = MachineLearning(ocr=False)
+    ocr_off.horizontal_text, ocr_off.images, ocr_off.page = [], [], 1
+    assert ocr_off._document_has_no_text() is True
+
+
+def test_ml_ocr_requires_engine_when_missing():
+    """If rapidocr isn't installed, asking for OCR gives the [ocr] hint."""
+    if importlib.util.find_spec("rapidocr_onnxruntime") is not None:
+        pytest.skip("rapidocr installed; the import guard is moot")
+    parser = MachineLearning(ocr=True)
+    with pytest.raises(ImportError, match=r"camelot-py\[ocr\]"):
+        parser._get_ocr_engine()
