@@ -52,7 +52,7 @@ def test_random_string_length_and_alphabet():
 
 
 def test_text_in_bbox_filters_and_discards_overlaps():
-    """text_in_bbox keeps boxes whose centre is inside, then drops 80%-contained shorter siblings."""
+    """text_in_bbox keeps boxes whose centre is inside, then drops 80%-contained text-duplicate siblings."""
     from camelot.utils import text_in_bbox
 
     class _Box:
@@ -75,12 +75,33 @@ def test_text_in_bbox_filters_and_discards_overlaps():
     d_outside = _Box(100, 100, 110, 110)
     assert d_outside not in text_in_bbox((0, 0, 60, 10), [a, d_outside])
 
-    # A shorter box ~fully contained in a longer one is discarded.
-    big = _Box(0, 0, 100, 5, "BIGGER LINE")
-    small = _Box(10, 1, 14, 4, "x")  # >80% inside big, but shorter
-    out = text_in_bbox((0, 0, 200, 10), [big, small])
+    # PDF font-render duplicates (#15): two textlines with identical
+    # content placed at nearly the same coordinates — discard the
+    # shorter (smaller-bbox) one as a true duplicate.
+    big = _Box(0, 0, 100, 5, "SAME LINE")
+    dup = _Box(10, 1, 80, 4, "SAME LINE")  # equal content, >80% inside big
+    out = text_in_bbox((0, 0, 200, 10), [big, dup])
     assert big in out
-    assert small not in out
+    assert dup not in out
+
+    # A single-character textline must NOT be classified as a duplicate
+    # of a wider sibling that merely contains the letter (regression for
+    # split_text=True lattice cells where 'B', 'C', etc. land next to
+    # wider headers/labels).
+    single = _Box(45, 1, 50, 4, "B")  # >80% inside a wider sibling below
+    label = _Box(0, 0, 100, 5, "Category B")
+    out_single = text_in_bbox((0, 0, 200, 10), [label, single])
+    assert label in out_single
+    assert single in out_single
+
+    # Adjacent-cell text (#288, #625): a wide name overlaps a short
+    # number that has nothing to do with it. The numeric textline must
+    # survive — the old geometry-only rule dropped it incorrectly.
+    name = _Box(0, 0, 100, 5, "Ackermann XXXXXXXXXXXXXXXXXX GmbH")
+    number = _Box(70, 1, 95, 4, "11 111111111")  # >80% inside name's bbox
+    out2 = text_in_bbox((0, 0, 200, 10), [name, number])
+    assert name in out2
+    assert number in out2
 
     # Empty input — empty output, no crash.
     assert text_in_bbox((0, 0, 100, 100), []) == []
