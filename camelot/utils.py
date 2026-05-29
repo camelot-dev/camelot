@@ -599,6 +599,38 @@ def textlines_overlapping_bbox(bbox, textlines):
 _TEXT_IN_BBOX_NUMPY_MAX = 1500
 
 
+def _normalised_textline_text(t) -> str:
+    """Whitespace-stripped text of a PDFMiner-style textline (#288, #625).
+
+    Returns ``""`` if the textline has no get_text or no content. Used by
+    the text_in_bbox dedup pass to confirm overlapping bboxes are *actual*
+    duplicates before discarding the shorter one.
+    """
+    getter = getattr(t, "get_text", None)
+    if getter is None:
+        return ""
+    s = getter()
+    return s.strip() if s else ""
+
+
+def _is_textual_duplicate(a_text: str, b_text: str) -> bool:
+    """Return True if textline A's content can be considered a duplicate of B's.
+
+    The bbox-overlap dedup pass introduced in #206 (to fix #15) was meant
+    to drop *literal* duplicate textlines emitted by PDF font-render
+    quirks — typically two textlines with identical content placed at
+    nearly the same coordinates. Skipping the content check made it also
+    discard legitimate adjacent-cell text whenever a wide neighbour's
+    bbox happened to cover it (#288, #625). Restricting the discard to
+    *equal* stripped text matches #206's original intent without false
+    positives (a single-char "B" textline is not a duplicate of a wider
+    sibling that merely contains the letter B).
+    """
+    if not a_text:
+        return True
+    return a_text == b_text
+
+
 def _text_in_bbox_loop(t_bbox):
     """Reference Python implementation of the >80%-contained discard pass.
 
@@ -607,11 +639,13 @@ def _text_in_bbox_loop(t_bbox):
     """
     n = len(t_bbox)
     discarded: set[int] = set()
+    texts = [_normalised_textline_text(t) for t in t_bbox]
     for i in range(n):
         if i in discarded:
             continue
         ba = t_bbox[i]
         ba_area = bbox_area(ba)
+        ai_text = texts[i]
         for j in range(n):
             if i == j or j in discarded:
                 continue
@@ -619,7 +653,7 @@ def _text_in_bbox_loop(t_bbox):
             if not bbox_intersect(ba, bb):
                 continue
             if ba_area == 0 or (bbox_intersection_area(ba, bb) / ba_area) > 0.8:
-                if bbox_longer(bb, ba):
+                if bbox_longer(bb, ba) and _is_textual_duplicate(ai_text, texts[j]):
                     discarded.add(i)
                     break
     return [t_bbox[i] for i in range(n) if i not in discarded]
@@ -628,8 +662,14 @@ def _text_in_bbox_loop(t_bbox):
 def text_in_bbox(bbox, text):
     """Return all text objects in a bounding box.
 
-    Return the text objects which lie at least 80% inside a bounding box
-    across both dimensions.
+    Keeps every text object whose centre lies inside the bbox (with a
+    small pad), then discards each one whose bbox is >80% contained in a
+    longer sibling *and* whose stripped text equals that sibling's
+    stripped text. The content equality check (#288, #625) prevents
+    adjacent-cell text from being dropped when a wide neighbour's bbox
+    happens to cover it — the geometry-only rule introduced in #206 was
+    meant to deduplicate PDF font-render duplicates (#15), not to
+    discard legitimate non-duplicate content.
 
     Parameters
     ----------
@@ -642,8 +682,8 @@ def text_in_bbox(bbox, text):
     Returns
     -------
     t_bbox : list
-        List of PDFMiner text objects that lie inside table, discarding
-        the overlapping ones.
+        List of PDFMiner text objects that lie inside table, with
+        duplicate-content overlapping siblings discarded.
 
     """
     if not text:
@@ -708,9 +748,23 @@ def text_in_bbox(bbox, text):
     # B is longer than A: widths[j] > widths[i]  (rows = i, cols = j).
     b_longer = widths[None, :] > widths[:, None]
 
-    # Drop any A for which some longer B overlaps it >80 %.
-    discard_any = ((frac > 0.8) & b_longer).any(axis=1)
-    keep = ~discard_any
+    # Bbox-level discard candidates: A is >80%-contained in a longer B.
+    discard_candidate = (frac > 0.8) & b_longer
+
+    # Content check (#288, #625): only discard A when the offending B
+    # actually contains A's text — otherwise we drop adjacent-cell
+    # content that just happened to be physically overlapped. The check
+    # runs per candidate row and bails on the first confirmed duplicate.
+    keep = np.ones(n, dtype=bool)
+    candidate_rows = np.flatnonzero(discard_candidate.any(axis=1)).tolist()
+    if candidate_rows:
+        texts = [_normalised_textline_text(t) for t in t_bbox]
+        for i in candidate_rows:
+            ai_text = texts[i]
+            for j in np.flatnonzero(discard_candidate[i]).tolist():
+                if _is_textual_duplicate(ai_text, texts[j]):
+                    keep[i] = False
+                    break
 
     # keep is a boolean mask of length n derived from idx_in/t_bbox, so the
     # two iterables are equal-length by construction.

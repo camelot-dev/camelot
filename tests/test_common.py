@@ -390,3 +390,43 @@ def test_auto_flavor_rejects_unknown():
 
     with pytest.raises(NotImplementedError, match=r"auto"):
         camelot.read_pdf("nonexistent.pdf", flavor="banana")
+
+
+def test_overlapping_text_preserves_adjacent_cell(testdir):
+    """Adjacent-cell text isn't dropped when a wide neighbour overlaps it (#288, #625).
+
+    issue_288.pdf has rows where a long company name ("Ackermann …
+    XXXXXXXXXXXXXXXXXX GmbH") physically extends past its column into
+    the neighbouring Vers.-Nummer cell. The old text_in_bbox dedup —
+    geometry-only, no content check — discarded the Vers.-Nummer
+    textlines as "duplicates" of the longer Name textline. The
+    content-aware fix keeps them, because a numeric Vers.-Nummer string
+    is not equal to the company name.
+
+    The assertion is on data preservation, not exact column placement:
+    stream's column inference can merge cells when wide and narrow
+    textlines coexist at the same Y, so the Vers.-Nummer may land in
+    the Name cell as a wrapped line. The important user-visible point
+    is that the number is no longer silently dropped from the output.
+    """
+    import re
+
+    filename = os.path.join(testdir, "issue_288.pdf")
+    tables = camelot.read_pdf(filename, flavor="stream", suppress_stdout=True)
+    df = tables[0].df
+
+    # Vers.-Nummer strings follow the "DD DDDDDDDDD" pattern in this PDF.
+    vers_nr_re = re.compile(r"\b\d{2}\s\d{9}\b")
+    ackermann_mask = df.apply(
+        lambda row: row.astype(str).str.contains("Ackermann", regex=False).any(),
+        axis=1,
+    )
+    ackermann_rows = df[ackermann_mask]
+    assert len(ackermann_rows) >= 1, "fixture changed: no Ackermann rows found"
+
+    for idx, row in ackermann_rows.iterrows():
+        row_text = " ".join(row.astype(str).tolist())
+        assert vers_nr_re.search(row_text), (
+            f"row {idx} ({row_text[:60]!r}…) is missing its Vers.-Nummer — "
+            "text_in_bbox content-aware dedup regressed."
+        )
