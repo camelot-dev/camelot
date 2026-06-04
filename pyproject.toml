@@ -1,6 +1,6 @@
 [project]
 name = "camelot-py"
-version = "2.0.0rc1"
+version = "2.0.0"
 description = "PDF Table Extraction for Humans."
 authors = [
     {name = "Vinayak Mehta", email = "vmehta94@gmail.com"},
