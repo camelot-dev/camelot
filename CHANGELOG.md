@@ -9,7 +9,7 @@ human-readable summary for _major_ releases.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0rc1] — 2026-05-25
+## [2.0.0] — 2026-06-04
 
 The 2.0 release rolls up a substantial backend migration, the resulting
 performance work, an optional neural (Table Transformer) backend for
@@ -181,6 +181,13 @@ breaking changes. **Heads-up if upgrading from 1.0.x** — see the
 
 ### Fixed
 
+- **`text_in_bbox` no longer drops legitimate adjacent-cell text.** The
+  geometry-only overlap dedup (added for #15 font-render duplicates) was
+  discarding any shorter textline ≥80 % contained in a wider neighbour's
+  bbox — even when the two carried different text — so overlapping cells
+  silently lost content. The discard is now content-aware: a contained box
+  is dropped only when its stripped text actually equals the longer
+  sibling's. (#814, closes #288 / #625)
 - **Precision gate for the lattice/combined engine.** Near-empty ruled
   grids (page borders, form rules, header separators — whitespace ≥ 90 %)
   are no longer emitted as tables; they were detection noise that
