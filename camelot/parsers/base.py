@@ -26,6 +26,8 @@ class BaseParser:
         parser_id,
         table_regions=None,
         table_areas=None,
+        header_text=None,
+        footer_text=None,
         copy_text=None,
         split_text=False,
         strip_text="",
@@ -37,6 +39,8 @@ class BaseParser:
         self.id = parser_id
         self.table_regions = table_regions
         self.table_areas = table_areas
+        self.header_text = header_text
+        self.footer_text = footer_text
         self.table_bbox_parses = {}
 
         self.columns = None
@@ -350,6 +354,8 @@ class TextBaseParser(BaseParser):
         table_regions=None,
         table_areas=None,
         columns=None,
+        header_text=None,
+        footer_text=None,
         flag_size=False,
         split_text=False,
         strip_text="",
@@ -365,6 +371,8 @@ class TextBaseParser(BaseParser):
             parser_id,
             table_regions=table_regions,
             table_areas=table_areas,
+            header_text=header_text,
+            footer_text=footer_text,
             split_text=split_text,
             strip_text=strip_text,
             replace_text=replace_text,
