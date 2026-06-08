@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -13,6 +14,16 @@ from camelot.io import PDFHandler
 from .conftest import skip_on_windows
 from .conftest import skip_pdftopng
 from .data import *
+
+
+def _processing_page_messages(caplog):
+    return [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "camelot"
+        and record.levelno == logging.INFO
+        and record.getMessage().startswith("Processing page ")
+    ]
 
 
 @skip_on_windows
@@ -221,6 +232,48 @@ def test_pages_ghostscript_custom_backend():
     assert repr(tables) == "<TableList n=1>"
     assert repr(tables[0]) == "<Table shape=(7, 7)>"
     assert repr(tables[0].cells[0][0]) == "<Cell x1=120 y1=218 x2=165 y2=234>"
+
+
+def test_read_pdf_logs_processing_progress_per_page(testdir, caplog):
+    filename = os.path.join(testdir, "hybrid_multipage.pdf")
+    caplog.set_level(logging.INFO, logger="camelot")
+
+    camelot.read_pdf(filename, pages="1-2")
+
+    assert _processing_page_messages(caplog) == [
+        "Processing page 1",
+        "Processing page 2",
+    ]
+
+
+def test_read_pdf_suppresses_processing_progress(testdir, caplog):
+    filename = os.path.join(testdir, "hybrid_multipage.pdf")
+    caplog.set_level(logging.INFO, logger="camelot")
+
+    camelot.read_pdf(filename, pages="1-2", suppress_stdout=True)
+
+    assert _processing_page_messages(caplog) == []
+
+
+def test_read_pdf_logs_processing_progress_for_page_subset(testdir, caplog):
+    filename = os.path.join(testdir, "vertical_header.pdf")
+    caplog.set_level(logging.INFO, logger="camelot")
+
+    camelot.read_pdf(filename, pages="1,3", flavor="stream")
+
+    assert _processing_page_messages(caplog) == [
+        "Processing page 1",
+        "Processing page 3",
+    ]
+
+
+def test_read_pdf_logs_processing_progress_for_single_page(testdir, caplog):
+    filename = os.path.join(testdir, "foo.pdf")
+    caplog.set_level(logging.INFO, logger="camelot")
+
+    camelot.read_pdf(filename)
+
+    assert _processing_page_messages(caplog) == ["Processing page 1"]
 
 
 def test_table_order():

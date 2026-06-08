@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import multiprocessing as mp
 import os
 import tempfile
@@ -38,6 +39,8 @@ PARSERS = {
     "hybrid": Hybrid,
     "ml": MachineLearning,
 }
+
+logger = logging.getLogger("camelot")
 
 
 FilepathOrBuffer = str | Path | bytes | bytearray | memoryview | IO[bytes]
@@ -453,6 +456,7 @@ class PDFHandler:
                         flavor=flavor,
                         base_kwargs=kwargs,
                         per_page=per_page,
+                        suppress_stdout=suppress_stdout,
                     )
                 )
         except PDFPasswordIncorrect as e:
@@ -469,6 +473,7 @@ class PDFHandler:
         flavor: str = "lattice",
         base_kwargs: dict[str, Any] | None = None,
         per_page: dict[int, dict[str, Any]] | None = None,
+        suppress_stdout: bool = False,
     ):
         """Extract tables by calling parser.get_tables on a single page PDF.
 
@@ -489,6 +494,8 @@ class PDFHandler:
             per-page override to construct a fresh parser for that page.
         per_page : dict, optional
             Page-number-keyed kwargs overrides (already validated upstream).
+        suppress_stdout : bool, optional (default: False)
+            Suppress per-page progress logs.
 
         Returns
         -------
@@ -498,6 +505,8 @@ class PDFHandler:
         """
         # playa's page_idx is 0-indexed; user-facing per_page uses 1-indexed.
         page_no = page.page_idx + 1
+        if not suppress_stdout:
+            logger.info("Processing page %d", page_no)
         overrides = (per_page or {}).get(page_no)
         if overrides:
             page_flavor = overrides.get("flavor", flavor)

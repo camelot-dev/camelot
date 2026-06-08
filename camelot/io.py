@@ -183,7 +183,7 @@ def read_pdf(
           the per-page choices. (More accurate but slower, since it renders
           every page for the probe.)
     suppress_stdout : bool, optional (default: False)
-        Print all logs and warnings.
+        Suppress logs and warnings.
     parallel : bool, optional (default: False)
         Process pages in parallel using all available cpu cores.
     cpu_count : int, optional (default: None)
