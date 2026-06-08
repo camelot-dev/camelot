@@ -326,6 +326,50 @@ You can use the ``table_regions`` keyword argument to :meth:`read_pdf() <camelot
 .. csv-table::
   :file: ../_static/csv/table_regions.csv
 
+Derive table area from header and footer text
+---------------------------------------------
+
+With :ref:`Stream <stream>`, when each table is framed by the *same* header
+and/or footer text on every page — common in financial and government reports
+— you can let camelot derive the table area from those text lines instead of
+hand-specifying ``table_areas`` coordinates.
+
+Pass ``header_text`` and/or ``footer_text`` to :meth:`read_pdf() <camelot.read_pdf>`
+as lists of substrings. camelot locates the matching text line and uses its
+edge as the table boundary: the **bottom** of the matched ``header_text`` line
+becomes the table's top edge, and the **top** of the matched ``footer_text``
+line becomes its bottom edge.
+
+.. code-block:: pycon
+
+    >>> tables = camelot.read_pdf(
+    ...     'health.pdf',
+    ...     flavor='stream',
+    ...     header_text=['Public Health Outlay'],
+    ...     footer_text=['Health Sector Financing'],
+    ... )
+    >>> tables[0].df
+
+You can pass either one or both. With only ``header_text`` the area runs from
+the header line down to the bottom of the page; with only ``footer_text`` it
+runs from the top of the page down to the footer line.
+
+.. note::
+    A few details worth knowing:
+
+    - Matching is **substring-based and case-sensitive** — ``header_text=['Outlay']``
+      matches a line containing ``"Public Health Outlay"``. The topmost matching
+      line is used for ``header_text`` and the bottommost for ``footer_text``.
+    - If an anchor you specified is **not found** on the page (for example you
+      pass both ``header_text`` and ``footer_text`` but only the header matches),
+      camelot falls back to its automatic table detection rather than guessing.
+    - Explicit ``table_areas`` always takes precedence over ``header_text`` /
+      ``footer_text``. The derived area is also clipped to any ``table_regions``
+      you supply.
+    - These are :ref:`Stream <stream>` (text-based) options and are rejected for
+      ``flavor='lattice'``. They are available through the Python API only, not
+      the command-line interface.
+
 Specify column separators
 -------------------------
 
@@ -529,6 +573,31 @@ Beyond filesystem paths and URLs, :meth:`read_pdf() <camelot.read_pdf>` accepts 
     >>> camelot.read_pdf(io.BytesIO(resp.content))
 
 Camelot writes the bytes to a temporary file once internally (so the Lattice OpenCV image-conversion backend keeps working unchanged) and removes the temp file when the handler is closed. For file-like inputs the read position is preserved so the caller can keep using the same stream afterwards.
+
+Log per-page progress on large PDFs
+-----------------------------------
+
+On long multi-page documents, extraction can run for a while with no output.
+:meth:`read_pdf() <camelot.read_pdf>` emits a per-page progress line on the
+``camelot`` logger at ``INFO`` level, so you can tell which page is being
+processed instead of wondering whether the call has hung. As for any library,
+logging is silent by default — enable it to see the messages:
+
+.. code-block:: pycon
+
+    >>> import logging
+    >>> logging.basicConfig(level=logging.INFO)
+    >>> tables = camelot.read_pdf('large.pdf', pages='all')
+    INFO:camelot:Processing page 1
+    INFO:camelot:Processing page 2
+
+Pass ``suppress_stdout=True`` to :meth:`read_pdf() <camelot.read_pdf>` to silence
+the per-page progress logs.
+
+.. note::
+    With ``parallel=True`` the pages are parsed in worker processes, so the
+    progress lines are emitted there and may not propagate to the logging
+    handlers configured in your main process (and pages finish out of order).
 
 Improve guessed table areas
 ---------------------------
