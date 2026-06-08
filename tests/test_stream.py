@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import pytest
 from pandas.testing import assert_frame_equal
 
 import camelot
@@ -58,6 +59,79 @@ def test_stream_table_areas(testdir):
         filename, flavor="stream", table_areas=["320,500,573,335"]
     )
     assert_frame_equal(df, tables[0].df)
+
+
+def test_stream_header_footer_text(testdir):
+    df = pd.DataFrame(data_stream)
+
+    filename = os.path.join(testdir, "health.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="stream",
+        header_text=["Public Health Outlay"],
+        footer_text=["Health Sector Financing"],
+    )
+
+    assert len(tables) == 1
+    table = tables[0]
+    assert table._bbox[0] == pytest.approx(0)
+    assert table._bbox[1] > 0
+    assert table._bbox[2] == pytest.approx(table.pdf_size[0])
+    assert table._bbox[3] < table.pdf_size[1]
+    assert_frame_equal(df, table.df)
+    table_text = table.df.to_string()
+    assert "Public Health Outlay" not in table_text
+    assert "Health Sector Financing" not in table_text
+
+
+def test_stream_header_text_only_defaults_to_page_bottom(testdir):
+    filename = os.path.join(testdir, "health.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="stream",
+        header_text=["Public Health Outlay"],
+    )
+
+    assert len(tables) == 1
+    table = tables[0]
+    assert table._bbox[0] == pytest.approx(0)
+    assert table._bbox[1] == pytest.approx(0)
+    assert table._bbox[2] == pytest.approx(table.pdf_size[0])
+    assert table._bbox[3] < table.pdf_size[1]
+
+
+def test_stream_missing_header_text_falls_back_to_auto_detection(testdir):
+    df = pd.DataFrame(data_stream)
+
+    filename = os.path.join(testdir, "health.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="stream",
+        header_text=["not a real heading on this page"],
+    )
+
+    assert len(tables) == 1
+    assert_frame_equal(df, tables[0].df)
+
+
+def test_stream_table_areas_take_precedence_over_header_text(testdir):
+    df = pd.DataFrame(data_stream_table_areas)
+
+    filename = os.path.join(testdir, "tabula/us-007.pdf")
+    tables = camelot.read_pdf(
+        filename,
+        flavor="stream",
+        table_areas=["320,500,573,335"],
+        header_text=["Instructions."],
+    )
+
+    assert_frame_equal(df, tables[0].df)
+
+
+def test_header_text_rejected_for_lattice(testdir):
+    filename = os.path.join(testdir, "health.pdf")
+    with pytest.raises(ValueError, match="header_text cannot be used"):
+        camelot.read_pdf(filename, header_text=["Public Health Outlay"])
 
 
 def test_stream_columns(testdir):

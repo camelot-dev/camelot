@@ -125,7 +125,14 @@ common_kwargs = [
     "table_regions",
     "backend",
 ]
-text_kwargs = common_kwargs + ["columns", "edge_tol", "row_tol", "column_tol"]
+text_kwargs = common_kwargs + [
+    "columns",
+    "header_text",
+    "footer_text",
+    "edge_tol",
+    "row_tol",
+    "column_tol",
+]
 lattice_kwargs = common_kwargs + [
     "process_background",
     "line_scale",

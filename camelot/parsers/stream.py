@@ -26,6 +26,14 @@ class Stream(TextBaseParser):
         List of table area strings of the form x1,y1,x2,y2
         where (x1, y1) -> left-top and (x2, y2) -> right-bottom
         in PDF coordinate space.
+    header_text : list, optional (default: None)
+        List of substrings identifying a text line above the table.
+        When table_areas is not set, the matched line's bottom
+        coordinate is used as the table area's top edge.
+    footer_text : list, optional (default: None)
+        List of substrings identifying a text line below the table.
+        When table_areas is not set, the matched line's top coordinate
+        is used as the table area's bottom edge.
     columns : list, optional (default: None)
         List of column x-coordinates strings where the coordinates
         are comma-separated.
@@ -52,6 +60,8 @@ class Stream(TextBaseParser):
         self,
         table_regions=None,
         table_areas=None,
+        header_text=None,
+        footer_text=None,
         columns=None,
         split_text=False,
         flag_size=False,
@@ -66,6 +76,8 @@ class Stream(TextBaseParser):
             "stream",
             table_regions=table_regions,
             table_areas=table_areas,
+            header_text=header_text,
+            footer_text=footer_text,
             columns=columns,
             # _validate_columns()
             split_text=split_text,
@@ -104,6 +116,77 @@ class Stream(TextBaseParser):
 
         return table_bbox
 
+    @staticmethod
+    def _normalize_text_anchors(anchors):
+        if anchors is None:
+            return []
+        if isinstance(anchors, str):
+            anchors = [anchors]
+        return [anchor for anchor in anchors if anchor]
+
+    @staticmethod
+    def _find_text_anchor(textlines, anchors, reverse=False):
+        if not anchors:
+            return None
+        ordered_textlines = sorted(
+            textlines,
+            key=lambda textline: (
+                textline.y0 if reverse else -textline.y0,
+                textline.x0,
+            ),
+        )
+        for textline in ordered_textlines:
+            text = textline.get_text().strip()
+            if any(anchor in text for anchor in anchors):
+                return textline
+        return None
+
+    def _intersect_bbox_with_table_regions(self, bbox):
+        if self.table_regions is None:
+            return [bbox]
+
+        bboxes = []
+        for region_str in self.table_regions:
+            region_bbox = bbox_from_str(region_str)
+            region_intersection = (
+                max(bbox[0], region_bbox[0]),
+                max(bbox[1], region_bbox[1]),
+                min(bbox[2], region_bbox[2]),
+                min(bbox[3], region_bbox[3]),
+            )
+            if (
+                region_intersection[0] < region_intersection[2]
+                and region_intersection[1] < region_intersection[3]
+            ):
+                bboxes.append(region_intersection)
+        return bboxes
+
+    def _generate_table_bbox_from_text_anchors(self):
+        header_anchors = self._normalize_text_anchors(self.header_text)
+        footer_anchors = self._normalize_text_anchors(self.footer_text)
+        if not header_anchors and not footer_anchors:
+            return None
+
+        header_line = self._find_text_anchor(self.horizontal_text, header_anchors)
+        footer_line = self._find_text_anchor(
+            self.horizontal_text, footer_anchors, reverse=True
+        )
+        if (header_anchors and header_line is None) or (
+            footer_anchors and footer_line is None
+        ):
+            return None
+
+        top = header_line.y0 if header_line is not None else self.pdf_height
+        bottom = footer_line.y1 if footer_line is not None else 0
+        if bottom >= top:
+            return None
+
+        bbox = (0, bottom, self.pdf_width, top)
+        bboxes = self._intersect_bbox_with_table_regions(bbox)
+        if not bboxes:
+            return None
+        return {bbox: None for bbox in bboxes}
+
     def record_parse_metadata(self, table):
         """Record data about the origin of the table."""
         super().record_parse_metadata(table)
@@ -111,17 +194,19 @@ class Stream(TextBaseParser):
 
     def _generate_table_bbox(self):
         if self.table_areas is None:
-            hor_text = self.horizontal_text
-            if self.table_regions is not None:
-                # filter horizontal text
-                hor_text = []
-                for region_str in self.table_regions:
-                    region_text = text_in_bbox(
-                        bbox_from_str(region_str), self.horizontal_text
-                    )
-                hor_text.extend(region_text)
-            # find tables based on nurminen's detection algorithm
-            table_bbox_parses = self._nurminen_table_detection(hor_text)
+            table_bbox_parses = self._generate_table_bbox_from_text_anchors()
+            if table_bbox_parses is None:
+                hor_text = self.horizontal_text
+                if self.table_regions is not None:
+                    # filter horizontal text
+                    hor_text = []
+                    for region_str in self.table_regions:
+                        region_text = text_in_bbox(
+                            bbox_from_str(region_str), self.horizontal_text
+                        )
+                        hor_text.extend(region_text)
+                # find tables based on nurminen's detection algorithm
+                table_bbox_parses = self._nurminen_table_detection(hor_text)
         else:
             table_bbox_parses = {}
             for area_str in self.table_areas:
