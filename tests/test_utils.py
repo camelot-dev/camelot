@@ -7,8 +7,10 @@ import pytest
 from playa.miner import LAParams
 from playa.miner import LTTextBoxHorizontal
 
+import camelot
 from camelot.utils import bbox_from_str
 from camelot.utils import bbox_intersection_area
+from camelot.utils import image_bbox_to_pdf
 
 
 def get_text_from_pdf(filename):
@@ -220,3 +222,59 @@ def test_bbox_from_str_rejects_malformed():
         bbox_from_str("1,2,3")
     with pytest.raises(ValueError, match="must be numbers"):
         bbox_from_str("a,b,c,d")
+
+
+def test_image_bbox_to_pdf_300_dpi_letter_page():
+    pdf_bbox = image_bbox_to_pdf((300, 600, 1800, 1500), (2550, 3300), (612, 792))
+
+    assert pdf_bbox == pytest.approx((72.0, 648.0, 432.0, 432.0))
+    assert pdf_bbox[0] < pdf_bbox[2]
+    assert pdf_bbox[1] > pdf_bbox[3]
+
+
+def test_image_bbox_to_pdf_identity_scale_flips_y_axis():
+    pdf_bbox = image_bbox_to_pdf((10, 20, 110, 70), (200, 100), (200, 100))
+
+    assert pdf_bbox == pytest.approx((10.0, 80.0, 110.0, 30.0))
+
+
+def test_image_bbox_to_pdf_string_round_trips_through_bbox_from_str():
+    area = image_bbox_to_pdf(
+        (300, 600, 1800, 1500), (2550, 3300), (612, 792), as_string=True
+    )
+
+    assert isinstance(area, str)
+    assert bbox_from_str(area) == pytest.approx((72.0, 432.0, 432.0, 648.0))
+    assert camelot.image_bbox_to_pdf((10, 20, 110, 70), (200, 100), (200, 100)) == (
+        pytest.approx((10.0, 80.0, 110.0, 30.0))
+    )
+
+
+def test_image_bbox_to_pdf_top_and_bottom_edges():
+    top_edge = image_bbox_to_pdf((10, 0, 110, 25), (200, 100), (200, 100))
+    bottom_edge = image_bbox_to_pdf((10, 75, 110, 100), (200, 100), (200, 100))
+
+    assert top_edge == pytest.approx((10.0, 100.0, 110.0, 75.0))
+    assert bottom_edge == pytest.approx((10.0, 25.0, 110.0, 0.0))
+
+
+def test_image_bbox_to_pdf_scales_axes_independently():
+    pdf_bbox = image_bbox_to_pdf((20, 40, 120, 240), (200, 400), (100, 300))
+
+    assert pdf_bbox == pytest.approx((10.0, 270.0, 60.0, 120.0))
+
+
+@pytest.mark.parametrize(
+    ("bbox", "image_size", "pdf_size", "message"),
+    [
+        ((10, 20, 10, 70), (200, 100), (200, 100), "non-zero width and height"),
+        ((10, 20, 110, 20), (200, 100), (200, 100), "non-zero width and height"),
+        ((10, 20, 110, 70), (0, 100), (200, 100), "image_size dimensions"),
+        ((10, 20, 110, 70), (200, 100), (0, 100), "pdf_size dimensions"),
+    ],
+)
+def test_image_bbox_to_pdf_rejects_degenerate_input(
+    bbox, image_size, pdf_size, message
+):
+    with pytest.raises(ValueError, match=message):
+        image_bbox_to_pdf(bbox, image_size, pdf_size)
