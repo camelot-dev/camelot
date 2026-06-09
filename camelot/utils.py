@@ -553,6 +553,72 @@ def bbox_from_str(bbox_str):
     return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
 
 
+def image_bbox_to_pdf(bbox, image_size, pdf_size, as_string=False):
+    """Convert an image-space bbox to a PDF-space table area.
+
+    Parameters
+    ----------
+    bbox : tuple
+        Tuple (x1, y1, x2, y2) in image-pixel space, where the origin is the
+        top-left corner of the image.
+    image_size : tuple
+        Tuple (img_w, img_h) containing the rendered image width and height in
+        pixels.
+    pdf_size : tuple
+        Tuple (pdf_w, pdf_h) containing the PDF page width and height in
+        points.
+    as_string : bool, optional
+        If True, return the converted bbox as "x1,y1,x2,y2", suitable for use
+        as an entry in ``table_areas``. The default is False.
+
+    Returns
+    -------
+    bbox : tuple or str
+        Tuple (x1, y1, x2, y2) in PDF coordinate space, where the origin is the
+        bottom-left corner and y1 is greater than y2, or the same coordinates
+        serialized as "x1,y1,x2,y2" when ``as_string`` is True.
+
+    Raises
+    ------
+    ValueError
+        If an image or PDF dimension is zero or negative, or if ``bbox`` has
+        zero width or height in image-pixel space.
+
+    """
+    x1, y1, x2, y2 = bbox
+    img_w, img_h = image_size
+    pdf_w, pdf_h = pdf_size
+
+    if img_w <= 0 or img_h <= 0:
+        raise ValueError(
+            "image_size dimensions must be positive; pass the rendered image "
+            "size as (img_w, img_h)."
+        )
+    if pdf_w <= 0 or pdf_h <= 0:
+        raise ValueError(
+            "pdf_size dimensions must be positive; pass the PDF page size in "
+            "points as (pdf_w, pdf_h)."
+        )
+    if x1 == x2 or y1 == y2:
+        raise ValueError(
+            "bbox must have non-zero width and height in image-pixel space; "
+            "pass (x1, y1, x2, y2) from the rendered image."
+        )
+
+    scaling_factor_x = pdf_w / img_w
+    scaling_factor_y = pdf_h / img_h
+
+    left = scale(min(x1, x2), scaling_factor_x)
+    right = scale(max(x1, x2), scaling_factor_x)
+    top = translate(-scale(min(y1, y2), scaling_factor_y), pdf_h)
+    bottom = translate(-scale(max(y1, y2), scaling_factor_y), pdf_h)
+
+    pdf_bbox = (left, top, right, bottom)
+    if as_string:
+        return ",".join(str(coord) for coord in pdf_bbox)
+    return pdf_bbox
+
+
 def bboxes_overlap(bbox1, bbox2):
     """Check if boundingboxes overlap.
 
