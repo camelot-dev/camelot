@@ -99,7 +99,7 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
@@ -209,7 +209,7 @@ jobs:
     if: needs.changes.outputs.code == 'true'
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v6
