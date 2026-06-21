@@ -4,6 +4,7 @@ from typing import Optional
 
 from .io import read_pdf
 from .plotting import PlotMethods
+from .utils import image_bbox_to_pdf
 
 
 def get_version() -> str | None:
