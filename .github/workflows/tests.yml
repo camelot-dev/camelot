@@ -6,41 +6,91 @@ on:
   pull_request:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      test_matrix: ${{ steps.matrix.outputs.include }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          predicate-quantifier: every
+          filters: |
+            code:
+              - "**"
+              - "!docs/**"
+              - "!*.md"
+              - "!*.rst"
+
+      - name: Select Nox matrix
+        id: matrix
+        shell: python
+        run: |
+          import json
+          import os
+
+          checks = [
+              {"python": "3.10", "os": "ubuntu-latest", "session": "pre-commit"},
+              {"python": "3.10", "os": "ubuntu-latest", "session": "safety"},
+              {
+                  "python": "3.11",
+                  "os": "ubuntu-latest",
+                  "session": "mypy",
+                  "posargs": [
+                      "camelot",
+                      "tests",
+                      "docs/conf.py",
+                      "--allow-untyped-globals",
+                  ],
+              },
+          ]
+          test_sessions = [
+              {"python": "3.12", "os": "ubuntu-latest", "session": "tests"},
+              {"python": "3.11", "os": "ubuntu-latest", "session": "tests"},
+              {"python": "3.10", "os": "ubuntu-latest", "session": "tests"},
+              {"python": "3.13", "os": "ubuntu-latest", "session": "tests"},
+              {"python": "3.14", "os": "ubuntu-latest", "session": "tests"},
+              {
+                  "python": "3.15",
+                  "os": "ubuntu-latest",
+                  "session": "tests",
+                  "experimental": True,
+              },
+              {"python": "3.10", "os": "windows-latest", "session": "tests"},
+              {"python": "3.10", "os": "macos-latest", "session": "tests"},
+              {"python": "3.10", "os": "ubuntu-latest", "session": "typeguard"},
+              {"python": "3.10", "os": "ubuntu-latest", "session": "xdoctest"},
+          ]
+          docs_build = [
+              {"python": "3.13", "os": "ubuntu-latest", "session": "docs-build"},
+          ]
+
+          matrix = checks
+          if "${{ steps.filter.outputs.code }}" == "true":
+              matrix += test_sessions
+          matrix += docs_build
+
+          with open(os.environ["GITHUB_OUTPUT"], mode="a") as output:
+              print(f"include={json.dumps(matrix)}", file=output)
+
   tests:
     name: ${{ matrix.session }} ${{ matrix.python }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: changes
     # Allow the experimental (pre-release) Python entries to fail without
     # failing the workflow as a whole.
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { python: "3.10", os: "ubuntu-latest", session: "pre-commit" }
-          - { python: "3.10", os: "ubuntu-latest", session: "safety" }
-          - {
-              python: "3.11",
-              os: "ubuntu-latest",
-              session: "mypy",
-              posargs:
-                ["camelot", "tests", "docs/conf.py", "--allow-untyped-globals"],
-            }
-          - { python: "3.12", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.11", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.10", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.13", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.14", os: "ubuntu-latest", session: "tests" }
-          - {
-              python: "3.15",
-              os: "ubuntu-latest",
-              session: "tests",
-              experimental: true,
-            }
-          - { python: "3.10", os: "windows-latest", session: "tests" }
-          - { python: "3.10", os: "macos-latest", session: "tests" }
-          - { python: "3.10", os: "ubuntu-latest", session: "typeguard" }
-          - { python: "3.10", os: "ubuntu-latest", session: "xdoctest" }
-          - { python: "3.13", os: "ubuntu-latest", session: "docs-build" }
+        include: ${{ fromJSON(needs.changes.outputs.test_matrix) }}
 
     env:
       NOXSESSION: ${{ matrix.session }}
@@ -65,7 +115,7 @@ jobs:
         # shipped by setup-python.
         if: matrix.python != '3.15'
         run: |
-          pip install --constraint=${PWD}/.github/workflows/constraints.txt pip
+          pip install --constraint="${PWD}/.github/workflows/constraints.txt" pip
           pip --version
 
       - name: Upgrade pip in virtual environments
@@ -82,7 +132,7 @@ jobs:
 
       - name: Install Nox
         run: |
-          pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox
+          pipx install --pip-args=--constraint="${PWD}/.github/workflows/constraints.txt" nox
           nox --version
 
       - name: Install ghostscript
@@ -113,6 +163,7 @@ jobs:
         shell: python
         run: |
           import hashlib
+          import os
           import sys
 
           python = "py{}.{}".format(*sys.version_info[:2])
@@ -120,7 +171,8 @@ jobs:
           digest = hashlib.sha256(payload).hexdigest()
           result = "${{ runner.os }}-{}-{}-pre-commit".format(python, digest[:8])
 
-          print("::set-output name=result::{}".format(result))
+          with open(os.environ["GITHUB_OUTPUT"], mode="a") as output:
+              print("result={}".format(result), file=output)
 
       - name: Restore pre-commit cache
         uses: actions/cache@v5
@@ -153,7 +205,8 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
-    needs: tests
+    needs: [changes, tests]
+    if: needs.changes.outputs.code == 'true'
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6
@@ -165,7 +218,7 @@ jobs:
 
       - name: Upgrade pip
         run: |
-          pip install --constraint=${PWD}/.github/workflows/constraints.txt pip
+          pip install --constraint="${PWD}/.github/workflows/constraints.txt" pip
           pip --version
 
       - name: Install uv
@@ -173,7 +226,7 @@ jobs:
 
       - name: Install Nox
         run: |
-          pipx install --pip-args=--constraint=${PWD}/.github/workflows/constraints.txt nox
+          pipx install --pip-args=--constraint="${PWD}/.github/workflows/constraints.txt" nox
           nox --version
 
       - name: Download coverage data
