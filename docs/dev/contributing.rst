@@ -121,6 +121,8 @@ Writing documentation, function docstrings, examples and tutorials is a great wa
 
 The documentation is written in `reStructuredText`_, with `Sphinx`_ used to generate these lovely HTML files that you're currently reading (unless you're reading this on GitHub). You can edit the documentation using any text editor and then generate the HTML output by running `make html` in the ``docs/`` directory.
 
+Docs-only pull requests still run linting and the documentation build in CI, but skip the full Python/OS test matrix.
+
 The function docstrings are written using the `numpydoc`_ extension for Sphinx. Make sure you check out how its format guidelines before you start writing one.
 
 .. _reStructuredText: https://en.wikipedia.org/wiki/ReStructuredText
