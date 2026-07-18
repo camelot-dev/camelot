@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Camelot: PDF Table Extraction for Humans"
+abstract: "Camelot is a Python library that can extract tables from text-based PDF files."
+type: software
+authors:
+  - family-names: Mehta
+    given-names: Vinayak
+    email: vmehta94@gmail.com
+  - name: "The Camelot contributors"
+repository-code: "https://github.com/camelot-dev/camelot"
+url: "https://camelot-py.readthedocs.io/"
+license: MIT
+version: 2.0.0
+date-released: 2026-06-04
+keywords:
+  - pdf
+  - table-extraction
+  - data-extraction
+  - python
