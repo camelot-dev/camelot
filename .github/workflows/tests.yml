@@ -13,7 +13,7 @@ jobs:
       test_matrix: ${{ steps.matrix.outputs.include }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
