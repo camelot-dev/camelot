@@ -85,7 +85,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: changes
     # Allow the experimental (pre-release) Python entries to fail without
-    # failing the workflow as a whole.
+    # failing the workflow as a whole. This job-level flag keeps a failing
+    # 3.15 row from failing the run, but GitHub still reports the individual
+    # matrix job as red; the step-level flag on "Run Nox" below is what turns
+    # the reported check green.
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
@@ -184,6 +187,14 @@ jobs:
             ${{ steps.pre-commit-cache.outputs.result }}-
 
       - name: Run Nox
+        # Tolerate failures on the pre-release (experimental) Python rows at
+        # the *step* level so the job's check reports green. A core dependency
+        # such as pandas frequently has no wheel for a new pre-release yet and
+        # cannot be built from source (e.g. pandas' meson build errors with
+        # "Unknown compiler(s): cython" on 3.15), which would otherwise mark
+        # every PR's "tests 3.15" check red. The row still runs to give early
+        # signal and will pass on its own once upstream wheels land.
+        continue-on-error: ${{ matrix.experimental || false }}
         run: |
           nox --python=${{ matrix.python }}
 
