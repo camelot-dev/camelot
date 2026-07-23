@@ -304,6 +304,13 @@ Table areas that you want camelot to analyze can be passed as a list of comma-se
 
 .. note:: ``table_areas`` accepts strings of the form x1,y1,x2,y2 where (x1, y1) -> top-left and (x2, y2) -> bottom-right in PDF coordinate space. In PDF coordinate space, the bottom-left corner of the page is the origin, with coordinates (0, 0).
 
+If your coordinates come from a rendered page image, use ``camelot.image_bbox_to_pdf()`` to convert the image-pixel bounding box into the PDF-space string expected by ``table_areas``:
+
+.. code-block:: pycon
+
+    >>> area = camelot.image_bbox_to_pdf((300, 600, 1800, 1500), (2550, 3300), (612, 792), as_string=True)
+    >>> tables = camelot.read_pdf('table_areas.pdf', flavor='stream', table_areas=[area])
+
 Specify table regions
 ---------------------
 
