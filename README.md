@@ -145,6 +145,11 @@ pip install "camelot-py[plot]"    # matplotlib debug plots
 The core install stays light: `[ml]`/`[ocr]` are imported lazily, so a plain
 `import camelot` never loads PyTorch or OCR.
 
+> **Note** — `[ocr]` pulls `rapidocr-onnxruntime`, which hard-requires the full
+> `opencv-python` even though Camelot itself uses `opencv-python-headless`. See
+> [the install docs](https://camelot-py.readthedocs.io/en/latest/user/install.html#the-ocr-extra-and-opencv-python)
+> for how to keep the headless build only.
+
 ## Documentation
 
 The documentation is available at [http://camelot-py.readthedocs.io/](http://camelot-py.readthedocs.io/).
