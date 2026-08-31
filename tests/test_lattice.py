@@ -119,6 +119,32 @@ def test_lattice_rejects_mostly_empty_grid():
     assert not parser._reject_table(SimpleNamespace(whitespace=40.0))
 
 
+def test_lattice_keeps_filled_one_row_grid():
+    # #689: a 1-row continuation is not page-border noise. The 90%
+    # whitespace gate (#36) must not drop it — stack_contiguous cannot
+    # stitch a row that was never emitted.
+    from types import SimpleNamespace
+
+    from camelot.parsers.lattice import Lattice
+
+    parser = Lattice()
+    one_row = SimpleNamespace(whitespace=90.0, shape=(1, 10))
+    assert not parser._reject_table(one_row)
+
+
+def test_lattice_keeps_last_row_alone_on_next_page(testdir):
+    # #689: last table row sitting alone on the next page must be
+    # detected as a 1-row grid, not dropped. stack_contiguous cannot
+    # recover a page that emitted zero tables.
+    filename = os.path.join(testdir, "lattice_one_row_next_page.pdf")
+    tables = camelot.read_pdf(filename, flavor="lattice", pages="all")
+    df = pd.concat([t.df for t in tables], ignore_index=True)
+    assert "2026-02" in df.astype(str).to_string()
+    page2 = [t for t in tables if t.page == 2]
+    assert len(page2) == 1
+    assert page2[0].shape[0] == 1
+
+
 def test_network_keeps_sparse_tables():
     # The gate is lattice-only — text-based parsers must not inherit it.
     from types import SimpleNamespace
