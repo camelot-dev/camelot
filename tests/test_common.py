@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import pandas as pd
+import pytest
 from pandas.testing import assert_frame_equal
 
 import camelot
@@ -324,6 +325,31 @@ def test_handler_pages_generator(testdir):
     )
 
     assert handler._get_pages("all") == [1]
+
+
+@pytest.mark.parametrize(
+    "pages",
+    [
+        pytest.param("0", id="page-zero"),
+        pytest.param("0-2", id="range-from-zero"),
+        pytest.param("4", id="past-the-end"),
+        pytest.param("2-5", id="range-past-the-end"),
+    ],
+)
+def test_expand_pages_spec_rejects_out_of_range_pages(pages):
+    with pytest.raises(ValueError, match="out of range"):
+        PDFHandler._expand_pages_spec(pages, 3)
+
+
+def test_expand_pages_spec_strips_spaces_around_end():
+    assert PDFHandler._expand_pages_spec("2 - end", 3) == [2, 3]
+
+
+def test_read_pdf_rejects_page_zero(testdir):
+    # Page 0 used to become index -1 and return the last page's tables.
+    filename = os.path.join(testdir, "foo.pdf")
+    with pytest.raises(ValueError, match="Page 0 is out of range"):
+        camelot.read_pdf(filename, pages="0")
 
 
 def test_handler_with_pathlib(testdir):
