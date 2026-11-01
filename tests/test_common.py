@@ -477,9 +477,9 @@ def test_overlapping_text_preserves_adjacent_cell(testdir):
     ackermann_rows = df[ackermann_mask]
     assert len(ackermann_rows) >= 1, "fixture changed: no Ackermann rows found"
 
-    for idx, row in ackermann_rows.iterrows():
-        row_text = " ".join(row.astype(str).tolist())
-        assert vers_nr_re.search(row_text), (
-            f"row {idx} ({row_text[:60]!r}…) is missing its Vers.-Nummer — "
-            "text_in_bbox content-aware dedup regressed."
-        )
+    row_texts = ackermann_rows.astype(str).agg(" ".join, axis=1)
+    missing = row_texts[~row_texts.str.contains(vers_nr_re)]
+    assert missing.empty, (
+        f"rows {list(missing.index)} are missing their Vers.-Nummer — "
+        "text_in_bbox content-aware dedup regressed."
+    )

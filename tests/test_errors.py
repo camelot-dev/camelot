@@ -7,6 +7,7 @@ import pytest
 from playa.exceptions import PDFTextExtractionNotAllowed
 
 import camelot
+from camelot.backends import pdfium_backend
 from camelot.backends.image_conversion import ImageConversionError
 from camelot.utils import is_url
 from tests.conftest import skip_on_windows
@@ -17,14 +18,16 @@ def test_unknown_flavor(foo_pdf):
         "Unknown flavor specified."
         " Use either 'lattice', 'stream', 'network', 'hybrid', 'ml' or 'auto'"
     )
-    with pytest.raises(NotImplementedError, match=message):
+    with pytest.raises(NotImplementedError) as excinfo:
         camelot.read_pdf(foo_pdf, flavor="chocolate")
+    assert message in str(excinfo.value)
 
 
 def test_input_kwargs(foo_pdf):
     message = "columns cannot be used with flavor='lattice'"
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(ValueError) as excinfo:
         camelot.read_pdf(foo_pdf, columns=["10,20,30,40"])
+    assert message in str(excinfo.value)
 
 
 def test_pdf_without_pdf_extension(testdir, tmp_path):
@@ -47,11 +50,8 @@ def test_no_tables_found_logs_suppressed(testdir):
     with warnings.catch_warnings():
         # the test should fail if any warning is thrown
         warnings.simplefilter("error")
-        try:
-            camelot.read_pdf(filename, suppress_stdout=True)
-        except Warning as e:
-            warning_text = str(e)
-            pytest.fail(f"Unexpected warning: {warning_text}")
+        tables = camelot.read_pdf(filename, suppress_stdout=True)
+    assert len(tables) == 1
 
 
 def test_no_tables_found_warnings_suppressed(testdir):
@@ -59,36 +59,36 @@ def test_no_tables_found_warnings_suppressed(testdir):
     with warnings.catch_warnings():
         # the test should fail if any warning is thrown
         warnings.simplefilter("error")
-        try:
-            camelot.read_pdf(filename, suppress_stdout=True)
-        except Warning as e:
-            warning_text = str(e)
-            pytest.fail(f"Unexpected warning: {warning_text}")
+        tables = camelot.read_pdf(filename, suppress_stdout=True)
+    assert len(tables) == 0
 
 
 def test_no_password(testdir):
     filename = os.path.join(testdir, "health_protected.pdf")
     message = "File has not been decrypted"
-    with pytest.raises(Exception, match=message):
+    with pytest.raises(Exception) as excinfo:
         camelot.read_pdf(filename)
+    assert message in str(excinfo.value)
 
 
 def test_bad_password(testdir):
     filename = os.path.join(testdir, "health_protected.pdf")
     message = "File has not been decrypted"
-    with pytest.raises(Exception, match=message):
+    with pytest.raises(Exception) as excinfo:
         camelot.read_pdf(filename, password="wrongpass")
+    assert message in str(excinfo.value)
 
 
 def test_stream_equal_length(foo_pdf):
     message = "Length of table_areas and columns should be equal"
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(ValueError) as excinfo:
         camelot.read_pdf(
             foo_pdf,
             flavor="stream",
             table_areas=["10,20,30,40"],
             columns=["10,20,30,40", "10,20,30,40"],
         )
+    assert message in str(excinfo.value)
 
 
 def test_image_warning(testdir):
@@ -132,20 +132,24 @@ def test_lattice_no_tables_on_page(testdir):
 
 def test_lattice_unknown_backend(foo_pdf):
     message = "Unknown backend 'mupdf' specified. Please use 'pdfium', 'poppler' or 'ghostscript'."
-    with pytest.raises(NotImplementedError, match=message):
+    with pytest.raises(NotImplementedError) as excinfo:
         tables = camelot.read_pdf(
             foo_pdf, flavor="lattice", backend="mupdf", use_fallback=False
         )
+    assert message in str(excinfo.value)
 
 
 def test_lattice_no_convert_method(foo_pdf):
-    class ConversionBackend:
-        pass
+    class BackendWithoutConvert:
+        """Backend that deliberately lacks the required convert() method."""
 
     message = "must implement a 'convert' method"
     with pytest.raises(NotImplementedError, match=message):
         camelot.read_pdf(
-            foo_pdf, flavor="lattice", backend=ConversionBackend(), use_fallback=False
+            foo_pdf,
+            flavor="lattice",
+            backend=BackendWithoutConvert(),
+            use_fallback=False,
         )
 
 
@@ -160,20 +164,19 @@ def test_invalid_url():
         camelot.read_pdf(url)
 
 
-def test_pdfium_backend_import_error(testdir):
+def test_pdfium_backend_import_error(testdir, tmp_path, monkeypatch):
     filename = os.path.join(testdir, "table_region.pdf")
-    with mock.patch.dict(sys.modules, {"pypdfium2": None}):
-        message = "pypdfium2 is not available: "
-        try:
-            tables = camelot.read_pdf(
-                filename,
-                flavor="lattice",
-                backend="pdfium",
-                use_fallback=False,
-            )
-        except Exception as em:
-            print(em)
-            assert message in str(em)
+    # pypdfium2 is imported when camelot loads, so patching sys.modules here
+    # has no effect; simulate the failed import the backend records instead.
+    monkeypatch.setattr(
+        pdfium_backend,
+        "PDFIUM_EXC",
+        ModuleNotFoundError("No module named 'pypdfium2'"),
+    )
+    message = "pypdfium2 is not available: "
+    with pytest.raises(OSError) as excinfo:
+        pdfium_backend.PdfiumBackend().convert(filename, str(tmp_path / "out.png"))
+    assert message in str(excinfo.value)
 
 
 def test_pdfium_backend_import_error_alternative(testdir):
@@ -205,5 +208,6 @@ def test_ghostscript_backend_import_error(testdir):
 
 def test_extraction_not_allowed(testdir):
     filename = os.path.join(testdir, "birdisland.pdf")
-    with pytest.raises(PDFTextExtractionNotAllowed):
+    with pytest.raises(PDFTextExtractionNotAllowed) as excinfo:
         camelot.read_pdf(filename, flavor="stream")
+    assert "Text extraction is not allowed" in str(excinfo.value)

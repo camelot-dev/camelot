@@ -44,28 +44,36 @@ def test_per_page_no_override_no_regression(testdir):
 
 def test_per_page_invalid_kwarg_rejected(foo_pdf):
     """Unknown parser kwarg in per_page raises ValueError (same path as global)."""
-    with pytest.raises(ValueError, match="cannot be used with flavor"):
+    with pytest.raises(ValueError) as excinfo:
         camelot.read_pdf(
             foo_pdf,
             flavor="lattice",
-            per_page={1: {"row_tol": 5}},  # row_tol is stream/network-only
+            per_page={1: {"row_tol": 5}},
         )
+
+    assert "cannot be used with flavor" in str(excinfo.value)
 
 
 def test_per_page_invalid_flavor_rejected(foo_pdf):
-    with pytest.raises(NotImplementedError, match="not one of"):
+    with pytest.raises(NotImplementedError) as excinfo:
         camelot.read_pdf(foo_pdf, per_page={1: {"flavor": "chocolate"}})
+
+    assert "not one of" in str(excinfo.value)
 
 
 def test_per_page_auto_flavor_rejected(foo_pdf):
     """'auto' is only valid as the global flavor, not as a per-page override."""
-    with pytest.raises(NotImplementedError, match="not one of"):
+    with pytest.raises(NotImplementedError) as excinfo:
         camelot.read_pdf(foo_pdf, per_page={1: {"flavor": "auto"}})
+
+    assert "not one of" in str(excinfo.value)
 
 
 def test_per_page_non_dict_value_rejected(foo_pdf):
-    with pytest.raises(ValueError, match="must be a dict of kwargs"):
+    with pytest.raises(ValueError) as excinfo:
         camelot.read_pdf(foo_pdf, per_page={1: "not a dict"})
+
+    assert "must be a dict of kwargs" in str(excinfo.value)
 
 
 def test_per_page_non_int_key_rejected(foo_pdf):

@@ -55,16 +55,22 @@ def test_probe_custom_threshold(monkeypatch):
     assert layout_has_ruled_lines(layout, min_lines=3) is False
 
 
-def test_lattice_engine_validation():
+@pytest.mark.parametrize("eng", ["raster", "vector", "combined"])
+def test_lattice_engine_accepts_valid_values(eng):
     from camelot.parsers.lattice import Lattice
 
     # Valid values construct fine ('auto' was dropped — item-2 cleanup).
-    for eng in ("raster", "vector", "combined"):
-        assert Lattice(engine=eng).engine == eng
+    assert Lattice(engine=eng).engine == eng
+
+
+@pytest.mark.parametrize("bad", ["opencv", "auto"])
+def test_lattice_engine_rejects_invalid_values(bad):
+    from camelot.parsers.lattice import Lattice
+
     # Invalid values rejected at construction.
-    for bad in ("opencv", "auto"):
-        with pytest.raises(ValueError, match="engine must be"):
-            Lattice(engine=bad)
+    with pytest.raises(ValueError) as excinfo:
+        Lattice(engine=bad)
+    assert "engine must be" in str(excinfo.value)
 
 
 def test_lattice_default_engine_is_combined():
