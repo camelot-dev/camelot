@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from camelot.backends import ImageConversionBackend
@@ -49,11 +51,8 @@ def test_ghostscript_backend_when_use_fallback(patch_backends):
     backend.convert("foo", "bar")
 
 
-def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
-    """Use an image conversion backend and let it fallback to ghostscript.
-
-    Then capture the error message of the second backend (the fallback).
-    """
+def test_last_fallback_error_when_all_backends_fail(monkeypatch):
+    """Report the last backend error after all conversion fallbacks fail."""
     backends = {
         "pdfium": PdfiumBackendError,
         "ghostscript": GhostscriptBackendError,
@@ -65,7 +64,7 @@ def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
     )
     backend = ImageConversionBackend(backend="pdfium")
 
-    message = "Image conversion failed with image conversion backend 'ghostscript'\n error: Image conversion failed"
+    message = "Image conversion failed with image conversion backend 'poppler'\n error: Image conversion failed"
     with pytest.raises(ValueError, match=message):
         backend.convert("foo", "bar")
 
@@ -73,3 +72,26 @@ def test_ghostscript_backend_error_when_use_fallback(monkeypatch):
 @pytest.mark.xfail
 def test_invalid_backend():
     ImageConversionBackend(backend="invalid_backend")
+
+
+def test_conversion_tries_next_fallback_after_failure(monkeypatch):
+    successful_backend = Mock()
+    monkeypatch.setattr(
+        "camelot.backends.image_conversion.BACKENDS",
+        {
+            "pdfium": PdfiumBackendError,
+            "ghostscript": GhostscriptBackendError,
+            "poppler": lambda: successful_backend,
+        },
+    )
+
+    ImageConversionBackend(backend="pdfium").convert("foo", "bar", page=3)
+
+    successful_backend.convert.assert_called_once_with("foo", "bar", page=3)
+
+
+def test_custom_backend_failure_is_not_swallowed():
+    backend = ImageConversionBackend(backend=PdfiumBackendError())
+
+    with pytest.raises(ValueError, match="Image conversion failed"):
+        backend.convert("foo", "bar")

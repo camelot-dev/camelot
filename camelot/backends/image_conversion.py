@@ -121,20 +121,21 @@ class ImageConversionBackend:
         """
         try:
             self.backend.convert(pdf_path, png_path, page=page)
-        except Exception as f:
+        except Exception as error:
+            failed_backend: ConversionBackend | str = self.backend
+            last_error = error
             if self.use_fallback:
                 for fallback in self.fallbacks:
                     try:
                         converter = BACKENDS[fallback]()
                         converter.convert(pdf_path, png_path, page=page)
-                    except Exception as e:
-                        msg = f"Image conversion failed with image conversion backend {fallback!r}\n error: {e}"
-                        raise ImageConversionError(msg) from e
+                    except Exception as fallback_error:
+                        failed_backend = fallback
+                        last_error = fallback_error
                     else:
-                        break
-            else:
-                msg = f"Image conversion failed with image conversion backend {self.backend!r}\n error: {f}"
-                raise ImageConversionError(msg) from f
+                        return
+            msg = f"Image conversion failed with image conversion backend {failed_backend!r}\n error: {last_error}"
+            raise ImageConversionError(msg) from last_error
 
     def to_array(self, pdf_path: str, page: int = 1):
         """Render a page to an in-memory BGR ndarray, skipping the PNG file.
