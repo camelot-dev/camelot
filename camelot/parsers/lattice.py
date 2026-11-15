@@ -304,7 +304,20 @@ class Lattice(BaseParser):
         header separators the contour-joint pipeline mistook for a table.
         Rejecting these is a precision gate that cuts false positives on
         pages with no real table (#36).
+
+        A 1-row grid with at least one filled cell is a table
+        continuation that landed alone on the next page (#689), not
+        noise. ``stack_contiguous`` cannot stitch a row the page never
+        emitted, so keep it even at the 90 % whitespace gate.
         """
+        shape = getattr(table, "shape", None)
+        if (
+            shape is not None
+            and len(shape) >= 1
+            and shape[0] == 1
+            and table.whitespace < 100.0
+        ):
+            return False
         return table.whitespace >= _GRID_WHITESPACE_REJECT
 
     def _resolve_engine(self):
