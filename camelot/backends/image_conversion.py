@@ -122,7 +122,7 @@ class ImageConversionBackend:
         try:
             self.backend.convert(pdf_path, png_path, page=page)
         except Exception as error:
-            failed_backend: ConversionBackend | str = self.backend
+            failed_backend: object = self.backend
             last_error = error
             if self.use_fallback:
                 for fallback in self.fallbacks:
