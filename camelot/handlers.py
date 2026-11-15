@@ -206,13 +206,21 @@ class PDFHandler:
             for r in pages.split(","):
                 if "-" in r:
                     a, b = r.split("-")
-                    b_int = page_count if b == "end" else int(b)
+                    b_int = page_count if b.strip() == "end" else int(b)
                     page_numbers.append({"start": int(a), "end": b_int})
                 else:
                     page_numbers.append({"start": int(r), "end": int(r)})
         result: list[int] = []
         for p in page_numbers:
             result.extend(range(p["start"], p["end"] + 1))
+        # Pages are 1-based. Page 0 would become index -1 and silently read
+        # the last page; a page past the end fails deep inside playa.
+        out_of_range = sorted(n for n in set(result) if not 1 <= n <= page_count)
+        if out_of_range:
+            raise ValueError(
+                f"Page {out_of_range[0]} is out of range: pages are numbered "
+                f"from 1 and this PDF has {page_count}"
+            )
         return sorted(set(result))
 
     def __enter__(self) -> PDFHandler:
