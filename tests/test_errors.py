@@ -134,13 +134,16 @@ def test_lattice_unknown_backend(foo_pdf):
 
 
 def test_lattice_no_convert_method(foo_pdf):
-    class ConversionBackend:
-        pass
+    class BackendWithoutConvert:
+        """Backend that deliberately lacks the required convert() method."""
 
     message = "must implement a 'convert' method"
     with pytest.raises(NotImplementedError, match=message):
         camelot.read_pdf(
-            foo_pdf, flavor="lattice", backend=ConversionBackend(), use_fallback=False
+            foo_pdf,
+            flavor="lattice",
+            backend=BackendWithoutConvert(),
+            use_fallback=False,
         )
 
 
@@ -198,5 +201,7 @@ def test_ghostscript_backend_import_error(testdir):
 
 def test_extraction_not_allowed(testdir):
     filename = os.path.join(testdir, "birdisland.pdf")
-    with pytest.raises(PDFTextExtractionNotAllowed):
+    with pytest.raises(
+        PDFTextExtractionNotAllowed, match="Text extraction is not allowed"
+    ):
         camelot.read_pdf(filename, flavor="stream")
