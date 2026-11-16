@@ -23,10 +23,14 @@ def test_help_output():
     assert result.output.startswith(
         "Usage: {prog_name} [OPTIONS] COMMAND".format(**locals())
     )
-    assert all(
-        v in result.output
-        for v in ["Options:", "--version", "--help", "Commands:", "lattice", "stream"]
-    )
+
+
+@pytest.mark.parametrize(
+    "expected", ["Options:", "--version", "--help", "Commands:", "lattice", "stream"]
+)
+def test_help_output_lists(expected):
+    result = CliRunner().invoke(cli, ["--help"])
+    assert expected in result.output
 
 
 @skip_on_windows
