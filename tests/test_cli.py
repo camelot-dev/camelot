@@ -1,3 +1,4 @@
+import importlib
 import importlib.metadata
 import os
 import sys
@@ -282,25 +283,25 @@ def test_cli_quiet(testdir):
         infile = os.path.join(testdir, "empty.pdf")
         outfile = os.path.join(tempdir, "empty.csv")
         runner = CliRunner()
-        with warnings.catch_warnings():
-            # the test should fail if any warning is thrown
-            # warnings.simplefilter("error")
-            try:
-                result = runner.invoke(
-                    cli,
-                    [
-                        "stream",
-                        "--quiet",
-                        "--format",
-                        "csv",
-                        "--output",
-                        outfile,
-                        infile,
-                    ],
-                )
-            except Warning as e:
-                warning_text = str(e)
-                pytest.fail(f"Unexpected warning: {warning_text}")
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            # --quiet takes a value (is_flag=False); passed bare, it swallowed
+            # "--format" and the command exited with a usage error.
+            result = runner.invoke(
+                cli,
+                [
+                    "stream",
+                    "--quiet",
+                    "true",
+                    "--format",
+                    "csv",
+                    "--output",
+                    outfile,
+                    infile,
+                ],
+            )
+        assert result.exit_code == 0, result.output
+        assert [str(w.message) for w in caught] == []
 
 
 def test_cli_lattice_plot_type():
@@ -322,12 +323,17 @@ def test_cli_lattice_plot_type():
         assert result.exit_code != 0, f"Output: {result.output}"
 
 
-def test_import_error():
+def test_import_error(monkeypatch):
+    import camelot
+    import camelot.cli as original_cli
+
+    # camelot.cli is already imported, so load a fresh copy with matplotlib
+    # hidden instead of expecting the cached import itself to fail.
+    monkeypatch.setattr(camelot, "cli", original_cli)
     with mock.patch.dict(sys.modules, {"matplotlib": None}):
-        try:
-            from camelot.cli import cli
-        except ImportError:
-            assert cli._HAS_MPL is False
+        del sys.modules["camelot.cli"]
+        fresh_cli = importlib.import_module("camelot.cli")
+    assert fresh_cli._HAS_MPL is False
 
 
 def test_version_package_not_found():
