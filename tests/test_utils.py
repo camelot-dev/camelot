@@ -196,12 +196,12 @@ def test_bbox_from_str_normalises_corner_order():
     assert bbox_from_str("49,217,568,403") == (49, 217, 568, 403)
 
 
-def test_bbox_from_str_rejects_zero_area():
+@pytest.mark.parametrize("bad", ["49,217,568,217", "100,100,100,400"])
+def test_bbox_from_str_rejects_zero_area(bad):
     # Zero width or height is the usual cause of the cryptic downstream
     # ZeroDivisionError (#63); it must raise a clear, hint-bearing error.
-    for bad in ("49,217,568,217", "100,100,100,400"):
-        with pytest.raises(ValueError, match="zero width or height"):
-            bbox_from_str(bad)
+    with pytest.raises(ValueError, match="zero width or height"):
+        bbox_from_str(bad)
 
 
 def test_bbox_from_str_rejects_malformed():
