@@ -48,11 +48,8 @@ def test_no_tables_found_logs_suppressed(testdir):
     with warnings.catch_warnings():
         # the test should fail if any warning is thrown
         warnings.simplefilter("error")
-        try:
-            camelot.read_pdf(filename, suppress_stdout=True)
-        except Warning as e:
-            warning_text = str(e)
-            pytest.fail(f"Unexpected warning: {warning_text}")
+        tables = camelot.read_pdf(filename, suppress_stdout=True)
+    assert len(tables) == 1
 
 
 def test_no_tables_found_warnings_suppressed(testdir):
@@ -60,11 +57,8 @@ def test_no_tables_found_warnings_suppressed(testdir):
     with warnings.catch_warnings():
         # the test should fail if any warning is thrown
         warnings.simplefilter("error")
-        try:
-            camelot.read_pdf(filename, suppress_stdout=True)
-        except Warning as e:
-            warning_text = str(e)
-            pytest.fail(f"Unexpected warning: {warning_text}")
+        tables = camelot.read_pdf(filename, suppress_stdout=True)
+    assert len(tables) == 0
 
 
 def test_no_password(testdir):
