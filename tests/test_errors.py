@@ -7,6 +7,7 @@ import pytest
 from playa.exceptions import PDFTextExtractionNotAllowed
 
 import camelot
+from camelot.backends import pdfium_backend
 from camelot.backends.image_conversion import ImageConversionError
 from camelot.utils import is_url
 from tests.conftest import skip_on_windows
@@ -160,20 +161,18 @@ def test_invalid_url():
         camelot.read_pdf(url)
 
 
-def test_pdfium_backend_import_error(testdir):
+def test_pdfium_backend_import_error(testdir, tmp_path, monkeypatch):
     filename = os.path.join(testdir, "table_region.pdf")
-    with mock.patch.dict(sys.modules, {"pypdfium2": None}):
-        message = "pypdfium2 is not available: "
-        try:
-            tables = camelot.read_pdf(
-                filename,
-                flavor="lattice",
-                backend="pdfium",
-                use_fallback=False,
-            )
-        except Exception as em:
-            print(em)
-            assert message in str(em)
+    # pypdfium2 is imported when camelot loads, so patching sys.modules here
+    # has no effect; simulate the failed import the backend records instead.
+    monkeypatch.setattr(
+        pdfium_backend,
+        "PDFIUM_EXC",
+        ModuleNotFoundError("No module named 'pypdfium2'"),
+    )
+    message = "pypdfium2 is not available: "
+    with pytest.raises(OSError, match=message):
+        pdfium_backend.PdfiumBackend().convert(filename, str(tmp_path / "out.png"))
 
 
 def test_pdfium_backend_import_error_alternative(testdir):
