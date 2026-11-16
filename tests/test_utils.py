@@ -11,6 +11,7 @@ import camelot
 from camelot.utils import bbox_from_str
 from camelot.utils import bbox_intersection_area
 from camelot.utils import image_bbox_to_pdf
+from tests.doubles import TextlineStub
 
 
 def get_text_from_pdf(filename):
@@ -112,23 +113,9 @@ def test_text_in_bbox_filters_and_discards_overlaps():
 # --- Coverage for #733: get_table_index NumPy / bisect refactor -------------
 
 
-class _TextlineStub:
-    """Minimal stand-in for a PDFMiner LTTextLine sufficient for get_table_index."""
-
-    __slots__ = ("x0", "y0", "x1", "y1", "_objs", "_text")
-
-    def __init__(self, x0, y0, x1, y1, text="x"):
-        self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
-        self._objs = []
-        self._text = text
-
-    def get_text(self):
-        return self._text + "\n"
-
-
 def _make_textline(x0, y0, x1, y1, text="x"):
-    """Build a _TextlineStub — kept as a thin helper for call-site readability."""
-    return _TextlineStub(x0, y0, x1, y1, text)
+    """Build a TextlineStub — kept as a thin helper for call-site readability."""
+    return TextlineStub(x0, y0, x1, y1, text)
 
 
 def test_get_table_index_lazy_caches():
