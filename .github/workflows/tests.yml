@@ -259,3 +259,18 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
+
+  # Single required status check for branch protection. The tests matrix is
+  # dynamic (docs-only PRs skip the test sessions), so individual matrix jobs
+  # can't be required without blocking docs-only PRs forever.
+  ci-ok:
+    name: ci-ok
+    runs-on: ubuntu-latest
+    needs: [changes, tests]
+    if: always()
+    steps:
+      - name: Require all CI jobs to succeed
+        run: |
+          echo "changes=${{ needs.changes.result }} tests=${{ needs.tests.result }}"
+          test "${{ needs.changes.result }}" = success
+          test "${{ needs.tests.result }}" = success

@@ -1,29 +1,32 @@
-name: Dependabot Auto-Approve
+name: Dependabot Auto-Merge
 
 on:
-  pull_request_target: # Use pull_request_target to get write permissions for approval
+  pull_request_target: # write token for approve/merge; never checks out PR code
     types:
       - opened
       - synchronize
       - reopened
 
 permissions:
+  contents: write # Needed to enable auto-merge
   pull-requests: write # Needed to approve PRs
 
 jobs:
-  auto-approve:
+  auto-merge:
     runs-on: ubuntu-latest
-    # Only run for PRs authored by dependabot[bot]
-    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Checkout code (not strictly necessary for just approval)
-        uses: actions/checkout@v7
-        # no further steps needed for just approval
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ github.token }}
 
-      - name: Auto-approve Dependabot PR
+      - name: Approve and enable auto-merge (patch/minor only)
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
         run: |
           gh pr review --approve "$PR_URL"
-          echo "Approved Dependabot PR: $PR_URL"
+          gh pr merge --auto --squash "$PR_URL"
         env:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
