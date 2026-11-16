@@ -62,60 +62,81 @@ def test_cli_lattice(testdir):
         assert "Please specify output file format using --format" in result.output
 
 
-def test_cli_stream(testdir):
-    with TemporaryDirectory() as tempdir:
-        infile = os.path.join(testdir, "budget.pdf")
-        outfile = os.path.join(tempdir, "budget.csv")
-        runner = CliRunner()
-        result = runner.invoke(
-            cli, ["stream", "--format", "csv", "--output", outfile, infile]
-        )
-        assert result.exit_code == 0
-        assert result.output == "Found 1 tables\n"
+@pytest.fixture
+def budget_paths(testdir, tmp_path):
+    return os.path.join(testdir, "budget.pdf"), str(tmp_path / "budget.csv")
 
-        result = runner.invoke(cli, ["stream", "--format", "csv", infile])
-        output_error = "Error: Please specify output file path using --output"
-        assert output_error in result.output
 
-        # #639: --format inferred from .csv extension when --output is given.
-        result = runner.invoke(cli, ["stream", "--output", outfile, infile])
-        assert result.exit_code == 0, result.output
-        assert "Found 1 tables" in result.output
+def test_cli_stream(budget_paths):
+    infile, outfile = budget_paths
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ["stream", "--format", "csv", "--output", outfile, infile]
+    )
+    assert result.exit_code == 0
+    assert result.output == "Found 1 tables\n"
 
-        result = runner.invoke(
-            cli,
-            [
-                "stream",
-                "--margins",
-                "1.5",
-                "0.5",
-                "0.8",
-                "--format",
-                "csv",
-                "--output",
-                outfile,
-                infile,
-            ],
-        )
-        assert result.exit_code == 0
-        assert result.output == "Found 1 tables\n"
 
-        result = runner.invoke(
-            cli,
-            [
-                "stream",
-                "--margins",
-                "1.5",
-                "0.5",
-                "--format",
-                "csv",
-                "--output",
-                outfile,
-                infile,
-            ],
-        )
-        output_error = "Error: Invalid value for '-M' / '--margins': '--format' is not a valid float."
-        assert output_error in result.output
+def test_cli_stream_requires_output(budget_paths):
+    infile, _outfile = budget_paths
+    runner = CliRunner()
+    result = runner.invoke(cli, ["stream", "--format", "csv", infile])
+    output_error = "Error: Please specify output file path using --output"
+    assert output_error in result.output
+
+
+def test_cli_stream_infers_format_from_output_extension(budget_paths):
+    # #639: --format inferred from .csv extension when --output is given.
+    infile, outfile = budget_paths
+    runner = CliRunner()
+    result = runner.invoke(cli, ["stream", "--output", outfile, infile])
+    assert result.exit_code == 0, result.output
+    assert "Found 1 tables" in result.output
+
+
+def test_cli_stream_margins(budget_paths):
+    infile, outfile = budget_paths
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "stream",
+            "--margins",
+            "1.5",
+            "0.5",
+            "0.8",
+            "--format",
+            "csv",
+            "--output",
+            outfile,
+            infile,
+        ],
+    )
+    assert result.exit_code == 0
+    assert result.output == "Found 1 tables\n"
+
+
+def test_cli_stream_margins_need_three_values(budget_paths):
+    infile, outfile = budget_paths
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "stream",
+            "--margins",
+            "1.5",
+            "0.5",
+            "--format",
+            "csv",
+            "--output",
+            outfile,
+            infile,
+        ],
+    )
+    output_error = (
+        "Error: Invalid value for '-M' / '--margins': '--format' is not a valid float."
+    )
+    assert output_error in result.output
 
 
 @skip_on_windows
@@ -227,59 +248,38 @@ def test_cli_password(testdir):
         assert output_error in str(result.exception)
 
 
-def test_cli_output_format(testdir):
-    with TemporaryDirectory() as tempdir:
-        infile = os.path.join(testdir, "health.pdf")
+@pytest.mark.parametrize(
+    "fmt,ext",
+    [("json", ".json"), ("excel", ".xlsx"), ("html", ".html"), ("markdown", ".md")],
+)
+def test_cli_output_format(testdir, tmp_path, fmt, ext):
+    infile = os.path.join(testdir, "health.pdf")
+    outfile = str(tmp_path / f"health{ext}")
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["stream", "--format", fmt, "--output", outfile, infile],
+    )
+    assert result.exit_code == 0, f"Output: {result.output}"
 
-        runner = CliRunner()
 
-        # json
-        outfile = os.path.join(tempdir, "health.json")
-        result = runner.invoke(
-            cli,
-            ["stream", "--format", "json", "--output", outfile, infile],
-        )
-        assert result.exit_code == 0, f"Output: {result.output}"
-
-        # excel
-        outfile = os.path.join(tempdir, "health.xlsx")
-        result = runner.invoke(
-            cli,
-            ["stream", "--format", "excel", "--output", outfile, infile],
-        )
-        assert result.exit_code == 0, f"Output: {result.output}"
-
-        # html
-        outfile = os.path.join(tempdir, "health.html")
-        result = runner.invoke(
-            cli,
-            ["stream", "--format", "html", "--output", outfile, infile],
-        )
-        assert result.exit_code == 0, f"Output: {result.output}"
-
-        # markdown
-        outfile = os.path.join(tempdir, "health.md")
-        result = runner.invoke(
-            cli,
-            ["stream", "--format", "markdown", "--output", outfile, infile],
-        )
-        assert result.exit_code == 0, f"Output: {result.output}"
-
-        # zip
-        outfile = os.path.join(tempdir, "health.csv")
-        result = runner.invoke(
-            cli,
-            [
-                "stream",
-                "--zip",
-                "--format",
-                "csv",
-                "--output",
-                outfile,
-                infile,
-            ],
-        )
-        assert result.exit_code == 0, f"Output: {result.output}"
+def test_cli_output_format_zip(testdir, tmp_path):
+    infile = os.path.join(testdir, "health.pdf")
+    outfile = str(tmp_path / "health.csv")
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "stream",
+            "--zip",
+            "--format",
+            "csv",
+            "--output",
+            outfile,
+            infile,
+        ],
+    )
+    assert result.exit_code == 0, f"Output: {result.output}"
 
 
 def test_cli_quiet(testdir):
