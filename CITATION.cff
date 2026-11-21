@@ -9,8 +9,8 @@ authors:
 repository-code: "https://github.com/camelot-dev/camelot"
 url: "https://camelot-py.readthedocs.io/"
 license: MIT
-version: 2.0.0
-date-released: "2026-06-04"
+version: 2.1.0
+date-released: "2026-11-21"
 abstract: >-
   Camelot is a Python library that makes it easy to extract tables
   from PDF files. It provides multiple parsing backends including
