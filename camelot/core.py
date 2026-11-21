@@ -6,27 +6,18 @@ import copy
 import math
 import os
 import sqlite3
-import sys
 import tempfile
 import zipfile
 from collections.abc import Iterable
 from collections.abc import Iterator
 from operator import itemgetter
 from typing import Any
+from typing import TypedDict
+from typing import Unpack
 
 import cv2
 import numpy as np
 import pandas as pd
-
-if sys.version_info >= (3, 11):
-    from typing import TypedDict  # pylint: disable=no-name-in-module
-    from typing import Unpack
-else:
-    # 3.10 is the floor (requires-python = ">=3.10"); typing_extensions
-    # remains the source of TypedDict/Unpack on 3.10 because Unpack only
-    # entered typing in 3.11.
-    from typing_extensions import TypedDict
-    from typing_extensions import Unpack
 
 from .backends import ImageConversionBackend
 from .image_processing import undo_rotation

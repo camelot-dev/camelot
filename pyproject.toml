@@ -10,13 +10,12 @@ readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "click>=8.0.1",
     "numpy>=1.26.1",
@@ -115,9 +114,9 @@ fail_under = 90
 
 [tool.ruff]
 # Ruff replaces Black (formatter) and isort (import sorting). Match
-# `requires-python = ">=3.10"` so the formatter targets the floor version
-# (also keeps formatting stable across the 3.10–3.15 CI matrix).
-target-version = "py310"
+# `requires-python = ">=3.11"` so the formatter targets the floor version
+# (also keeps formatting stable across the 3.11–3.15 CI matrix).
+target-version = "py311"
 line-length = 88  # Black's default, which the codebase was formatted to.
 # Notebooks were never linted/formatted by the old black/flake8 (types: [python]);
 # keep that behaviour. Vendored Flask theme is third-party.
@@ -139,6 +138,7 @@ force-exclude = true
 # linting is dropped — the one capability lost in the move.
 select = ["B", "C90", "D", "E", "F", "I", "N", "S", "UP", "W"]
 ignore = [
+    "UP038", # deprecated rule; isinstance with a tuple is fine (and faster)
     "D401", # imperative-mood first line (was ignored under flake8)
     "E203", # whitespace before ':' — Ruff-format/Black compatibility
     "E501", # line too long — the formatter owns wrapping
