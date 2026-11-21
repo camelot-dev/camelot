@@ -116,6 +116,59 @@ def test_stream_no_tables_in_area(testdir):
         assert str(e.value) == "No tables found in table area (0, 0, 792.0, 612.0)"
 
 
+def _pdf_with_text(tmp_path, width, height, x, y, text):
+    """A one-page PDF that has `text` at (x, y), written with Helvetica."""
+    content = f"BT /F1 12 Tf {x} {y} Td ({text}) Tj ET".encode()
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        (
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {width} {height}] "
+            "/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
+        ).encode(),
+        b"<< /Length %d >>\nstream\n%s\nendstream" % (len(content), content),
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for number, body in enumerate(objects, 1):
+        offsets.append(len(pdf))
+        pdf += b"%d 0 obj\n%s\nendobj\n" % (number, body)
+    xref = len(pdf)
+    pdf += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    for offset in offsets:
+        pdf += b"%010d 00000 n \n" % offset
+    pdf += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (
+        len(objects) + 1,
+        xref,
+    )
+    path = tmp_path / "text.pdf"
+    path.write_bytes(bytes(pdf))
+    return str(path)
+
+
+@pytest.mark.parametrize(
+    ("size", "x", "text"),
+    [
+        pytest.param(200, 50, " ", id="only-whitespace"),
+        pytest.param(5, 50, "Background", id="text-outside-the-page"),
+    ],
+)
+def test_stream_area_without_text(tmp_path, size, x, text):
+    """An area without text, or with only whitespace, has no table to build."""
+    filename = _pdf_with_text(tmp_path, size, size, x, 50, text)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(UserWarning) as e:
+            camelot.read_pdf(filename, flavor="stream")
+        assert (
+            str(e.value) == f"No tables found in table area (0, 0, {size}.0, {size}.0)"
+        )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        assert len(camelot.read_pdf(filename, flavor="stream")) == 0
+
+
 def test_lattice_no_tables_on_page(testdir):
     filename = os.path.join(testdir, "empty.pdf")
     with warnings.catch_warnings():
