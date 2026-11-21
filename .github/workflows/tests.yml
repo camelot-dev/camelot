@@ -37,8 +37,8 @@ jobs:
           import os
 
           checks = [
-              {"python": "3.10", "os": "ubuntu-latest", "session": "pre-commit"},
-              {"python": "3.10", "os": "ubuntu-latest", "session": "safety"},
+              {"python": "3.11", "os": "ubuntu-latest", "session": "pre-commit"},
+              {"python": "3.11", "os": "ubuntu-latest", "session": "safety"},
               {
                   "python": "3.11",
                   "os": "ubuntu-latest",
@@ -54,7 +54,6 @@ jobs:
           test_sessions = [
               {"python": "3.12", "os": "ubuntu-latest", "session": "tests"},
               {"python": "3.11", "os": "ubuntu-latest", "session": "tests"},
-              {"python": "3.10", "os": "ubuntu-latest", "session": "tests"},
               {"python": "3.13", "os": "ubuntu-latest", "session": "tests"},
               {"python": "3.14", "os": "ubuntu-latest", "session": "tests"},
               {
@@ -63,10 +62,10 @@ jobs:
                   "session": "tests",
                   "experimental": True,
               },
-              {"python": "3.10", "os": "windows-latest", "session": "tests"},
-              {"python": "3.10", "os": "macos-latest", "session": "tests"},
-              {"python": "3.10", "os": "ubuntu-latest", "session": "typeguard"},
-              {"python": "3.10", "os": "ubuntu-latest", "session": "xdoctest"},
+              {"python": "3.11", "os": "windows-latest", "session": "tests"},
+              {"python": "3.11", "os": "macos-latest", "session": "tests"},
+              {"python": "3.11", "os": "ubuntu-latest", "session": "typeguard"},
+              {"python": "3.11", "os": "ubuntu-latest", "session": "xdoctest"},
           ]
           docs_build = [
               {"python": "3.13", "os": "ubuntu-latest", "session": "docs-build"},
@@ -225,7 +224,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Upgrade pip
         run: |

@@ -13,14 +13,14 @@ from nox import session
 
 package = "camelot"
 
-# TODO: certain sessions are pinned to Python 3.10
+# TODO: certain sessions are pinned to Python 3.11
 # "3.15" is listed so `nox --python=3.15` (set in tests.yml) finds a matching
 # session; nox auto-skips it locally when no 3.15 interpreter is installed.
 # The CI matrix entry uses setup-python `allow-prereleases: true` plus the
 # `experimental: true` / continue-on-error knob to keep the row non-blocking.
 # Note: uv's python download parser does not accept "3.15-dev" as a version,
 # so we use the bare "3.15" form here and in the matrix.
-python_versions = ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+python_versions = ["3.11", "3.12", "3.13", "3.14", "3.15"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -111,7 +111,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
                 break
 
 
-@session(name="pre-commit", python="3.10")
+@session(name="pre-commit", python="3.11")
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
     args = session.posargs or [
@@ -130,7 +130,7 @@ def precommit(session: Session) -> None:
         activate_virtualenv_in_precommit_hooks(session)
 
 
-@session(python="3.10")
+@session(python="3.11")
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
     session.install(".")
@@ -205,7 +205,7 @@ def tests(session: Session) -> None:
             session.notify("coverage", posargs=[])
 
 
-@session(python="3.10", reuse_venv=True)
+@session(python="3.11", reuse_venv=True)
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report", "-i"]
@@ -218,7 +218,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python="3.10")
+@session(python="3.11")
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install(".")
@@ -267,7 +267,7 @@ def docs_build(session: Session) -> None:
     session.run("sphinx-build", *args)
 
 
-@session(python="3.10")
+@session(python="3.11")
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
