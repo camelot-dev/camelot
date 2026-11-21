@@ -215,12 +215,21 @@ class PDFHandler:
             result.extend(range(p["start"], p["end"] + 1))
         # Pages are 1-based. Page 0 would become index -1 and silently read
         # the last page; a page past the end fails deep inside playa.
-        out_of_range = sorted(n for n in set(result) if not 1 <= n <= page_count)
+        bounds = {n for p in page_numbers for n in (p["start"], p["end"])}
+        out_of_range = sorted(
+            n for n in bounds | set(result) if not 1 <= n <= page_count
+        )
         if out_of_range:
             raise ValueError(
                 f"Page {out_of_range[0]} is out of range: pages are numbered "
                 f"from 1 and this PDF has {page_count}"
             )
+        # A reversed range would select no page and return no tables.
+        for p in page_numbers:
+            if p["start"] > p["end"]:
+                raise ValueError(
+                    f"Page range {p['start']}-{p['end']} ends before it starts"
+                )
         return sorted(set(result))
 
     def __enter__(self) -> PDFHandler:

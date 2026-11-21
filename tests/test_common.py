@@ -341,6 +341,24 @@ def test_expand_pages_spec_rejects_out_of_range_pages(pages):
         PDFHandler._expand_pages_spec(pages, 3)
 
 
+@pytest.mark.parametrize(
+    "pages",
+    [
+        pytest.param("3-1", id="reversed-range"),
+        pytest.param("1,3-2", id="reversed-range-in-a-list"),
+    ],
+)
+def test_expand_pages_spec_rejects_reversed_ranges(pages):
+    with pytest.raises(ValueError, match="ends before it starts"):
+        PDFHandler._expand_pages_spec(pages, 3)
+
+
+def test_expand_pages_spec_rejects_a_range_from_past_the_end():
+    # "5-end" of a 3-page PDF is reversed too, but its first page is the error.
+    with pytest.raises(ValueError, match="Page 5 is out of range"):
+        PDFHandler._expand_pages_spec("5-end", 3)
+
+
 def test_expand_pages_spec_strips_spaces_around_end():
     assert PDFHandler._expand_pages_spec("2 - end", 3) == [2, 3]
 
