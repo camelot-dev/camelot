@@ -1,0 +1,39 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 245 >>
+stream
+0.8 w
+70 660 230 40 re S
+70 680 m 300 680 l S
+122 660 m 122 700 l S
+BT /F1 10 Tf 72 686 Td (Symbol A1) Tj ET
+BT /F1 10 Tf 123.5 686 Td (Drain current) Tj ET
+BT /F1 10 Tf 72 666 Td (Symbol B2) Tj ET
+BT /F1 10 Tf 123.5 666 Td (Gate voltage) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000536 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+606
+%%EOF

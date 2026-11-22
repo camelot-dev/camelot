@@ -196,3 +196,12 @@ def test_combined_respects_table_regions(testdir):
         filename, table_regions=region, engine="combined", suppress_stdout=True
     )
     assert c[0].shape == r[0].shape
+
+
+def test_lattice_narrow_column_gap(testdir):
+    """Text hugging a shared ruling stays in its own column (#341)."""
+    df = pd.DataFrame([["Symbol A1", "Drain current"], ["Symbol B2", "Gate voltage"]])
+
+    filename = os.path.join(testdir, "narrow_column_gap.pdf")
+    tables = camelot.read_pdf(filename)
+    assert_frame_equal(df, tables[0].df)

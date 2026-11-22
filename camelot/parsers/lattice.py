@@ -290,6 +290,35 @@ class Lattice(BaseParser):
 
         return indices
 
+    def _crosses_ruling(self, table, t, direction) -> bool:
+        """Tell whether a horizontal textline crosses a ruled column edge.
+
+        Text of two neighbouring cells that sits close to their shared
+        ruling is joined into a single textline by the layout engine, which
+        would put both texts in one cell (#341). Such a textline is split
+        when the ruling falls in a gap between its characters; text that
+        merely overflows its cell (a character lies on the ruling) is kept
+        whole.
+        """
+        if direction != "horizontal":
+            return False
+        y_mid = (t.y0 + t.y1) / 2
+        chars = [c for c in t if hasattr(c, "x0") and c.get_text().strip()]
+        for row in table.cells:
+            if not row[0].y1 < y_mid < row[0].y2:
+                continue
+            for cell in row[:-1]:
+                x = cell.x2
+                if (
+                    cell.right
+                    and t.x0 < x < t.x1
+                    and any(c.x1 <= x for c in chars)
+                    and any(c.x0 >= x for c in chars)
+                    and not any(c.x0 < x < c.x1 for c in chars)
+                ):
+                    return True
+        return False
+
     def record_parse_metadata(self, table):
         """Record data about the origin of the table."""
         super().record_parse_metadata(table)
