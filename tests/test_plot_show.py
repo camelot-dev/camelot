@@ -10,7 +10,9 @@ These tests verify that the parameter is wired correctly without needing
 a real PDF or a display.
 """
 
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
 
 
@@ -36,8 +38,10 @@ class TestPlotMethodsShowParameter:
         table = _make_table()
         mock_fig = MagicMock()
 
-        with patch.object(plot_methods, "text", return_value=mock_fig) as mock_plot, \
-             patch("camelot.plotting.plt.show") as mock_plt_show:
+        with (
+            patch.object(plot_methods, "text", return_value=mock_fig) as mock_plot,
+            patch("camelot.plotting.plt.show") as mock_plt_show,
+        ):
             plot_methods(table, kind="text", show=False)
 
         mock_plt_show.assert_not_called()
@@ -47,8 +51,10 @@ class TestPlotMethodsShowParameter:
         table = _make_table()
         mock_fig = MagicMock()
 
-        with patch.object(plot_methods, "text", return_value=mock_fig), \
-             patch("camelot.plotting.plt.show") as mock_plt_show:
+        with (
+            patch.object(plot_methods, "text", return_value=mock_fig),
+            patch("camelot.plotting.plt.show") as mock_plt_show,
+        ):
             result = plot_methods(table, kind="text", show=True)
 
         mock_plt_show.assert_called_once_with(block=True)
@@ -59,21 +65,26 @@ class TestPlotMethodsShowParameter:
         table = _make_table()
         sentinel_fig = MagicMock(name="sentinel_fig")
 
-        with patch.object(plot_methods, "text", return_value=sentinel_fig), \
-             patch("camelot.plotting.plt.show"):
+        with (
+            patch.object(plot_methods, "text", return_value=sentinel_fig),
+            patch("camelot.plotting.plt.show"),
+        ):
             result = plot_methods(table, kind="text", show=True)
 
         assert result is sentinel_fig
 
-    def test_show_ignored_when_filename_given(self, plot_methods):
+    def test_show_ignored_when_filename_given(self, plot_methods, tmp_path):
         """When filename is provided the figure is saved, not displayed."""
         table = _make_table()
         mock_fig = MagicMock()
+        out = str(tmp_path / "out.png")
 
-        with patch.object(plot_methods, "text", return_value=mock_fig), \
-             patch("camelot.plotting.plt.show") as mock_plt_show:
-            result = plot_methods(table, kind="text", filename="/tmp/out.png", show=True)
+        with (
+            patch.object(plot_methods, "text", return_value=mock_fig),
+            patch("camelot.plotting.plt.show") as mock_plt_show,
+        ):
+            result = plot_methods(table, kind="text", filename=out, show=True)
 
         mock_plt_show.assert_not_called()
-        mock_fig.savefig.assert_called_once_with("/tmp/out.png")
+        mock_fig.savefig.assert_called_once_with(out)
         assert result is None
