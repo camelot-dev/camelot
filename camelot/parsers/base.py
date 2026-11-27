@@ -179,6 +179,14 @@ class BaseParser:
         """
         return idx
 
+    def _crosses_ruling(self, table, t, direction) -> bool:
+        """Tell whether a textline crosses a ruled cell edge.
+
+        Only useful for some parsers (e.g. Lattice), base method is a
+        noop.
+        """
+        return False
+
     def compute_parse_errors(self, table):
         """Compute parse errors for the table .
 
@@ -219,7 +227,7 @@ class BaseParser:
                 table,
                 t,
                 direction,
-                split_text=self.split_text,
+                split_text=self.split_text or self._crosses_ruling(table, t, direction),
                 flag_size=self.flag_size,
                 strip_text=self.strip_text,
             )
