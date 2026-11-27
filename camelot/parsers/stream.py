@@ -211,7 +211,16 @@ class Stream(TextBaseParser):
             table_bbox_parses = {}
             for area_str in self.table_areas:
                 table_bbox_parses[bbox_from_str(area_str)] = None
-        self.table_bbox_parses = table_bbox_parses
+        self.table_bbox_parses = {}
+        for bbox, parse in table_bbox_parses.items():
+            if any(
+                t.get_text().strip() for t in text_in_bbox(bbox, self.horizontal_text)
+            ):
+                self.table_bbox_parses[bbox] = parse
+            else:
+                # nothing but whitespace, or no text at all, to build a table from
+                bbox = tuple(float(x) if x else x for x in bbox)
+                warnings.warn(f"No tables found in table area {bbox}", stacklevel=2)
 
     def _generate_columns_and_rows(self, bbox, user_cols):
         # select elements which lie within table_bbox
