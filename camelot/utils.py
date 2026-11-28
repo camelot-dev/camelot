@@ -1576,7 +1576,10 @@ def get_table_index(  # noqa: C901  - cyclomatic complexity is inherent to the r
         if c_left <= t_x1 and c_right >= t_x0:
             left = t_x0 if c_left <= t_x0 else c_left
             right = t_x1 if c_right >= t_x1 else c_right
-            ov = abs(left - right) / widths[cidx]
+            # a column of zero width (all the text of the table has no width)
+            # has no fraction to compute; text that lies on it covers it
+            width = widths[cidx]
+            ov = abs(left - right) / width if width else 1.0
             if ov > best_overlap:
                 best_overlap = ov
                 best_c = cidx

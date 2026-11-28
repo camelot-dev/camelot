@@ -149,6 +149,17 @@ def test_get_table_index_lazy_caches():
     assert table._rows_disjoint is True  # the disjoint fast-path triggered
 
 
+def test_get_table_index_column_without_width():
+    """A column without width, as text without width makes, has no overlap to divide."""
+    from camelot.core import Table
+    from camelot.utils import get_table_index
+
+    table = Table([(10.0, 10.0)], [(100.0, 90.0)])
+    textline = _make_textline(10.0, 92.0, 10.0, 98.0)
+    indices, _err = get_table_index(table, textline, direction="horizontal")
+    assert [(r_idx, c_idx) for r_idx, c_idx, _text in indices] == [(0, 0)]
+
+
 def test_get_table_index_rows_overlap_fallback():
     """Overlapping rows force the linear-scan fallback (still bit-identical)."""
     from camelot.core import Table
