@@ -116,7 +116,10 @@ def test_stream_no_tables_in_area(testdir):
         assert str(e.value) == "No tables found in table area (0, 0, 792.0, 612.0)"
 
 
-def _pdf_with_text(tmp_path, width, height, x, y, text):
+HELVETICA = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+
+
+def _pdf_with_text(tmp_path, width, height, x, y, text, font=HELVETICA):
     """A one-page PDF that has `text` at (x, y), written with Helvetica."""
     content = f"BT /F1 12 Tf {x} {y} Td ({text}) Tj ET".encode()
     objects = [
@@ -127,7 +130,7 @@ def _pdf_with_text(tmp_path, width, height, x, y, text):
             "/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
         ).encode(),
         b"<< /Length %d >>\nstream\n%s\nendstream" % (len(content), content),
-        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        font,
     ]
     pdf = bytearray(b"%PDF-1.4\n")
     offsets = []
@@ -167,6 +170,21 @@ def test_stream_area_without_text(tmp_path, size, x, text):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         assert len(camelot.read_pdf(filename, flavor="stream")) == 0
+
+
+def test_stream_text_without_width(tmp_path):
+    """Text whose glyphs have no width makes a column without width."""
+    widths = " ".join(["0"] * 95)
+    font = (
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Foo "
+        f"/FirstChar 32 /LastChar 126 /Widths [{widths}] >>"
+    ).encode()
+    filename = _pdf_with_text(tmp_path, 200, 200, 50, 50, "Lorem ipsum", font)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        tables = camelot.read_pdf(filename, flavor="stream")
+    assert len(tables) == 1
+    assert "".join(tables[0].df[0][0].split()) == "Loremipsum"
 
 
 def test_lattice_no_tables_on_page(testdir):
