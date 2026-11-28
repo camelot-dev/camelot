@@ -176,7 +176,7 @@ def prepare_plot(table, ax=None):
 class PlotMethods:
     """Classmethod for plotting methods."""
 
-    def __call__(self, table, kind="text", filename=None, ax=None):
+    def __call__(self, table, kind="text", filename=None, ax=None, show=False):
         """Plot elements found on PDF page based on kind specified.
 
         Useful for debugging and playing with different
@@ -193,6 +193,11 @@ class PlotMethods:
         filename: str, optional (default: None)
             Absolute path for saving the generated plot.
         ax : matplotlib.axes.Axes (optional)
+        show : bool, optional (default: False)
+            If True, call ``plt.show(block=True)`` after creating the figure
+            so the window stays open until closed by the user.  Useful when
+            running camelot in a plain Python script where
+            ``figure.show()`` returns immediately.
 
         Returns
         -------
@@ -215,7 +220,10 @@ class PlotMethods:
             fig.savefig(filename)
             return None
 
-        return plot_method(table, ax)
+        fig = plot_method(table, ax)
+        if show:
+            plt.show(block=True)
+        return fig
 
     def text(self, table, ax=None):
         """Generate a plot for all text elements present on the PDF page.
